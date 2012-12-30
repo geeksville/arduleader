@@ -29,15 +29,15 @@ class IGCPublisher(filename: String) extends InstrumentedActor {
    * Convert every location into a scheduled message (hopefully the scheduler is smart)
    */
   private def scheduleEvents() {
-    if (!igc.locations.isEmpty) {
-      val startTime = igc.locations(0).time
+    if (igc.locations.length > 1) { // Need at least two points, because it seems like the first point is bogus in some tracklogs
+      val points = igc.locations.tail
+      val startTime = points(0).time
 
-      // FIXME - for testing limit to ten points!!!!!
-      igc.locations.take(10).foreach { l =>
-        log.debug("Schedule: " + l)
+      points.foreach { l =>
+        // log.debug("Schedule: " + l)
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
-      log.debug("Done scheduling")
+      log.info("Done scheduling")
     }
   }
 }
