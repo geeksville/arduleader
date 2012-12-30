@@ -1,8 +1,12 @@
-Misc personal to-dos for this project... -kevinh
-
 # Goal
 
 Have a arduplane follow a hang-glider and take pictures.
+
+## How to build
+
+To build this project you need sbt (simple build tool).  On ubuntu you can do "apt-get install sbt", for other platforms see http://www.scala-sbt.org/release/docs/Getting-Started/Setup.  Then cd into the root
+directory of this project and type "sbt run".  If you would like to use eclipse, then type "sbt eclipse" to 
+autogenerate the project files.
 
 ## Method
 This is my current thinking, feel free to edit...
