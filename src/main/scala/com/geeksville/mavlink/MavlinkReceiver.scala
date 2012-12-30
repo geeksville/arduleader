@@ -32,7 +32,7 @@ class MavlinkReceiver extends InstrumentedActor {
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
-  val destEventBus = context.system.eventStream
+  val destEventBus = MavlinkEventBus
 
   thread.start()
 

@@ -7,6 +7,7 @@ import akka.util.duration._
 import com.geeksville.mavlink._
 import com.geeksville.flight._
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.flight.wingman.Wingman
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -32,9 +33,15 @@ object FlightLead {
 
     // FIXME create this somewhere else
     Akka.actorOf(Props[MavlinkReceiver], "mavrx")
-    Akka.actorOf(Props[LogIncomingMavlink], "mavlog")
+
+    // Create flightlead actors
+    // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
     Akka.actorOf(Props[FlightLead], "lead")
     Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+
+    // Create wingman actors
+    Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId)), "ardlog")
+    Akka.actorOf(Props[Wingman], "wing")
 
     Thread.sleep(1000 * 60 * 10)
   }

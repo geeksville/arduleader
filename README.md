@@ -8,10 +8,13 @@ To build this project you need sbt (simple build tool).  On ubuntu you can do "a
 directory of this project and type "sbt run".  If you would like to use eclipse, then type "sbt eclipse" to 
 autogenerate the project files.
 
+Note: This is still a work in progress. Unless you are working on it with me, you probably don't want to bother
+playing with it yet. ;-)
+
 ## Method
 This is my current thinking, feel free to edit...
 
-* Have a netbook (for ease of development no android initially) on the pilot
+* Have a netbook + GPS on the pilot. (for ease of development do no android later)
 * The netbook is running MAVProxy and xmitting over 900MHz to vehicle
 * A custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
 * Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude

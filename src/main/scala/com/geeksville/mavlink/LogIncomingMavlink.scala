@@ -3,8 +3,8 @@ package com.geeksville.mavlink
 import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 
-class LogIncomingMavlink extends InstrumentedActor {
-  context.system.eventStream.subscribe(self, classOf[MavlinkReceived])
+class LogIncomingMavlink(sysId: Int) extends InstrumentedActor {
+  MavlinkEventBus.subscribe(self, sysId)
 
   def receive = {
     case MavlinkReceived(msg) ⇒

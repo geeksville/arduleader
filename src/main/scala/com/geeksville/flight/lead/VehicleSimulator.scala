@@ -10,11 +10,9 @@ import org.mavlink.messages._
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
- * We default of a systemId 2, because the ardupilot is normally on 1.
  */
 trait VehicleSimulator {
-
-  val systemId: Int = 2
+  import VehicleSimulator._
 
   val componentId = 0 // FIXME
 
@@ -78,5 +76,11 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
 
     msg
   }
+}
 
+object VehicleSimulator {
+  /**
+   * We use a systemId 2, because the ardupilot is normally on 1.
+   */
+  val systemId: Int = 2
 }
