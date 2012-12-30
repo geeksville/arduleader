@@ -40,8 +40,11 @@ object FlightLead {
     Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
 
     // Create wingman actors
-    Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId)), "ardlog")
+
     Akka.actorOf(Props[Wingman], "wing")
+
+    // Include this if you want to see all traffic from the ardupilot (very verbose)
+    // Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId)), "ardlog")
 
     Thread.sleep(1000 * 60 * 10)
   }
