@@ -46,6 +46,7 @@ class MavlinkReceiver extends Actor {
 
   override def postStop() {
     socket.close() // Force thread exit
+    super.postStop()
   }
 
   private def receivePacket() = {

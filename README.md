@@ -10,18 +10,18 @@ This is my current thinking, feel free to edit...
 * Have a netbook (for ease of development do android later) on the pilot
 * The netbook is running the backend from https://github.com/geeksville/mavelous and xmitting over 900MHz to vehicle
 * custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
-* Eventually port to android using https://code.google.com/p/android-scripting/ or http://kivy.org/#home
 * start by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
 * properly handle return to launch when launch is above most of the
   flight
 * MAVProxy talks to plane via 900MHz.  FormationLead talks to 
   MAVProxy via UDP
   http://www.qgroundcontrol.org/dev/mavlink_linux_integration_tutorial
+* Eventually port to android 
   
 * Split the app into two parts.  One app uploads mavlink flight info
   for the hang-glider (per
   http://www.qgroundcontrol.org/mavlink/start).  Call this app
-  FlightLead.  Make a variant of FlightGen that reads IGC files to
+  FlightLead.  Make a variant of FlightLead that reads IGC files to
   allow testing in simulation.
 * The other app watches a mavlink feed for any particular system ID
   and tries to follow that vehicle by sending set waypoint commands to

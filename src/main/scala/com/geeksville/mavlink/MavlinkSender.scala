@@ -32,5 +32,6 @@ class MavlinkSender extends Actor {
 
   override def postStop() {
     socket.close()
+    super.postStop()
   }
 }
