@@ -14,14 +14,14 @@ This is my current thinking, feel free to edit...
 * start by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
 * properly handle return to launch when launch is above most of the
   flight
-* QGroundControl talks to plane via 900MHz.  FormationLead talks to 
-  QGroundControl via UDP
+* MAVProxy talks to plane via 900MHz.  FormationLead talks to 
+  MAVProxy via UDP
   http://www.qgroundcontrol.org/dev/mavlink_linux_integration_tutorial
   
 * Split the app into two parts.  One app uploads mavlink flight info
   for the hang-glider (per
   http://www.qgroundcontrol.org/mavlink/start).  Call this app
-  FlightGen.  Make a variant of FlightGen that reads IGC files to
+  FlightLead.  Make a variant of FlightGen that reads IGC files to
   allow testing in simulation.
 * The other app watches a mavlink feed for any particular system ID
   and tries to follow that vehicle by sending set waypoint commands to
