@@ -3,15 +3,17 @@ package com.geeksville.flight.lead
 import com.geeksville.flight._
 import akka.actor.Props
 import com.geeksville.mavlink.MavlinkSender
-import akka.actor.ActorSystem
+import akka.actor._
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
 
 /**
- * Pretend to be a vehicle, generating mavlink messages for our system id
+ * Pretend to be a vehicle, generating mavlink messages for our system id.
+ *
+ * We default of a systemId 2, because the ardupilot is normally on 1.
  */
-class VehicleSimulator(val systemId: Int = 1)(implicit system: ActorSystem) {
+class VehicleSimulator(val systemId: Int = 2)(implicit context: ActorContext) {
 
-  val sender = system.actorOf(Props[MavlinkSender])
+  val sender = context.system.actorOf(Props[MavlinkSender])
 
   val componentId = 0 // FIXME
 
@@ -25,7 +27,7 @@ class VehicleSimulator(val systemId: Int = 1)(implicit system: ActorSystem) {
    * velocities in m/s
    * heading in degrees
    */
-  def sendPosition(lat: Double, lon: Double, alt: Double, vx: Double, vy: Double, vz: Double, hdg: Double = 655.35) {
+  def sendPosition(lat: Double, lon: Double, alt: Double, vx: Double = 0, vy: Double = 0, vz: Double = 0, hdg: Double = 655.35) {
     /* Per https://pixhawk.ethz.ch/mavlink/#GLOBAL_POSITION_INT
  * time_boot_ms uint32_t  Timestamp (milliseconds since system boot)
 lat int32_t Latitude, expressed as * 1E7
