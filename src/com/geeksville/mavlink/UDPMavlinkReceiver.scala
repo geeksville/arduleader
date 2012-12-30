@@ -33,13 +33,13 @@ class UDPMavlinkReceiver(val portNumber: Int = 51232) {
     msg match {
       case Array(start, payLength, packSeq, sysId, compId, msgId, payload @ _*) =>
         if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
-          Option(MAVLinkMessageFactory.getMessage(msgId, sysId, compId, payload.take(payLength).toArray))
+          Option(MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray))
         } else {
-          println("FIXME: Ignoring bad MAVLink packet")
+          println("Error: Ignoring bad MAVLink packet")
           None
         }
       case _ =>
-        println("FIXME: Ignoring bad match")
+        println("Error: Ignoring bad match")
         None
     }
   }
