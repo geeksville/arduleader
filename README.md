@@ -2,21 +2,18 @@ Misc personal to-dos for this project... -kevinh
 
 # Goal
 
-Have a arudplane follow a hangglider and take pictures.
+Have a arduplane follow a hang-glider and take pictures.
 
 ## Method
 This is my current thinking, feel free to edit...
 
-* Have a netbook (for ease of development do android later) on the pilot
-* The netbook is running the backend from https://github.com/geeksville/mavelous and xmitting over 900MHz to vehicle
-* custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
-* start by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
-* properly handle return to launch when launch is above most of the
-  flight
+* Have a netbook (for ease of development no android initially) on the pilot
+* The netbook is running MAVProxy and xmitting over 900MHz to vehicle
+* A custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
+* Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
 * MAVProxy talks to plane via 900MHz.  FormationLead talks to 
   MAVProxy via UDP
   http://www.qgroundcontrol.org/dev/mavlink_linux_integration_tutorial
-* Eventually port to android 
   
 * Split the app into two parts.  One app uploads mavlink flight info
   for the hang-glider (per
@@ -27,7 +24,8 @@ This is my current thinking, feel free to edit...
   and tries to follow that vehicle by sending set waypoint commands to
   another system id.  Call this app Wingman.
 * By splitting things thusly I'd be making a general formation flight
-  engine which could be used to follow anything.
+  engine which could be used to follow anything (other arduplanes,
+  attempted replay of previous flights, etc...).
 
 ## Changes to Ardupilot code
 
@@ -41,6 +39,8 @@ primitives in Arudpilot might need to be improved.
   running into pilot or ridge)
 * Assume that the loiter target will be repeatedly reset by scala, do
   I need to do anything else?
+* Properly handle return to launch when launch is above most of the
+  flight
 
 ## To-do 
 
