@@ -10,7 +10,7 @@ libraryDependencies += "com.typesafe.akka" % "akka-actor" % "2.0.4" withSources(
 
 libraryDependencies += "com.typesafe.akka" % "akka-slf4j" % "2.0.4" withSources()
 
-libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.0" % "runtime"
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" % "runtime"
 
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource // Include resources dir in eclipse classpath
 

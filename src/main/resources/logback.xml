@@ -1,0 +1,22 @@
+<configuration debug="true">
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%-5level %-36logger{36}: %msg%n</pattern>
+			<!-- color is busted on eclipse <pattern>%highlight(%-5level) %cyan(%-36logger{36}): 
+				%msg%n</pattern> -->
+			<!-- %date{ISO8601} %X{sourceThread} -->
+		</encoder>
+
+		<filter class="com.geeksville.logback.NameLevelFilter">
+			<NamePrefix>com.geeksville.mavlink</NamePrefix>
+			<MinLevel>INFO</MinLevel>
+		</filter>
+	</appender>
+
+	<!-- <logger name="play" level="INFO" /> <logger name="application" level="DEBUG" 
+		/> -->
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT" />
+	</root>
+
+</configuration>
