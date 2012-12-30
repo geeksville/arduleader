@@ -1,4 +1,4 @@
-<configuration debug="true">
+<configuration debug="false">
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
 			<pattern>%-5level %-36logger{36}: %msg%n</pattern>
@@ -8,7 +8,7 @@
 		</encoder>
 
 		<filter class="com.geeksville.logback.NameLevelFilter">
-			<NamePrefix>com.geeksville.mavlink</NamePrefix>
+			<Prefix>com.geeksville.mavlink</Prefix>
 			<MinLevel>INFO</MinLevel>
 		</filter>
 	</appender>
