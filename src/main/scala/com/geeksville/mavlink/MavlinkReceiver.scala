@@ -16,11 +16,11 @@ case class MavlinkReceived(message: MAVLinkMessage)
 /**
  * Receive UDPMavlink messages and forward to actors
  * Use with mavproxy like so:
- * mavproxy.py --master=/dev/ttyACM0 --out=localhost:51232
+ * mavproxy.py --master=/dev/ttyACM0 --master localhost:51200 --out=localhost:51232
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class UDPMavlinkReceiver(val portNumber: Int = 51232) {
+class MavlinkReceiver(val portNumber: Int = 51232) {
   val socket = new DatagramSocket(portNumber)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker)
