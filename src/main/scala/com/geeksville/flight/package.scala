@@ -1,9 +1,9 @@
 package com.geeksville
 
 // Standard akka imports
-import akka.actor._
-import akka.util.Duration
-import akka.util.duration._
+import _root_.akka.actor._
+import _root_.akka.util.Duration
+import _root_.akka.util.duration._
 
 package object flight {
   /**

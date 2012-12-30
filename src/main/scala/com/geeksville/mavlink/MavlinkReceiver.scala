@@ -8,6 +8,7 @@ import com.geeksville.util.ThreadTools
 import akka.event._
 import com.geeksville.flight._
 import akka.actor.Actor
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * published on our eventbus
@@ -21,7 +22,7 @@ case class MavlinkReceived(message: MAVLinkMessage)
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class MavlinkReceiver extends Actor {
+class MavlinkReceiver extends InstrumentedActor {
 
   val portNumber: Int = 51232
   val socket = new DatagramSocket(portNumber)
@@ -37,7 +38,7 @@ class MavlinkReceiver extends Actor {
 
   def receive = {
     case None =>
-      println("FIXME - no receiver needed?")
+      log.error("FIXME - no receiver needed?")
   }
 
   private def handlePacket(msg: MAVLinkMessage) {
@@ -60,11 +61,11 @@ class MavlinkReceiver extends Actor {
         if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
           Option(MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray))
         } else {
-          println("Error: Ignoring bad MAVLink packet")
+          log.error("Ignoring bad MAVLink packet")
           None
         }
       case _ =>
-        println("Error: Ignoring bad match")
+        log.error("Ignoring bad match")
         None
     }
   }

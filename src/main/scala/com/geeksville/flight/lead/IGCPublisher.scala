@@ -4,11 +4,12 @@ package com.geeksville.flight.lead
 import akka.actor._
 import akka.util.Duration
 import akka.util.duration._
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * Reads a IGC file, and publishes Location on the event bus
  */
-class IGCPublisher(filename: String) extends Actor {
+class IGCPublisher(filename: String) extends InstrumentedActor {
   val igc = new IGCReader(filename)
 
   /**
@@ -31,9 +32,12 @@ class IGCPublisher(filename: String) extends Actor {
     if (!igc.locations.isEmpty) {
       val startTime = igc.locations(0).time
 
-      igc.locations.foreach { l =>
+      // FIXME - for testing limit to ten points!!!!!
+      igc.locations.take(10).foreach { l =>
+        log.debug("Schedule: " + l)
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
+      log.debug("Done scheduling")
     }
   }
 }

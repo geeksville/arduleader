@@ -4,11 +4,12 @@ import akka.actor.Actor
 import com.geeksville.flight._
 import org.mavlink.messages.MAVLinkMessage
 import java.net._
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * An actor that forwards mavlink packets out via UDP
  */
-class MavlinkSender extends Actor {
+class MavlinkSender extends InstrumentedActor {
 
   val host = "localhost"
   val port = 51200
@@ -23,7 +24,7 @@ class MavlinkSender extends Actor {
 
   def receive = {
     case msg: MAVLinkMessage ⇒
-      println("Sending: " + msg)
+      log.debug("Sending: " + msg)
       val bytes = msg.encode()
       val packet = new DatagramPacket(bytes, bytes.length,
         address, port)

@@ -11,11 +11,14 @@ import org.mavlink.messages.ardupilotmega.msg_global_position_int
  *
  * We default of a systemId 2, because the ardupilot is normally on 1.
  */
-trait VehicleSimulator extends Actor {
+trait VehicleSimulator {
 
   val systemId: Int = 2
 
-  val mavlink = context.system.actorOf(Props[MavlinkSender])
+  /**
+   * A MavlinkSender
+   */
+  def mavlink: ActorRef
 
   val componentId = 0 // FIXME
 
