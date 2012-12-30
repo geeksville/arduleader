@@ -19,7 +19,7 @@ class MavlinkSender extends Actor {
   // Initialize a datagram packet with data and address
 
   // Create a datagram socket, send the packet through it, close it.
-  val socket = new DatagramSocket();
+  private val socket = new DatagramSocket
 
   def receive = {
     case msg: MAVLinkMessage ⇒

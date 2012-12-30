@@ -7,6 +7,7 @@ import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
 import akka.event._
 import com.geeksville.flight._
+import akka.actor.Actor
 
 /**
  * published on our eventbus
@@ -20,7 +21,9 @@ case class MavlinkReceived(message: MAVLinkMessage)
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class MavlinkReceiver(val portNumber: Int = 51232) {
+class MavlinkReceiver extends Actor {
+
+  val portNumber: Int = 51232
   val socket = new DatagramSocket(portNumber)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker)
@@ -28,15 +31,20 @@ class MavlinkReceiver(val portNumber: Int = 51232) {
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
-  val destEventBus = Akka.eventStream
+  val destEventBus = context.system.eventStream
 
   thread.start()
+
+  def receive = {
+    case None =>
+      println("FIXME - no receiver needed?")
+  }
 
   private def handlePacket(msg: MAVLinkMessage) {
     destEventBus.publish(MavlinkReceived(msg))
   }
 
-  def close() {
+  override def postStop() {
     socket.close() // Force thread exit
   }
 

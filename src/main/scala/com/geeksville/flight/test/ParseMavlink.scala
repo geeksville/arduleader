@@ -11,7 +11,7 @@ object ParseMavlink extends App {
   println("ParseMavlink running...")
 
   // FIXME create this somewhere else
-  (new UMavlinkReceiver)
+  Akka.actorOf(Props[MavlinkReceiver], "mavrx")
 
   Akka.actorOf(Props[LogIncomingMavlink], "mavlog")
 
