@@ -1,4 +1,6 @@
 *.class
 .cache
 *~
-/target
+target
+/.classpath
+/.project

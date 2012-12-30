@@ -5,26 +5,42 @@ import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
+import akka.event._
+import com.geeksville.flight._
+
+/**
+ * published on our eventbus
+ */
+case class MavlinkReceived(message: MAVLinkMessage)
 
 /**
  * Receive UDPMavlink messages and forward to actors
  * Use with mavproxy like so:
  * mavproxy.py --master=/dev/ttyACM0 --out=localhost:51232
  *
- * FIXME - hook to actors
+ * FIXME - make sure we don't overrun the rate packets can be read
  */
 class UDPMavlinkReceiver(val portNumber: Int = 51232) {
   val socket = new DatagramSocket(portNumber)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker)
 
+  /**
+   * For now we pipe all our notifications through the system event stream - we might refine this later
+   */
+  val destEventBus = Akka.eventStream
+
   thread.start()
+
+  private def handlePacket(msg: MAVLinkMessage) {
+    destEventBus.publish(MavlinkReceived(msg))
+  }
 
   def close() {
     socket.close() // Force thread exit
   }
 
-  def receivePacket() = {
+  private def receivePacket() = {
     val bytes = new Array[Byte](512)
     val packet = new DatagramPacket(bytes, bytes.length)
     socket.receive(packet)
@@ -44,11 +60,9 @@ class UDPMavlinkReceiver(val portNumber: Int = 51232) {
     }
   }
 
-  def worker() {
+  private def worker() {
     while (true) {
-      receivePacket.foreach { p =>
-        println("received: " + p)
-      }
+      receivePacket.foreach(handlePacket)
     }
   }
 }
