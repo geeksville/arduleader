@@ -11,9 +11,11 @@ import org.mavlink.messages.ardupilotmega.msg_global_position_int
  *
  * We default of a systemId 2, because the ardupilot is normally on 1.
  */
-class VehicleSimulator(val systemId: Int = 2)(implicit context: ActorContext) {
+trait VehicleSimulator extends Actor {
 
-  val sender = context.system.actorOf(Props[MavlinkSender])
+  val systemId: Int = 2
+
+  val mavlink = context.system.actorOf(Props[MavlinkSender])
 
   val componentId = 0 // FIXME
 
@@ -51,6 +53,6 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
     msg.vz = (vz * 100).toInt
     msg.hdg = (hdg * 100).toInt
 
-    sender ! msg
+    mavlink ! msg
   }
 }

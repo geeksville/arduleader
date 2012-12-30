@@ -8,11 +8,10 @@ import akka.util.duration._
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
  */
-class FlightLead extends Actor {
-  val sim = new VehicleSimulator
+class FlightLead extends VehicleSimulator {
 
   def receive = {
     case Location(lat, log, alt, time) =>
-      sim.sendPosition(lat, log, alt)
+      sendPosition(lat, log, alt)
   }
 }

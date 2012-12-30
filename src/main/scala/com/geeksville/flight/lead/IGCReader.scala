@@ -15,6 +15,7 @@ class IGCReader(filename: String) {
 
   private val formater = new SimpleDateFormat("HHmmss");
 
+  // FIXME - I bet this leaks a file descriptor
   val locations = Source.fromFile(filename).getLines.flatMap(toLocation).toSeq
 
   private def toLocation(line: String): Option[Location] = {
