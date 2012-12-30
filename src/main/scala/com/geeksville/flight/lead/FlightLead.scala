@@ -15,11 +15,14 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   val mavlink: ActorRef = context.system.actorOf(Props[MavlinkSender])
 
+  // Send a heartbeat every 10 seconds 
+  context.system.scheduler.schedule(0 milliseconds, 10 seconds, mavlink, heartbeat)
+
   context.system.eventStream.subscribe(self, classOf[Location])
 
   def receive = {
     case Location(lat, log, alt, time) =>
-      sendPosition(lat, log, alt)
+      mavlink ! makePosition(lat, log, alt)
   }
 }
 
