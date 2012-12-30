@@ -15,7 +15,7 @@ class VehicleSimulator(val systemId: Int = 1)(implicit system: ActorSystem) {
 
   val componentId = 0 // FIXME
 
-  var groundAltitude = 0
+  var groundAltitude = 0.0
 
   /**
    * lat & lng in degrees
