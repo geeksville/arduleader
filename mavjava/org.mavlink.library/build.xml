@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- WARNING: Eclipse auto-generated file.
+              Any modifications will be overwritten.
+              To include a user specific buildfile here, simply create one in the same
+              directory with the processing instruction <?eclipse.ant.import?>
+              as the first entry and export the buildfile again. -->
+<project basedir="." default="build" name="org.mavlink.library">
+	<property environment="env" />
+	<property name="org.mavlink.util.location" value="../org.mavlink.util" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<property name="version.num" value="1.00" />
+	<property name="jar.dir" value="../../lib" />
+	
+	<path id="org.mavlink.util.classpath">
+		<pathelement location="${org.mavlink.util.location}/bin" />
+	</path>
+	<path id="org.mavlink.library.classpath">
+		<pathelement location="bin" />
+		<path refid="org.mavlink.util.classpath" />
+	</path>
+	<target name="init">
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="test">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="generated">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+	<target name="clean">
+		<delete dir="bin" quiet="true"/>
+		<delete dir="${jar.dir}/${ant.project.name}*"  quiet="true"/>
+	</target>
+	<target depends="clean" name="cleanall">
+		<ant antfile="build.xml" dir="${org.mavlink.util.location}" inheritAll="false" target="clean" />
+	</target>
+	<target depends="build-subprojects,build-project" name="build" />
+	<target name="build-subprojects">
+		<ant antfile="build.xml" dir="${org.mavlink.util.location}" inheritAll="false" target="jar">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+	</target>
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac destdir="bin" source="${source}" target="${target}">
+			<src path="src" />
+			<src path="generated" />
+			<src path="test" />
+			<classpath refid="org.mavlink.library.classpath" />
+		</javac>
+	</target>
+	<target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects" />
+	<target name="MAVLinkReader">
+		<java classname="org.mavlink.MAVLinkReader" failonerror="true" fork="yes">
+			<classpath refid="org.mavlink.library.classpath" />
+		</java>
+	</target>
+	<target name="TestMavlinkReader">
+		<java classname="org.mavlink.TestMavlinkReader" failonerror="true" fork="yes">
+			<classpath refid="org.mavlink.library.classpath" />
+		</java>
+	</target>
+	<target name="jar" depends="build">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${ant.project.name}-${version.num}.jar" basedir="bin">
+			<fileset dir="src" includes="**/*.java" />
+			<fileset dir="generated" includes="**/*.java" />
+			<fileset dir="test" includes="**/*.java" />
+			<manifest>
+			</manifest>
+		</jar>
+	</target>
+</project>
