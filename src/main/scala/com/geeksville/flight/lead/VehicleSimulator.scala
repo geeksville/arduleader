@@ -17,6 +17,8 @@ class VehicleSimulator(val systemId: Int = 1)(implicit system: ActorSystem) {
 
   var groundAltitude = 0.0
 
+  val startTime = System.currentTimeMillis
+
   /**
    * lat & lng in degrees
    * alt in meters MSL (we will compute relative_alt / agl)
@@ -37,6 +39,7 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
  */
     val msg = new msg_global_position_int(systemId, componentId)
 
+    msg.time_boot_ms = System.currentTimeMillis - startTime
     msg.lat = (lat * 1e7).toInt
     msg.lon = (lon * 1e7).toInt
     msg.alt = (alt * 1000).toInt
