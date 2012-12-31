@@ -8,6 +8,7 @@ import com.geeksville.mavlink._
 import com.geeksville.flight._
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight.wingman.Wingman
+import com.geeksville.util.Counted
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -16,14 +17,19 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   val mavlink: ActorRef = context.system.actorOf(Props[MavlinkSender])
 
+  private val throttle = new Counted(10)
+
   // Send a heartbeat every 10 seconds 
   context.system.scheduler.schedule(0 milliseconds, 10 seconds, mavlink, heartbeat)
 
   context.system.eventStream.subscribe(self, classOf[Location])
 
   def receive = {
-    case Location(lat, log, alt, time) =>
-      mavlink ! makePosition(lat, log, alt)
+    case Location(lat, logg, alt, time) =>
+      mavlink ! makePosition(lat, logg, alt)
+      throttle { i =>
+        log.info("Emitted %d points...".format(i))
+      }
   }
 }
 

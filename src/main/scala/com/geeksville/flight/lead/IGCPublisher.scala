@@ -37,7 +37,7 @@ class IGCPublisher(filename: String) extends InstrumentedActor {
         // log.debug("Schedule: " + l)
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
-      log.info("Done scheduling")
+      log.info("Done scheduling " + points.size + " points")
     }
   }
 }
