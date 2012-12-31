@@ -6,6 +6,7 @@ import com.geeksville.mavlink.MavlinkSender
 import akka.actor._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
+import java.util.GregorianCalendar
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
@@ -18,7 +19,10 @@ trait VehicleSimulator {
 
   var groundAltitude = 0.0
 
-  val startTime = System.currentTimeMillis
+  /**
+   * We want to use a 'system boot time' but for now I'll just pick something that is relatively recent (so 32 bit msecs don't roll over)
+   */
+  val startTime = (new GregorianCalendar(2012, 12, 30)).getTime.getTime
 
   /**
    * Our heartbeat message
