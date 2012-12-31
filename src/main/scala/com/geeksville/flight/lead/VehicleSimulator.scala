@@ -15,7 +15,7 @@ import java.util.GregorianCalendar
 trait VehicleSimulator {
   import VehicleSimulator._
 
-  val componentId = 0 // FIXME
+  val componentId = 1 // FIXME
 
   var groundAltitude = 0.0
 
@@ -39,7 +39,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     val msg = new msg_heartbeat(systemId, componentId)
 
     msg.`type` = MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
-    msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID
+    msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_GENERIC
     msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_AUTO_ENABLED
     msg.custom_mode = 0
     msg.system_status = MAV_STATE.MAV_STATE_ACTIVE
@@ -78,6 +78,50 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
     msg.vz = (vz * 100).toInt
     msg.hdg = (hdg * 100).toInt
 
+    msg
+  }
+
+  def makeGPSRaw(lat: Double, lon: Double, alt: Double) = {
+    /* Type  Description
+time_usec uint64_t  Timestamp (microseconds since UNIX epoch or microseconds since system boot)
+fix_type  uint8_t 0-1: no fix, 2: 2D fix, 3: 3D fix. Some applications will not use the value of this field unless it is at least two, so always correctly fill in the fix.
+lat int32_t Latitude in 1E7 degrees
+lon int32_t Longitude in 1E7 degrees
+alt int32_t Altitude in 1E3 meters (millimeters) above MSL
+eph uint16_t  GPS HDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
+epv uint16_t  GPS VDOP horizontal dilution of position in cm (m*100). If unknown, set to: 65535
+vel uint16_t  GPS ground speed (m/s * 100). If unknown, set to: 65535
+cog uint16_t  Course over ground (NOT heading, but direction of movement) in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
+satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255 */
+    val msg = new msg_gps_raw_int(systemId, componentId)
+
+    msg.time_usec = (System.currentTimeMillis - startTime) * 1000
+    msg.lat = (lat * 1e7).toInt
+    msg.lon = (lon * 1e7).toInt
+    msg.alt = (alt * 1000).toInt
+    msg.eph = 65535
+    msg.epv = 65535
+    msg.vel = 65535
+    msg.cog = 65535
+    msg.satellites_visible = 255
+    msg
+  }
+
+  def makeStatusText(message: String) = {
+    val msg = new msg_statustext(systemId, componentId)
+
+    msg.setText(message)
+    msg.severity = MAV_SEVERITY.MAV_SEVERITY_ALERT // Only alert severity shows on the GUI
+    msg
+  }
+
+  def makeSysStatus() = {
+    val msg = new msg_sys_status(systemId, componentId)
+
+    msg.onboard_control_sensors_present = 1 << 5 // GPS
+    msg.onboard_control_sensors_enabled = 1 << 5
+    msg.onboard_control_sensors_health = 1 << 5
+    msg.battery_remaining = -1
     msg
   }
 }

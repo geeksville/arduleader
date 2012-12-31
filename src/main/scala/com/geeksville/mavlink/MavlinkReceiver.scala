@@ -54,6 +54,8 @@ class MavlinkReceiver extends InstrumentedActor {
     val bytes = new Array[Byte](512)
     val packet = new DatagramPacket(bytes, bytes.length)
     socket.receive(packet)
+    MavlinkReceiver.remotePortNumber = Some(packet.getPort())
+
     val msg = packet.getData
 
     msg match {
@@ -75,4 +77,11 @@ class MavlinkReceiver extends InstrumentedActor {
       receivePacket.foreach(handlePacket)
     }
   }
+}
+
+object MavlinkReceiver {
+  /**
+   * The port # we've most recently heard from
+   */
+  var remotePortNumber: Option[Int] = None
 }

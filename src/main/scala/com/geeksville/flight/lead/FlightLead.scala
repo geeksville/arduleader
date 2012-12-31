@@ -20,15 +20,20 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
   private val throttle = new Counted(10)
 
   // Send a heartbeat every 10 seconds 
-  context.system.scheduler.schedule(0 milliseconds, 10 seconds, mavlink, heartbeat)
+  context.system.scheduler.schedule(0 milliseconds, 1 seconds, mavlink, heartbeat)
 
   context.system.eventStream.subscribe(self, classOf[Location])
 
   def receive = {
     case Location(lat, logg, alt, time) =>
       mavlink ! makePosition(lat, logg, alt)
+      mavlink ! makeGPSRaw(lat, logg, alt)
       throttle { i =>
-        log.info("Emitted %d points...".format(i))
+        val msg = "Emitted %d points...".format(i)
+        log.info(msg)
+        mavlink ! makeStatusText(msg)
+
+        mavlink ! makeSysStatus()
       }
   }
 }
@@ -51,6 +56,9 @@ object FlightLead {
 
     // Include this if you want to see all traffic from the ardupilot (very verbose)
     // Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId)), "ardlog")
+
+    // to see GroundControl packets
+    Akka.actorOf(Props(new LogIncomingMavlink(255)), "gclog")
 
     Thread.sleep(1000 * 60 * 10)
   }
