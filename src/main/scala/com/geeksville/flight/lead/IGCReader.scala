@@ -4,7 +4,10 @@ import java.io._
 import java.text.SimpleDateFormat
 import scala.io.Source
 
-case class Location(lat: Double, lon: Double, alt: Double, time: Long)
+case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Double = 0.0, time: Long = 0,
+  dir: Option[Double] = None, velocity: Option[Double] = None, quality: Int = 0) {
+  def fixed = quality > 0
+}
 
 /**
  * Read IGC file locations

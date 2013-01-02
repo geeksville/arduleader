@@ -25,9 +25,9 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
   context.system.eventStream.subscribe(self, classOf[Location])
 
   def receive = {
-    case Location(lat, logg, alt, time) =>
-      mavlink ! makePosition(lat, logg, alt)
-      mavlink ! makeGPSRaw(lat, logg, alt)
+    case l: Location =>
+      mavlink ! makePosition(l.lat, l.lon, l.alt)
+      mavlink ! makeGPSRaw(l.lat, l.lon, l.alt)
       throttle { i =>
         val msg = "Emitted %d points...".format(i)
         log.info(msg)
@@ -47,12 +47,12 @@ object FlightLead {
 
     // Create flightlead actors
     // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-    Akka.actorOf(Props[FlightLead], "lead")
-    Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+    // Akka.actorOf(Props[FlightLead], "lead")
+    // Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
 
     // Create wingman actors
 
-    Akka.actorOf(Props[Wingman], "wing")
+    // Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (very verbose)
     // Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId)), "ardlog")
