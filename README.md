@@ -34,6 +34,14 @@ This is my current thinking, feel free to edit...
   engine which could be used to follow anything (other arduplanes,
   attempted replay of previous flights, etc...).
 
+## Messages to send to Aurdupilot
+
+* Rather than repeatedly setting waypoints, could I instead spoof the navcontroller state machine output?
+  This might be a better way to do station keeping once we are in formation: MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT :   nav_roll=-8.98  nav_pitch=-12.349999  alt_error=95.32  aspd_error=1131.0656  xtrack_error=-0.088662714  nav_bearing=320  target_bearing=292  wp_dist=127
+* When Mission Planner activates a flightplan, it seems that the device responds with: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
+* So mission planner is using a system id of 255, how come I don't see its messages?
+* I need to figure out how MavProxy does routing
+
 ## Changes to Ardupilot code
 
 I'll try to put most smarts in the scala code.  However, the

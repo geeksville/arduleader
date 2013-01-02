@@ -20,8 +20,8 @@ object MathTools {
     val lat2r = toRad(lat2)
 
     val a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-      math.sin(dLon / 2) * math.sin(dLon / 2) * math.cos(lat1r) * math.cos(lat2r);
-    val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+      math.sin(dLon / 2) * math.sin(dLon / 2) * math.cos(lat1r) * math.cos(lat2r)
+    val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     val d = R * c
     d
   }
