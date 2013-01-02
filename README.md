@@ -39,8 +39,18 @@ This is my current thinking, feel free to edit...
 * Rather than repeatedly setting waypoints, could I instead spoof the navcontroller state machine output?
   This might be a better way to do station keeping once we are in formation: MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT :   nav_roll=-8.98  nav_pitch=-12.349999  alt_error=95.32  aspd_error=1131.0656  xtrack_error=-0.088662714  nav_bearing=320  target_bearing=292  wp_dist=127
 * When Mission Planner activates a flightplan, it seems that the device responds with: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
-* So mission planner is using a system id of 255, how come I don't see its messages?
-* I need to figure out how MavProxy does routing
+* So mission planner is using a system id of 255, how come I don't see its messages? (answer: mavlink only sends packets from 'out' ports to _one_ master port)
+
+## Give up on MAVProxy
+
+Mavproxy currently assumes sending traffic to only one upstream master device port.  This doesn't work with my code creating a fake flightlead device.
+I could extend MAVProxy, but to improve my understanding I'll experiment with talking to the 900MHz link directly from my app.  Rules:
+
+* Merge MavlinkSender and MavlinkReceiver into MavlinkUDP
+* Open ttyACM0 at 115kbaud.
+* Forward any incoming serial packets to both our actor framework and direct passthrough to a UDP 41550 (typicaly ground control / mission planner process)
+* Any packets that arrive on the local port we used to connect to 41550, send them to our event bus.  Also if sysid == 1 send it out the serial port.
+* Any packets we generate locally, always send them to the 41550 port, if the sysid is 1 also send it out the serial port
 
 ## Changes to Ardupilot code
 
