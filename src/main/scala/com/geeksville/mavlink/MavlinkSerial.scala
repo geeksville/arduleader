@@ -7,6 +7,11 @@ import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.util.ThreadTools
 import com.geeksville.util.Using._
 import org.mavlink._
+import com.geeksville.util.DebugInputStream
+import com.geeksville.util.ByteOnlyInputStream
+import com.geeksville.util.Throttled
+
+// with SerialPortEventListener
 
 /**
  * Talks mavlink out a serial port
@@ -18,9 +23,12 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor {
 
   private val port = portIdentifier.open(this.getClass.getName, 2000).asInstanceOf[SerialPort]
 
-  port.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-  port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN
-    | SerialPort.FLOWCONTROL_RTSCTS_OUT)
+  port.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
+  port.setInputBufferSize(8192)
+  port.disableReceiveFraming()
+  port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE)
+  //port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT)
+  // port.enableReceiveTimeout(500)
 
   private val out = new BufferedOutputStream(port.getOutputStream, 8192)
 
@@ -43,12 +51,19 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor {
   }
 
   private def rxWorker() {
-    using(new DataInputStream(new BufferedInputStream(port.getInputStream, 8192))) { stream =>
+    using(new DataInputStream(new ByteOnlyInputStream(port.getInputStream))) { stream =>
       val reader = new MAVLinkReader(stream, IMAVLinkMessage.MAVPROT_PACKET_START_V10)
+
+      var lostBytes = 0
 
       while (true) {
         val msg = Option(reader.getNextMessage())
-        log.debug("RxSer: " + msg)
+        msg.foreach { s => log.info("RxSer: " + s) }
+        if (reader.getLostBytes > lostBytes) {
+          lostBytes = reader.getLostBytes
+          log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
+        }
+
         // FIXME
       }
     }
