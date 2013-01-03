@@ -12,6 +12,7 @@ import com.geeksville.util.Counted
 import com.geeksville.util.SystemTools
 import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.shell.ScalaShell
+import com.geeksville.shell.ScalaConsole
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -92,7 +93,7 @@ object FlightLead {
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
 
-    val shell = new ScalaShell()
+    val shell = new ScalaConsole()
     shell.run()
   }
 }

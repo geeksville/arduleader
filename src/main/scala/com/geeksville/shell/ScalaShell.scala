@@ -1,16 +1,13 @@
 package com.geeksville.shell
 
-import java.io.PrintWriter
+import java.io._
 
-class ScalaShell {
+class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System.out) {
 
   val name = "shell"
 
   val initCmds = Seq[String]()
   val bindings = Seq[(String, String, String)]()
-
-  val in = System.in
-  val out = System.out
 
   def run() {
 
