@@ -18,11 +18,8 @@ This is my current thinking, feel free to edit...
 * The netbook is running MAVProxy and xmitting over 900MHz to vehicle
 * A custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
 * Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
-* MAVProxy talks to plane via 900MHz.  FormationLead talks to 
-  MAVProxy via UDP
-  http://www.qgroundcontrol.org/dev/mavlink_linux_integration_tutorial
-  
-* Split the app into two parts.  One app uploads mavlink flight info
+* (Done) App talks to plane via 900MHz and in turn forwards packets to UDP port 14550.
+* (Done) Split the app into two parts.  One app uploads mavlink flight info
   for the hang-glider (per
   http://www.qgroundcontrol.org/mavlink/start).  Call this app
   FlightLead.  Make a variant of FlightLead that reads IGC files to
@@ -54,9 +51,9 @@ INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :  
 INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.5  param_count=256  param_index=7  param_id=KFF_RDDRMIX  param_type=9
 ...
 
-## Give up on MAVProxy
+## Optionally replace MAVProxy 
 
-Mavproxy currently assumes sending traffic to only one upstream master device port.  This doesn't work with my code creating a fake flightlead device.
+(Done) Mavproxy currently assumes sending traffic to only one upstream master device port.  This doesn't work with my code creating a fake flightlead device.
 I could extend MAVProxy, but to improve my understanding I'll experiment with talking to the 900MHz link directly from my app.  Rules:
 
 * Forward any incoming serial packets to both our actor framework and direct passthrough to a UDP 41550 (typicaly ground control / mission planner process)
