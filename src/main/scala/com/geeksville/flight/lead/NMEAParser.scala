@@ -14,6 +14,8 @@ class NMEAParser {
    * milliseconds at midnight
    */
   private val midnight = {
+    // FIXME, we should use the date info from the NMEA stream
+    // http://aprs.gids.nl/nmea/#zda
     val c = Calendar.getInstance(TimeZone.getTimeZone("GMT-0"))
     c.set(Calendar.HOUR_OF_DAY, 0)
     c.set(Calendar.MINUTE, 0)
@@ -48,21 +50,19 @@ class NMEAParser {
   }
 
   private def latitude2Decimal(lat: String, NS: String) = {
-    var med = lat.substring(2).toFloat / 60.0f;
-    med += lat.substring(0, 2).toFloat;
-    if (NS.startsWith("S")) {
-      med = -med;
-    }
-    med
+    val med = lat.substring(2).toFloat / 60.0f + lat.substring(0, 2).toFloat
+    if (NS.startsWith("S"))
+      -med
+    else
+      med
   }
 
   private def longitude2Decimal(lat: String, NS: String) = {
-    var med = lat.substring(3).toFloat / 60.0f;
-    med += lat.substring(0, 3).toFloat;
-    if (NS.startsWith("W")) {
-      med = -med;
-    }
-    med
+    val med = lat.substring(3).toFloat / 60.0f + lat.substring(0, 3).toFloat;
+    if (NS.startsWith("W"))
+      -med;
+    else
+      med
   }
 
   private def GPGGA(tokens: Array[String]) =
@@ -87,6 +87,7 @@ class NMEAParser {
       velocity = Some(tokens(7).toDouble),
       dir = Some(tokens(8).toDouble))
 
+  // FIXME - merge this with a position record?
   private def GPVTG(tokens: Array[String]) =
     Location(
       dir = Some(tokens(3).toDouble))
