@@ -46,12 +46,12 @@ object FlightLead {
 
   def main(args: Array[String]) {
     println("FlightLead running...")
+	println("CWD is " + System.getProperty("user.dir"))
 
     // Needed for rxtx native code
     //val libprop = "java.library.path"
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
-    SystemTools.addDir("/oldroot/home/kevinh/development/FormationLead/libsrc") // FIXME
-    //println("serial path: " + System.getProperty(libprop))
+    SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
     val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
 

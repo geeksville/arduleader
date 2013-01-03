@@ -2,7 +2,6 @@ package com.geeksville.flight.lead
 
 import com.geeksville.flight._
 import akka.actor.Props
-import com.geeksville.mavlink.MavlinkSender
 import akka.actor._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
