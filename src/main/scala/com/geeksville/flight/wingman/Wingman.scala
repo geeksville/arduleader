@@ -13,8 +13,7 @@ class Wingman extends InstrumentedActor {
     // We only care about position messages
     case msg: msg_global_position_int ⇒
       log.info("WRx" + msg.sysId + ": " + msg)
-    case msg =>
-      log.debug("Ignoring: " + msg);
+    //case msg => log.debug("Ignoring: " + msg);
   }
 }
 

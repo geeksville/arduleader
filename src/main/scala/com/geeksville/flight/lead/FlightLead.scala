@@ -43,6 +43,7 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 }
 
 object FlightLead {
+
   def main(args: Array[String]) {
     println("FlightLead running...")
 
@@ -57,11 +58,17 @@ object FlightLead {
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
 
+    // Create flightlead actors
+    // If you want logging uncomment the following line
+    // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
+    Akka.actorOf(Props[FlightLead], "lead")
+    Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+
     //
     // Wire up our subscribers
     //
 
-    val arduPilotId = 1
+    val arduPilotId = Wingman.targetSystemId
     val groundControlId = 255
 
     // Anything coming from the controller app, forward it to the serial port
@@ -70,17 +77,16 @@ object FlightLead {
     // Anything from the ardupilot, forward it to the controller app
     MavlinkEventBus.subscribe(mavUDP, arduPilotId)
 
-    // Create flightlead actors
-    // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-    // Akka.actorOf(Props[FlightLead], "lead")
-    // Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+    // Anything from our sim lead, send it to the controller app (so it will hopefully show him)
+    // Doesn't work yet - mission planner freaks out
+    // MavlinkEventBus.subscribe(mavUDP, VehicleSimulator.systemId)
 
     // Create wingman actors
 
-    // Akka.actorOf(Props[Wingman], "wing")
+    Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    Akka.actorOf(Props(new LogIncomingMavlink(Wingman.targetSystemId, LogIncomingMavlink.allowNothing)), "ardlog")
+    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowNothing)), "ardlog")
 
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
