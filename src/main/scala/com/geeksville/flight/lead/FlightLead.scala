@@ -9,6 +9,7 @@ import com.geeksville.flight._
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight.wingman.Wingman
 import com.geeksville.util.Counted
+import com.geeksville.util.SystemTools
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -42,8 +43,16 @@ object FlightLead {
   def main(args: Array[String]) {
     println("FlightLead running...")
 
+    // Needed for rxtx native code
+    //val libprop = "java.library.path"
+    System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
+    SystemTools.addDir("/oldroot/home/kevinh/development/FormationLead/lib") // FIXME
+    //println("serial path: " + System.getProperty(libprop))
+
+    Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
+
     // FIXME create this somewhere else
-    Akka.actorOf(Props[MavlinkReceiver], "mavrx")
+    Akka.actorOf(Props[MavlinkReceiver], "udprx")
 
     // Create flightlead actors
     // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
