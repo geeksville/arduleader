@@ -16,7 +16,7 @@ import com.geeksville.util.Throttled
 /**
  * Talks mavlink out a serial port
  */
-class MavlinkSerial(val portName: String) extends InstrumentedActor {
+class MavlinkSerial(val portName: String) extends InstrumentedActor with MavlinkReceiver {
   private val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)
   if (portIdentifier.isCurrentlyOwned)
     throw new IOException("Error: Port is currently in use")
@@ -24,7 +24,8 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor {
   private val port = portIdentifier.open(this.getClass.getName, 2000).asInstanceOf[SerialPort]
 
   port.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
-  port.setInputBufferSize(8192)
+  port.setInputBufferSize(16384)
+  port.setOutputBufferSize(16384)
   port.disableReceiveFraming()
   port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE)
   //port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT)
@@ -58,13 +59,15 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor {
 
       while (true) {
         val msg = Option(reader.getNextMessage())
-        msg.foreach { s => log.info("RxSer: " + s) }
-        if (reader.getLostBytes > lostBytes) {
-          lostBytes = reader.getLostBytes
-          log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
-        }
+        msg.foreach { s =>
+          log.debug("RxSer: " + s)
+          if (reader.getLostBytes > lostBytes) {
+            lostBytes = reader.getLostBytes
+            log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
+          }
 
-        // FIXME
+          handlePacket(s)
+        }
       }
     }
   }

@@ -2,7 +2,6 @@ package com.geeksville.flight.wingman
 
 import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
-import com.geeksville.mavlink.MavlinkReceived
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.flight.lead.VehicleSimulator
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
@@ -12,11 +11,10 @@ class Wingman extends InstrumentedActor {
 
   def receive = {
     // We only care about position messages
-    case MavlinkReceived(msg: msg_global_position_int) ⇒
+    case msg: msg_global_position_int ⇒
       log.info("WRx" + msg.sysId + ": " + msg)
-    case MavlinkReceived(msg) =>
-      // log.debug("Ignoring: " + msg)
-      ;
+    case msg =>
+      log.debug("Ignoring: " + msg);
   }
 }
 

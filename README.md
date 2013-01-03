@@ -38,16 +38,27 @@ This is my current thinking, feel free to edit...
 
 * Rather than repeatedly setting waypoints, could I instead spoof the navcontroller state machine output?
   This might be a better way to do station keeping once we are in formation: MAVLINK_MSG_ID_NAV_CONTROLLER_OUTPUT :   nav_roll=-8.98  nav_pitch=-12.349999  alt_error=95.32  aspd_error=1131.0656  xtrack_error=-0.088662714  nav_bearing=320  target_bearing=292  wp_dist=127
-* When Mission Planner activates a flightplan, it seems that the device responds with: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
-* So mission planner is using a system id of 255, how come I don't see its messages? (answer: mavlink only sends packets from 'out' ports to _one_ master port)
+* Here's what mission planner sends when you choose go-to some point at 100m alt:
+MAVLINK_MSG_ID_MISSION_ITEM :   param1=0.0  param2=0.0  param3=0.0  param4=0.0  x=37.52122  y=-122.31037  z=100.0  seq=0  command=16  target_system=1  target_component=1  frame=3  current=2  autocontinue=0
+* The device responds with: INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
+
+* At startup of mission planner it reads the props...
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv255: MAVLINK_MSG_ID_PARAM_REQUEST_LIST :   target_system=1  target_component=1
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=13.0  param_count=256  param_index=0  param_id=FORMAT_VERSION  param_type=4
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.0  param_count=256  param_index=1  param_id=SYSID_SW_TYPE  param_type=2
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=1.0  param_count=256  param_index=2  param_id=SYSID_THISMAV  param_type=4
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=255.0  param_count=256  param_index=3  param_id=SYSID_MYGCS  param_type=4
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=57.0  param_count=256  param_index=4  param_id=SERIAL3_BAUD  param_type=2
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.0  param_count=256  param_index=5  param_id=TELEM_DELAY  param_type=2
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.2  param_count=256  param_index=6  param_id=KFF_PTCHCOMP  param_type=9
+INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.5  param_count=256  param_index=7  param_id=KFF_RDDRMIX  param_type=9
+...
 
 ## Give up on MAVProxy
 
 Mavproxy currently assumes sending traffic to only one upstream master device port.  This doesn't work with my code creating a fake flightlead device.
 I could extend MAVProxy, but to improve my understanding I'll experiment with talking to the 900MHz link directly from my app.  Rules:
 
-* Merge MavlinkSender and MavlinkReceiver into MavlinkUDP
-* Open ttyACM0 at 115kbaud.
 * Forward any incoming serial packets to both our actor framework and direct passthrough to a UDP 41550 (typicaly ground control / mission planner process)
 * Any packets that arrive on the local port we used to connect to 41550, send them to our event bus.  Also if sysid == 1 send it out the serial port.
 * Any packets we generate locally, always send them to the 41550 port, if the sysid is 1 also send it out the serial port
