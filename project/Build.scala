@@ -7,8 +7,7 @@ object ScalaFlyBuild extends Build {
 
   // val main = "com.geeksville.shell.ScalaConsole"
   val main = "com.geeksville.flight.lead.FlightLead"
-  
-    
+
   val assemblyCustomize = mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
     {
       // Pull all of the jansi classes from the offical dist jar, not jline
@@ -25,9 +24,11 @@ object ScalaFlyBuild extends Build {
   lazy val root = Project(id = "skalafly",
     base = file("."),
     settings = Project.defaultSettings ++ assemblySettings ++ Seq(
-        assemblyCustomize,
-        mainClass in (Compile, run) := Some(main),
-        mainClass in assembly := Some(main)
-        ))
+      assemblyCustomize,
+      mainClass in (Compile, run) := Some(main),
+      mainClass in assembly := Some(main),
+      fork := true,
+      connectInput in run := true,
+      outputStrategy in run := Some(StdoutOutput)))
 
 }
