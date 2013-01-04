@@ -2,7 +2,6 @@ package com.geeksville.flight.lead
 
 import com.geeksville.flight._
 import akka.actor.Props
-import com.geeksville.mavlink.MavlinkSender
 import akka.actor._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
@@ -122,6 +121,23 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
     msg.onboard_control_sensors_enabled = 1 << 5
     msg.onboard_control_sensors_health = 1 << 5
     msg.battery_remaining = -1
+    msg
+  }
+
+  def makeMissionItem(lat: Float, lon: Float, alt: Float) = {
+    val msg = new msg_mission_item(systemId, componentId)
+
+    msg.target_system = 1
+    msg.target_component = 1
+    msg.param3 = 0 // FIXME - see if we can control loiter direction this way...
+    msg.x = lon
+    msg.y = lat
+    msg.z = alt
+    msg.command = MAV_CMD.MAV_CMD_NAV_WAYPOINT
+    msg.frame = 3 // FIXME
+    msg.current = 2 // FIXME
+    msg.autocontinue = 0 // FIXME
+
     msg
   }
 }
