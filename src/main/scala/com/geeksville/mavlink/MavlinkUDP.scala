@@ -89,8 +89,14 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
   }
 
   private def worker() {
-    while (true) {
-      receivePacket.foreach(handlePacket)
+    try {
+      while (true) {
+        receivePacket.foreach(handlePacket)
+      }
+    } catch {
+      case ex: SocketException =>
+        if (!self.isTerminated) // If we are shutting down, ignore socket exceptions
+          throw ex
     }
   }
 }
