@@ -11,6 +11,8 @@ import com.geeksville.flight.wingman.Wingman
 import com.geeksville.util.Counted
 import com.geeksville.util.SystemTools
 import org.mavlink.messages.MAVLinkMessage
+import com.geeksville.shell.ScalaShell
+import com.geeksville.shell.ScalaConsole
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -46,14 +48,14 @@ object FlightLead {
 
   def main(args: Array[String]) {
     println("FlightLead running...")
+    println("CWD is " + System.getProperty("user.dir"))
 
     // Needed for rxtx native code
     //val libprop = "java.library.path"
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
-    SystemTools.addDir("/oldroot/home/kevinh/development/FormationLead/libsrc") // FIXME
-    //println("serial path: " + System.getProperty(libprop))
+    SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
-    val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
+    //val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
 
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
@@ -72,7 +74,7 @@ object FlightLead {
     val groundControlId = 255
 
     // Anything coming from the controller app, forward it to the serial port
-    MavlinkEventBus.subscribe(mavSerial, groundControlId)
+    // MavlinkEventBus.subscribe(mavSerial, groundControlId)
 
     // Anything from the ardupilot, forward it to the controller app
     MavlinkEventBus.subscribe(mavUDP, arduPilotId)
@@ -91,6 +93,7 @@ object FlightLead {
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
 
-    Thread.sleep(1000 * 60 * 10)
+    val shell = new ScalaConsole()
+    shell.run()
   }
 }

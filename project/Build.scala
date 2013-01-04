@@ -7,7 +7,9 @@ object ScalaFlyBuild extends Build {
 
   val assemblyCustomize = mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
     {
-      //case PathList("javax", "servlet", xs @ _*) => MergeStrategy.first
+      // Pull all of the jansi classes from the offical dist jar, not jline
+      case PathList("org", "fusesource", xs @ _*) => MergeStrategy.first
+      
       //case "application.conf" => MergeStrategy.concat
       case ".project" => MergeStrategy.discard
       case ".classpath" => MergeStrategy.discard
