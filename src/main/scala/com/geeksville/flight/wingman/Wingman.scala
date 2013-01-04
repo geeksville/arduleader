@@ -5,9 +5,12 @@ import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.flight.lead.VehicleSimulator
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
+import com.geeksville.flight.lead.FlightLead
 
-class Wingman extends InstrumentedActor {
-  MavlinkEventBus.subscribe(self, VehicleSimulator.systemId)
+class Wingman extends InstrumentedActor with VehicleSimulator {
+  override def systemId = Wingman.systemId
+
+  MavlinkEventBus.subscribe(self, FlightLead.systemId)
 
   // So we can see acks
   MavlinkEventBus.subscribe(self, Wingman.targetSystemId)
@@ -21,6 +24,11 @@ class Wingman extends InstrumentedActor {
 }
 
 object Wingman {
+  /**
+   * The ID we use when sending our messages
+   */
+  val systemId = 254
+
   /**
    * The plane we should control
    */

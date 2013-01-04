@@ -12,7 +12,8 @@ import java.util.GregorianCalendar
  *
  */
 trait VehicleSimulator {
-  import VehicleSimulator._
+
+  def systemId: Int
 
   val componentId = 1 // FIXME
 
@@ -142,9 +143,3 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
   }
 }
 
-object VehicleSimulator {
-  /**
-   * We use a systemId 2, because the ardupilot is normally on 1.
-   */
-  val systemId: Int = 2
-}

@@ -21,6 +21,8 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   private val throttle = new Counted(10)
 
+  override def systemId = FlightLead.systemId
+
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 
   // Send a heartbeat every 10 seconds 
@@ -45,6 +47,11 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 }
 
 object FlightLead {
+
+  /**
+   * We use a systemId 2, because the ardupilot is normally on 1.
+   */
+  val systemId: Int = 2
 
   def main(args: Array[String]) {
     println("FlightLead running...")
