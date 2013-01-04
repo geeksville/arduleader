@@ -27,8 +27,11 @@ object ScalaFlyBuild extends Build {
       assemblyCustomize,
       mainClass in (Compile, run) := Some(main),
       mainClass in assembly := Some(main),
+      
+      // The three following commands are needed for my embedded REPL to work while we are inside sbt
       fork := true,
       connectInput in run := true,
-      outputStrategy in run := Some(StdoutOutput)))
+      outputStrategy in run := Some(StdoutOutput)
+      ))
 
 }

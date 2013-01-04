@@ -100,7 +100,10 @@ object FlightLead {
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
 
-    val shell = new ScalaShell()
+    val shell = new ScalaShell() {
+      override def name = "flight"
+      override def initCmds = Seq("import com.geeksville.flight.lead.ShellCommands._")
+    }
     shell.run()
 
     println("Shutting down actors...")
