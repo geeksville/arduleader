@@ -1,54 +1,61 @@
 package com.geeksville.shell
 
 import java.io._
+import scala.tools.nsc.GenericRunnerSettings
+import scala.tools.jline.Terminal
+import scala.tools.jline.TerminalFactory
 
 class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System.out) {
 
-  val name = "shell"
+  def name = "shell"
 
-  val initCmds = Seq[String]()
-  val bindings = Seq[(String, String, String)]()
+  def initCmds = Seq[String]()
+  def bindings = Seq[(String, (Class[_], Any))]()
+  def helpMsg = ""
+  def welcomeMsg = "The scala shell is running.  Type ctrl-d to exit, or :help for help."
 
-  def run() {
+  private val pw = new PrintWriter(out)
 
-    val pw = new PrintWriter(out)
-    val il = new scala.tools.nsc.interpreter.ILoop(None, pw)
-    il.setPrompt(name + "> ")
-    il.settings = new scala.tools.nsc.Settings()
-    il.settings.embeddedDefaults(getClass.getClassLoader)
-    il.settings.usejavacp.value = true
-    il.createInterpreter()
-    il.in = new JLineIOReader(
-      in,
-      out,
-      new scala.tools.nsc.interpreter.JLineCompletion(il.intp))
-
-    if (il.intp.reporter.hasErrors) {
-      println("Got errors, abandoning connection")
-      return
+  private class MyLoop extends scala.tools.nsc.interpreter.ILoop(None, pw) {
+    override def loop() {
+      if (isAsync) awaitInitialized()
+      bindSettings()
+      super.loop()
     }
 
-    il.printWelcome()
-    try {
-      il.intp.initialize()
-      il.intp.beQuietDuring {
-        il.intp.bind("stdout", pw)
-        for ((bname, btype, bval) <- bindings)
-          il.bind(bname, btype, bval)
+    /** Bind the settings so that evaluated code can modify them */
+    def bindSettings() {
+      intp beQuietDuring {
+        for ((name, (clazz, value)) <- bindings) {
+          intp.bind(name, clazz.getCanonicalName, value)
+        }
+        initCmds.foreach(intp.interpret)
       }
-      il.intp.quietRun(
-        """def println(a: Any) = {
-                  stdout.write(a.toString)
-                stdout.write('\n')
-                }""")
-      il.intp.quietRun(
-        """def exit = println("Use ctrl-D to exit shell.")""")
+    }
+    override def helpCommand(line: String): Result = {
+      if (line == "") echo(helpMsg)
 
-      initCmds.foreach(il.intp.quietRun)
+      super.helpCommand(line)
+    }
 
-      il.loop()
-    } finally
-      il.closeInterpreter()
+    override def printWelcome(): Unit = {
+      out.println(welcomeMsg)
+      out.flush()
+    }
+  }
+
+  def run() {
+    val il = new MyLoop
+    il.setPrompt(name + "> ")
+    // val settings = new scala.tools.nsc.Settings()
+    val settings = new GenericRunnerSettings(pw.println)
+    settings.embeddedDefaults(getClass.getClassLoader)
+    settings.usejavacp.value = true
+
+    il process settings
+
+    // Jline apparently leaves things messed up
+    TerminalFactory.get.setEchoEnabled(true)
   }
 
 }

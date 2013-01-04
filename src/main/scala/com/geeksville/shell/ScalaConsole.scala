@@ -3,6 +3,9 @@ package com.geeksville.shell
 /**
  * A shell bound to the default console
  */
-class ScalaConsole extends ScalaShell(in = new RawConsoleInputStream) {
-
+object ScalaConsole {
+  def main(args: Array[String]) {
+    val shell = new ScalaShell()
+    shell.run()
+  }
 }
