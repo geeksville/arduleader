@@ -11,8 +11,6 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
 
   def initCmds = Seq[String]()
   def bindings = Seq[(String, (Class[_], Any))]()
-  def helpMsg = ""
-  def welcomeMsg = "The scala shell is running.  Type ctrl-d to exit, or :help for help."
 
   private val pw = new PrintWriter(out)
 
@@ -32,16 +30,6 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
         initCmds.foreach(intp.interpret)
       }
     }
-    override def helpCommand(line: String): Result = {
-      if (line == "") echo(helpMsg)
-
-      super.helpCommand(line)
-    }
-
-    override def printWelcome(): Unit = {
-      out.println(welcomeMsg)
-      out.flush()
-    }
   }
 
   def run() {
@@ -49,7 +37,7 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
     il.setPrompt(name + "> ")
     // val settings = new scala.tools.nsc.Settings()
     val settings = new GenericRunnerSettings(pw.println)
-    settings.embeddedDefaults(getClass.getClassLoader)
+    //settings.embeddedDefaults(getClass.getClassLoader)
     settings.usejavacp.value = true
 
     il process settings
