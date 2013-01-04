@@ -12,8 +12,8 @@
 			<MinLevel>INFO</MinLevel>
 		</filter>
 
-		<filter class="com.geeksville.logback.MuteAllFilter">
-		</filter>
+		<filter class="com.geeksville.logback.MuteAllFilter" />
+				
 	</appender>
 
 	<!-- <logger name="play" level="INFO" /> <logger name="application" level="DEBUG" 

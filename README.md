@@ -30,6 +30,8 @@ This is my current thinking, feel free to edit...
 * By splitting things thusly I'd be making a general formation flight
   engine which could be used to follow anything (other arduplanes,
   attempted replay of previous flights, etc...).
+* Only start sending waypoints if plane is ready-to-fly and enabled at shell
+* figure out why waypoints are not shown on mission-controller
 
 ## Messages to send to Aurdupilot
 

@@ -23,13 +23,6 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   override def systemId = FlightLead.systemId
 
-  def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
-
-  // Send a heartbeat every 10 seconds 
-  context.system.scheduler.schedule(0 milliseconds, 1 seconds) {
-    sendMavlink(heartbeat)
-  }
-
   context.system.eventStream.subscribe(self, classOf[Location])
 
   def receive = {
@@ -62,7 +55,7 @@ object FlightLead {
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
-    //val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
+    val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
 
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
@@ -79,9 +72,12 @@ object FlightLead {
 
     val arduPilotId = Wingman.targetSystemId
     val groundControlId = 255
+    val wingmanId = Wingman.systemId
 
     // Anything coming from the controller app, forward it to the serial port
-    // MavlinkEventBus.subscribe(mavSerial, groundControlId)
+    MavlinkEventBus.subscribe(mavSerial, groundControlId)
+    // Anything from the wingman, send it to the serial port
+    MavlinkEventBus.subscribe(mavSerial, wingmanId)
 
     // Anything from the ardupilot, forward it to the controller app
     MavlinkEventBus.subscribe(mavUDP, arduPilotId)
@@ -91,7 +87,6 @@ object FlightLead {
     // MavlinkEventBus.subscribe(mavUDP, VehicleSimulator.systemId)
 
     // Create wingman actors
-
     Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)

@@ -3,17 +3,17 @@ package com.geeksville.flight.lead
 import com.geeksville.flight._
 import akka.actor.Props
 import akka.actor._
+import akka.util.duration._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
 import java.util.GregorianCalendar
+import com.geeksville.mavlink.MavlinkEventBus
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
  */
-trait VehicleSimulator {
-
-  def systemId: Int
+trait VehicleSimulator { self: Actor =>
 
   val componentId = 1 // FIXME
 
@@ -47,6 +47,18 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
     msg
   }
+
+  // Send a heartbeat every 10 seconds 
+  context.system.scheduler.schedule(0 milliseconds, 1 seconds) {
+    sendMavlink(heartbeat)
+  }
+
+  def systemId: Int
+
+  def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
+
+  def decodePosition(m: msg_global_position_int) =
+    Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
 
   /**
    * lat & lng in degrees
