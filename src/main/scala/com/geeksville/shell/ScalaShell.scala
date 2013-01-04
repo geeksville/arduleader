@@ -10,15 +10,19 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
   def name = "shell"
 
   def initCmds = Seq[String]()
-  def bindings = Seq[(String, (Class[_], Any))]()
+
+  private var bindings: Map[String, (java.lang.Class[_], AnyRef)] = Map()
 
   private val pw = new PrintWriter(out)
 
+  protected def bind[A <: AnyRef](name: String, value: A)(implicit m: Manifest[A]): Unit =
+    bindings += ((name, (m.erasure, value)))
+
   private class MyLoop extends scala.tools.nsc.interpreter.ILoop(None, pw) {
-    override def loop() {
-      if (isAsync) awaitInitialized()
+
+    override protected def postInitialization() {
+      super.postInitialization()
       bindSettings()
-      super.loop()
     }
 
     /** Bind the settings so that evaluated code can modify them */
@@ -27,7 +31,7 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
         for ((name, (clazz, value)) <- bindings) {
           intp.bind(name, clazz.getCanonicalName, value)
         }
-        initCmds.foreach(intp.interpret)
+        initCmds.foreach(command)
       }
     }
   }
