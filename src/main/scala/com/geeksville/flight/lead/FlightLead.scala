@@ -78,6 +78,8 @@ object FlightLead extends Logging {
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
 
+    createSerial()
+
     // Create flightlead actors
     // If you want logging uncomment the following line
     // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
@@ -99,7 +101,7 @@ object FlightLead extends Logging {
     Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowNothing)), "ardlog")
+    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowDefault)), "ardlog")
 
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
