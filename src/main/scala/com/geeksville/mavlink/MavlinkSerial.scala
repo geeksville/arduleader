@@ -32,6 +32,7 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor with Mavlink
   // port.enableReceiveTimeout(500)
 
   private val out = new BufferedOutputStream(port.getOutputStream, 8192)
+  private val instream = new DataInputStream(new ByteOnlyInputStream(port.getInputStream))
 
   val rxThread = ThreadTools.createDaemon("SerRx")(rxWorker)
 
@@ -52,12 +53,12 @@ class MavlinkSerial(val portName: String) extends InstrumentedActor with Mavlink
   }
 
   private def rxWorker() {
-    using(new DataInputStream(new ByteOnlyInputStream(port.getInputStream))) { stream =>
+    using(instream) { stream =>
       val reader = new MAVLinkReader(stream, IMAVLinkMessage.MAVPROT_PACKET_START_V10)
 
       var lostBytes = 0
 
-      while (true) {
+      while (!self.isTerminated) {
         val msg = Option(reader.getNextMessage())
         msg.foreach { s =>
           log.debug("RxSer: " + s)
