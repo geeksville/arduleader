@@ -13,6 +13,8 @@ import com.geeksville.util.SystemTools
 import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.shell.ScalaShell
 import com.geeksville.shell.ScalaConsole
+import gnu.io.NoSuchPortException
+import com.geeksville.logback.Logging
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -39,23 +41,39 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
   }
 }
 
-object FlightLead {
+object FlightLead extends Logging {
+
+  val arduPilotId = Wingman.targetSystemId
+  val groundControlId = 255
+  val wingmanId = Wingman.systemId
 
   /**
    * We use a systemId 2, because the ardupilot is normally on 1.
    */
   val systemId: Int = 2
 
+  def createSerial() {
+    try {
+      val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
+
+      // Anything coming from the controller app, forward it to the serial port
+      MavlinkEventBus.subscribe(mavSerial, groundControlId)
+      // Anything from the wingman, send it to the serial port
+      MavlinkEventBus.subscribe(mavSerial, wingmanId)
+    } catch {
+      case ex: NoSuchPortException =>
+        logger.error("No serial port found, disabling...")
+    }
+  }
+
   def main(args: Array[String]) {
-    println("FlightLead running...")
-    println("CWD is " + System.getProperty("user.dir"))
+    logger.info("FlightLead running...")
+    logger.debug("CWD is " + System.getProperty("user.dir"))
 
     // Needed for rxtx native code
     //val libprop = "java.library.path"
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
-
-    val mavSerial = Akka.actorOf(Props(new MavlinkSerial("/dev/ttyACM0")), "serrx")
 
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
@@ -69,15 +87,6 @@ object FlightLead {
     //
     // Wire up our subscribers
     //
-
-    val arduPilotId = Wingman.targetSystemId
-    val groundControlId = 255
-    val wingmanId = Wingman.systemId
-
-    // Anything coming from the controller app, forward it to the serial port
-    MavlinkEventBus.subscribe(mavSerial, groundControlId)
-    // Anything from the wingman, send it to the serial port
-    MavlinkEventBus.subscribe(mavSerial, wingmanId)
 
     // Anything from the ardupilot, forward it to the controller app
     MavlinkEventBus.subscribe(mavUDP, arduPilotId)
@@ -101,7 +110,7 @@ object FlightLead {
     }
     shell.run()
 
-    println("Shutting down actors...")
+    logger.info("Shutting down actors...")
     Akka.shutdown()
   }
 }
