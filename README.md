@@ -14,7 +14,7 @@ playing with it yet. ;-)
 ## Method
 This is my current thinking, feel free to edit...
 
-* Have a netbook + GPS on the pilot. (for ease of development do no android later)
+* Have a netbook + GPS on the pilot. (for ease of development do android later)
 * The netbook is running MAVProxy and xmitting over 900MHz to vehicle
 * A custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
 * Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
@@ -40,17 +40,10 @@ This is my current thinking, feel free to edit...
 * Here's what mission planner sends when you choose go-to some point at 100m alt:
 MAVLINK_MSG_ID_MISSION_ITEM :   param1=0.0  param2=0.0  param3=0.0  param4=0.0  x=37.52122  y=-122.31037  z=100.0  seq=0  command=16  target_system=1  target_component=1  frame=3  current=2  autocontinue=0
 * The device responds with: INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
-
 * At startup of mission planner it reads the props...
 INFO  c.g.mavlink.LogIncomingMavlink      : Rcv255: MAVLINK_MSG_ID_PARAM_REQUEST_LIST :   target_system=1  target_component=1
 INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=13.0  param_count=256  param_index=0  param_id=FORMAT_VERSION  param_type=4
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.0  param_count=256  param_index=1  param_id=SYSID_SW_TYPE  param_type=2
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=1.0  param_count=256  param_index=2  param_id=SYSID_THISMAV  param_type=4
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=255.0  param_count=256  param_index=3  param_id=SYSID_MYGCS  param_type=4
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=57.0  param_count=256  param_index=4  param_id=SERIAL3_BAUD  param_type=2
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.0  param_count=256  param_index=5  param_id=TELEM_DELAY  param_type=2
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.2  param_count=256  param_index=6  param_id=KFF_PTCHCOMP  param_type=9
-INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_PARAM_VALUE :   param_value=0.5  param_count=256  param_index=7  param_id=KFF_RDDRMIX  param_type=9
+
 ...
 
 ## Optionally replace MAVProxy 

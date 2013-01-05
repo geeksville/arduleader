@@ -30,7 +30,11 @@ object LogIncomingMavlink {
     classOf[msg_rc_channels_scaled],
     classOf[msg_rc_channels_raw],
     classOf[msg_servo_output_raw],
-    classOf[msg_meminfo])
+    classOf[msg_meminfo],
+    classOf[msg_raw_imu],
+    classOf[msg_raw_pressure],
+    classOf[msg_gps_raw_int],
+    classOf[msg_scaled_pressure])
 
   def allowDefault(msg: MAVLinkMessage) = !boringMessages.contains(msg.getClass)
   def allowNothing(msg: MAVLinkMessage) = false

@@ -101,7 +101,8 @@ object FlightLead extends Logging {
     Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowDefault)), "ardlog")
+    // Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowDefault)), "ardlog")
+    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowNothing)), "ardlog")
 
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
