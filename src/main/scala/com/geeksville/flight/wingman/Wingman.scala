@@ -36,7 +36,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
   /**
    * What bearing do we want to the leader (clockwise - 0 means he's at our 12 o'clock, 90 deg is 3 o'clock)
    */
-  var desiredBearing = 0
+  var desiredBearing = 90
 
   var leadLoc: Option[Location] = None
   var ourLoc: Option[Location] = None
@@ -90,9 +90,12 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
 
   /**
    * Get the desired position for our target plane
-   * (FIXME - not correct yet)
+   * (FIXME - not tested yet)
    */
-  def desiredLoc = leadLoc
+  def desiredLoc = leadLoc.map { l =>
+    val (lat, lon) = applyBearing(l.lat, l.lon, desiredDistanceX, desiredBearing - 180)
+    Location(lat, lon, l.alt - desiredDistanceZ)
+  }
 
   /**
    * Send a new dest waypoint to the target
