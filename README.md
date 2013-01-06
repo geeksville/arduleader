@@ -14,17 +14,16 @@ playing with it yet. ;-)
 ## Method
 This is my current thinking, feel free to edit...
 
-* Have a netbook + GPS on the pilot. (for ease of development do android later)
-* The netbook is running MAVProxy and xmitting over 900MHz to vehicle
+* Have a netbook + GPS on the pilot. (or possibly a PX4 or APM2.5).  This node is serving as FlightLead (see below).
 * A custom scala app talks to local GPS and backend repeatedly setting a new desired target position for the vehicle (be careful to take into account airspeed, don't run into hang glider or cliff etc...)
-* Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
+* (Done) Do the proof-of-concept by just slaming in new target WPs and loitering, but eventually fork loiter in navigation.pde to be smart about ridge rules, stay just outside of pilot, at the correct speed and altitude
 * (Done) App talks to plane via 900MHz and in turn forwards packets to UDP port 14550.
 * (Done) Split the app into two parts.  One app uploads mavlink flight info
   for the hang-glider (per
   http://www.qgroundcontrol.org/mavlink/start).  Call this app
   FlightLead.  Make a variant of FlightLead that reads IGC files to
   allow testing in simulation.
-* The other app watches a mavlink feed for any particular system ID
+* (Done) The other app watches a mavlink feed for any particular system ID
   and tries to follow that vehicle by sending set waypoint commands to
   another system id.  Call this app Wingman.
 * By splitting things thusly I'd be making a general formation flight
