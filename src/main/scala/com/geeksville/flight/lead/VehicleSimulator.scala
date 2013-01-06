@@ -66,7 +66,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
    * velocities in m/s
    * heading in degrees
    */
-  def makePosition(lat: Double, lon: Double, alt: Double, vx: Double = 0, vy: Double = 0, vz: Double = 0, hdg: Double = 655.35) = {
+  def makePosition(l: Location) = {
     /* Per https://pixhawk.ethz.ch/mavlink/#GLOBAL_POSITION_INT
  * time_boot_ms uint32_t  Timestamp (milliseconds since system boot)
 lat int32_t Latitude, expressed as * 1E7
@@ -81,19 +81,19 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
     val msg = new msg_global_position_int(systemId, componentId)
 
     msg.time_boot_ms = System.currentTimeMillis - startTime
-    msg.lat = (lat * 1e7).toInt
-    msg.lon = (lon * 1e7).toInt
-    msg.alt = (alt * 1000).toInt
-    msg.relative_alt = ((alt - groundAltitude) * 1000).toInt
-    msg.vx = (vx * 100).toInt
-    msg.vy = (vy * 100).toInt
-    msg.vz = (vz * 100).toInt
-    msg.hdg = (hdg * 100).toInt
+    msg.lat = (l.lat * 1e7).toInt
+    msg.lon = (l.lon * 1e7).toInt
+    msg.alt = (l.alt * 1000).toInt
+    msg.relative_alt = ((l.alt - groundAltitude) * 1000).toInt
+    msg.vx = (l.vx.getOrElse(0.0) * 100).toInt
+    msg.vy = (l.vy.getOrElse(0.0) * 100).toInt
+    //msg.vz = (l.vz.getOrElse(0.0) * 100).toInt
+    msg.hdg = (l.dir.getOrElse(655.35) * 100).toInt
 
     msg
   }
 
-  def makeGPSRaw(lat: Double, lon: Double, alt: Double) = {
+  def makeGPSRaw(l: Location) = {
     /* Type  Description
 time_usec uint64_t  Timestamp (microseconds since UNIX epoch or microseconds since system boot)
 fix_type  uint8_t 0-1: no fix, 2: 2D fix, 3: 3D fix. Some applications will not use the value of this field unless it is at least two, so always correctly fill in the fix.
@@ -108,9 +108,9 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
     val msg = new msg_gps_raw_int(systemId, componentId)
 
     msg.time_usec = (System.currentTimeMillis - startTime) * 1000
-    msg.lat = (lat * 1e7).toInt
-    msg.lon = (lon * 1e7).toInt
-    msg.alt = (alt * 1000).toInt
+    msg.lat = (l.lat * 1e7).toInt
+    msg.lon = (l.lon * 1e7).toInt
+    msg.alt = (l.alt * 1000).toInt
     msg.eph = 65535
     msg.epv = 65535
     msg.vel = 65535
@@ -137,10 +137,10 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
     msg
   }
 
-  def makeMissionItem(lat: Float, lon: Float, alt: Float) = {
+  def makeMissionItem(lat: Float, lon: Float, alt: Float, targetSys: Int) = {
     val msg = new msg_mission_item(systemId, componentId)
 
-    msg.target_system = 1
+    msg.target_system = targetSys
     msg.target_component = 1
     msg.param3 = 0 // FIXME - see if we can control loiter direction this way...
     msg.x = lon

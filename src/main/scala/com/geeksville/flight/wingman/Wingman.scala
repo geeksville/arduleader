@@ -70,14 +70,14 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
       if (msg.sysId == leaderId) {
         // The lead plane moved
 
-        //log.debug("WRx" + msg.sysId + ": " + msg)
+        // log.debug("WRx" + msg.sysId + ": " + msg)
         leadLoc = Some(decodePosition(msg))
         updateGoal()
       } else if (msg.sysId == Wingman.targetSystemId) {
         // We have a new update of our position
 
         ourLoc = Some(decodePosition(msg))
-        // updateGoal() - goal depends only on the lead aircraft position (currently)
+        // updateGoal() // Not needed here, generates 2x too many updates: goal depends only on the lead aircraft position (currently)
       }
 
     case msg: msg_mission_ack =>
@@ -106,14 +106,23 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
   def updateGoal() {
     // Resolve opts, if they are missing we can't really do anything
     for {
-      dist <- distanceToLeader;
+      // dist <- distanceToLeader;
       l <- desiredLoc
     } yield {
-      sendMavlink(makeMissionItem(l.lat.toFloat, l.lon.toFloat, l.alt.toFloat))
+      // Tell the plane we are controlling the new goal
+      sendMavlink(makeMissionItem(l.lat.toFloat, l.lon.toFloat, l.alt.toFloat, Wingman.targetSystemId))
+
+      // Generate fake position updates for our systemId, so the 'goal' can be seen in QGroundControl
+      sendMavlink(makePosition(l))
+      sendMavlink(makeGPSRaw(l))
 
       throttle { i =>
         log.info("Wingman has sent %d waypoints".format(i))
-        log.debug("Distance: " + dist)
+        // log.debug("Distance: " + dist)
+
+        // Update status
+        sendMavlink(makeStatusText("Wingman..."))
+        sendMavlink(makeSysStatus())
       }
     }
   }

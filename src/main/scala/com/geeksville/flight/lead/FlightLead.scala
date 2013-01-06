@@ -29,13 +29,12 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   def receive = {
     case l: Location =>
-      sendMavlink(makePosition(l.lat, l.lon, l.alt))
-      sendMavlink(makeGPSRaw(l.lat, l.lon, l.alt))
+      sendMavlink(makePosition(l))
+      sendMavlink(makeGPSRaw(l))
       throttle { i =>
         val msg = "Emitted %d points...".format(i)
         log.info(msg)
         sendMavlink(makeStatusText(msg))
-
         sendMavlink(makeSysStatus())
       }
   }
@@ -92,6 +91,10 @@ object FlightLead extends Logging {
 
     // Anything from the ardupilot, forward it to the controller app
     MavlinkEventBus.subscribe(mavUDP, arduPilotId)
+
+    // Also send our wingman and flightlead planes to the ground control app
+    MavlinkEventBus.subscribe(mavUDP, wingmanId)
+    MavlinkEventBus.subscribe(mavUDP, systemId)
 
     // Anything from our sim lead, send it to the controller app (so it will hopefully show him)
     // Doesn't work yet - mission planner freaks out
