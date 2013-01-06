@@ -66,15 +66,18 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
   }
 
   def receive = {
-    // We only care about position messages from the plane we are following
     case msg: msg_global_position_int ⇒
       if (msg.sysId == leaderId) {
+        // The lead plane moved
+
         //log.debug("WRx" + msg.sysId + ": " + msg)
         leadLoc = Some(decodePosition(msg))
         updateGoal()
       } else if (msg.sysId == Wingman.targetSystemId) {
+        // We have a new update of our position
+
         ourLoc = Some(decodePosition(msg))
-        updateGoal() // FIXME, should we send this less often? (not when either lead or our position changes?)
+        // updateGoal() - goal depends only on the lead aircraft position (currently)
       }
 
     case msg: msg_mission_ack =>
@@ -101,7 +104,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
    * Send a new dest waypoint to the target
    */
   def updateGoal() {
-    // Resolve opts, if we are missing we can't really do anything
+    // Resolve opts, if they are missing we can't really do anything
     for {
       dist <- distanceToLeader;
       l <- desiredLoc

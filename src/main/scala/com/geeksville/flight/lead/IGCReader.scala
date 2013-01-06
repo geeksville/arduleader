@@ -3,23 +3,30 @@ package com.geeksville.flight.lead
 import java.io._
 import java.text.SimpleDateFormat
 import scala.io.Source
-
-case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Double = 0.0, time: Long = 0,
-  dir: Option[Double] = None, velocity: Option[Double] = None, quality: Int = 0) {
-  def fixed = quality > 0
-}
+import com.geeksville.logback.Logger
+import com.geeksville.logback.Logging
+import com.geeksville.util.MathTools
 
 /**
  * Read IGC file locations
  *
  * Borrowed from my old Gaggle java code
  */
-class IGCReader(filename: String) {
+class IGCReader(filename: String) extends Logging {
 
   private val formater = new SimpleDateFormat("HHmmss");
 
+  // Some GPS readings are crap - throw them out
+  val maxVelocity = 25 // m/s about 50 mph over the ground
+
   // FIXME - I bet this leaks a file descriptor
-  val locations = Source.fromFile(filename).getLines.flatMap(toLocation).toSeq
+  val locations = Location.filterByVelocity(maxVelocity, Location.addVelocities(Source.fromFile(filename).getLines.flatMap(toLocation).toSeq).toSeq)
+
+  logger.debug("IGC file read, average velocity %s, max velocity %s".format(
+    MathTools.average(velocities),
+    MathTools.max(velocities)))
+
+  private def velocities = locations.map(_.velocity.get)
 
   private def toLocation(line: String): Option[Location] = {
     // Ignore all other record types
@@ -61,6 +68,8 @@ class IGCReader(filename: String) {
 
       // FIXME - we should also pay attention to the TZ and the date
       // stored in the file header
+
+      // fixme - calc vx and vy
 
       val res = Location(lat, ltude, alt, d.getTime)
 

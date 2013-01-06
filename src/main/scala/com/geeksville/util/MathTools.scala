@@ -1,6 +1,12 @@
 package com.geeksville.util
 
-object MathTools {
+import com.geeksville.logback.Logging
+
+object MathTools extends Logging {
+
+  def average(s: Iterable[Double]) = s.reduce(_ + _) / s.size
+  def max(s: Iterable[Double]) = s.reduce { (p, a) => math.max(p, a) }
+  def min(s: Iterable[Double]) = s.reduce { (p, a) => math.min(p, a) }
 
   /**
    * degrees to radians
@@ -64,6 +70,7 @@ object MathTools {
     val lon2 = lon1 + math.atan2(math.sin(brng) * math.sin(distance / R) * math.cos(lat1),
       math.cos(distance / R) - math.sin(lat1) * math.sin(lat2))
 
-    (lat2, lon2)
+    val lonNorm = (lon2 + 3 * math.Pi) % (2 * math.Pi) - math.Pi
+    (toDeg(lat2), toDeg(lonNorm))
   }
 }

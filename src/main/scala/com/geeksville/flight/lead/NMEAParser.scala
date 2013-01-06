@@ -79,13 +79,20 @@ class NMEAParser {
       lat = latitude2Decimal(tokens(1), tokens(2)),
       lon = latitude2Decimal(tokens(3), tokens(4)))
 
-  private def GPRMC(tokens: Array[String]) =
+  private def GPRMC(tokens: Array[String]) = {
+    val v = tokens(7).toDouble
+
+    // The rest of our software wants to track vx & vy separately, so for now just assume x & y are equal and solve
+    // c^2 = vx^2 + vy^2 for vx/vy
+    val vxy = v * 2 / math.sqrt(2)
     Location(
       time = parseTime(tokens(1)),
       lat = latitude2Decimal(tokens(3), tokens(4)),
       lon = latitude2Decimal(tokens(5), tokens(6)),
-      velocity = Some(tokens(7).toDouble),
+      vx = Some(vxy),
+      vy = Some(vxy),
       dir = Some(tokens(8).toDouble))
+  }
 
   // FIXME - merge this with a position record?
   private def GPVTG(tokens: Array[String]) =

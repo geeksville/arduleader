@@ -1,0 +1,66 @@
+package com.geeksville.flight.lead
+
+import java.io._
+import java.text.SimpleDateFormat
+import scala.io.Source
+import com.geeksville.util.MathTools
+import com.geeksville.logback.Logging
+
+case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Double = 0.0, time: Long = 0,
+  dir: Option[Double] = None, vx: Option[Double] = None, vy: Option[Double] = None, quality: Int = 0) {
+  def fixed = quality > 0
+
+  def velocity = for { x <- vx; y <- vy } yield { math.sqrt(x * x + y * y) }
+}
+
+object Location extends Logging {
+
+  def filterByVelocity(maxSpeed: Double, locIn: Seq[Location]) = locIn.filter { l =>
+    val okay = l.velocity.get <= maxSpeed
+
+    if (!okay)
+      logger.warn("Velocity too high, filtering: " + l.velocity.get + " m/s")
+
+    okay
+  }
+
+  /**
+   * Given a sequence of locations - enhance them by adding velocity information
+   */
+  def addVelocities(locIn: Seq[Location]) = {
+    val start = locIn(0)
+
+    logger.debug("start=" + start)
+
+    // Find typical # of degrees per meter in the ew direction for our position on the planet
+    val offsetsX = MathTools.applyBearing(start.lat, start.lon, 1, 90)
+    val offsetsY = MathTools.applyBearing(start.lat, start.lon, 1, 0)
+
+    logger.debug("offsetsX=" + offsetsX)
+    logger.debug("offsetsY=" + offsetsY)
+
+    // Scaling factor 
+    val degPerMeterLat = math.abs(offsetsY._1 - start.lat)
+    val degPerMeterLon = math.abs(offsetsX._2 - start.lon)
+
+    logger.debug("degPerMeter=" + degPerMeterLat + "," + degPerMeterLon)
+
+    locIn.sliding(2).map {
+      case Seq(prev, cur) =>
+        val dLat = cur.lat - prev.lat
+        val dLon = cur.lon - prev.lon
+        val secs = (cur.time - prev.time) / 1000.0
+
+        val vx = (dLon / degPerMeterLon) / secs
+        val vy = (dLat / degPerMeterLat) / secs
+
+        val r = Location(cur.lat, cur.lon, cur.alt, cur.time, vx = Some(vx), vy = Some(vy))
+
+        //logger.debug("secs %s, vels = %s, %s, v = %s".format(secs, vx, vy, r.velocity))
+
+        if (r.velocity == Double.PositiveInfinity)
+          throw new Exception("Invalid velocity")
+        r
+    }
+  }
+}
