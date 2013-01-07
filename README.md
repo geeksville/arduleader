@@ -81,7 +81,7 @@ primitives in Arudpilot might need to be improved.
 
 ### Learning to-do
 
-* build/run the hw in loop sim 
+* (DONE) build/run the hw in loop sim (https://code.google.com/p/ardupilot-mega/wiki/Xplane)
 * build/run the sw in loop sim
 * Test marelous with software & hardware in loop sim
 * Develop scala client to talk to marvelous

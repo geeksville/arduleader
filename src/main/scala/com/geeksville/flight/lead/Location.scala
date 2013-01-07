@@ -25,9 +25,9 @@ object Location extends Logging {
   }
 
   /**
-   * Given a sequence of locations - enhance them by adding velocity information
+   * Given a sequence of locations - enhance them by adding bearing/velocity information
    */
-  def addVelocities(locIn: Seq[Location]) = {
+  def addVelAndBearing(locIn: Seq[Location]) = {
     val start = locIn(0)
 
     logger.debug("start=" + start)
@@ -47,16 +47,26 @@ object Location extends Logging {
 
     locIn.sliding(2).map {
       case Seq(prev, cur) =>
-        val dLat = cur.lat - prev.lat
-        val dLon = cur.lon - prev.lon
+
         val secs = (cur.time - prev.time) / 1000.0
 
-        val vx = (dLon / degPerMeterLon) / secs
-        val vy = (dLat / degPerMeterLat) / secs
+        // We prefer the values in the source data, if they are populated
+        val vx = cur.vx.getOrElse {
+          val dLon = cur.lon - prev.lon
 
-        val r = Location(cur.lat, cur.lon, cur.alt, cur.time, vx = Some(vx), vy = Some(vy))
+          (dLon / degPerMeterLon) / secs
+        }
 
-        //logger.debug("secs %s, vels = %s, %s, v = %s".format(secs, vx, vy, r.velocity))
+        val vy = cur.vy.getOrElse {
+          val dLat = cur.lat - prev.lat
+          (dLat / degPerMeterLat) / secs
+        }
+
+        val bearing = cur.dir.getOrElse(MathTools.bearing(prev.lat, prev.lon, cur.lat, cur.lon).toDouble)
+
+        val r = Location(cur.lat, cur.lon, cur.alt, cur.time, vx = Some(vx), vy = Some(vy), dir = Some(bearing))
+
+        logger.debug("secs %s, vels = %s, %s, v = %s, dir = %s".format(secs, vx, vy, r.velocity, r.dir))
 
         if (r.velocity == Double.PositiveInfinity)
           throw new Exception("Invalid velocity")
