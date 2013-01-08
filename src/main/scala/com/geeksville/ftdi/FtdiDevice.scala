@@ -78,6 +78,7 @@ class FtdiDevice(vendor: Int, product: Int) {
   def setReadDataChunksize(size: Int) { checkError(ftdi_read_data_set_chunksize(handle, size)) }
   def setWriteDataChunksize(size: Int) { checkError(ftdi_write_data_set_chunksize(handle, size)) }
   def setBaudRate(size: Int) { checkError(ftdi_set_baudrate(handle, size)) }
+  def setFlowControl(ctrl: Int) { checkError(ftdi_setflowctrl(handle, ctrl)) }
 
   /// Read a single character, or -1 if the stream is closed
   def read(): Int = {

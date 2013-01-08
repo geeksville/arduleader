@@ -66,7 +66,7 @@ object Location extends Logging {
 
         val r = Location(cur.lat, cur.lon, cur.alt, cur.time, vx = Some(vx), vy = Some(vy), dir = Some(bearing))
 
-        logger.debug("secs %s, vels = %s, %s, v = %s, dir = %s".format(secs, vx, vy, r.velocity, r.dir))
+        //logger.debug("secs %s, vels = %s, %s, v = %s, dir = %s".format(secs, vx, vy, r.velocity, r.dir))
 
         if (r.velocity == Double.PositiveInfinity)
           throw new Exception("Invalid velocity")

@@ -11,6 +11,7 @@ import com.geeksville.util.DebugInputStream
 import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.util.Throttled
 import com.geeksville.ftdi.LibFtdi
+import com.geeksville.logback.Logging
 
 // with SerialPortEventListener
 
@@ -63,7 +64,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
   }
 }
 
-object MavlinkStream {
+object MavlinkStream extends Logging {
   def openSerial(portName: String, baudRate: Int) = {
     val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)
     if (portIdentifier.isCurrentlyOwned)
@@ -76,8 +77,6 @@ object MavlinkStream {
     port.setOutputBufferSize(16384)
     port.disableReceiveFraming()
     port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE)
-    //port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT)
-    // port.enableReceiveTimeout(500)
 
     val out = new BufferedOutputStream(port.getOutputStream, 8192)
     val instream = new ByteOnlyInputStream(port.getInputStream)
@@ -85,11 +84,12 @@ object MavlinkStream {
   }
 
   def openFtdi(portName: String, baudRate: Int) = {
+    logger.info("Opening ftdi")
     val dev = LibFtdi.open(0x0403, 0x6001)
     dev.setLatencyTimer(1)
     dev.setReadDataChunksize(1024) // Possibly shrink even further - default was 4096       
     dev.setWriteDataChunksize(256)
-    // dev.setFlowControl(D2xx.FT_FLOW_DTR_DSR, 0, 0) // Not sure what is the right flow control option
+    dev.setFlowControl(LibFtdi.SIO_RTS_CTS_HS) // Not sure what is the right flow control option
 
     // dev.setTimeouts(Integer.MAX_VALUE, 5000)
     // dev.setTimeouts(10, 5000) // Need a short read timeout if using streams

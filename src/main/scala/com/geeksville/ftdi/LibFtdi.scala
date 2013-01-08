@@ -20,6 +20,11 @@ object LibFtdi {
 
   type ftdi_context = Pointer
 
+  val SIO_DISABLE_FLOW_CTRL = 0x0
+  val SIO_RTS_CTS_HS = (0x1 << 8)
+  val SIO_DTR_DSR_HS = (0x2 << 8)
+  val SIO_XON_XOFF_HS = (0x4 << 8)
+
   val snaLibrary = if (!Platform.isWindows) "ftdi" else "libftdi"
 
   Native.register(snaLibrary)
@@ -32,6 +37,8 @@ object LibFtdi {
   def ftdi_usb_open(ftdi: ftdi_context, vendor: INT, product: INT): INT
   @native
   def ftdi_usb_close(ftdi: ftdi_context): INT
+  @native
+  def ftdi_setflowctrl(ftdi: ftdi_context, ctrl: INT): INT
   @native
   def ftdi_read_data(ftdi: ftdi_context, buf: ByteBuffer, size: INT): INT
   @native
