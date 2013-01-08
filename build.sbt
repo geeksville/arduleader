@@ -21,7 +21,9 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" withSource
 libraryDependencies += "org.scala-lang" % "scala-compiler" % "2.9.3-RC1" withSources()
 
 libraryDependencies += "org.scala-lang" % "jline" % "2.9.3-RC1" withSources()
-        
+
+libraryDependencies += "net.java.dev.jna" % "jna" % "3.5.1" // For libFtdi
+
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource // Include resources dir in eclipse classpath
 
 EclipseKeys.withSource := true // Try to include source for libs
