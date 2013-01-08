@@ -16,14 +16,14 @@ import com.geeksville.util.Throttled
 /**
  * Talks mavlink out a serial port
  */
-class MavlinkSerial(val portName: String) extends InstrumentedActor with MavlinkReceiver {
+class MavlinkSerial(val portName: String, val baudRate: Int) extends InstrumentedActor with MavlinkReceiver {
   private val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)
   if (portIdentifier.isCurrentlyOwned)
     throw new IOException("Error: Port is currently in use")
 
   private val port = portIdentifier.open(this.getClass.getName, 2000).asInstanceOf[SerialPort]
 
-  port.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
+  port.setSerialPortParams(baudRate, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE)
   port.setInputBufferSize(16384)
   port.setOutputBufferSize(16384)
   port.disableReceiveFraming()
