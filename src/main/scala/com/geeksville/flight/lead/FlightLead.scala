@@ -56,7 +56,8 @@ object FlightLead extends Logging {
       val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
       val port = "/dev/ttyUSB0" // Use ttyACM0 for local serial
 
-      val mavSerial = Akka.actorOf(Props(new MavlinkSerial(port, baudRate)), "serrx")
+      // val mavSerial = Akka.actorOf(Props(MavlinkStream.openSerial(port, baudRate)), "serrx")
+      val mavSerial = Akka.actorOf(Props(MavlinkStream.openFtdi(port, baudRate)), "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
