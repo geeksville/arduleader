@@ -83,11 +83,17 @@ object FlightLead extends Logging {
 
     createSerial()
 
-    // Create flightlead actors
-    // If you want logging uncomment the following line
-    // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-    Akka.actorOf(Props[FlightLead], "lead")
-    Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+    val startFlightLead = false
+    val startWingman = false
+    val dumpSerialRx = true
+
+    if (startFlightLead) {
+      // Create flightlead actors
+      // If you want logging uncomment the following line
+      // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
+      Akka.actorOf(Props[FlightLead], "lead")
+      Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+    }
 
     //
     // Wire up our subscribers
@@ -104,12 +110,16 @@ object FlightLead extends Logging {
     // Doesn't work yet - mission planner freaks out
     // MavlinkEventBus.subscribe(mavUDP, VehicleSimulator.systemId)
 
-    // Create wingman actors
-    Akka.actorOf(Props[Wingman], "wing")
+    if (startWingman)
+      // Create wingman actors
+      Akka.actorOf(Props[Wingman], "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    // Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowDefault)), "ardlog")
-    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId, LogIncomingMavlink.allowNothing)), "ardlog")
+    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId,
+      if (dumpSerialRx)
+        LogIncomingMavlink.allowDefault
+      else
+        LogIncomingMavlink.allowNothing)), "ardlog")
 
     // to see GroundControl packets
     Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")

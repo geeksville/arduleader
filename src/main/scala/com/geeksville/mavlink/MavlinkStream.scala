@@ -49,15 +49,20 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
       var lostBytes = 0
 
       while (!self.isTerminated) {
-        val msg = Option(reader.getNextMessage())
-        msg.foreach { s =>
-          log.debug("RxSer: " + s)
-          if (reader.getLostBytes > lostBytes) {
-            lostBytes = reader.getLostBytes
-            log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
-          }
+        try {
+          val msg = Option(reader.getNextMessage())
+          msg.foreach { s =>
+            log.debug("RxSer: " + s)
+            if (reader.getLostBytes > lostBytes) {
+              lostBytes = reader.getLostBytes
+              log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
+            }
 
-          handlePacket(s)
+            handlePacket(s)
+          }
+        } catch {
+          case ex: EOFException =>
+          // If we were shutting down, ignore the problem
         }
       }
     }

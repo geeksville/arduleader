@@ -2,8 +2,10 @@ package com.geeksville.ftdi
 
 import LibFtdi._
 import java.nio.ByteBuffer
+import com.geeksville.util.DebugInputStream
+import com.geeksville.logback.Logging
 
-class FtdiDevice(vendor: Int, product: Int) {
+class FtdiDevice(vendor: Int, product: Int) extends Logging {
   val handle = ftdi_new()
 
   private var isClosed = false
@@ -50,6 +52,7 @@ class FtdiDevice(vendor: Int, product: Int) {
       // If the port is already closed don't even attempt a read
       while (!isClosed) {
         val result = ftdi_read_data(handle, buf, size)
+        //logger.debug("ftdi read returned " + result)
 
         if (!isClosed)
           // Got an error?
@@ -59,7 +62,7 @@ class FtdiDevice(vendor: Int, product: Int) {
             // The following failure seems to occur rarely on Windows - try to retry
             // LibFTDI error usb bulk read failed
             if (msg.contains("bulk read failed") && readRetriesLeft > 0) {
-              println("Ignoring mystery " + msg)
+              logger.error("Ignoring mystery " + msg)
               readRetriesLeft -= 1
             } else
               throw new FtdiException("LibFTDI error " + msg)

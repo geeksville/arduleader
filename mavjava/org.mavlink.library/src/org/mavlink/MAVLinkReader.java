@@ -120,7 +120,7 @@ public class MAVLinkReader {
    * 
    * @return MAVLink message or null
    */
-  public MAVLinkMessage getNextMessage() {
+  public MAVLinkMessage getNextMessage() throws IOException {
     MAVLinkMessage msg = null;
     if (packets.isEmpty()) {
       readNextMessage();
@@ -155,7 +155,7 @@ public class MAVLinkReader {
    * 
    * @return true if data are valid
    */
-  protected boolean readNextMessage() {
+  protected boolean readNextMessage() throws IOException {
     boolean validData = false;
     int length;
     int sequence;
@@ -167,92 +167,80 @@ public class MAVLinkReader {
     byte[] rawData = null;
     MAVLinkMessage msg = null;
 
-    try {
-      // we are allowed to block in this version of the function, take advantage
-      // of that ASAP
-      // otherwise getNextMessage will burn 100% of the CPU spinning...
-      // if (dis.available() == 0)
-      // return validData;
-      receivedBuffer[nbReceived] = dis.readByte();
-      if (receivedBuffer[nbReceived++] == start) {
-        validData = true;
+    // we are allowed to block in this version of the function, take advantage
+    // of that ASAP
+    // otherwise getNextMessage will burn 100% of the CPU spinning...
+    // if (dis.available() == 0)
+    // return validData;
+    receivedBuffer[nbReceived] = dis.readByte();
+    if (receivedBuffer[nbReceived++] == start) {
+      validData = true;
 
-        length = receivedBuffer[nbReceived++] = dis.readByte();
-        length &= 0X00FF;
+      length = receivedBuffer[nbReceived++] = dis.readByte();
+      length &= 0X00FF;
 
-        sequence = receivedBuffer[nbReceived++] = dis.readByte();
-        sequence &= 0X00FF;
+      sequence = receivedBuffer[nbReceived++] = dis.readByte();
+      sequence &= 0X00FF;
 
-        sysId = receivedBuffer[nbReceived++] = dis.readByte();
-        sysId &= 0X00FF;
+      sysId = receivedBuffer[nbReceived++] = dis.readByte();
+      sysId &= 0X00FF;
 
-        componentId = receivedBuffer[nbReceived++] = dis.readByte();
-        componentId &= 0X00FF;
+      componentId = receivedBuffer[nbReceived++] = dis.readByte();
+      componentId &= 0X00FF;
 
-        msgId = receivedBuffer[nbReceived++] = dis.readByte();
-        msgId &= 0X00FF;
+      msgId = receivedBuffer[nbReceived++] = dis.readByte();
+      msgId &= 0X00FF;
 
-        rawData = readRawData(length);
+      rawData = readRawData(length);
 
-        crcLow = receivedBuffer[nbReceived++] = dis.readByte();
-        crcHigh = receivedBuffer[nbReceived++] = dis.readByte();
-        int crc = MAVLinkCRC.crc_calculate_decode(receivedBuffer, length);
-        if (IMAVLinkCRC.MAVLINK_EXTRA_CRC) {
-          // CRC-EXTRA for Mavlink 1.0
-          crc = MAVLinkCRC.crc_accumulate(
-              (byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[msgId], crc);
-        }
+      crcLow = receivedBuffer[nbReceived++] = dis.readByte();
+      crcHigh = receivedBuffer[nbReceived++] = dis.readByte();
+      int crc = MAVLinkCRC.crc_calculate_decode(receivedBuffer, length);
+      if (IMAVLinkCRC.MAVLINK_EXTRA_CRC) {
+        // CRC-EXTRA for Mavlink 1.0
+        crc = MAVLinkCRC.crc_accumulate(
+            (byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[msgId], crc);
+      }
 
-        byte crcl = (byte) (crc & 0x00FF);
-        byte crch = (byte) ((crc >> 8) & 0x00FF);
-        if ((crcl == crcLow) && (crch == crcHigh)) {
-          msg = MAVLinkMessageFactory.getMessage(msgId, sysId, componentId,
-              rawData);
-          if (msg != null) {
-            msg.sequence = sequence;
-            if (!checkSequence(sequence)) {
-              System.err
-                  .println("SEQUENCE error, packets lost! Last sequence : "
-                      + lastSequence + " Current sequence : " + sequence
-                      + " Id=" + msgId + " nbReceived=" + nbReceived);
-            }
-            packets.addElement(msg);
-            // if (debug)
-            // System.out.println("MESSAGE = " + msg);
-          } else {
-            System.err.println("ERROR creating message  Id=" + msgId);
-            validData = false;
+      byte crcl = (byte) (crc & 0x00FF);
+      byte crch = (byte) ((crc >> 8) & 0x00FF);
+      if ((crcl == crcLow) && (crch == crcHigh)) {
+        msg = MAVLinkMessageFactory.getMessage(msgId, sysId, componentId,
+            rawData);
+        if (msg != null) {
+          msg.sequence = sequence;
+          if (!checkSequence(sequence)) {
+            System.err.println("SEQUENCE error, packets lost! Last sequence : "
+                + lastSequence + " Current sequence : " + sequence + " Id="
+                + msgId + " nbReceived=" + nbReceived);
           }
+          packets.addElement(msg);
+          // if (debug)
+          // System.out.println("MESSAGE = " + msg);
         } else {
-          System.err.println("ERROR mavlink CRC16-CCITT compute= "
-              + Integer.toHexString(crc) + "  expected : "
-              + Integer.toHexString(crcHigh & 0x00FF)
-              + Integer.toHexString(crcLow & 0x00FF) + " Id=" + msgId
-              + " nbReceived=" + nbReceived);
+          System.err.println("ERROR creating message  Id=" + msgId);
           validData = false;
         }
-        // restart buffer
-        lastSequence = sequence;
-        nbReceived = 0;
       } else {
+        System.err.println("ERROR mavlink CRC16-CCITT compute= "
+            + Integer.toHexString(crc) + "  expected : "
+            + Integer.toHexString(crcHigh & 0x00FF)
+            + Integer.toHexString(crcLow & 0x00FF) + " Id=" + msgId
+            + " nbReceived=" + nbReceived);
         validData = false;
-        // Don't spam the log while syncing, client can get lostBytes if curious
-        lostBytes++;
-        // System.err.println("LOST bytes : " + lostBytes);
-        // restart buffer
-        nbReceived = 0;
       }
-    } catch (java.io.EOFException eof) {
-      System.err.println("ERROR EOF : " + eof);
-      eof.printStackTrace();
-      validData = false;
+      // restart buffer
+      lastSequence = sequence;
       nbReceived = 0;
-    } catch (Exception e) {
-      System.err.println("ERROR : " + e);
+    } else {
+      validData = false;
+      // Don't spam the log while syncing, client can get lostBytes if curious
+      lostBytes++;
+      // System.err.println("LOST bytes : " + lostBytes);
       // restart buffer
       nbReceived = 0;
-      validData = false;
     }
+
     return validData;
   }
 
@@ -438,9 +426,9 @@ public class MAVLinkReader {
   protected byte[] readRawData(int nb) throws IOException {
     byte[] buffer = new byte[nb];
     int index = 0;
-    while (dis.available() < nb) {
-      ;
-    }
+    /*
+     * while (dis.available() < nb) { ; }
+     */
     for (int i = 0; i < nb; i++) {
       receivedBuffer[nbReceived] = dis.readByte();
       buffer[index++] = receivedBuffer[nbReceived++];
