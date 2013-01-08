@@ -63,6 +63,9 @@ object FlightLead extends Logging {
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
       // Anything from the wingman, send it to the serial port
       MavlinkEventBus.subscribe(mavSerial, wingmanId)
+
+      // Watch for failures
+      MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), arduPilotId)
     } catch {
       case ex: NoSuchPortException =>
         logger.error("No serial port found, disabling...")
@@ -85,7 +88,7 @@ object FlightLead extends Logging {
 
     val startFlightLead = false
     val startWingman = false
-    val dumpSerialRx = true
+    val dumpSerialRx = false
 
     if (startFlightLead) {
       // Create flightlead actors
@@ -93,6 +96,9 @@ object FlightLead extends Logging {
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
       Akka.actorOf(Props[FlightLead], "lead")
       Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+
+      // Watch for failures
+      MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), systemId)
     }
 
     //
