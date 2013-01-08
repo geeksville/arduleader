@@ -44,9 +44,15 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
     //settings.embeddedDefaults(getClass.getClassLoader)
     settings.usejavacp.value = true
 
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      override def run() {
+        // Jline apparently leaves things messed up
+        TerminalFactory.get.setEchoEnabled(true)
+      }
+    });
+
     il process settings
 
-    // Jline apparently leaves things messed up
     TerminalFactory.get.setEchoEnabled(true)
   }
 
