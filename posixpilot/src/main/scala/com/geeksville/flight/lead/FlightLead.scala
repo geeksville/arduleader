@@ -14,32 +14,9 @@ import com.geeksville.shell.ScalaShell
 import com.geeksville.shell.ScalaConsole
 import gnu.io.NoSuchPortException
 import com.geeksville.logback.Logging
+import com.geeksville.flight.FlightLead
 
-/**
- * Listen for GPS Locations on the event bus, and drive our simulated vehicle
- */
-class FlightLead extends InstrumentedActor with VehicleSimulator {
-
-  private val throttle = new Counted(10)
-
-  override def systemId = FlightLead.systemId
-
-  context.system.eventStream.subscribe(self, classOf[Location])
-
-  def receive = {
-    case l: Location =>
-      sendMavlink(makePosition(l))
-      sendMavlink(makeGPSRaw(l))
-      throttle { i =>
-        val msg = "Emitted %d points...".format(i)
-        log.info(msg)
-        sendMavlink(makeStatusText(msg))
-        sendMavlink(makeSysStatus())
-      }
-  }
-}
-
-object FlightLead extends Logging {
+object Main extends Logging {
 
   val arduPilotId = Wingman.targetSystemId
   val groundControlId = 255

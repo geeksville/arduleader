@@ -1,4 +1,4 @@
-package com.geeksville.flight.lead
+package com.geeksville.flight
 
 import java.io._
 import java.text.SimpleDateFormat

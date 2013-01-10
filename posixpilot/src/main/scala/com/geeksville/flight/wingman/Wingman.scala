@@ -3,10 +3,10 @@ package com.geeksville.flight.wingman
 import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.MavlinkEventBus
-import com.geeksville.flight.lead.VehicleSimulator
+import com.geeksville.flight.VehicleSimulator
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
-import com.geeksville.flight.lead.FlightLead
-import com.geeksville.flight.lead.Location
+import com.geeksville.flight.FlightLead
+import com.geeksville.flight.Location
 import org.mavlink.messages.ardupilotmega.msg_mission_ack
 import org.mavlink.messages.MAV_MISSION_RESULT
 import com.geeksville.util.Counted

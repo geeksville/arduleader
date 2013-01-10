@@ -1,4 +1,4 @@
-package com.geeksville.flight.lead
+package com.geeksville.flight
 
 import com.geeksville.flight._
 import akka.actor.Props

@@ -7,7 +7,7 @@ import AndroidKeys._
 object ScalaFlyBuild extends Build {
 
   // val main = "com.geeksville.shell.ScalaConsole"
-  val main = "com.geeksville.flight.lead.FlightLead"
+  val main = "com.geeksville.flight.lead.Main"
 
   val assemblyCustomize = mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
     {

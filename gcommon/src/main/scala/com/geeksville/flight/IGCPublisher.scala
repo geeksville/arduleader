@@ -1,4 +1,4 @@
-package com.geeksville.flight.lead
+package com.geeksville.flight
 
 // Standard akka imports
 import akka.actor._

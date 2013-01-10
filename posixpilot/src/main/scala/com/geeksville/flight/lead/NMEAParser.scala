@@ -1,6 +1,7 @@
 package com.geeksville.flight.lead
 
 import java.util.{ Calendar, TimeZone }
+import com.geeksville.flight.Location
 
 class NMEAParser {
   private val handlers = Map(
