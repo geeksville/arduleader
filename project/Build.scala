@@ -22,7 +22,13 @@ object ScalaFlyBuild extends Build {
   }
 
   lazy val root = Project(id = "skalafly",
-    base = file("."),
+    base = file(".")) aggregate(posixpilot)
+
+  lazy val common = Project(id = "gcommon",
+                           base = file("gcommon"))
+
+  lazy val posixpilot = Project(id = "posixpilot",
+    base = file("posixpilot"),
     settings = Project.defaultSettings ++ assemblySettings ++ Seq(
       assemblyCustomize,
       mainClass in (Compile, run) := Some(main),
@@ -33,7 +39,4 @@ object ScalaFlyBuild extends Build {
       connectInput in run := true,
       outputStrategy in run := Some(StdoutOutput)
       )) dependsOn(common)
-
-    lazy val common = Project(id = "gcommon",
-                           base = file("gcommon"))
 }
