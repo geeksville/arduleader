@@ -32,6 +32,8 @@ object ScalaFlyBuild extends Build {
       fork := true,
       connectInput in run := true,
       outputStrategy in run := Some(StdoutOutput)
-      ))
+      )) dependsOn(common)
 
+    lazy val common = Project(id = "gcommon",
+                           base = file("gcommon"))
 }

@@ -6,7 +6,6 @@ import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
 import akka.event._
-import com.geeksville.flight._
 import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 
