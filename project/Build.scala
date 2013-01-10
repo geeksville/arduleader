@@ -57,9 +57,17 @@ object ScalaFlyBuild extends Build {
       keyalias in Android := "change-me"
     )
 
+  lazy val androidLibrarySettings =
+    Project.defaultSettings ++
+    AndroidBase.settings ++
+    TypedResources.settings
+
   lazy val andropilot = Project (
     "andropilot",
     file("andropilot"),
     settings = fullAndroidSettings
-  ) dependsOn(common)
+  ) dependsOn(common, scandroid)
+
+  lazy val scandroid = Project(id = "scandroid", base = file("scandroid"), settings = androidLibrarySettings)
+
 }

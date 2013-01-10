@@ -1,0 +1,3 @@
+[submodule "scandroid"]
+	path = scandroid
+	url = git@github.com:geeksville/scandroid.git
