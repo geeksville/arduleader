@@ -8,7 +8,7 @@ object General {
     name := "andropilot",
     version := "0.1",
     versionCode := 0,
-    scalaVersion := "2.9.2",
+    scalaVersion := "2.10.0",
     platformName in Android := "android-10"
   )
 
@@ -23,8 +23,7 @@ object General {
     proguardSettings ++
     AndroidManifestGenerator.settings ++
     AndroidMarketPublish.settings ++ Seq (
-      keyalias in Android := "change-me",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
+      keyalias in Android := "change-me"
     )
 }
 
@@ -34,14 +33,4 @@ object AndroidBuild extends Build {
     file("."),
     settings = General.fullAndroidSettings
   )
-
-  lazy val tests = Project (
-    "tests",
-    file("tests"),
-    settings = General.settings ++
-               AndroidTest.androidSettings ++
-               General.proguardSettings ++ Seq (
-      name := "andropilot-tests"
-    )
-  ) dependsOn main
 }
