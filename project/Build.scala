@@ -46,7 +46,7 @@ object ScalaFlyBuild extends Build {
     useProguard in Android := true
   )
 
-  lazy val fullAndroidSettings =
+  lazy val androidAppSettings =
     Project.defaultSettings ++
     assemblySettings ++
     AndroidProject.androidSettings ++
@@ -55,6 +55,9 @@ object ScalaFlyBuild extends Build {
     AndroidManifestGenerator.settings ++
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "change-me"
+      //keystorePath in Android := file("geeksville.keystore"),
+      //signRelease in Android <<= signReleaseTask,
+      //signRelease in Android <<= (signRelease in Android) dependsOn (packageRelease in Android)
     )
 
   lazy val androidLibrarySettings =
@@ -65,7 +68,7 @@ object ScalaFlyBuild extends Build {
   lazy val andropilot = Project (
     "andropilot",
     file("andropilot"),
-    settings = fullAndroidSettings
+    settings = androidAppSettings
   ) dependsOn(common, scandroid)
 
   lazy val scandroid = Project(id = "scandroid", base = file("scandroid"), settings = androidLibrarySettings)
