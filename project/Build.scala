@@ -43,7 +43,30 @@ object ScalaFlyBuild extends Build {
 
 
   val proguardSettings = Seq (
-    useProguard in Android := true
+    useProguard in Android := true,
+
+    // The following packages should be excluded from android builds
+    // reported in bug report: https://github.com/jberkel/android-plugin/issues/111
+    proguardExclude in Android <<= (proguardExclude in Android, fullClasspath in Runtime) map { (inherited, cp_) =>
+      val cp: PathFinder = cp_.files
+      val excluded =
+        (cp ** "httpclient-*.jar") +++
+        (cp ** "httpcore-*.jar") +++
+        (cp ** "commons-logging-*.jar") +++
+        (cp ** "commons-io-*.jar") get
+
+      //println("inherited: " + inherited)
+      //println("excluding: " + excluded)
+      inherited ++ excluded
+    },
+
+      proguardOption in Android := Seq(
+        // Options for all android targets
+        "-dontobfuscate",
+
+        // Options for any android app
+        "@andropilot/proguard.cfg"
+      ).mkString(" ")
   )
 
   lazy val androidAppSettings =
