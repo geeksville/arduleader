@@ -22,11 +22,11 @@ object ScalaFlyBuild extends Build {
     }
   }
 
-  lazy val root = Project(id = "skalafly",
+  lazy val root = Project(id = "root",
     base = file(".")) aggregate(posixpilot, andropilot)
 
   lazy val common = Project(id = "gcommon",
-                           base = file("gcommon"))
+                           base = file("common"))
 
   lazy val posixpilot = Project(id = "posixpilot",
     base = file("posixpilot"),
