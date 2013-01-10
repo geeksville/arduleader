@@ -83,18 +83,20 @@ object FlightLead extends Logging {
     // FIXME create this somewhere else
     val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
 
-    createSerial()
-
-    val startFlightLead = false
+    val startSerial = true
+    val startFlightLead = true
     val startWingman = false
     val dumpSerialRx = false
+
+    if (startSerial)
+      createSerial()
 
     if (startFlightLead) {
       // Create flightlead actors
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
       Akka.actorOf(Props[FlightLead], "lead")
-      Akka.actorOf(Props(new IGCPublisher("testdata/pretty-good-res-dumps-1hr.igc")), "igcpub")
+      Akka.actorOf(Props(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc"))), "igcpub")
 
       // Watch for failures
       MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), systemId)

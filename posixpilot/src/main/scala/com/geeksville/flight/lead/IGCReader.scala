@@ -12,7 +12,7 @@ import com.geeksville.util.MathTools
  *
  * Borrowed from my old Gaggle java code
  */
-class IGCReader(filename: String) extends Logging {
+class IGCReader(stream: InputStream) extends Logging {
 
   private val formater = new SimpleDateFormat("HHmmss");
 
@@ -20,7 +20,7 @@ class IGCReader(filename: String) extends Logging {
   val maxVelocity = 25 // m/s about 50 mph over the ground
 
   // FIXME - I bet this leaks a file descriptor
-  val locations = Location.filterByVelocity(maxVelocity, Location.addVelAndBearing(Source.fromFile(filename).getLines.flatMap(toLocation).toSeq).toSeq)
+  val locations = Location.filterByVelocity(maxVelocity, Location.addVelAndBearing(Source.fromInputStream(stream).getLines.flatMap(toLocation).toSeq).toSeq)
 
   logger.debug("IGC file read, average velocity %s, max velocity %s".format(
     MathTools.average(velocities),

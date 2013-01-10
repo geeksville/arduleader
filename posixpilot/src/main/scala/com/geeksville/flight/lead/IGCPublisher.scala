@@ -4,17 +4,20 @@ package com.geeksville.flight.lead
 import akka.actor._
 import scala.concurrent.duration._
 import com.geeksville.akka.InstrumentedActor
+import java.io.InputStream
 
 /**
  * Reads a IGC file, and publishes Location on the event bus
  */
-class IGCPublisher(filename: String) extends InstrumentedActor {
-  val igc = new IGCReader(filename)
+class IGCPublisher(stream: InputStream) extends InstrumentedActor {
+  val igc = new IGCReader(stream)
 
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
   val destEventBus = context.system.eventStream
+
+  private var scheduled: Seq[Cancellable] = Seq()
 
   scheduleEvents()
 
@@ -22,6 +25,12 @@ class IGCPublisher(filename: String) extends InstrumentedActor {
     case x: Location =>
       // Do the broadcast now
       destEventBus.publish(x)
+  }
+
+  override def postStop() {
+    log.debug("Removing scheduled IGCs")
+    scheduled.foreach(_.cancel)
+    super.postStop()
   }
 
   /**
@@ -32,7 +41,7 @@ class IGCPublisher(filename: String) extends InstrumentedActor {
       val points = igc.locations.tail
       val startTime = points(0).time
 
-      points.foreach { l =>
+      scheduled = points.map { l =>
         // log.debug("Schedule: " + l)
         import context.dispatcher
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
