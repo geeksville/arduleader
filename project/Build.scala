@@ -2,6 +2,7 @@ import sbt._
 import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._ // put this at the top of the file
+import AndroidKeys._
 
 object ScalaFlyBuild extends Build {
 
@@ -22,7 +23,7 @@ object ScalaFlyBuild extends Build {
   }
 
   lazy val root = Project(id = "skalafly",
-    base = file(".")) aggregate(posixpilot)
+    base = file(".")) aggregate(posixpilot, andropilot)
 
   lazy val common = Project(id = "gcommon",
                            base = file("gcommon"))
@@ -39,4 +40,26 @@ object ScalaFlyBuild extends Build {
       connectInput in run := true,
       outputStrategy in run := Some(StdoutOutput)
       )) dependsOn(common)
+
+
+  val proguardSettings = Seq (
+    useProguard in Android := true
+  )
+
+  lazy val fullAndroidSettings =
+    Project.defaultSettings ++
+    assemblySettings ++
+    AndroidProject.androidSettings ++
+    TypedResources.settings ++
+    proguardSettings ++
+    AndroidManifestGenerator.settings ++
+    AndroidMarketPublish.settings ++ Seq (
+      keyalias in Android := "change-me"
+    )
+
+  lazy val andropilot = Project (
+    "andropilot",
+    file("andropilot"),
+    settings = fullAndroidSettings
+  ) dependsOn(common)
 }
