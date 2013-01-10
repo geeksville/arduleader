@@ -2,9 +2,9 @@ package com.geeksville.akka
 
 import akka.actor._
 import akka.util._
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.pattern.ask
-import akka.dispatch.Await
+import scala.concurrent.Await
 
 private case class GetOrCreate(id: String, prop: Props)
 private case class Get(id: String)

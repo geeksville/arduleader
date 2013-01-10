@@ -2,8 +2,7 @@ package com.geeksville.flight.lead
 
 // Standard akka imports
 import akka.actor._
-import akka.util.Duration
-import akka.util.duration._
+import scala.concurrent.duration._
 import com.geeksville.mavlink._
 import com.geeksville.flight._
 import com.geeksville.akka.InstrumentedActor

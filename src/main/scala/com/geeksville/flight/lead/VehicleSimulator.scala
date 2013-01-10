@@ -3,7 +3,7 @@ package com.geeksville.flight.lead
 import com.geeksville.flight._
 import akka.actor.Props
 import akka.actor._
-import akka.util.duration._
+import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
 import java.util.GregorianCalendar
@@ -14,6 +14,8 @@ import com.geeksville.mavlink.MavlinkEventBus
  *
  */
 trait VehicleSimulator { self: Actor =>
+
+  import context.dispatcher
 
   val componentId = 1 // FIXME
 

@@ -2,8 +2,7 @@ package com.geeksville.flight.lead
 
 // Standard akka imports
 import akka.actor._
-import akka.util.Duration
-import akka.util.duration._
+import scala.concurrent.duration._
 import com.geeksville.akka.InstrumentedActor
 
 /**
@@ -35,6 +34,7 @@ class IGCPublisher(filename: String) extends InstrumentedActor {
 
       points.foreach { l =>
         // log.debug("Schedule: " + l)
+        import context.dispatcher
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
       log.info("Done scheduling " + points.size + " points")

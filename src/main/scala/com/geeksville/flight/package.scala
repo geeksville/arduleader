@@ -2,8 +2,7 @@ package com.geeksville
 
 // Standard akka imports
 import _root_.akka.actor._
-import _root_.akka.util.Duration
-import _root_.akka.util.duration._
+import scala.concurrent._
 
 package object flight {
   /**
