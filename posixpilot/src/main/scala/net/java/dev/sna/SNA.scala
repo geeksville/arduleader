@@ -27,72 +27,72 @@ class SNAF0[R](val jnaFun: Function, val manif: Manifest[R]) extends Function0[R
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object]()).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure, Array[Object]()).asInstanceOf[R]
+      jnaFun.invoke(manif.runtimeClass, Array[Object]()).asInstanceOf[R]
     }
 }
 
 class SNAF1[T, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function1[T, R] {
+  extends Function1[T, R] {
   def apply(t1: T): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object])).asInstanceOf[R]
     }
 }
 
 class SNAF2[T1, T2, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function2[T1, T2, R] {
+  extends Function2[T1, T2, R] {
   def apply(t1: T1, t2: T2): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object])).asInstanceOf[R]
     }
 }
 
 class SNAF3[T1, T2, T3, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function3[T1, T2, T3, R] {
+  extends Function3[T1, T2, T3, R] {
   def apply(t1: T1, t2: T2, t3: T3): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object])).asInstanceOf[R]
     }
 }
 
 class SNAF4[T1, T2, T3, T4, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function4[T1, T2, T3, T4, R] {
+  extends Function4[T1, T2, T3, T4, R] {
   def apply(t1: T1, t2: T2, t3: T3, t4: T4): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object])).asInstanceOf[R]
     }
 }
 
 class SNAF5[T1, T2, T3, T4, T5, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function5[T1, T2, T3, T4, T5, R] {
+  extends Function5[T1, T2, T3, T4, T5, R] {
   def apply(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object], t5.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object], t5.asInstanceOf[Object])).asInstanceOf[R]
     }
 }
 
 class SNAF6[T1, T2, T3, T4, T5, T6, R](val jnaFun: Function, val manif: Manifest[R])
-    extends Function6[T1, T2, T3, T4, T5, T6, R] {
+  extends Function6[T1, T2, T3, T4, T5, T6, R] {
   def apply(t1: T1, t2: T2, t3: T3, t4: T4, t5: T5, t6: T6): R =
     if (manif == Manifest.Unit) {
       jnaFun.invoke(Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object], t5.asInstanceOf[Object], t6.asInstanceOf[Object])).asInstanceOf[R]
     } else {
-      jnaFun.invoke(manif.erasure,
+      jnaFun.invoke(manif.runtimeClass,
         Array[Object](t1.asInstanceOf[Object], t2.asInstanceOf[Object], t3.asInstanceOf[Object], t4.asInstanceOf[Object], t5.asInstanceOf[Object], t6.asInstanceOf[Object])).asInstanceOf[R]
     }
 }

@@ -16,7 +16,7 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
   private val pw = new PrintWriter(out)
 
   protected def bind[A <: AnyRef](name: String, value: A)(implicit m: Manifest[A]): Unit =
-    bindings += ((name, (m.erasure, value)))
+    bindings += ((name, (m.runtimeClass, value)))
 
   private class MyLoop extends scala.tools.nsc.interpreter.ILoop(None, pw) {
 
