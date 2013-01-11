@@ -50,6 +50,8 @@ object ScalaFlyBuild extends Build {
     proguardExclude in Android <<= (proguardExclude in Android, fullClasspath in Runtime) map { (inherited, cp_) =>
       val cp: PathFinder = cp_.files
       val excluded =
+	(cp ** "logback-core*.jar") +++
+        (cp ** "logback-classic*.jar") +++
         (cp ** "httpclient-*.jar") +++
         (cp ** "httpcore-*.jar") +++
         (cp ** "commons-logging-*.jar") +++

@@ -1,0 +1,28 @@
+<configuration debug="false">
+            <appender
+                name="LOGCAT"
+                class="ch.qos.logback.classic.android.LogcatAppender" >
+                <tagEncoder>
+                    <pattern>%logger{0}</pattern>
+                </tagEncoder>
+                <encoder>
+         		<!-- <pattern>[%method] > %msg%n</pattern> -->
+			<pattern>%-5level %-36logger{36}: %msg%n</pattern>
+		</encoder>
+
+		<filter class="com.geeksville.logback.NameLevelFilter">
+			<Prefix>com.geeksville.mavlink</Prefix>
+			<MinLevel>INFO</MinLevel>
+		</filter>
+
+		<filter class="com.geeksville.logback.MuteAllFilter" />
+				
+	</appender>
+
+	<!-- <logger name="play" level="INFO" /> <logger name="application" level="DEBUG" 
+		/> -->
+	<root level="DEBUG">
+		<appender-ref ref="LOGCAT" />
+	</root>
+
+</configuration>
