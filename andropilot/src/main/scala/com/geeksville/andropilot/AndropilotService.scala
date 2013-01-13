@@ -10,6 +10,8 @@ import com.ridemission.scandroid.AndroidLogger
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.HeartbeatMonitor
 import android.os._
+import scala.io.Source
+import com.typesafe.config.ConfigFactory
 
 class AndropilotService extends Service with AndroidLogger {
 
@@ -24,13 +26,29 @@ class AndropilotService extends Service with AndroidLogger {
 
   override def onBind(intent: Intent) = binder
 
+  /**
+   * Read a file in assets
+   */
+  def assetToString(name: String) = Source.fromInputStream(getAssets().open(name)).
+    getLines().mkString("\n")
+
+  def getAkkaConfig() = {
+    val overrides = ConfigFactory.defaultOverrides()
+    val refStr = assetToString("reference.conf")
+    info(refStr)
+    val refConfig = ConfigFactory.parseString(refStr)
+    val appConfig = ConfigFactory.parseString(assetToString("application.conf"))
+
+    ConfigFactory.load(overrides.withFallback(appConfig.withFallback(refConfig)))
+  }
+
   override def onStartCommand(intent: Intent, flags: Int, startId: Int) = {
     info("Received start id " + startId + ": " + intent)
 
     /**
      * Our global akka system (use a name convention similar to playframework)
      */
-    val Akka = ActorSystem("flight")
+    val Akka = ActorSystem("flight", getAkkaConfig)
 
     val startFlightLead = true
     if (startFlightLead) {
