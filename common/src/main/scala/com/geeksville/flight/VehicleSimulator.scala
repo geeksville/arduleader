@@ -8,12 +8,13 @@ import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
 import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
  */
-trait VehicleSimulator { self: Actor =>
+trait VehicleSimulator { self: InstrumentedActor =>
 
   import context.dispatcher
 
@@ -52,6 +53,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
   // Send a heartbeat every 10 seconds 
   context.system.scheduler.schedule(0 milliseconds, 1 seconds) {
+    //self.log.debug("Sending heartbeat")
     sendMavlink(heartbeat)
   }
 

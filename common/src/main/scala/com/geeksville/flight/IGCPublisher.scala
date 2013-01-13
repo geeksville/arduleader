@@ -24,7 +24,9 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
   def receive = {
     case x: Location =>
       // Do the broadcast now
+      log.info("doing loc publish")
       destEventBus.publish(x)
+      log.info("did loc publish")
   }
 
   override def postStop() {
@@ -42,7 +44,7 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
       val startTime = points(0).time
 
       scheduled = points.map { l =>
-        // log.debug("Schedule: " + l)
+        log.debug("Schedule: " + l)
         import context.dispatcher
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }

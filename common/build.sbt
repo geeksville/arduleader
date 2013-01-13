@@ -17,3 +17,5 @@ libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" withSource
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource // Include resources dir in eclipse classpath
 
 EclipseKeys.withSource := true // Try to include source for libs
+
+EclipseKeys.relativizeLibs := false
