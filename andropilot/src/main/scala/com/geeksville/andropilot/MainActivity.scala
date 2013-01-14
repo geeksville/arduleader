@@ -21,9 +21,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger {
     Option(getIntent) match {
       case Some(intent) =>
         info("Received intent: " + intent)
-        if (intent.getAction == "android.hardware.usb.action.USB_DEVICE_ATTACHED")
+        if (intent.getAction == "android.hardware.usb.action.USB_DEVICE_ATTACHED") {
+          textView.setText("Device connected!  Starting service")
           startService(new Intent(this, classOf[AndropilotService]))
-        else
+        } else
           requestAccess()
       case None =>
         requestAccess()
@@ -32,11 +33,17 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger {
 
   /** Ask for permission to access our device */
   def requestAccess() {
-    AndroidSerial.requestAccess({ d =>
-      textView.setText("Access granted!  Starting service")
-      startService(new Intent(this, classOf[AndropilotService]))
-    }, { d =>
-      textView.setText("Can't access USB device")
-    })
+    AndroidSerial.getDevice match {
+      case Some(device) =>
+        AndroidSerial.requestAccess(device, { d =>
+          textView.setText("Access granted!  Starting service")
+          startService(new Intent(this, classOf[AndropilotService]))
+        }, { d =>
+          textView.setText("User denied access to USB device")
+        })
+      case None =>
+        textView.setText("Please attach 3dr telemetry device")
+    }
+
   }
 }

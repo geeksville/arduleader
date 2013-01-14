@@ -39,10 +39,16 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     override def read(arr: Array[Byte], off: Int, len: Int) = {
       assert(off == 0)
       assert(len <= arr.size)
-      debug("Calling read " + len)
-      val r = driver.get.read(arr, readTimeout)
-      if (r >= 0)
-        debug("Bytes read: " + arr.mkString(","))
+      var r = 0
+      do {
+        // The ftdi driver can return zero if it received a serial packet but the length
+        // count was zero
+        // FIXME - this is super inefficient - because we will spin the CPU hard, need to fix
+        // android-usb-serial
+        r = driver.get.read(arr, readTimeout)
+      } while (r == 0)
+
+      //debug("Bytes read: " + arr.mkString(","))
       r
     }
 
@@ -67,7 +73,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   private def open() {
 
     info("Acquiring")
-    val rawDevice = AndroidSerial.getDevice // We assume we already have access
+    val rawDevice = AndroidSerial.getDevice.get // We assume we already have access
     val d = UsbSerialProber.acquire(manager, rawDevice)
 
     info("Opening port")
@@ -92,17 +98,14 @@ object AndroidSerial extends AndroidLogger {
 
     val filtered = devices.filter { dvr => dvr.getVendorId == 0x0403 && dvr.getProductId == 0x6001 }
     if (filtered.size == 0)
-      throw new IOException("Port not found")
+      None
     else if (filtered.size != 1)
       throw new IOException("FIXME, multiple devices attached - not yet supported")
-
-    filtered.head
+    else
+      Some(filtered.head)
   }
 
-  def requestAccess(success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) = {
-
-    val device = getDevice
-
+  def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) = {
     info("Requesting access")
     new AccessGrantedReceiver(device, success, failure)
   }
