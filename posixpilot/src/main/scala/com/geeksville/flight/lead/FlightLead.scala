@@ -33,7 +33,7 @@ object Main extends Logging {
       val port = "/dev/ttyUSB0" // Use ttyACM0 for local serial
 
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = Akka.actorOf(Props(MavlinkPosix.openFtdi(port, baudRate)), "serrx")
+      val mavSerial = Akka.actorOf(Props(MavlinkPosix.openFtdi(port, baudRate)()), "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)

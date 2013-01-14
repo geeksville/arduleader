@@ -12,12 +12,14 @@ import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.util.Throttled
 import com.geeksville.ftdi.LibFtdi
 import com.geeksville.logback.Logging
+import akka.actor.Actor
 
 // with SerialPortEventListener
 
-
 object MavlinkPosix extends Logging {
-  def openSerial(portName: String, baudRate: Int) = {
+  type Generator = (Unit => Actor)
+
+  def openSerial(portName: String, baudRate: Int): Generator = {
     val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)
     if (portIdentifier.isCurrentlyOwned)
       throw new IOException("Error: Port is currently in use")
@@ -32,10 +34,10 @@ object MavlinkPosix extends Logging {
 
     val out = new BufferedOutputStream(port.getOutputStream, 8192)
     val instream = new ByteOnlyInputStream(port.getInputStream)
-    new MavlinkStream(out, instream)
+    (Unit => new MavlinkStream(out, instream))
   }
 
-  def openFtdi(portName: String, baudRate: Int) = {
+  def openFtdi(portName: String, baudRate: Int): Generator = {
     logger.info("Opening ftdi")
     val dev = LibFtdi.open(0x0403, 0x6001)
     dev.setLatencyTimer(1)
@@ -47,6 +49,6 @@ object MavlinkPosix extends Logging {
     // dev.setTimeouts(10, 5000) // Need a short read timeout if using streams
 
     dev.setBaudRate(baudRate)
-    new MavlinkStream(dev.out, dev.in)
+    (Unit => new MavlinkStream(dev.out, dev.in))
   }
 }

@@ -12,8 +12,13 @@ import com.geeksville.mavlink.HeartbeatMonitor
 import android.os._
 import scala.io.Source
 import com.typesafe.config.ConfigFactory
+import com.geeksville.mavlink.LogIncomingMavlink
 
 class AndropilotService extends Service with AndroidLogger {
+  val groundControlId = 255
+  val arduPilotId = 1
+
+  implicit val context = this
 
   /**
    * Class for clients to access.  Because we know this service always
@@ -50,7 +55,7 @@ class AndropilotService extends Service with AndroidLogger {
      */
     val Akka = ActorSystem("flight", getAkkaConfig)
 
-    val startFlightLead = true
+    val startFlightLead = false
     if (startFlightLead) {
       // Create flightlead actors
       // If you want logging uncomment the following line
@@ -62,6 +67,30 @@ class AndropilotService extends Service with AndroidLogger {
       // Watch for failures
       MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), FlightLead.systemId)
     }
+
+    val startSerial = true
+    if (startSerial) {
+      val port = MavlinkAndroid.create(57600)
+      val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
+
+      // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
+      val mavSerial = Akka.actorOf(Props(port()), "serrx")
+
+      // Anything coming from the controller app, forward it to the serial port
+      MavlinkEventBus.subscribe(mavSerial, groundControlId)
+
+      // Watch for failures
+      MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), arduPilotId)
+    }
+
+    val dumpSerialRx = true
+
+    // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
+    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId,
+      if (dumpSerialRx)
+        LogIncomingMavlink.allowDefault
+      else
+        LogIncomingMavlink.allowNothing)), "ardlog")
 
     // We want this service to continue running until it is explicitly
     // stopped, so return sticky.
