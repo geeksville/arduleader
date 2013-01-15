@@ -7,9 +7,4 @@
 * detect device disconnection
 * run service in background
 * fix serial
-* clean up readmes 
-* check in scandroid
-* target 3.1
-* auto increment build numbers
-* Add release keys
 * create wiki/site
