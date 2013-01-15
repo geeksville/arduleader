@@ -82,8 +82,10 @@ object ScalaFlyBuild extends Build {
 
   lazy val androidLibrarySettings =
     Project.defaultSettings ++
-    AndroidBase.settings ++
-    TypedResources.settings
+    assemblySettings++
+    // AndroidBase.settings ++
+    AndroidProject.androidSettings  
+    // TypedResources.settings
 
   lazy val andropilot = Project (
     "andropilot",

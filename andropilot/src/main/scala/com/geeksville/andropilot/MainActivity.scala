@@ -4,6 +4,8 @@ import android.app.Activity
 import _root_.android.os.Bundle
 import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
+import com.google.android.gms.common.GooglePlayServicesUtil
+import com.google.android.gms.common.ConnectionResult
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -13,6 +15,9 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
+
+    warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
+
     setContentView(R.layout.main)
 
     textView.setText("hello, world!")
