@@ -2,7 +2,7 @@
     package="com.geeksville.andropilot" >
 
     <uses-sdk
-        android:minSdkVersion="15"
+        android:minSdkVersion="12"
         android:targetSdkVersion="17" />
 
     <supports-screens
@@ -21,7 +21,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/android:star_big_on"
+        android:icon="@drawable/icon"
         android:label="@string/app_name" >
         <activity
             android:name=".MainActivity"

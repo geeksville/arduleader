@@ -78,12 +78,7 @@ object ScalaFlyBuild extends Build {
     TypedResources.settings ++
     proguardSettings ++
     AndroidManifestGenerator.settings ++
-    AndroidMarketPublish.settings ++ Seq (
-      keyalias in Android := "change-me"
-      //keystorePath in Android := file("geeksville.keystore"),
-      //signRelease in Android <<= signReleaseTask,
-      //signRelease in Android <<= (signRelease in Android) dependsOn (packageRelease in Android)
-    )
+    AndroidMarketPublish.settings 
 
   lazy val androidLibrarySettings =
     Project.defaultSettings ++
