@@ -78,7 +78,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     info("Opening port")
     d.open()
-    d.setBaudRate(baudRate)
+    d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
     info("Port open")
     driver.put(d)
   }

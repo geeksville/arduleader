@@ -5,7 +5,7 @@ import _root_.android.os.Bundle
 import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
 
-class MainActivity extends Activity with TypedActivity with AndroidLogger {
+class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
   implicit val context = this
 

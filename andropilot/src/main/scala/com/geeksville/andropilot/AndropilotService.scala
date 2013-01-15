@@ -14,7 +14,7 @@ import scala.io.Source
 import com.typesafe.config.ConfigFactory
 import com.geeksville.mavlink.LogIncomingMavlink
 
-class AndropilotService extends Service with AndroidLogger {
+class AndropilotService extends Service with AndroidLogger with FlurryService {
   val groundControlId = 255
   val arduPilotId = 1
 
