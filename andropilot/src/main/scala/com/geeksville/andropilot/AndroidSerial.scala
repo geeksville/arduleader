@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 import java.io._
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import scala.concurrent.SyncVar
+import java.nio.ByteBuffer
 
 class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLogger {
   //Get UsbManager from Android.
@@ -24,6 +25,10 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
   val in = new InputStream {
 
+    // FIXME, the android-usb-serial library is buggy, get my bytebuffer based fix working here first, then
+    // prop it into that lib
+    private val rxBuf = ByteBuffer.allocate(510) // +2 bytes for ftdi header == preferred ftdi 512 bytes
+
     override def available = if (driver.isSet) 1 else 0
 
     override def read = {
@@ -36,20 +41,63 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         arr(0).toInt & 0xff
     }
 
-    override def read(arr: Array[Byte], off: Int, len: Int) = {
-      assert(off == 0)
-      assert(len <= arr.size)
+    /**
+     * Refill our buffer
+     */
+    private def fillBuffer() = {
+      rxBuf.clear()
+
       var r = 0
       do {
         // The ftdi driver can return zero if it received a serial packet but the length
         // count was zero
         // FIXME - this is super inefficient - because we will spin the CPU hard, need to fix
         // android-usb-serial
-        r = driver.get.read(arr, readTimeout)
+        r = driver.get.read(rxBuf.array, readTimeout)
       } while (r == 0)
 
-      //debug("Bytes read: " + arr.mkString(","))
+      // If success, update # available bytes
+      if (r >= 0)
+        rxBuf.limit(r)
+
       r
+    }
+
+    override def read(arr: Array[Byte], off: Int, numrequested: Int) = {
+      assert(off == 0)
+      assert(numrequested <= arr.size)
+
+      var destoff = off
+      var numremaining = numrequested
+
+      /** move X bytes from our buffer to the result, updating invariants */
+      def extract(numBytes: Int) {
+        if (numBytes > 0)
+          rxBuf.get(arr, destoff, numBytes)
+        destoff += numBytes
+        numremaining -= numBytes
+      }
+
+      var resultcode = 0
+      while (numremaining > 0 && resultcode >= 0) {
+        val available = rxBuf.limit - rxBuf.position
+
+        resultcode = if (numremaining <= available) {
+          // We have all the needed bytes in our buffer
+          extract(numremaining)
+          0 // Claim success
+        } else {
+          // User wants more than we have - give them what we got then start a new read
+          extract(available)
+          fillBuffer()
+        }
+      }
+
+      //debug("Bytes read: " + arr.mkString(","))
+      if (resultcode < 0)
+        resultcode
+      else
+        numrequested
     }
 
     override def close() {
@@ -105,8 +153,8 @@ object AndroidSerial extends AndroidLogger {
       Some(filtered.head)
   }
 
-  def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) = {
+  def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) {
     info("Requesting access")
-    new AccessGrantedReceiver(device, success, failure)
+    (new AccessGrantedReceiver(device, success, failure)).requestPermission()
   }
 }
