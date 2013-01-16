@@ -1,2 +1,4 @@
 geeksville-release-key.keystore
 .settings
+/.classpath
+/.project
