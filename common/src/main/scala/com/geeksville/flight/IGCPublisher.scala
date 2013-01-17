@@ -1,10 +1,10 @@
 package com.geeksville.flight
 
 // Standard akka imports
-import akka.actor._
 import scala.concurrent.duration._
 import com.geeksville.akka.InstrumentedActor
 import java.io.InputStream
+import com.geeksville.akka.Cancellable
 
 /**
  * Reads a IGC file, and publishes Location on the event bus
@@ -21,7 +21,7 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
 
   scheduleEvents()
 
-  def receive = {
+  def onReceive = {
     case x: Location =>
       // Do the broadcast now
       log.info("doing loc publish")
@@ -45,7 +45,6 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
 
       scheduled = points.map { l =>
         log.debug("Schedule: " + l)
-        import context.dispatcher
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
       log.info("Done scheduling " + points.size + " points")

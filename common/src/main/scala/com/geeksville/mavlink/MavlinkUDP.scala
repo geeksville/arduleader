@@ -5,8 +5,6 @@ import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
-import akka.event._
-import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 
 /**
@@ -41,7 +39,7 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
 
   thread.start()
 
-  def receive = {
+  def onReceive = {
     case msg: MAVLinkMessage ⇒
       log.debug("Sending: " + msg)
       val bytes = msg.encode()

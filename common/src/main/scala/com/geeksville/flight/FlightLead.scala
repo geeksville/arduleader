@@ -1,7 +1,6 @@
 package com.geeksville.flight
 
 // Standard akka imports
-import akka.actor._
 import scala.concurrent.duration._
 import com.geeksville.mavlink._
 import com.geeksville.flight._
@@ -9,6 +8,7 @@ import com.geeksville.akka.InstrumentedActor
 import com.geeksville.util.Counted
 import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.logback.Logging
+import com.geeksville.akka.MockAkka
 
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
@@ -19,9 +19,9 @@ class FlightLead extends InstrumentedActor with VehicleSimulator {
 
   override def systemId = FlightLead.systemId
 
-  context.system.eventStream.subscribe(self, classOf[Location])
+  MockAkka.eventStream.subscribe(self, { e: Any => e.isInstanceOf[Location] })
 
-  def receive = {
+  def onReceive = {
     case l: Location =>
       sendMavlink(makePosition(l))
       sendMavlink(makeGPSRaw(l))

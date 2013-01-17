@@ -1,12 +1,12 @@
 package com.geeksville
 
 // Standard akka imports
-import _root_.akka.actor._
 import scala.concurrent._
+import com.geeksville.akka.MockAkka
 
 package object flight {
   /**
    * Our global akka system (use a name convention similar to playframework)
    */
-  val Akka = ActorSystem("flight")
+  def Akka = MockAkka // ActorSystem("flight")
 }

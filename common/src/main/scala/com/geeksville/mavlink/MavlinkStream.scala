@@ -22,7 +22,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
 
   rxThread.start()
 
-  def receive = {
+  def onReceive = {
     case msg: MAVLinkMessage ⇒
       log.debug("Sending ser: " + msg)
 
@@ -53,7 +53,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
             log.debug("RxSer: " + s)
             if (reader.getLostBytes > lostBytes) {
               lostBytes = reader.getLostBytes
-              log.warning("Serial RX has dropped %d bytes in total...".format(lostBytes))
+              log.warn("Serial RX has dropped %d bytes in total...".format(lostBytes))
             }
 
             handlePacket(s)
@@ -66,5 +66,4 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
     }
   }
 }
-
 

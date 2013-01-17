@@ -1,6 +1,5 @@
 package com.geeksville.mavlink
 
-import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.ardupilotmega._
@@ -9,7 +8,7 @@ import LogIncomingMavlink._
 class LogIncomingMavlink(sysId: Int, allow: MAVLinkMessage => Boolean = allowDefault) extends InstrumentedActor {
   MavlinkEventBus.subscribe(self, sysId)
 
-  def receive = {
+  def onReceive = {
     case msg: msg_statustext =>
       log.info("Rcv" + msg.sysId + ": " + msg.getText)
 

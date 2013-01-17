@@ -12,12 +12,11 @@ import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.util.Throttled
 import com.geeksville.ftdi.LibFtdi
 import com.geeksville.logback.Logging
-import akka.actor.Actor
 
 // with SerialPortEventListener
 
 object MavlinkPosix extends Logging {
-  type Generator = (Unit => Actor)
+  type Generator = (Unit => InstrumentedActor)
 
   def openSerial(portName: String, baudRate: Int): Generator = {
     val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)

@@ -1,25 +1,18 @@
 package com.geeksville.mavlink
 
-import akka.event._
-import akka.actor.ActorRef
 import org.mavlink.messages.MAVLinkMessage
+import com.geeksville.akka.EventStream
+import com.geeksville.akka.InstrumentedActor
 
-object MavlinkEventBus extends ActorEventBus with LookupClassification {
-  type Event = MAVLinkMessage
+object MavlinkEventBus extends EventStream {
 
-  /**
-   * messages are classfied by their sysId
-   */
-  type Classifier = Int
+  def subscribe(a: InstrumentedActor, sysId: Int) = {
+    def interested(ev: Any) = ev match {
+      case m: MAVLinkMessage => m.sysId == sysId
+      case _ => false
+    }
 
-  protected def mapSize() = 4
-
-  protected def classify(event: Event): Classifier =
-    event.sysId
-
-  protected def publish(event: Event, subscriber: ActorRef) = {
-    if (subscriber.isTerminated) unsubscribe(subscriber)
-    else subscriber ! event
+    super.subscribe(a, interested _)
   }
 }
 

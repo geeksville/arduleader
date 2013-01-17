@@ -1,6 +1,5 @@
 package com.geeksville.flight.wingman
 
-import akka.actor.Actor
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.flight.VehicleSimulator
@@ -65,7 +64,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
       bearing(us.lat, us.lon, lead.lat, lead.lon))
   }
 
-  def receive = {
+  def onReceive = {
     case msg: msg_global_position_int ⇒
       if (msg.sysId == leaderId) {
         // The lead plane moved

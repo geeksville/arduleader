@@ -25,7 +25,7 @@ class NamedActorSupervisor extends InstrumentedActor {
     c
   }
 
-  def receive = {
+  def onReceive = {
 
     case GetOrCreate(id, props) => {
       sender ! getActor(id, props)

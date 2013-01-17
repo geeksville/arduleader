@@ -4,10 +4,10 @@ import android.content.Context
 import java.io._
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ByteOnlyInputStream
-import akka.actor.Actor
+import com.geeksville.akka.InstrumentedActor
 
 object MavlinkAndroid {
-  def create(baudRate: Int)(implicit context: Context): (Unit => Actor) = {
+  def create(baudRate: Int)(implicit context: Context): (Unit => InstrumentedActor) = {
     val port = new AndroidSerial(baudRate)
     val out = new BufferedOutputStream(port.out, 8192)
 

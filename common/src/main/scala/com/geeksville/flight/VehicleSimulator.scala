@@ -1,8 +1,6 @@
 package com.geeksville.flight
 
 import com.geeksville.flight._
-import akka.actor.Props
-import akka.actor._
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
@@ -15,8 +13,6 @@ import com.geeksville.akka.InstrumentedActor
  *
  */
 trait VehicleSimulator { self: InstrumentedActor =>
-
-  import context.dispatcher
 
   val componentId = 1 // FIXME
 

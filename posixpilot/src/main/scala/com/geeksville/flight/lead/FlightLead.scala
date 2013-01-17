@@ -1,7 +1,6 @@
 package com.geeksville.flight.lead
 
 // Standard akka imports
-import akka.actor._
 import scala.concurrent.duration._
 import com.geeksville.mavlink._
 import com.geeksville.flight._
@@ -15,6 +14,7 @@ import com.geeksville.shell.ScalaConsole
 import gnu.io.NoSuchPortException
 import com.geeksville.logback.Logging
 import com.geeksville.flight.FlightLead
+import com.geeksville.akka.MockAkka
 
 object Main extends Logging {
 
@@ -33,7 +33,7 @@ object Main extends Logging {
       val port = "/dev/ttyUSB0" // Use ttyACM0 for local serial
 
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = Akka.actorOf(Props(MavlinkPosix.openFtdi(port, baudRate)()), "serrx")
+      val mavSerial = MockAkka.actorOf(MavlinkPosix.openFtdi(port, baudRate)(), "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -41,7 +41,7 @@ object Main extends Logging {
       MavlinkEventBus.subscribe(mavSerial, wingmanId)
 
       // Watch for failures
-      MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), arduPilotId)
+      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
     } catch {
       case ex: NoSuchPortException =>
         logger.error("No serial port found, disabling...")
@@ -58,12 +58,12 @@ object Main extends Logging {
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
     // FIXME create this somewhere else
-    val mavUDP = Akka.actorOf(Props[MavlinkUDP], "mavudp")
+    val mavUDP = MockAkka.actorOf(new MavlinkUDP, "mavudp")
 
-    val startSerial = true
+    val startSerial = false
     val startFlightLead = true
-    val startWingman = false
-    val dumpSerialRx = false
+    val startWingman = true
+    val dumpSerialRx = true
 
     if (startSerial)
       createSerial()
@@ -72,11 +72,11 @@ object Main extends Logging {
       // Create flightlead actors
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-      Akka.actorOf(Props[FlightLead], "lead")
-      Akka.actorOf(Props(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc"))), "igcpub")
+      MockAkka.actorOf(new FlightLead, "lead")
+      MockAkka.actorOf(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc")), "igcpub")
 
       // Watch for failures
-      MavlinkEventBus.subscribe(Akka.actorOf(Props[HeartbeatMonitor]), systemId)
+      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), systemId)
     }
 
     //
@@ -96,17 +96,17 @@ object Main extends Logging {
 
     if (startWingman)
       // Create wingman actors
-      Akka.actorOf(Props[Wingman], "wing")
+      MockAkka.actorOf(new Wingman, "wing")
 
     // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    Akka.actorOf(Props(new LogIncomingMavlink(arduPilotId,
+    MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
       if (dumpSerialRx)
         LogIncomingMavlink.allowDefault
       else
-        LogIncomingMavlink.allowNothing)), "ardlog")
+        LogIncomingMavlink.allowNothing), "ardlog")
 
     // to see GroundControl packets
-    Akka.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
+    MockAkka.actorOf(new LogIncomingMavlink(groundControlId), "gclog")
 
     val shell = new ScalaShell() {
       override def name = "flight"
@@ -115,6 +115,6 @@ object Main extends Logging {
     shell.run()
 
     logger.info("Shutting down actors...")
-    Akka.shutdown()
+    MockAkka.shutdown()
   }
 }

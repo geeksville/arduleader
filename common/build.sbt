@@ -8,9 +8,13 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
  
 net.virtualvoid.sbt.graph.Plugin.graphSettings
  
-libraryDependencies += "com.typesafe.akka" % "akka-actor_2.10" % "2.1.0" withSources()
+libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0"
 
-libraryDependencies += "com.typesafe.akka" % "akka-slf4j_2.10" % "2.1.0" withSources()
+libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.2"
+
+// libraryDependencies += "com.typesafe.akka" % "akka-actor_2.10" % "2.1.0" withSources()
+
+// libraryDependencies += "com.typesafe.akka" % "akka-slf4j_2.10" % "2.1.0" withSources()
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" withSources()
 
