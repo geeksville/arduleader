@@ -6,12 +6,16 @@ import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.maps.MapFragment
+import android.widget._
+import com.google.android.gms.maps.GoogleMap
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
   implicit val context = this
 
-  lazy val textView = findView(TR.textview)
+  // lazy val textView = findView(TR.textview)
+  lazy val textView: TextView = null // FIXME
 
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
@@ -33,6 +37,14 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           requestAccess()
       case None =>
         requestAccess()
+    }
+  }
+
+  def initMap() {
+    val mfrag = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
+    // Could be null if no maps app
+    Option(mfrag.getMap).foreach { map =>
+
     }
   }
 

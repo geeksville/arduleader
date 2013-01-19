@@ -39,6 +39,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
   override def onStartCommand(intent: Intent, flags: Int, startId: Int) = {
     info("Received start id " + startId + ": " + intent)
 
+    requestForeground()
+
     val startFlightLead = false
     if (startFlightLead) {
       // Create flightlead actors
@@ -79,5 +81,27 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
     // We want this service to continue running until it is explicitly
     // stopped, so return sticky.
     Service.START_STICKY
+  }
+
+  override def onDestroy() {
+    info("in onDestroy")
+    MockAkka.shutdown()
+    super.onDestroy()
+  }
+
+  val ONGOING_NOTIFICATION = 1
+
+  def requestForeground() {
+    val notificationIntent = new Intent(this, classOf[MainActivity])
+    val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
+
+    val notification = new Notification.Builder(this)
+      .setContentTitle("Andropilot")
+      .setContentText("Receiving Mavlink")
+      .setSmallIcon(R.drawable.icon)
+      .setContentIntent(pendingIntent)
+      .build()
+
+    startForeground(ONGOING_NOTIFICATION, notification)
   }
 }

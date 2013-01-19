@@ -11,14 +11,13 @@ Posixpilot
 * (eventually) log records to file 
 
 Service
-* mark as foreground ( http://developer.android.com/guide/components/services.html#Foreground )
+* (test) mark as foreground 
 * in onStart register receiver to find out about device disconnection
 * shutdown when device disconnects
-* destroy all actors at onDestroy
+* (test) destroy all actors at onDestroy
 
 Usb 
-* Handle device disconnection per http://developer.android.com/guide/topics/connectivity/usb/host.html
-* Only interested in our device type when scanning devices
+* (test) Handle device disconnection per http://developer.android.com/guide/topics/connectivity/usb/host.html
 
 InfoView (at top for now - eventually overlay on map)
 * Show a spinner to select mode
