@@ -24,9 +24,9 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
   def onReceive = {
     case x: Location =>
       // Do the broadcast now
-      log.info("doing loc publish")
+      //log.debug("doing loc publish")
       destEventBus.publish(x)
-      log.info("did loc publish")
+    //log.debug("did loc publish")
   }
 
   override def postStop() {
@@ -40,14 +40,14 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
    */
   private def scheduleEvents() {
     if (igc.locations.length > 1) { // Need at least two points, because it seems like the first point is bogus in some tracklogs
-      val points = igc.locations.tail
+      val points = igc.locations.tail.toVector // Force the wholefile to be read now
       val startTime = points(0).time
 
       scheduled = points.map { l =>
-        log.debug("Schedule: " + l)
+        //log.debug("Schedule: " + l)
         context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
-      log.info("Done scheduling " + points.size + " points")
+      log.info("Done scheduling " + scheduled.size + " points")
     }
   }
 }

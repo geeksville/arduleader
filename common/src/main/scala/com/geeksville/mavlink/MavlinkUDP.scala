@@ -96,5 +96,6 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
           throw ex
     }
   }
+  log.debug("UDP sender exiting")
 }
 

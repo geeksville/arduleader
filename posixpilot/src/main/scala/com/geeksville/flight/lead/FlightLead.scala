@@ -111,10 +111,14 @@ object Main extends Logging {
     val shell = new ScalaShell() {
       override def name = "flight"
       override def initCmds = Seq("import com.geeksville.flight.lead.ShellCommands._")
+
+      override def onExit() {
+        logger.info("Shutting down actors...")
+        MockAkka.shutdown()
+
+        super.onExit()
+      }
     }
     shell.run()
-
-    logger.info("Shutting down actors...")
-    MockAkka.shutdown()
   }
 }

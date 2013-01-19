@@ -13,12 +13,17 @@ case class Cancellable(actor: Actor) {
 }
 
 class Scheduler extends Logging {
-  def scheduleOnce(d: Duration, dest: InstrumentedActor, cb: => Unit) = {
+  def scheduleOnce(d: Duration, dest: InstrumentedActor, msg: Any) = {
 
-    def runOnce {
-      Actor.reactWithin(d.toMillis) {
+    val msecs = d.toMillis
+
+    def runOnce = {
+      //logger.info("Waiting " + msecs)
+
+      Actor.reactWithin(msecs) {
         case TIMEOUT =>
-          cb
+          //logger.info("handle once")
+          dest ! msg
         case PoisonPill =>
       }
     }
@@ -33,6 +38,7 @@ class Scheduler extends Logging {
     def fixedRateLoop {
       Actor.reactWithin(nextMs) {
         case TIMEOUT =>
+          //logger.info("handle fixed rate")
           cb; fixedRateLoop
         case PoisonPill =>
       }

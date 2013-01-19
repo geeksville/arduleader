@@ -5,7 +5,8 @@
 
 Posixpilot
 
-* make sure scheduler and serial link still work
+* make sure serial link still work
+* make sure it exits cleanly
 * (eventually) read and display waypoints, launch position, set launch position
 * (eventually) log records to file 
 

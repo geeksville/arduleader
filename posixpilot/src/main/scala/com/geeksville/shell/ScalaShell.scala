@@ -36,6 +36,10 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
     }
   }
 
+  protected def onExit() {
+    TerminalFactory.get.setEchoEnabled(true)
+  }
+
   def run() {
     val il = new MyLoop
     il.setPrompt(name + "> ")
@@ -53,7 +57,7 @@ class ScalaShell(val in: InputStream = System.in, val out: OutputStream = System
 
     il process settings
 
-    TerminalFactory.get.setEchoEnabled(true)
+    onExit()
   }
 
 }

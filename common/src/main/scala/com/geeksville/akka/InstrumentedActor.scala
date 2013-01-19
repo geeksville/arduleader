@@ -43,7 +43,12 @@ trait InstrumentedActor extends Actor with Logging {
   def act() {
     log.info("Actor running: " + this)
     loop {
-      react(myReceive.orElse(onReceive))
+      try {
+        react(myReceive.orElse(onReceive))
+      } catch {
+        case ex: Exception =>
+          log.error("Actor exception: " + ex)
+      }
     }
   }
 

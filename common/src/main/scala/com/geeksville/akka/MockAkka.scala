@@ -22,5 +22,6 @@ object MockAkka extends Logging {
   def shutdown() {
     logger.info("Shutting down actors")
     actors.foreach(_ ! PoisonPill)
+    logger.info("Done shutting down")
   }
 }
