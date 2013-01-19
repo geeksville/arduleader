@@ -9,6 +9,10 @@ import java.io._
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import scala.concurrent.SyncVar
 import java.nio.ByteBuffer
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.app.PendingIntent
+import android.content.IntentFilter
 
 class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLogger {
   //Get UsbManager from Android.
@@ -18,10 +22,34 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   // FIXME - eventually allowed delayed creation?
   private var driver = new SyncVar[UsbSerialDriver]
 
-  open()
-
   val readTimeout = 1000 * 1000 // FIXME
   val writeTimeout = 1000
+
+  val disconnectReceiver = new BroadcastReceiver {
+    def register() {
+      // We now want to close our device if it ever gets removed
+      val filter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED)
+      context.registerReceiver(this, filter)
+    }
+
+    def unregister() {
+      context.unregisterReceiver(this)
+    }
+
+    override def onReceive(context: Context, intent: Intent) {
+      val action = intent.getAction()
+      error("USB device disconnected")
+
+      if (UsbManager.ACTION_USB_DEVICE_DETACHED == action) {
+        val device = Option(intent.getParcelableExtra(UsbManager.EXTRA_DEVICE).asInstanceOf[UsbDevice])
+        error("Closing port due to disconnection")
+        out.close()
+        in.close() // This should force readers to barf
+      }
+    }
+  }
+
+  open()
 
   val in = new InputStream {
 
@@ -126,12 +154,16 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     info("Opening port")
     d.open()
+
+    disconnectReceiver.register()
+
     d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
     info("Port open")
     driver.put(d)
   }
 
   def close() {
+    disconnectReceiver.unregister()
     driver.get.close
   }
 }

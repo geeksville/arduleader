@@ -64,6 +64,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
         }
       }
     }
+    log.debug("Exiting mavlink reader: " + this)
   }
 }
 
