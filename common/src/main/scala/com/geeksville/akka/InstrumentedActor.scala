@@ -42,7 +42,7 @@ trait InstrumentedActor extends Actor with Logging {
   def act() {
     log.info("Actor running: " + this)
     loop {
-      react(onReceive.orElse(myReceive))
+      react(myReceive.orElse(onReceive))
     }
   }
 

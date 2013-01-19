@@ -6,6 +6,8 @@ version := "0.1.1"
 
 versionCode := 1
 
+net.virtualvoid.sbt.graph.Plugin.graphSettings
+
 platformName in Android := "android-17"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15
 
 keyalias in Android := "geeksville-android-key"
