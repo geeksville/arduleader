@@ -36,6 +36,7 @@ trait InstrumentedActor extends Actor with Logging {
   def myReceive: Receiver = {
     case PoisonPill =>
       isDead = true
+      postStop()
       exit()
   }
 
@@ -47,6 +48,6 @@ trait InstrumentedActor extends Actor with Logging {
   }
 
   def postStop() {
-    log.error("postStop not yet implemented")
+    log.info("Actor terminated: " + this)
   }
 }
