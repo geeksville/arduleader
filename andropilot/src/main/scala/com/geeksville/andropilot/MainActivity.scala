@@ -25,6 +25,7 @@ import scala.language.postfixOps
 import android.hardware.usb.UsbManager
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import com.geeksville.util.Throttled
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -63,7 +64,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   }
 
   class MyVehicleMonitor extends VehicleMonitor {
-    def titleStr = "Mode " + currentMode + (if (!hasHeartbeat) " (lost com)" else "")
+    // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
+    private val throttle = new Throttled(1000)
+
+    def titleStr = "Mode " + currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (hasHeartbeat) "" else " (Lost Comms)"))
     def snippet = {
       // Generate a few optional lines of text
 
@@ -74,11 +78,12 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       val batStr = batteryPercent.map { p => "Battery %d%%".format(p * 100 toInt) }
 
       val r = Seq(status, locStr, batStr).flatten.mkString("\n")
-      log.debug("snippet: " + r)
+      //log.debug("snippet: " + r)
       r
     }
 
-    private def updateInfoWindow() {
+    private def updateMarker() {
+      location.foreach { l => marker.setPosition(new LatLng(l.lat, l.lon)) }
       marker.setTitle(titleStr)
       marker.setSnippet(snippet)
       if (marker.isInfoWindowShown)
@@ -86,14 +91,14 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
 
     private def showInfoWindow() {
-      updateInfoWindow()
+      updateMarker()
       marker.showInfoWindow()
     }
 
     def marker() = {
       if (!planeMarker.isDefined) {
 
-        val icon = if (hasHeartbeat) R.drawable.plane_blue else R.drawable.plane_red
+        val icon = if (hasHeartbeat && service.get.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
 
         log.debug("Creating vehicle marker")
         planeMarker = Some(map.addMarker(new MarkerOptions()
@@ -120,20 +125,25 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
 
     override def onLocationChanged(l: Location) {
-      log.debug("Handling location: " + l)
       super.onLocationChanged(l)
 
-      handler.post { () =>
-        //log.debug("GUI set position")
-        marker.setPosition(new LatLng(l.lat, l.lon))
-        updateInfoWindow()
+      throttle {
+        // log.debug("Handling location: " + l)
+        handler.post { () =>
+          //log.debug("GUI set position")
+          marker.setPosition(new LatLng(l.lat, l.lon))
+          updateMarker()
+        }
       }
     }
 
     override def onStatusChanged(s: String) {
-      log.debug("Status changed: " + s)
+
       super.onStatusChanged(s)
-      handler.post(updateInfoWindow _)
+      throttle {
+        log.debug("Status changed: " + s)
+        handler.post(updateMarker _)
+      }
     }
 
     override def onHeartbeatLost() {

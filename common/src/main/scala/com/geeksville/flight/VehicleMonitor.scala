@@ -34,7 +34,7 @@ class VehicleMonitor extends HeartbeatMonitor {
 
     case msg: msg_global_position_int ⇒
       val loc = VehicleSimulator.decodePosition(msg)
-      log.info("Received location: " + loc)
+      //log.debug("Received location: " + loc)
       location = Some(loc)
       onLocationChanged(loc)
   }
