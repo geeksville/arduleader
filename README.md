@@ -16,7 +16,7 @@ playing with it yet. ;-)
 
 ## Credits
 
-* Mavlink compiler and library kindly created and donated by Guillaume Helle (ghelle31@gmail.com).  If you 
+* Mavlink compiler and library kindly created and donated by Guillaume Helle (antispamprefixremovemeghelle31@gmail.com).  If you 
 would like to use this code in your own project, the source is located in the mavjava directory.
 
 ## License
