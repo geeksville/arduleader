@@ -25,6 +25,13 @@ object LibFtdi {
   val SIO_DTR_DSR_HS = (0x2 << 8)
   val SIO_XON_XOFF_HS = (0x4 << 8)
 
+  val SIO_SET_DTR_MASK = 0x1
+  val SIO_SET_DTR_HIGH = (1 | (SIO_SET_DTR_MASK << 8))
+  val SIO_SET_DTR_LOW = (0 | (SIO_SET_DTR_MASK << 8))
+  val SIO_SET_RTS_MASK = 0x2
+  val SIO_SET_RTS_HIGH = (2 | (SIO_SET_RTS_MASK << 8))
+  val SIO_SET_RTS_LOW = (0 | (SIO_SET_RTS_MASK << 8))
+
   val snaLibrary = if (!Platform.isWindows) "ftdi" else "libftdi"
 
   Native.register(snaLibrary)
@@ -39,6 +46,10 @@ object LibFtdi {
   def ftdi_usb_close(ftdi: ftdi_context): INT
   @native
   def ftdi_setflowctrl(ftdi: ftdi_context, ctrl: INT): INT
+  @native
+  def ftdi_setdtr(ftdi: ftdi_context, ctrl: INT): INT
+  @native
+  def ftdi_setrts(ftdi: ftdi_context, ctrl: INT): INT
   @native
   def ftdi_read_data(ftdi: ftdi_context, buf: ByteBuffer, size: INT): INT
   @native

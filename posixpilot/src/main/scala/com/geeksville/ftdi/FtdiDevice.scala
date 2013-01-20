@@ -82,10 +82,14 @@ class FtdiDevice(vendor: Int, product: Int) extends Logging {
   def setWriteDataChunksize(size: Int) { checkError(ftdi_write_data_set_chunksize(handle, size)) }
   def setBaudRate(size: Int) { checkError(ftdi_set_baudrate(handle, size)) }
   def setFlowControl(ctrl: Int) { checkError(ftdi_setflowctrl(handle, ctrl)) }
+  def setDTR(ctrl: Int) { checkError(ftdi_setdtr(handle, ctrl)) }
+  def setRTS(ctrl: Int) { checkError(ftdi_setrts(handle, ctrl)) }
 
   /// Read a single character, or -1 if the stream is closed
   def read(): Int = {
     // Libftdi seems to blow chunks if you quit with a pending read running
+
+    //logger.debug("Calling read")
     while (!rxBuf.hasRemaining && !isClosed) {
       rxBuf.rewind()
 

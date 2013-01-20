@@ -13,6 +13,12 @@ autogenerate the project files.
 Note: This is still a work in progress. Unless you are working on it with me, you probably don't want to bother
 playing with it yet. ;-)
 
+
+## Credits
+
+* Mavlink compiler and library kindly created and donated by Guillaume Helle (ghelle31@gmail.com).  If you 
+would like to use this code in your own project, the source is located in the mavjava directory.
+
 ## License
 
 This project is GPL v3.0 licensed.  Copyright 2012 Kevin Hester.  See LICENSE.md for details.

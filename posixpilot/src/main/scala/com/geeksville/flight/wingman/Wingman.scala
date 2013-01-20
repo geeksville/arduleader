@@ -70,12 +70,12 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
         // The lead plane moved
 
         // log.debug("WRx" + msg.sysId + ": " + msg)
-        leadLoc = Some(decodePosition(msg))
+        leadLoc = Some(VehicleSimulator.decodePosition(msg))
         updateGoal()
       } else if (msg.sysId == Wingman.targetSystemId) {
         // We have a new update of our position
 
-        ourLoc = Some(decodePosition(msg))
+        ourLoc = Some(VehicleSimulator.decodePosition(msg))
         // updateGoal() // Not needed here, generates 2x too many updates: goal depends only on the lead aircraft position (currently)
       }
 

@@ -60,9 +60,9 @@ object Main extends Logging {
     // FIXME create this somewhere else
     val mavUDP = MockAkka.actorOf(new MavlinkUDP, "mavudp")
 
-    val startSerial = false
-    val startFlightLead = true
-    val startWingman = true
+    val startSerial = true
+    val startFlightLead = false
+    val startWingman = false
     val dumpSerialRx = true
 
     if (startSerial)
