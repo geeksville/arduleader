@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <!--   <fragment
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <fragment
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        class="com.google.android.gms.maps.MapFragment" />
--->
+        class="com.google.android.gms.maps.MapFragment"
+        map:mapType="normal"
+        map:uiCompass="true"
+        map:uiRotateGestures="true"
+        map:uiScrollGestures="true"
+        map:uiTiltGestures="false"
+        map:uiZoomControls="true"
+        map:uiZoomGestures="true" />
 
     <TextView
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/textview"
         android:layout_width="wrap_content"
+        android:visibility="gone"
         android:layout_height="80dip" />
-
+    
 </LinearLayout>

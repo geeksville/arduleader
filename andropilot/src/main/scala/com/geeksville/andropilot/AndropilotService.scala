@@ -41,7 +41,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
     requestForeground()
 
-    val startFlightLead = false
+    val startFlightLead = true
     if (startFlightLead) {
       // Create flightlead actors
       // If you want logging uncomment the following line
@@ -54,7 +54,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), FlightLead.systemId)
     }
 
-    val startSerial = true
+    val startSerial = false
     if (startSerial) {
       val port = MavlinkAndroid.create(57600)
       val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
