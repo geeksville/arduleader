@@ -1,9 +1,6 @@
 # Andropilot - a Mavlink/Arduplane ground controller for Android
 
-It is still very early days, and I'll provide clear instructions later.  But if you are brave and experienced with scala & android the
-following should make some sense to you.
-
-Soon I'll put up a prebuilt binary on the play store.
+A prebuilt version of the Android application is [on the Play store](https://play.google.com/store/apps/details?id=com.geeksville.andropilot).  If you are not interested in coding, you probably want to go there.
 
 Copyright 2012 Kevin Hester, GPLv3 license.
 
