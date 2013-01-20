@@ -1,12 +1,16 @@
 package com.geeksville.util
 
 object ThreadTools {
-  implicit def toRunable(handler: => Any) = new Runnable {
-    override def run() = handler
+  /**
+   * Generate runnables
+   * (Note if you findyourself tempted to change handler to a => Any you are probably making a mistake that won't work well with reference arguments
+   */
+  implicit def toRunable(handler: () => Unit) = new Runnable {
+    override def run() = handler()
   }
 
   /// Run a bit of code in a background thread - the caller will need to call start
-  def createDaemon(name: String)(block: => Unit): Thread = {
+  def createDaemon(name: String)(block: () => Unit): Thread = {
     val t = new Thread(block, name)
 
     t.setDaemon(true)

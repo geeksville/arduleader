@@ -18,13 +18,18 @@ import com.geeksville.logback.Logging
  */
 class MavlinkStream(val out: OutputStream, val instream: InputStream) extends InstrumentedActor with MavlinkReceiver {
 
+  log.debug("MavlinkStream starting")
+
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 
   rxThread.start()
 
+  // Mission control does this, seems to be necessary to keep device from hanging up on us
+  out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
+
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      log.debug("Sending ser: " + msg)
+      log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
 
       val bytes = msg.encode()
       out.write(bytes)
@@ -41,6 +46,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
   }
 
   private def rxWorker() {
+    log.debug("MavlinkStream thread running")
     using(instream) { stream =>
       val reader = new MAVLinkReader(new DataInputStream(stream), IMAVLinkMessage.MAVPROT_PACKET_START_V10)
 
@@ -48,9 +54,10 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
 
       while (!self.isTerminated) {
         try {
+          //log.debug("Reading next packet")
           val msg = Option(reader.getNextMessage())
           msg.foreach { s =>
-            log.debug("RxSer: " + s)
+            //log.debug("RxSer: " + s)
             if (reader.getLostBytes > lostBytes) {
               lostBytes = reader.getLostBytes
               log.warn("Serial RX has dropped %d bytes in total...".format(lostBytes))

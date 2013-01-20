@@ -1,3 +1,7 @@
+# General
+* treat warnings as errors (in scala)
+* turn on proguard warnings
+
 # android:
 * create wiki/site
 * FIXME - sometimes we find two extra bytes - I bet those are the headers for a packet (seems ignorable for now)
@@ -24,10 +28,10 @@ InfoView (at top for now - eventually overlay on map)
 * Show a text box with status: communicating/offline (get status from service - eventually an icon)
 
 Maps layer
-* https://developers.google.com/maps/documentation/android/reference/com/google/android/gms/maps/GoogleMapOptions#useViewLifecycleInFragment(boolean)
+* Use a custom adapter so the snippet can have multiple lines of data (https://github.com/commonsguy/cw-omnibus/tree/master/MapsV2/Popups/src/com/commonsware/android/mapsv2/popups for example)
+* Fix model recreation when we rotate screen
 * turn on layers
-* place marker for plane https://developers.google.com/maps/documentation/android/marker (not draggable)
-setInfoWindowAdapter - show alt, battery, mode
+* Plane icon should rotate to match path
 
 * (eventually) place marker for launch position (make draggable)
   onDrag show a toast and reset home position

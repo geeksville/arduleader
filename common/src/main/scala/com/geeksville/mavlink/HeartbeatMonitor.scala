@@ -18,10 +18,13 @@ class HeartbeatMonitor extends InstrumentedActor {
   private var timer: Option[Cancellable] = None
   private var mySysId: Option[Int] = None
 
+  var customMode: Option[Int] = None
+
   def hasHeartbeat = mySysId.isDefined
 
   def onReceive = {
     case msg: msg_heartbeat =>
+      customMode = Some(msg.custom_mode.toInt)
       resetWatchdog(msg.sysId)
 
     case WatchdogExpired =>

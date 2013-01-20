@@ -40,65 +40,99 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   /**
    * Does work in the GUIs thread
    */
-  val handler = new Handler
+  var handler: Handler = null
 
   class MyVehicleMonitor extends VehicleMonitor {
-    private def marker() = {
+    def titleStr = "Mode " + currentMode + (if (!hasHeartbeat) " (lost com)" else "")
+    def snippet = {
+      // Generate a few optional lines of text
+
+      val locStr = location.map { l =>
+        "Altitude %.1fm".format(l.alt)
+      }
+
+      val batStr = batteryPercent.map { p => "Battery %d%%".format(p * 100 toInt) }
+
+      val r = Seq(status, locStr, batStr).flatten.mkString("\n")
+      log.debug("snippet: " + r)
+      r
+    }
+
+    private def updateInfoWindow() {
+      marker.setTitle(titleStr)
+      marker.setSnippet(snippet)
+      if (marker.isInfoWindowShown)
+        marker.showInfoWindow() // Force redraw
+    }
+
+    private def showInfoWindow() {
+      updateInfoWindow()
+      marker.showInfoWindow()
+    }
+
+    def marker() = {
       if (!planeMarker.isDefined) {
 
         val icon = if (hasHeartbeat) R.drawable.plane_blue else R.drawable.plane_red
 
-        //log.debug("Creating vehicle marker")
+        log.debug("Creating vehicle marker")
         planeMarker = Some(map.addMarker(new MarkerOptions()
           .position(location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
           .draggable(false)
-          .title("Mode AUTO")
-          .snippet(status.getOrElse("No status yet"))
+          .title(titleStr)
+          .snippet(snippet)
           .icon(BitmapDescriptorFactory.fromResource(icon))))
       }
 
       planeMarker.get
     }
 
-    def removeMarker() {
+    /**
+     * Return true if we were showing the info window
+     */
+    def removeMarker() = {
+      val wasShown = planeMarker.isDefined && marker.isInfoWindowShown
+
       planeMarker.foreach(_.remove())
       planeMarker = None // Will be recreated when we need it
+
+      wasShown
     }
 
     override def onLocationChanged(l: Location) {
-      //log.debug("Handling location: " + l)
+      log.debug("Handling location: " + l)
       super.onLocationChanged(l)
 
-      handler.post {
+      handler.post { () =>
         //log.debug("GUI set position")
         marker.setPosition(new LatLng(l.lat, l.lon))
+        updateInfoWindow()
       }
     }
 
     override def onStatusChanged(s: String) {
-      //log.debug("Status changed: " + s)
+      log.debug("Status changed: " + s)
       super.onStatusChanged(s)
-      handler.post {
-        marker.setSnippet(s)
-      }
+      handler.post(updateInfoWindow _)
     }
 
     override def onHeartbeatLost() {
       super.onHeartbeatLost()
-      handler.post {
-        //log.debug("GUI heartbeat lost")
-        removeMarker()
-        marker() // Recreate in red
-      }
+      //log.debug("heartbeat lost")
+      handler.post(redrawMarker _)
+    }
+
+    private def redrawMarker() {
+      val wasShown = removeMarker()
+      marker() // Recreate in red 
+      if (wasShown)
+        showInfoWindow()
     }
 
     override def onHeartbeatFound() {
       super.onHeartbeatFound()
-      handler.post {
-        //log.debug("GUI heartbeat found")
-        removeMarker()
-        marker() // Recreate in red 
-      }
+      log.debug("heartbeat found")
+      handler.post(redrawMarker _)
     }
   }
 
@@ -128,6 +162,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     // textView.setText("hello, world!")
 
+    handler = new Handler
+
     initMap()
 
     // Did the user just plug something in?
@@ -148,11 +184,19 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
    * We handle this ourselves - so as to not try to rebind to the service
    */
   override def onConfigurationChanged(c: Configuration) {
+    val hadMarker = planeMarker.isDefined
+
     setContentView(R.layout.main)
 
     // Reattach to view widgets
     initMap()
-    myVehicle.foreach(_.removeMarker()) // Force new marker creation for new view
+    myVehicle.foreach { v =>
+      v.removeMarker() // Force new marker creation for new view
+
+      // If we had a marker before, goahead and remake it
+      if (hadMarker)
+        v.marker()
+    }
   }
 
   def initMap() {
@@ -177,7 +221,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         })
       case None =>
         textView.setText("Please attach 3dr telemetry device")
-        startService() // FIXME, remove this
+      // startService() // FIXME, remove this
     }
 
   }

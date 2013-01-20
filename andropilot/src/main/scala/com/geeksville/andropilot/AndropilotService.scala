@@ -43,23 +43,25 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
     requestForeground()
 
-    val startFlightLead = true
+    val startFlightLead = false
     if (startFlightLead) {
       info("Starting flight-lead")
+
+      val flightSysId = 1 // FlightLead.systemId // FIXME, really should be 2, but we pretend to be a real plane for now
 
       // Create flightlead actors
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
       // For testing I pretend to be a real arduplane (id 1)
-      MockAkka.actorOf(new FlightLead(1), "lead")
+      MockAkka.actorOf(new FlightLead(flightSysId), "lead")
       val stream = getAssets().open("testdata.igc")
       MockAkka.actorOf(new IGCPublisher(stream), "igcpub")
 
       // Watch for failures
-      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), FlightLead.systemId)
+      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), flightSysId)
     }
 
-    val startSerial = false
+    val startSerial = true
     if (startSerial) {
       info("Starting serial")
 
@@ -72,8 +74,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
 
-      // Watch for failures
-      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
+      // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
+      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
     }
 
     val dumpSerialRx = false
