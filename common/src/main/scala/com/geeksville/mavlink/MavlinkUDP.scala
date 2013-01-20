@@ -41,7 +41,7 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      log.debug("Sending: " + msg)
+      //log.debug("Sending: " + msg)
       val bytes = msg.encode()
       if (isListener) {
         remote.map { r =>

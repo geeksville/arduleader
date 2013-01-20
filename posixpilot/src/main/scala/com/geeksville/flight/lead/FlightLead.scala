@@ -63,7 +63,8 @@ object Main extends Logging {
     val startSerial = true
     val startFlightLead = false
     val startWingman = false
-    val dumpSerialRx = true
+    val dumpSerialRx = false
+    val logToFile = true
 
     if (startSerial)
       createSerial()
@@ -107,6 +108,13 @@ object Main extends Logging {
 
     // to see GroundControl packets
     MockAkka.actorOf(new LogIncomingMavlink(groundControlId), "gclog")
+
+    if (logToFile) {
+      // Generate log files mission control would understand
+      val logger = MockAkka.actorOf(LogBinaryMavlink.create, "gclog")
+      MavlinkEventBus.subscribe(logger, arduPilotId)
+      MavlinkEventBus.subscribe(logger, groundControlId)
+    }
 
     val shell = new ScalaShell() {
       override def name = "flight"
