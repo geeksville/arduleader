@@ -10,6 +10,7 @@ import com.geeksville.util.DebugInputStream
 import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.util.Throttled
 import com.geeksville.logback.Logging
+import com.geeksville.akka.PoisonPill
 
 // with SerialPortEventListener
 
@@ -67,7 +68,8 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
           }
         } catch {
           case ex: EOFException =>
-          // If we were shutting down, ignore the problem
+            // Kill our actor if our port gets closed
+            self ! PoisonPill
         }
       }
     }

@@ -201,6 +201,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   def initMap() {
     map.setMyLocationEnabled(true)
+    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
   }
 
   def startService() {

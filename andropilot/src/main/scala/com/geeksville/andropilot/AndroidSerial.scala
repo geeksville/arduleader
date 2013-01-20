@@ -130,6 +130,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     override def close() {
       AndroidSerial.this.close()
+      super.close()
     }
   }
 
