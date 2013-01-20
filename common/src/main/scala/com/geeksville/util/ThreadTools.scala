@@ -1,8 +1,7 @@
 package com.geeksville.util
 
-
 object ThreadTools {
-  implicit def toRunable(handler: => Unit) = new Runnable {
+  implicit def toRunable(handler: => Any) = new Runnable {
     override def run() = handler
   }
 
@@ -23,17 +22,16 @@ object ThreadTools {
         case ex: Exception => println("Ignoring " + ex)
       }
     }
-  
+
   /// Ignore exceptions silently.  Usage: catchSilently { some code }
   def catchSilently[ResType](block: => ResType) =
     {
       try {
         block
       } catch {
-        case ex: Exception => 
+        case ex: Exception =>
       }
     }
-  
 
   /// Install an uncaught exception handler
   def setUncaughtExceptionHandler(handler: (Thread, Throwable) => Unit) {

@@ -36,17 +36,22 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
   def assetToString(name: String) = Source.fromInputStream(getAssets().open(name)).
     getLines().mkString("\n")
 
-  override def onStartCommand(intent: Intent, flags: Int, startId: Int) = {
-    info("Received start id " + startId + ": " + intent)
+  override def onCreate() {
+    super.onCreate()
+
+    info("Creating service")
 
     requestForeground()
 
     val startFlightLead = true
     if (startFlightLead) {
+      info("Starting flight-lead")
+
       // Create flightlead actors
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-      MockAkka.actorOf(new FlightLead, "lead")
+      // For testing I pretend to be a real arduplane (id 1)
+      MockAkka.actorOf(new FlightLead(1), "lead")
       val stream = getAssets().open("testdata.igc")
       MockAkka.actorOf(new IGCPublisher(stream), "igcpub")
 
@@ -56,6 +61,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
     val startSerial = false
     if (startSerial) {
+      info("Starting serial")
+
       val port = MavlinkAndroid.create(57600)
       val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
 
@@ -69,18 +76,19 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
     }
 
-    val dumpSerialRx = true
+    val dumpSerialRx = false
+    if (dumpSerialRx) {
+      info("Starting packet log")
 
-    // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
-      if (dumpSerialRx)
-        LogIncomingMavlink.allowDefault
-      else
-        LogIncomingMavlink.allowNothing), "ardlog")
+      // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
+      MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
+        if (dumpSerialRx)
+          LogIncomingMavlink.allowDefault
+        else
+          LogIncomingMavlink.allowNothing), "ardlog")
+    }
 
-    // We want this service to continue running until it is explicitly
-    // stopped, so return sticky.
-    Service.START_STICKY
+    info("Done starting service")
   }
 
   override def onDestroy() {

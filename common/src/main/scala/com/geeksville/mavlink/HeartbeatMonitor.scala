@@ -18,19 +18,29 @@ class HeartbeatMonitor extends InstrumentedActor {
   private var timer: Option[Cancellable] = None
   private var mySysId: Option[Int] = None
 
+  def hasHeartbeat = mySysId.isDefined
+
   def onReceive = {
     case msg: msg_heartbeat =>
       resetWatchdog(msg.sysId)
 
     case WatchdogExpired =>
-      mySysId.foreach { id => log.error("Lost contact with sysId " + id) }
       mySysId = None
+      onHeartbeatLost()
+  }
+
+  protected def onHeartbeatLost() {
+    log.error("Lost heartbeat")
+  }
+
+  protected def onHeartbeatFound() {
+    mySysId.foreach { id => log.info("Contact established with sysId " + id) }
   }
 
   private def resetWatchdog(sysId: Int) {
     if (!mySysId.isDefined) {
       mySysId = Some(sysId)
-      log.info("Contact established with sysId " + sysId)
+      onHeartbeatFound()
     }
     cancelWatchdog()
 

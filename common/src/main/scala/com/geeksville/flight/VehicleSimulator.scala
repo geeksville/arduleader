@@ -57,9 +57,6 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 
-  def decodePosition(m: msg_global_position_int) =
-    Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
-
   /**
    * lat & lng in degrees
    * alt in meters MSL (we will compute relative_alt / agl)
@@ -155,3 +152,7 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
   }
 }
 
+object VehicleSimulator {
+  def decodePosition(m: msg_global_position_int) =
+    Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
+}

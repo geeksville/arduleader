@@ -13,11 +13,11 @@ import com.geeksville.akka.MockAkka
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
  */
-class FlightLead extends InstrumentedActor with VehicleSimulator {
+class FlightLead(sysId: Int = FlightLead.systemId) extends InstrumentedActor with VehicleSimulator {
 
   private val throttle = new Counted(10)
 
-  override def systemId = FlightLead.systemId
+  override def systemId = sysId
 
   MockAkka.eventStream.subscribe(self, { e: Any => e.isInstanceOf[Location] })
 
