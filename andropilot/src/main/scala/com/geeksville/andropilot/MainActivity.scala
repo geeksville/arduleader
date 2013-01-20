@@ -21,6 +21,7 @@ import com.geeksville.akka.MockAkka
 import com.geeksville.mavlink.MavlinkEventBus
 import android.os.Handler
 import com.geeksville.util.ThreadTools._
+import scala.language.postfixOps
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 

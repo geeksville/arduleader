@@ -1,5 +1,7 @@
 package com.geeksville.util
 
+import scala.language.implicitConversions
+
 object ThreadTools {
   /**
    * Generate runnables

@@ -1,6 +1,9 @@
 # General
 * treat warnings as errors (in scala)
 * turn on proguard warnings
+* Use gittip?  <iframe style="border: 0; margin: 0; padding: 0;"
+        src="https://www.gittip.com/geeksville/widget.html"
+        width="48pt" height="22pt"></iframe>
 
 # android:
 * create wiki/site

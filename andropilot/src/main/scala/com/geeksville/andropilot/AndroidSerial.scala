@@ -13,6 +13,7 @@ import android.content.BroadcastReceiver
 import android.content.Intent
 import android.app.PendingIntent
 import android.content.IntentFilter
+import scala.language.reflectiveCalls
 
 class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLogger {
   //Get UsbManager from Android.

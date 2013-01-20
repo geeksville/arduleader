@@ -7,6 +7,7 @@ import org.mavlink.messages._
 import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
+import scala.language.postfixOps
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
