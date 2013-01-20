@@ -5,6 +5,7 @@ import scala.concurrent.duration._
 import com.geeksville.akka.InstrumentedActor
 import java.io.InputStream
 import com.geeksville.akka.Cancellable
+import language.postfixOps
 
 /**
  * Reads a IGC file, and publishes Location on the event bus

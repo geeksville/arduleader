@@ -30,7 +30,7 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
 
   val socket = if (isListener) new DatagramSocket(portNumber) else new DatagramSocket()
 
-  val thread = ThreadTools.createDaemon("UDPMavReceive")(worker)
+  val thread = ThreadTools.createDaemon("UDPMavReceive")(worker _)
 
   /**
    * The app last received packets from on our wellknown port number
@@ -62,6 +62,8 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
   }
 
   private def receivePacket() = {
+    //log.info("In receive udp packet")
+
     val bytes = new Array[Byte](512)
     val packet = new DatagramPacket(bytes, bytes.length)
     socket.receive(packet)
@@ -73,7 +75,7 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
       case Array(start, payLength, packSeq, sysId, compId, msgId, payload @ _*) =>
         if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
           val packet = MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray)
-          log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
+          //log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
           Option(packet)
         } else {
           log.error("Ignoring bad MAVLink packet")
@@ -94,8 +96,12 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
       case ex: SocketException =>
         if (!self.isTerminated) // If we are shutting down, ignore socket exceptions
           throw ex
+
+      case ex: Exception =>
+        log.warn("exception in UDP receiver: " + ex)
     }
+
+    log.debug("UDP receiver exiting")
   }
-  log.debug("UDP sender exiting")
 }
 

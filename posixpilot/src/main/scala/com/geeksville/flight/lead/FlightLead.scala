@@ -64,6 +64,7 @@ object Main extends Logging {
     val startFlightLead = false
     val startWingman = false
     val dumpSerialRx = false
+    val logToConsole = false
     val logToFile = true
 
     if (startSerial)
@@ -99,15 +100,17 @@ object Main extends Logging {
       // Create wingman actors
       MockAkka.actorOf(new Wingman, "wing")
 
-    // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-    MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
-      if (dumpSerialRx)
-        LogIncomingMavlink.allowDefault
-      else
-        LogIncomingMavlink.allowNothing), "ardlog")
+    if (logToConsole) {
+      // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
+      MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
+        if (dumpSerialRx)
+          LogIncomingMavlink.allowDefault
+        else
+          LogIncomingMavlink.allowNothing), "ardlog")
 
-    // to see GroundControl packets
-    MockAkka.actorOf(new LogIncomingMavlink(groundControlId), "gclog")
+      // to see GroundControl packets
+      MockAkka.actorOf(new LogIncomingMavlink(groundControlId), "gclog")
+    }
 
     if (logToFile) {
       // Generate log files mission control would understand
