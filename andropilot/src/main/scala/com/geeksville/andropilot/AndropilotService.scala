@@ -14,6 +14,8 @@ import com.geeksville.mavlink.LogIncomingMavlink
 import com.geeksville.akka.MockAkka
 import java.io.File
 import com.geeksville.mavlink.LogBinaryMavlink
+import com.geeksville.mavlink.MavlinkStream
+import com.geeksville.akka.PoisonPill
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -27,6 +29,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
    * If we are logging the file is here
    */
   var logfile: Option[File] = None
+
+  private var serial: Option[MavlinkStream] = None
 
   implicit val context = this
 
@@ -47,12 +51,12 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
   def assetToString(name: String) = Source.fromInputStream(getAssets().open(name)).
     getLines().mkString("\n")
 
+  def isSerialConnected = serial.isDefined
+
   override def onCreate() {
     super.onCreate()
 
     info("Creating service")
-
-    requestForeground()
 
     val startFlightLead = false
     if (startFlightLead) {
@@ -70,23 +74,6 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
       // Watch for failures
       // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), flightSysId)
-    }
-
-    val startSerial = true
-    if (startSerial) {
-      info("Starting serial")
-
-      val port = MavlinkAndroid.create(57600)
-      val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
-
-      // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = MockAkka.actorOf(port(), "serrx")
-
-      // Anything coming from the controller app, forward it to the serial port
-      MavlinkEventBus.subscribe(mavSerial, groundControlId)
-
-      // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
-      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
     }
 
     val dumpSerialRx = false
@@ -113,6 +100,34 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       val logger = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
+    }
+  }
+
+  def serialAttached() {
+    info("Starting serial")
+
+    val port = MavlinkAndroid.create(57600)
+    val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
+
+    // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
+    val mavSerial = MockAkka.actorOf(port, "serrx")
+    serial = Some(mavSerial)
+
+    // Anything coming from the controller app, forward it to the serial port
+    MavlinkEventBus.subscribe(mavSerial, groundControlId)
+
+    // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
+    // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
+
+    // We are doing something important now - please don't kill us
+    requestForeground()
+  }
+
+  def serialDetached() {
+    serial.foreach { a =>
+      a ! PoisonPill
+      stopForeground(true) // Get rid of our notification
+      serial = None
     }
   }
 

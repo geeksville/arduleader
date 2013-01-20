@@ -26,6 +26,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   val readTimeout = 1000 * 1000 // FIXME
   val writeTimeout = 1000
 
+  /*
   val disconnectReceiver = new BroadcastReceiver {
     def register() {
       // We now want to close our device if it ever gets removed
@@ -49,6 +50,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
       }
     }
   }
+ */
 
   open()
 
@@ -157,7 +159,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     info("Opening port")
     d.open()
 
-    disconnectReceiver.register()
+    //disconnectReceiver.register()
 
     d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
     info("Port open")
@@ -165,7 +167,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   }
 
   def close() {
-    disconnectReceiver.unregister()
+    // disconnectReceiver.unregister()
     driver.get.close
   }
 }

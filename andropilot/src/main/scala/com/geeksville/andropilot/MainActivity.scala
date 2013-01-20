@@ -22,6 +22,9 @@ import com.geeksville.mavlink.MavlinkEventBus
 import android.os.Handler
 import com.geeksville.util.ThreadTools._
 import scala.language.postfixOps
+import android.hardware.usb.UsbManager
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -29,7 +32,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   val ardupilotId = 1 // the sysId of our plane
 
-  var myVehicle: Option[MyVehicleMonitor] = None
+  private var myVehicle: Option[MyVehicleMonitor] = None
+  private var service: Option[AndropilotService] = None
+
+  /**
+   * If an intent arrives before our service is up, squirell it away until we can handle it
+   */
+  private var waitingForService: Option[Intent] = None
 
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
@@ -42,6 +51,16 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
    * Does work in the GUIs thread
    */
   var handler: Handler = null
+
+  /**
+   * We install this receiver only once we're connected to a device
+   */
+  val disconnectReceiver = new BroadcastReceiver {
+    override def onReceive(context: Context, intent: Intent) {
+      if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
+        serialDetached()
+    }
+  }
 
   class MyVehicleMonitor extends VehicleMonitor {
     def titleStr = "Mode " + currentMode + (if (!hasHeartbeat) " (lost com)" else "")
@@ -139,7 +158,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   val serviceConnection = new ServiceConnection() {
     def onServiceConnected(className: ComponentName, serviceIn: IBinder) {
-      val service = serviceIn.asInstanceOf[ServiceAPI].service
+      val s = serviceIn.asInstanceOf[ServiceAPI].service
+      service = Some(s)
 
       debug("Service is bound")
 
@@ -148,14 +168,23 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       MavlinkEventBus.subscribe(actor, ardupilotId)
       myVehicle = Some(actor)
 
-      val logmsg = service.logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
-      Toast.makeText(MainActivity.this, logmsg, Toast.LENGTH_LONG).show()
+      val logmsg = s.logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
+      toast(logmsg)
+
+      // Ask for any already connected serial devices
+      requestAccess()
+
+      waitingForService.foreach { intent =>
+        handleIntent(intent)
+        waitingForService = None
+      }
     }
 
     def onServiceDisconnected(className: ComponentName) {
       error("Service disconnected")
 
       myVehicle = None
+      service = None
     }
   }
 
@@ -172,17 +201,50 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     initMap()
 
+    startService()
+
     // Did the user just plug something in?
-    Option(getIntent) match {
-      case Some(intent) =>
-        info("Received intent: " + intent)
-        if (intent.getAction == "android.hardware.usb.action.USB_DEVICE_ATTACHED") {
-          textView.setText("Device connected!  Starting service")
-          startService()
-        } else
-          requestAccess()
-      case None =>
-        requestAccess()
+    Option(getIntent).foreach(handleIntent)
+  }
+
+  /**
+   * We are a singleTop app, so when other intents arrive we will not start a new instance, rather handle them here
+   */
+  override def onNewIntent(i: Intent) {
+    handleIntent(i)
+  }
+
+  private def toast(str: String) {
+    Toast.makeText(this, str, Toast.LENGTH_LONG).show()
+  }
+
+  private def serialDetached() {
+    debug("Handling serial disconnect")
+    unregisterReceiver(disconnectReceiver)
+    toast("3DR Telemetry disconnected...")
+    service.get.serialDetached()
+  }
+
+  private def handleIntent(intent: Intent) {
+    debug("Received intent: " + intent)
+    service.map { s =>
+      intent.getAction match {
+        case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
+          if (AndroidSerial.getDevice.isDefined && !s.isSerialConnected) {
+            // Find out when the device goes away
+            registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
+
+            toast("3DR Telemetry connected...")
+            s.serialAttached()
+          } else
+            warn("Ignoring attach for some other device")
+
+        case x @ _ =>
+          error("Ignoring unknown intent: " + intent)
+      }
+    }.getOrElse {
+      // No service yet, store the intent until we can do something about it
+      waitingForService = Some(intent)
     }
   }
 
@@ -221,13 +283,17 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     AndroidSerial.getDevice match {
       case Some(device) =>
         AndroidSerial.requestAccess(device, { d =>
-          textView.setText("Access granted!  Starting service")
-          startService()
+          // requestAccess is not called until the service is up, so we can safely access this
+          // If we are already talking to the serial device ignore this
+          if (!service.get.isSerialConnected) {
+            toast("3DR Telemetry allowed...")
+            service.get.serialAttached()
+          }
         }, { d =>
-          textView.setText("User denied access to USB device")
+          toast("User denied access to USB device")
         })
       case None =>
-        textView.setText("Please attach 3dr telemetry device")
+        toast("Please attach 3dr telemetry device")
       // startService() // FIXME, remove this
     }
 
