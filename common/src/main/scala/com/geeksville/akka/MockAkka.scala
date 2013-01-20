@@ -12,8 +12,7 @@ object MockAkka extends Logging {
 
   private val actors = HashSet[InstrumentedActor]()
 
-  def actorOf[T <: InstrumentedActor](generator: => T, name: String = "unspecified") = {
-    val r = generator
+  def actorOf[T <: InstrumentedActor](r: T, name: String = "unspecified") = {
     actors.add(r)
     r.start()
     r

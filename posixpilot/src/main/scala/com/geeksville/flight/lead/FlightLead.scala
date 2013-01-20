@@ -114,7 +114,7 @@ object Main extends Logging {
 
     if (logToFile) {
       // Generate log files mission control would understand
-      val logger = MockAkka.actorOf(LogBinaryMavlink.create, "gclog")
+      val logger = MockAkka.actorOf(LogBinaryMavlink.create(), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
     }

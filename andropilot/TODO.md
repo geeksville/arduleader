@@ -17,6 +17,12 @@ Posixpilot
 * (eventually) read and display waypoints, launch position, set launch position
 * (eventually) log records to file 
 
+Download waypoints from target
+* MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
+* MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
+* MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0}
+* MISSION_ITEM {target_system : 255, target_component : 190, seq : 0, frame : 0, command : 16, current : 1, autocontinue : 1, param1 : 0.0, param2 : 0.0, param3 : 0.0, param4 : 0.0, x : 37.5209159851, y : -122.309059143, z : 143.479995728}
+
 Service
 * (test) mark as foreground 
 * in onStart register receiver to find out about device disconnection

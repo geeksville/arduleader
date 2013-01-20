@@ -48,17 +48,19 @@ class LogBinaryMavlink(out: OutputStream) extends InstrumentedActor {
 
 object LogBinaryMavlink extends Logging {
 
-  val spoolDir = new File("logs")
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
 
-  // Create a new log file in our spool directory
-  def create() = {
+  /// Allocate a filename in the spooldir
+  def getFilename(spoolDir: File = new File("logs")) = {
     if (!spoolDir.exists)
       spoolDir.mkdirs()
 
     val fname = dateFormat.format(new Date) + ".tlog"
-    val file = new File(spoolDir, fname)
+    new File(spoolDir, fname)
+  }
 
+  // Create a new log file 
+  def create(file: File = getFilename()) = {
     logger.info("Logging to " + file.getAbsolutePath)
     val out = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
     new LogBinaryMavlink(out)

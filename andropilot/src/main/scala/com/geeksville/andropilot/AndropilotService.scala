@@ -12,10 +12,21 @@ import android.os._
 import scala.io.Source
 import com.geeksville.mavlink.LogIncomingMavlink
 import com.geeksville.akka.MockAkka
+import java.io.File
+import com.geeksville.mavlink.LogBinaryMavlink
+
+trait ServiceAPI extends IBinder {
+  def service: AndropilotService
+}
 
 class AndropilotService extends Service with AndroidLogger with FlurryService {
   val groundControlId = 255
   val arduPilotId = 1
+
+  /**
+   * If we are logging the file is here
+   */
+  var logfile: Option[File] = None
 
   implicit val context = this
 
@@ -24,7 +35,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
    * runs in the same process as its clients, we don't need to deal with
    * IPC.
    */
-  private val binder = new Binder {
+  private val binder = new Binder with ServiceAPI {
     def service = AndropilotService.this
   }
 
@@ -90,7 +101,34 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
           LogIncomingMavlink.allowNothing), "ardlog")
     }
 
+    startLogging()
+
     info("Done starting service")
+  }
+
+  def startLogging() {
+    // Generate log files mission control would understand
+    logDirectory.foreach { d =>
+      logfile = Some(LogBinaryMavlink.getFilename(d))
+      val logger = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
+      MavlinkEventBus.subscribe(logger, arduPilotId)
+      MavlinkEventBus.subscribe(logger, groundControlId)
+    }
+  }
+
+  /**
+   * Where we should spool our output files (if allowed)
+   */
+  def logDirectory = {
+    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+      None
+    else {
+      val sdcard = Environment.getExternalStorageDirectory()
+      if (!sdcard.exists())
+        None
+      else
+        Some(new File(sdcard, "ardupilot"))
+    }
   }
 
   override def onDestroy() {

@@ -138,13 +138,18 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   }
 
   val serviceConnection = new ServiceConnection() {
-    def onServiceConnected(className: ComponentName, service: IBinder) {
+    def onServiceConnected(className: ComponentName, serviceIn: IBinder) {
+      val service = serviceIn.asInstanceOf[ServiceAPI].service
+
       debug("Service is bound")
 
       // Don't use akka until the service is created
       val actor = MockAkka.actorOf(new MyVehicleMonitor, "vmon")
       MavlinkEventBus.subscribe(actor, ardupilotId)
       myVehicle = Some(actor)
+
+      val logmsg = service.logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
+      Toast.makeText(MainActivity.this, logmsg, Toast.LENGTH_LONG).show()
     }
 
     def onServiceDisconnected(className: ComponentName) {
