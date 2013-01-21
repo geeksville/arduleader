@@ -32,6 +32,9 @@ import android.view.View
 import com.geeksville.akka.PoisonPill
 import android.view.Menu
 import android.widget.AdapterView.OnItemSelectedListener
+import com.geeksville.gmaps.Scene
+import org.mavlink.messages.ardupilotmega.msg_mission_item
+import com.geeksville.gmaps.Segment
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -66,7 +69,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   var handler: Handler = null
 
   /**
-   * We install this receiver only once we're connected to a device
+   * We install this receiver only once we're connected to a device -
+   * only used to show a Toast about disconnection...
    */
   val disconnectReceiver = new BroadcastReceiver {
     override def onReceive(context: Context, intent: Intent) {
@@ -76,7 +80,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   }
 
   /**
-   * Used to eavesdrop on location/status changes for our vehicle
+   * Used to eavesdrop on location/state changes for our vehicle
    */
   class MyVehicleMonitor extends VehicleMonitor {
     // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
@@ -142,6 +146,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       planeMarker = None // Will be recreated when we need it
 
       wasShown
+    }
+
+    override def onWaypointsDownloaded() {
+      handler.post { () =>
+        handleWaypoints(waypoints)
+      }
+      super.onWaypointsDownloaded()
     }
 
     override def onLocationChanged(l: Location) {
@@ -335,6 +346,23 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       // No service yet, store the intent until we can do something about it
       waitingForService = Some(intent)
     }
+  }
+
+  /**
+   * Generate our scene
+   */
+  def handleWaypoints(wpts: Seq[msg_mission_item]) {
+    val scene = new Scene(map)
+
+    // Crufty - shouldn't touch this
+    scene.markers.clear()
+    scene.markers ++= wpts.map { w => new WaypointMarker(w) }
+
+    // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+    val pairs = scene.markers.zip(scene.markers.tail)
+    scene.segments.clear()
+    scene.segments ++= pairs.map(p => Segment(p))
+    scene.render()
   }
 
   /**

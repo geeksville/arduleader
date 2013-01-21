@@ -5,60 +5,51 @@ import com.google.android.gms.maps.model._
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import scala.collection.mutable.HashMap
+import android.graphics.Color
 
 /**
- * A collection of SmartMarkers and the segments that connect them
+ * Allows callbacks to subclasses when markers change or need new data for the gmaps v2 view.
+ * Also understands graphs of polylines
  */
-class Scene(map: GoogleMap) {
-  val segments = ListBuffer[Segment]()
-  val markers = HashMap[Marker, SmartMarker]()
-
-  val markerDragListener = new OnMarkerDragListener {
-    override def onMarkerDrag(m: Marker) {}
-    override def onMarkerDragEnd(m: Marker) {}
-    override def onMarkerDragStart(m: Marker) {}
-  }
-
-  map.setOnMarkerDragListener(markerDragListener)
+abstract class SmartMarker {
+  def lat: Double
+  def lon: Double
+  def title: Option[String] = None
+  def snippet: Option[String] = None
+  def icon: Option[BitmapDescriptor] = None
+  def draggable = false
 
   /**
-   * Allows callbacks to subclasses when markers change or need new data for the gmaps v2 view.
-   * Also understands graphs of polylines
+   * Someone has just moved our marker
    */
-  class SmartMarker {
-    /**
-     * Generate options given the current state of this marker
-     */
-    def markerOptions: MarkerOptions = { null }
-  }
+  def onDrag() {}
 
   /**
-   * A line between two SmartMarkers
+   * Someone has just moved our marker
    */
-  case class Segment(endpoints: (SmartMarker, SmartMarker), lineOptions: PolylineOptions) {
-    var polyline: Option[Polyline] = None
+  def onDragEnd() {}
 
-  }
-
-  def getMarker(m: Marker) = markers(m)
+  final def latLng = new LatLng(lat, lon)
 
   /**
-   * Redraw all markers
+   * Generate options given the current state of this marker
    */
-  private def renderMarkers() {
-  }
+  final def markerOptions: MarkerOptions = {
+    var r = (new MarkerOptions).position(latLng).draggable(draggable)
 
-  /**
-   * Redraw all segments
-   */
-  private def renderSegments() {
-
+    icon.foreach { t => r = r.icon(t) }
+    title.foreach { t => r = r.title(t) }
+    snippet.foreach { t => r = r.snippet(t) }
+    r
   }
+}
 
-  private def render() {
-    map.clear()
-    renderMarkers()
-    renderSegments()
-  }
+/**
+ * A line between two SmartMarkers
+ */
+case class Segment(endpoints: (SmartMarker, SmartMarker), colorOptions: PolylineOptions = (new PolylineOptions).color(Color.GREEN)) {
+  var polyline: Option[Polyline] = None
+
+  final def lineOptions = colorOptions.add(endpoints._1.latLng).add(endpoints._2.latLng)
 }
 
