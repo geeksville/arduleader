@@ -353,6 +353,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       }
       val n = findIndex(myVehicle.get.currentMode)
       debug("Setting mode spinner to: " + n)
+
       s.setSelection(n)
     }
   }
@@ -368,7 +369,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
       val modeName = spinnerAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
-      if (modeName != "unknown")
+      if (modeName != "unknown" && modeName != myVehicle.get.currentMode)
         myVehicle.get.setMode(modeName.toString)
     }
     s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection

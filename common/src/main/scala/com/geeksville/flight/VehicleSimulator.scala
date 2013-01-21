@@ -63,8 +63,10 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
    */
   def setMode(mode: Int, targetSystem: Int = 1) = {
     val msg = new msg_set_mode(systemId, componentId)
+    msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED
     msg.custom_mode = mode
     msg.target_system = targetSystem
+
     msg
   }
 

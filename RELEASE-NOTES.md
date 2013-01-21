@@ -1,3 +1,6 @@
+# 0.1.5
+* You can now set modes from the action bar
+
 # 0.1.4
 * Properly handle screen rotation (no crashes)
 * Send heartbeats to vehicle
