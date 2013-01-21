@@ -7,6 +7,8 @@ import com.ridemission.scandroid.AndroidLogger
 class WaypointMarker(val msg: msg_mission_item) extends SmartMarker with AndroidLogger {
   def lat = msg.x
   def lon = msg.y
+  override def lat_=(n: Double) { msg.x = n.toFloat }
+  override def lon_=(n: Double) { msg.y = n.toFloat }
   override def title = Some("Waypoint #" + msg.seq)
   override def snippet = Some(msg.toString)
   override def draggable = true

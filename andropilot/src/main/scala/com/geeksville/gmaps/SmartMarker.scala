@@ -14,6 +14,8 @@ import android.graphics.Color
 abstract class SmartMarker {
   def lat: Double
   def lon: Double
+  def lat_=(n: Double) { throw new Exception("not draggable") }
+  def lon_=(n: Double) { throw new Exception("not draggable") }
   def title: Option[String] = None
   def snippet: Option[String] = None
   def icon: Option[BitmapDescriptor] = None
