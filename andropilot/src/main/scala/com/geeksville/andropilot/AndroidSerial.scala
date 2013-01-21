@@ -84,7 +84,8 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         // count was zero
         // FIXME - this is super inefficient - because we will spin the CPU hard, need to fix
         // android-usb-serial
-        r = driver.get.read(rxBuf.array, readTimeout)
+        val d = driver.get(10000) // Give enough time for the port to open at startup
+        r = d.map(_.read(rxBuf.array, readTimeout)).getOrElse(throw new EOFException("Port not open"))
       } while (r == 0)
 
       // If success, update # available bytes
@@ -145,8 +146,8 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     }
 
     override def write(b: Array[Byte], off: Int, len: Int) = {
-      debug("Writing: " + b.take(len).mkString(","))
-      driver.get.write(b, writeTimeout)
+      //debug("Writing: " + b.take(len).mkString(","))
+      getDriverNoWait.foreach(_.write(b, writeTimeout)) // If port isn't open just ignore writes
     }
   }
 
@@ -168,8 +169,13 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
   def close() {
     // disconnectReceiver.unregister()
-    driver.get.close
+    getDriverNoWait.foreach { d =>
+      d.close()
+      driver.take() // Discard our driver reference
+    }
   }
+
+  def getDriverNoWait = driver.get(0)
 }
 
 object AndroidSerial extends AndroidLogger {
@@ -189,8 +195,10 @@ object AndroidSerial extends AndroidLogger {
       Some(filtered.head)
   }
 
-  def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) {
+  def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) = {
     info("Requesting access")
-    (new AccessGrantedReceiver(device, success, failure)).requestPermission()
+    val r = new AccessGrantedReceiver(device, success, failure)
+    r.requestPermission()
+    r
   }
 }

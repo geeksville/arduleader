@@ -9,7 +9,8 @@ import com.geeksville.akka.InstrumentedActor
 object MavlinkAndroid {
   def create(baudRate: Int)(implicit context: Context) = {
     val port = new AndroidSerial(baudRate)
-    val out = new BufferedOutputStream(port.out, 8192)
+    // val out = new BufferedOutputStream(port.out, 8192)
+    val out = port.out // For now no buffering
 
     // Buffer reads a little, so the dumb byte reads in MAVLinkReader don't kill us
     // One FTDI packet is 62 bytes of payload + 2 bytes control

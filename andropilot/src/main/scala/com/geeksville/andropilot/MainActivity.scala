@@ -27,6 +27,8 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import com.geeksville.util.Throttled
 import com.google.android.gms.maps.CameraUpdateFactory
+import android.view.View
+import com.geeksville.akka.PoisonPill
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -37,10 +39,15 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   private var myVehicle: Option[MyVehicleMonitor] = None
   private var service: Option[AndropilotService] = None
 
+  private var mainView: View = null
+
   /**
    * If an intent arrives before our service is up, squirell it away until we can handle it
    */
   private var waitingForService: Option[Intent] = None
+
+  private var watchingSerial = false
+  private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
@@ -194,6 +201,9 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       val logmsg = s.logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
       toast(logmsg)
 
+      // If we already had a serial port open start watching it
+      registerSerialReceiver()
+
       // Ask for any already connected serial devices
       requestAccess()
 
@@ -206,8 +216,16 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     def onServiceDisconnected(className: ComponentName) {
       error("Service disconnected")
 
-      myVehicle = None
+      // No service anymore - don't need my actor
+      stopVehicleMonitor()
       service = None
+    }
+  }
+
+  def stopVehicleMonitor() {
+    myVehicle.foreach { v =>
+      v ! PoisonPill
+      myVehicle = None
     }
   }
 
@@ -216,7 +234,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
-    setContentView(R.layout.main)
+    mainView = getLayoutInflater.inflate(R.layout.main, null)
+    setContentView(mainView)
 
     // textView.setText("hello, world!")
 
@@ -237,15 +256,57 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     handleIntent(i)
   }
 
+  override def onResume() {
+    super.onResume()
+
+    debug("Binding to service")
+    val intent = new Intent(this, classOf[AndropilotService])
+    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)
+  }
+
+  override def onPause() {
+    stopVehicleMonitor()
+
+    accessGrantReceiver.foreach { r =>
+      unregisterReceiver(r)
+      accessGrantReceiver = None
+    }
+
+    unregisterSerialReceiver()
+    unbindService(serviceConnection)
+    super.onPause()
+  }
+
+  override def onStop() {
+    super.onStop()
+  }
+
   private def toast(str: String) {
     Toast.makeText(this, str, Toast.LENGTH_LONG).show()
   }
 
   private def serialDetached() {
     debug("Handling serial disconnect")
-    unregisterReceiver(disconnectReceiver)
+    unregisterSerialReceiver()
+
     toast("3DR Telemetry disconnected...")
-    service.get.serialDetached()
+  }
+
+  private def unregisterSerialReceiver() {
+    if (watchingSerial) {
+      unregisterReceiver(disconnectReceiver)
+      watchingSerial = false
+    }
+  }
+
+  private def registerSerialReceiver() {
+    service.foreach { s =>
+      if (!watchingSerial && s.isSerialConnected) {
+        // Find out when the device goes away
+        registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
+        watchingSerial = true
+      }
+    }
   }
 
   private def handleIntent(intent: Intent) {
@@ -254,11 +315,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       intent.getAction match {
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
           if (AndroidSerial.getDevice.isDefined && !s.isSerialConnected) {
-            // Find out when the device goes away
-            registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
 
             toast("3DR Telemetry connected...")
             s.serialAttached()
+            registerSerialReceiver()
           } else
             warn("Ignoring attach for some other device")
 
@@ -273,11 +333,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   /**
    * We handle this ourselves - so as to not try to rebind to the service
+   *
+   * This code is currently disabled by AndroidManifest.xml
    */
   override def onConfigurationChanged(c: Configuration) {
     val hadMarker = planeMarker.isDefined
 
-    setContentView(R.layout.main)
+    setContentView(mainView)
 
     // Reattach to view widgets
     initMap()
@@ -297,16 +359,15 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   }
 
   def startService() {
-    debug("Asking to start service")
-    val intent = new Intent(this, classOf[AndropilotService])
-    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)
+    warn("FIXME, manually starting service - need to stop it somewhere...")
+    startService(new Intent(this, classOf[AndropilotService]))
   }
 
   /** Ask for permission to access our device */
   def requestAccess() {
     AndroidSerial.getDevice match {
       case Some(device) =>
-        AndroidSerial.requestAccess(device, { d =>
+        accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
           // requestAccess is not called until the service is up, so we can safely access this
           // If we are already talking to the serial device ignore this
           if (!service.get.isSerialConnected) {
@@ -315,7 +376,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           }
         }, { d =>
           toast("User denied access to USB device")
-        })
+        }))
       case None =>
         toast("Please attach 3dr telemetry device")
       // startService() // FIXME, remove this

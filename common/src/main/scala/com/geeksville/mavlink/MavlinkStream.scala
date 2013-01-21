@@ -30,11 +30,16 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
+      //log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
 
-      val bytes = msg.encode()
-      out.write(bytes)
-      out.flush()
+      try {
+        val bytes = msg.encode()
+        out.write(bytes)
+        out.flush()
+      } catch {
+        case ex: IOException =>
+          log.error("Error sending packet: " + ex.getMessage)
+      }
   }
 
   override def postStop() {

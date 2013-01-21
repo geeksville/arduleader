@@ -17,6 +17,10 @@ import com.geeksville.mavlink.LogBinaryMavlink
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.akka.PoisonPill
 import com.geeksville.flight.VehicleSimulator
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.hardware.usb.UsbManager
+import android.content.IntentFilter
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -42,6 +46,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
    */
   private val binder = new Binder with ServiceAPI {
     def service = AndropilotService.this
+  }
+
+  /**
+   * We install this receiver only once we're connected to a device
+   */
+  private val disconnectReceiver = new BroadcastReceiver {
+    override def onReceive(context: Context, intent: Intent) {
+      if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
+        serialDetached()
+    }
   }
 
   override def onBind(intent: Intent) = binder
@@ -126,10 +140,15 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
     // We are doing something important now - please don't kill us
     requestForeground()
+
+    // Find out when the device goes away
+    registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
   }
 
-  def serialDetached() {
+  private def serialDetached() {
     serial.foreach { a =>
+      unregisterReceiver(disconnectReceiver)
+
       a ! PoisonPill
       stopForeground(true) // Get rid of our notification
       serial = None
@@ -153,6 +172,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
   override def onDestroy() {
     info("in onDestroy")
+    serialDetached()
     MockAkka.shutdown()
     super.onDestroy()
   }
