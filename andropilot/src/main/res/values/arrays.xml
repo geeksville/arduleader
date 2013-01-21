@@ -10,6 +10,7 @@
 		<item>AUTO</item>	
 		<item>RTL</item>	
 		<item>LOITER</item>	
+		<item>GUIDED</item>
 		<item>unknown</item>						
 	</string-array>
 					

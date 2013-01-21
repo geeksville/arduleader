@@ -117,6 +117,26 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   }
 
   /**
+   * * Here's what mission planner sends when you choose go-to some point at 100m alt:
+   * MAVLINK_MSG_ID_MISSION_ITEM :   param1=0.0  param2=0.0  param3=0.0  param4=0.0  x=37.52122  y=-122.31037  z=100.0  seq=0  command=16  target_system=1  target_component=1  frame=3  current=2  autocontinue=0
+   * The device responds with: INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
+   *
+   */
+  def missionItem(seq: Int, location: Location, current: Int, isRelativeAlt: Boolean = true, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_mission_item(systemId, componentId)
+    msg.seq = seq
+    msg.x = location.lat.toFloat
+    msg.y = location.lon.toFloat
+    msg.z = location.alt.toFloat
+    msg.command = MAV_CMD.MAV_CMD_NAV_WAYPOINT
+    msg.frame = if (isRelativeAlt) MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT else MAV_FRAME.MAV_FRAME_GLOBAL
+    msg.current = current // Use 2 for guided mode, 3 means alt change only
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  /**
    * lat & lng in degrees
    * alt in meters MSL (we will compute relative_alt / agl)
    * velocities in m/s

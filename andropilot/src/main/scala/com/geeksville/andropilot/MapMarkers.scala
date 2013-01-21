@@ -11,7 +11,7 @@ class WaypointMarker(val msg: msg_mission_item) extends SmartMarker with Android
   override def lon_=(n: Double) { msg.y = n.toFloat }
   override def title = Some("Waypoint #" + msg.seq)
   override def snippet = Some(msg.toString)
-  override def draggable = true
+  override def draggable = false // Disable dragging until we have waypoint upload
 
   override def toString = title.get
 

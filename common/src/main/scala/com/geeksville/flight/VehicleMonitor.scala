@@ -94,6 +94,12 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
             requestNextWaypoint()
           }
       }
+
+    case msg: msg_mission_ack =>
+      if (msg.target_system == systemId) {
+        log.debug("Receive: " + msg)
+        checkRetryReply(msg)
+      }
   }
 
   override def onHeartbeatFound() {
@@ -105,7 +111,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   val numRetries = 5
   var retriesLeft = 0
-  val retryInterval = 2000
+  val retryInterval = 3000
   var expectedResponse: Option[Class[_]] = None
   var retryPacket: Option[MAVLinkMessage] = None
 
@@ -156,6 +162,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
    */
   def setMode(mode: String) {
     sendMavlink(setMode(modeToCodeMap(mode)))
+  }
+
+  /**
+   * FIXME - we currently assume dest has a relative altitude
+   */
+  def setGuided(dest: Location) {
+    sendWithRetry(missionItem(0, dest, current = 2), classOf[msg_mission_ack])
   }
 
   /**
