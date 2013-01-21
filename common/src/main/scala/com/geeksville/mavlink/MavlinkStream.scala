@@ -65,8 +65,11 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
           msg.foreach { s =>
             //log.debug("RxSer: " + s)
             if (reader.getLostBytes > lostBytes) {
+              // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
+              // ignore silently because it seems okay (I bet the bytes are ftdi header bytes)
+              if (reader.getLostBytes != lostBytes + 2)
+                log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
               lostBytes = reader.getLostBytes
-              log.warn("Serial RX has dropped %d bytes in total...".format(lostBytes))
             }
 
             handlePacket(s)

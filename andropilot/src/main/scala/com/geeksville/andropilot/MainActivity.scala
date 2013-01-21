@@ -352,7 +352,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         }.get
       }
       val n = findIndex(myVehicle.get.currentMode)
-      debug("Setting mode spinner to: " + n)
+      //debug("Setting mode spinner to: " + n)
 
       s.setSelection(n)
     }
