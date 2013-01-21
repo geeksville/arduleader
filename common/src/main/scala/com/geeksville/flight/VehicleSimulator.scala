@@ -2,12 +2,12 @@ package com.geeksville.flight
 
 import com.geeksville.flight._
 import scala.concurrent.duration._
+import scala.language.postfixOps
 import org.mavlink.messages.ardupilotmega._
 import org.mavlink.messages._
 import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
-import scala.language.postfixOps
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.

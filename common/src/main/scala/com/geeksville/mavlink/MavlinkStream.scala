@@ -26,7 +26,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
   rxThread.start()
 
   // Mission control does this, seems to be necessary to keep device from hanging up on us
-  out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
+  //out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
