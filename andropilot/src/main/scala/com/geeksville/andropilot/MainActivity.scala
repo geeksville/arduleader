@@ -26,6 +26,7 @@ import android.hardware.usb.UsbManager
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import com.geeksville.util.Throttled
+import com.google.android.gms.maps.CameraUpdateFactory
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -63,9 +64,15 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
   }
 
+  /**
+   * Used to eavesdrop on location/status changes for our vehicle
+   */
   class MyVehicleMonitor extends VehicleMonitor {
     // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
     private val throttle = new Throttled(1000)
+
+    /// On first position update zoom in on plane
+    private var hasLocation = false
 
     def titleStr = "Mode " + currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (hasHeartbeat) "" else " (Lost Comms)"))
     def snippet = {
@@ -131,7 +138,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         // log.debug("Handling location: " + l)
         handler.post { () =>
           //log.debug("GUI set position")
-          marker.setPosition(new LatLng(l.lat, l.lon))
+          val pos = new LatLng(l.lat, l.lon)
+          marker.setPosition(pos)
+          if (!hasLocation) {
+            // On first update zoom in to plane
+            hasLocation = true
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 12.0f))
+          }
           updateMarker()
         }
       }

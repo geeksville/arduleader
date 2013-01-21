@@ -73,18 +73,17 @@ primitives in Arudpilot might need to be improved.
 
 ### Basic hw To-do
 
-* Follow setup steps here: http://code.google.com/p/ardupilot-mega/wiki/APM2RC
-* Setup telemetry
-* Setup xplane per http://code.google.com/p/ardupilot-mega/wiki/Xplane
-* Configure xmitter mode buttons http://diydrones.com/profiles/blogs/mode-switch-setup-for-turnigy-1 & http://www.diydrones.com/profiles/blogs/another-way-to-set-modes-on-turnigy-9x & http://diydrones.com/profiles/blogs/mode-switch-setup-for-turnigy
-* config for plane http://code.google.com/p/ardupilot-mega/wiki/ConfigFiles
+* (done) Follow setup steps here: http://code.google.com/p/ardupilot-mega/wiki/APM2RC
+* (done) Setup telemetry
+* (done) Setup xplane per http://code.google.com/p/ardupilot-mega/wiki/Xplane
+* (done) Configure xmitter mode buttons http://diydrones.com/profiles/blogs/mode-switch-setup-for-turnigy-1 & http://www.diydrones.com/profiles/blogs/another-way-to-set-modes-on-turnigy-9x & http://diydrones.com/profiles/blogs/mode-switch-setup-for-turnigy
+* (done) config for plane http://code.google.com/p/ardupilot-mega/wiki/ConfigFiles
 
 ### Learning to-do
 
 * (DONE) build/run the hw in loop sim (https://code.google.com/p/ardupilot-mega/wiki/Xplane)
 * build/run the sw in loop sim
 * Test marelous with software & hardware in loop sim
-* Develop scala client to talk to marvelous
 * Use this as an example on how to develop the follow algorithm https://code.google.com/p/ardupilot-mega/wiki/FlightModesLoiter (manage speed and bearing)
 
 ### Arduleader to-do
@@ -103,10 +102,6 @@ Actual development on the primary app for the netbook.
 * Relearn how to fly RC by hand
 * Get IGC or other flight logs from pilots at the coast
 * Test guided mode (originally meant for copters) with plane
-
-# Marvelous software notes
-
-* Install per https://github.com/geeksville/mavelous
 
 # Arduplane sw notes
 
@@ -139,12 +134,6 @@ cmake .. -DAPM_PROGRAMMING_PORT=/dev/ttyACM0
 # To build/run software in the loop sim (SITL)
 
 * Build/run git@github.com:geeksville/jsbsim.git
-
-# (OBSOLETE) What my app needs to do
-
-* Run on android, using host mode ACM serial directly to the telmetry interface
-* Change telemetry to use this debug API: http://code.google.com/p/ardupilot-mega/wiki/DebugTerminal
-* Have android app set new waypoints dynamically...
 
 # Hardware stuff
 
