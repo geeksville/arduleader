@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<!-- The following strings should probably be localized -->
+	<string-array name="mode_names">
+		<item>MANUAL</item>
+		<item>STABILIZE</item>
+		<item>FLY_BY_WIRE_A</item>
+		<item>FLY_BY_WIRE_B</item>
+		<item>AUTO</item>	
+		<item>RTL</item>	
+		<item>LOITER</item>	
+		<item>unknown</item>						
+	</string-array>
+					
+</resources>

@@ -22,13 +22,11 @@ Service
 Usb 
 
 InfoView (at top for now - eventually overlay on map)
-* Show a spinner to select mode
-* Show a text box with status: communicating/offline (get status from service - eventually an icon)
+* FIX spinner to select mode
+* Remove unused TextView
 
 Maps layer
 * Use a custom adapter so the snippet can have multiple lines of data (https://github.com/commonsguy/cw-omnibus/tree/master/MapsV2/Popups/src/com/commonsware/android/mapsv2/popups for example)
-* Fix model recreation when we rotate screen
-* turn on layers
 * Plane icon should rotate to match path
 
 * (eventually) place marker for launch position (make draggable)

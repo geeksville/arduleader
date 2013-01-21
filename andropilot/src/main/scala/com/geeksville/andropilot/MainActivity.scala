@@ -4,6 +4,7 @@ import android.app.Activity
 import _root_.android.os.Bundle
 import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid.AndroidUtil._
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.maps.MapFragment
@@ -29,6 +30,8 @@ import com.geeksville.util.Throttled
 import com.google.android.gms.maps.CameraUpdateFactory
 import android.view.View
 import com.geeksville.akka.PoisonPill
+import android.view.Menu
+import android.widget.AdapterView.OnItemSelectedListener
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -40,6 +43,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   private var service: Option[AndropilotService] = None
 
   private var mainView: View = null
+  private var modeSpinner: Option[Spinner] = None
 
   /**
    * If an intent arrives before our service is up, squirell it away until we can handle it
@@ -97,6 +101,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
 
     private def updateMarker() {
+      setModeSpinner() // FIXME, do this someplace better
+
       location.foreach { l => marker.setPosition(new LatLng(l.lat, l.lon)) }
       marker.setTitle(titleStr)
       marker.setSnippet(snippet)
@@ -329,6 +335,45 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       // No service yet, store the intent until we can do something about it
       waitingForService = Some(intent)
     }
+  }
+
+  /**
+   * Update our mode display
+   */
+  def setModeSpinner() {
+    modeSpinner.foreach { s =>
+      // Crufty way of finding which element of spinner needs selecting
+      def findIndex(str: String) = {
+        val adapter = s.getAdapter
+
+        (0 until adapter.getCount).find { i =>
+          val is = adapter.getItem(i).toString
+          is == str || is == "unknown"
+        }.get
+      }
+      val n = findIndex(myVehicle.get.currentMode)
+      debug("Setting mode spinner to: " + n)
+      s.setSelection(n)
+    }
+  }
+
+  override def onCreateOptionsMenu(menu: Menu) = {
+    getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
+    val s = menu.findItem(R.id.menu_mode).getActionView().asInstanceOf[Spinner] // find the spinner
+    modeSpinner = Some(s)
+    val spinnerAdapter = ArrayAdapter.createFromResource(getActionBar.getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
+    s.setAdapter(spinnerAdapter); // set the adapter
+    setModeSpinner()
+
+    def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
+      val modeName = spinnerAdapter.getItem(pos)
+      debug("Mode selected: " + modeName)
+      if (modeName != "unknown")
+        myVehicle.get.setMode(modeName.toString)
+    }
+    s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
+
+    true
   }
 
   /**
