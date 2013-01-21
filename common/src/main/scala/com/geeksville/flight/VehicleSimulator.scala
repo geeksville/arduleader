@@ -15,7 +15,7 @@ import scala.language.postfixOps
  */
 trait VehicleSimulator { self: InstrumentedActor =>
 
-  val componentId = 1 // FIXME
+  val componentId = 190 // FIXME, just copied what mission control was doing
 
   var groundAltitude = 0.0
 
@@ -58,11 +58,45 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 
+  /**
+   * Set by ardupilot custom modes
+   */
+  def setMode(mode: Int, targetSystem: Int = 1) = {
+    val msg = new msg_set_mode(systemId, componentId)
+    msg.custom_mode = mode
+    msg.target_system = targetSystem
+    msg
+  }
+
+  def commandLong(command: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_command_long(systemId, componentId)
+    msg.command = command
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def secondarySetMode(secondaryMode: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val r = commandLong(MAV_CMD.MAV_CMD_DO_SET_MODE, targetSystem, targetComponent)
+    r.param1 = secondaryMode
+    r
+  }
+
+  // The following variants aren't really needed, at least for Ardupilot you can just use SET_MODE
+
+  def commandLoiter(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM, targetSystem, targetComponent)
+  def commandRTL(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH, targetSystem, targetComponent)
+  // def commandAuto(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_MISSION_START, targetSystem, targetComponent)
+
+  def commandManual(targetSystem: Int = 1, targetComponent: Int = 1) = secondarySetMode(MAV_MODE.MAV_MODE_MANUAL_ARMED, targetSystem, targetComponent)
+  def commandAuto(targetSystem: Int = 1, targetComponent: Int = 1) = secondarySetMode(MAV_MODE.MAV_MODE_AUTO_ARMED, targetSystem, targetComponent)
+  def commandFBWA(targetSystem: Int = 1, targetComponent: Int = 1) = secondarySetMode(MAV_MODE.MAV_MODE_STABILIZE_ARMED, targetSystem, targetComponent)
+
   def missionRequestList(targetSystem: Int = 1, targetComponent: Int = 1) = {
     /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
 * MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
 * MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
-    val componentId = 190 // FIXME, just copied what mission control was doing
+
     val msg = new msg_mission_request_list(systemId, componentId)
     msg.target_system = targetSystem
     msg.target_component = targetComponent
@@ -73,7 +107,6 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
 * MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
 * MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
-    val componentId = 190 // FIXME, just copied what mission control was doing
     val msg = new msg_mission_request(systemId, componentId)
     msg.seq = seq
     msg.target_system = targetSystem

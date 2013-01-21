@@ -24,11 +24,18 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   protected def onSysStatusChanged() {}
   protected def onWaypointsDownloaded() {}
 
-  private val modeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
+  private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
     11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
-  def currentMode = modeMap.getOrElse(customMode.getOrElse(-1), "unknown")
+  private val modeToCodeMap = codeToModeMap.map { case (k, v) => (v, k) }
+
+  def currentMode = codeToModeMap.getOrElse(customMode.getOrElse(-1), "unknown")
+
+  /**
+   * The mode names we understand
+   */
+  def modeNames = modeToCodeMap.keys
 
   private def mReceive: Receiver = {
     case m: msg_statustext =>
@@ -82,6 +89,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   def startWaypointDownload() {
     sendMavlink(missionRequestList())
+  }
+
+  /**
+   * Tell vehicle to select a new mode
+   */
+  def setMode(mode: String) {
+    sendMavlink(setMode(modeToCodeMap(mode)))
   }
 
   /**
