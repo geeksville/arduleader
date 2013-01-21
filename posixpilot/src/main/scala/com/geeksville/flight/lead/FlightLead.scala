@@ -37,11 +37,12 @@ object Main extends Logging {
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
+
+      // Also send anything from our active agent to the serial port
+      MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
+
       // Anything from the wingman, send it to the serial port
       MavlinkEventBus.subscribe(mavSerial, wingmanId)
-
-      // Watch for failures
-      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
     } catch {
       case ex: NoSuchPortException =>
         logger.error("No serial port found, disabling...")
@@ -92,6 +93,9 @@ object Main extends Logging {
     MavlinkEventBus.subscribe(mavUDP, wingmanId)
     MavlinkEventBus.subscribe(mavUDP, systemId)
 
+    // Keep a complete model of the arduplane state
+    val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleMonitor), arduPilotId)
+
     // Anything from our sim lead, send it to the controller app (so it will hopefully show him)
     // Doesn't work yet - mission planner freaks out
     // MavlinkEventBus.subscribe(mavUDP, VehicleSimulator.systemId)
@@ -117,6 +121,7 @@ object Main extends Logging {
       val logger = MockAkka.actorOf(LogBinaryMavlink.create(), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
+      MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)
     }
 
     val shell = new ScalaShell() {

@@ -16,6 +16,7 @@ import java.io.File
 import com.geeksville.mavlink.LogBinaryMavlink
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.akka.PoisonPill
+import com.geeksville.flight.VehicleSimulator
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -100,6 +101,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       val logger = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
+      MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)
     }
   }
 
@@ -115,6 +117,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
     // Anything coming from the controller app, forward it to the serial port
     MavlinkEventBus.subscribe(mavSerial, groundControlId)
+
+    // Also send anything from our active agent to the serial port
+    MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
 
     // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
     // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)

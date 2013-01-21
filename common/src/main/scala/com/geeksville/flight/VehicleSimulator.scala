@@ -58,6 +58,29 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 
+  def missionRequestList(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
+* MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
+* MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
+    val componentId = 190 // FIXME, just copied what mission control was doing
+    val msg = new msg_mission_request_list(systemId, componentId)
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def missionRequest(seq: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
+* MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
+* MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
+    val componentId = 190 // FIXME, just copied what mission control was doing
+    val msg = new msg_mission_request(systemId, componentId)
+    msg.seq = seq
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
   /**
    * lat & lng in degrees
    * alt in meters MSL (we will compute relative_alt / agl)
@@ -154,6 +177,11 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
 }
 
 object VehicleSimulator {
+  /**
+   * The sysId andro/posix pilot uses when sending packets
+   */
+  val andropilotId = 253
+
   def decodePosition(m: msg_global_position_int) =
     Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
 }

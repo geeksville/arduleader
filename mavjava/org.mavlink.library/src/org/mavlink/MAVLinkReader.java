@@ -24,6 +24,7 @@ package org.mavlink;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.mavlink.messages.MAVLinkMessage;
@@ -66,7 +67,7 @@ public class MAVLinkReader {
   /**
    * Last sequence number received
    */
-  private int lastSequence = -1;
+  private int[] lastSequence = new int[256];
 
   /**
    * Read MAVLink V1.0 packets by default;
@@ -99,7 +100,7 @@ public class MAVLinkReader {
    *          Data input stream
    */
   public MAVLinkReader(DataInputStream dis) {
-    this.dis = dis;
+    this(dis, IMAVLinkMessage.MAVPROT_PACKET_START_V10);
   }
 
   /**
@@ -113,6 +114,7 @@ public class MAVLinkReader {
   public MAVLinkReader(DataInputStream dis, byte start) {
     this.dis = dis;
     this.start = start;
+    Arrays.fill(lastSequence, -1);
   }
 
   /**
@@ -209,10 +211,10 @@ public class MAVLinkReader {
             rawData);
         if (msg != null) {
           msg.sequence = sequence;
-          if (!checkSequence(sequence)) {
+          if (!checkSequence(sysId, sequence)) {
             System.err.println("SEQUENCE error, packets lost! Last sequence : "
-                + lastSequence + " Current sequence : " + sequence + " Id="
-                + msgId + " nbReceived=" + nbReceived);
+                + lastSequence[sysId] + " Current sequence : " + sequence
+                + " Id=" + msgId + " nbReceived=" + nbReceived);
           }
           packets.addElement(msg);
           // if (debug)
@@ -230,7 +232,7 @@ public class MAVLinkReader {
         validData = false;
       }
       // restart buffer
-      lastSequence = sequence;
+      lastSequence[sysId] = sequence;
       nbReceived = 0;
     } else {
       validData = false;
@@ -361,10 +363,10 @@ public class MAVLinkReader {
           .getMessage(msgId, sysId, componentId, rawData);
       if (msg != null) {
         msg.sequence = sequence;
-        if (!checkSequence(sequence)) {
+        if (!checkSequence(sysId, sequence)) {
           System.err.println("SEQUENCE error, packets lost! Last sequence : "
-              + lastSequence + " Current sequence : " + sequence + " Id="
-              + msgId + " nbReceived=" + nbReceived);
+              + lastSequence[sysId] + " Current sequence : " + sequence
+              + " Id=" + msgId + " nbReceived=" + nbReceived);
         }
         packets.addElement(msg);
         // if (debug)
@@ -382,7 +384,7 @@ public class MAVLinkReader {
       validData = false;
     }
     // restart buffer
-    lastSequence = sequence;
+    lastSequence[sysId] = sequence;
     nbReceived = 0;
 
     return validData;
@@ -395,20 +397,20 @@ public class MAVLinkReader {
    *          current sequence
    * @return true if we don't lost messages
    */
-  protected boolean checkSequence(int sequence) {
+  protected boolean checkSequence(int sysId, int sequence) {
     boolean check = false;
-    if (lastSequence == -1) {
+    if (lastSequence[sysId] == -1) {
       // it is the first message read
-      lastSequence = sequence;
+      lastSequence[sysId] = sequence;
       check = true;
-    } else if (lastSequence < sequence) {
-      if (sequence - lastSequence == 1) {
+    } else if (lastSequence[sysId] < sequence) {
+      if (sequence - lastSequence[sysId] == 1) {
         // No message lost
         check = true;
       }
     } else
     // We have reached the max number (255) and restart to 0
-    if (sequence + 256 - lastSequence == 1) {
+    if (sequence + 256 - lastSequence[sysId] == 1) {
       // No message lost
       check = true;
     }
