@@ -1,3 +1,6 @@
+# 1.0.9
+* Minor changes to work with ICS
+
 # 1.0.8
 * Switch to ACRA for even better crash reports
 

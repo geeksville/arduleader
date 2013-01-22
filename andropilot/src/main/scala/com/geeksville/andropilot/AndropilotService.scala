@@ -188,7 +188,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       .setContentText("Receiving Mavlink")
       .setSmallIcon(R.drawable.icon)
       .setContentIntent(pendingIntent)
-      .build()
+      .getNotification()  // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
   }

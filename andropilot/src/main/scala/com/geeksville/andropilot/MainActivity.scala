@@ -390,7 +390,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
     val s = menu.findItem(R.id.menu_mode).getActionView().asInstanceOf[Spinner] // find the spinner
     modeSpinner = Some(s)
-    val spinnerAdapter = ArrayAdapter.createFromResource(getActionBar.getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
+    val spinnerAdapter = ArrayAdapter.createFromResource(this /* getActionBar.getThemedContext - not on ICS */, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
     s.setAdapter(spinnerAdapter); // set the adapter
     setModeSpinner()
 
