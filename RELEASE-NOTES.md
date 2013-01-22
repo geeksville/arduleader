@@ -1,3 +1,7 @@
+# 0.1.6
+* First cut at showing waypoints (read only and not fully decoded)
+* Long press to enter guided mode to the place you clicked on the screen (quick hack, hardwired to 100m AGL)  Real code will pop up a menu/dialog
+
 # 0.1.5
 * You can now set modes from the action bar
 

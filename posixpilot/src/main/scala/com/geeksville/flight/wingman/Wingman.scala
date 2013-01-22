@@ -109,7 +109,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
       l <- desiredLoc
     } yield {
       // Tell the plane we are controlling the new goal
-      sendMavlink(makeMissionItem(l.lat.toFloat, l.lon.toFloat, l.alt.toFloat, Wingman.targetSystemId))
+      sendMavlink(missionItem(0, l, current = 2, isRelativeAlt = false, targetSystem = Wingman.targetSystemId))
 
       // Generate fake position updates for our systemId, so the 'goal' can be seen in QGroundControl
       sendMavlink(makePosition(l))

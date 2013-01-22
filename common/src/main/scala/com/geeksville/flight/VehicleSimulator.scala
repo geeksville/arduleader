@@ -133,6 +133,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.current = current // Use 2 for guided mode, 3 means alt change only
     msg.target_system = targetSystem
     msg.target_component = targetComponent
+    msg.autocontinue = 0 // FIXME
     msg
   }
 
@@ -213,22 +214,6 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
     msg
   }
 
-  def makeMissionItem(lat: Float, lon: Float, alt: Float, targetSys: Int) = {
-    val msg = new msg_mission_item(systemId, componentId)
-
-    msg.target_system = targetSys
-    msg.target_component = 1
-    msg.param3 = 0 // FIXME - see if we can control loiter direction this way...
-    msg.x = lon
-    msg.y = lat
-    msg.z = alt
-    msg.command = MAV_CMD.MAV_CMD_NAV_WAYPOINT
-    msg.frame = 3 // FIXME
-    msg.current = 2 // FIXME
-    msg.autocontinue = 0 // FIXME
-
-    msg
-  }
 }
 
 object VehicleSimulator {

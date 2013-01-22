@@ -35,6 +35,7 @@ import android.widget.AdapterView.OnItemSelectedListener
 import com.geeksville.gmaps.Scene
 import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.Segment
+import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -59,7 +60,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
   def map = Option(mFragment.getMap).get // Could be null if no maps app
-  def textView = findView(TR.textview)
+  var scene: Scene = null
 
   var planeMarker: Option[Marker] = None
 
@@ -352,8 +353,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
    * Generate our scene
    */
   def handleWaypoints(wpts: Seq[msg_mission_item]) {
-    val scene = new Scene(map)
-
     // Crufty - shouldn't touch this
     scene.markers.clear()
     scene.markers ++= wpts.map { w => new WaypointMarker(w) }
@@ -405,31 +404,28 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     true
   }
 
-  /**
-   * We handle this ourselves - so as to not try to rebind to the service
-   *
-   * This code is currently disabled by AndroidManifest.xml
-   */
-  override def onConfigurationChanged(c: Configuration) {
-    val hadMarker = planeMarker.isDefined
-
-    setContentView(mainView)
-
-    // Reattach to view widgets
-    initMap()
-    myVehicle.foreach { v =>
-      v.removeMarker() // Force new marker creation for new view
-
-      // If we had a marker before, goahead and remake it
-      if (hadMarker)
-        v.marker()
-    }
-  }
-
   def initMap() {
+    scene = new Scene(map)
     map.setMyLocationEnabled(true)
     map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
     map.getUiSettings.setTiltGesturesEnabled(false)
+    map.setOnMapLongClickListener(new OnMapLongClickListener {
+
+      // On click set guided to there
+      def onMapLongClick(l: LatLng) {
+        // FIXME show a menu instead & don't loose the icon if we get misled
+        val alt = 100
+        val loc = Location(l.latitude, l.longitude, alt)
+        myVehicle.foreach { v =>
+          val wp = v.setGuided(loc)
+          val marker = new WaypointMarker(wp)
+          scene.markers.clear()
+          scene.markers += marker // This is _totally_ not correct FIXME, just goofing around
+          scene.render()
+          toast("Guided flight selected (alt %dm AGL)".format(alt))
+        }
+      }
+    })
   }
 
   def startService() {
@@ -455,6 +451,5 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         toast("Please attach 3dr telemetry device")
       // startService() // FIXME, remove this
     }
-
   }
 }
