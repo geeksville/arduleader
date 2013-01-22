@@ -2,11 +2,13 @@ import AndroidKeys._
 
 name := "andropilot"
 
-version := "0.1.7"
+version := "0.1.8"
 
-versionCode := 7
+versionCode := 8
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+libraryDependencies += "ch.acra" % "acra" % "4.4.0" 
 
 platformName in Android := "android-17"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15
 

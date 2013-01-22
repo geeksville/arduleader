@@ -42,7 +42,7 @@
         android:icon="@drawable/icon"
         android:label="@string/app_name" 
         android:hardwareAccelerated="true" 
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme" android:name="MyApplication">
         
         <!-- Created per https://developers.google.com/maps/documentation/android/start#installing_the_google_maps_android_v2_api -->
         <meta-data

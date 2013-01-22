@@ -1,3 +1,6 @@
+# 1.0.8
+* Switch to ACRA for even better crash reports
+
 # 1.0.7
 * Get exception reports through google
 
