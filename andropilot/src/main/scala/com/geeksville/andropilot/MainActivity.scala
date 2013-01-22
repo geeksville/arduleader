@@ -61,6 +61,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
   def map = Option(mFragment.getMap).get // Could be null if no maps app
   var scene: Scene = null
+  private var guidedMarker: Option[Marker] = None
 
   var planeMarker: Option[Marker] = None
 
@@ -419,9 +420,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         myVehicle.foreach { v =>
           val wp = v.setGuided(loc)
           val marker = new WaypointMarker(wp)
-          scene.markers.clear()
-          scene.markers += marker // This is _totally_ not correct FIXME, just goofing around
-          scene.render()
+          guidedMarker.foreach(_.remove())
+          guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map
           toast("Guided flight selected (alt %dm AGL)".format(alt))
         }
       }
