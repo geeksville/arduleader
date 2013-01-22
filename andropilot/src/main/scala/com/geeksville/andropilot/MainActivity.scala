@@ -379,10 +379,12 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           is == str || is == "unknown"
         }.get
       }
-      val n = findIndex(myVehicle.get.currentMode)
-      //debug("Setting mode spinner to: " + n)
+      myVehicle.foreach { v =>
+	val n = findIndex(v.currentMode)
+        //debug("Setting mode spinner to: " + n)
 
-      s.setSelection(n)
+        s.setSelection(n)
+      }
     }
   }
 
