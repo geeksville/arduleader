@@ -128,14 +128,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def setLogging() {
     // Generate log files mission control would understand
     if (loggingEnabled) {
-      logDirectory.foreach { d =>
-        logfile = Some(LogBinaryMavlink.getFilename(d))
-        val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
-        MavlinkEventBus.subscribe(l, arduPilotId)
-        MavlinkEventBus.subscribe(l, groundControlId)
-        MavlinkEventBus.subscribe(l, VehicleSimulator.andropilotId)
-        logger = Some(l)
-      }
+      // If already logging ignore
+      if (!logger.isDefined)
+        logDirectory.foreach { d =>
+          logfile = Some(LogBinaryMavlink.getFilename(d))
+          val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
+          MavlinkEventBus.subscribe(l, arduPilotId)
+          MavlinkEventBus.subscribe(l, groundControlId)
+          MavlinkEventBus.subscribe(l, VehicleSimulator.andropilotId)
+          logger = Some(l)
+        }
     } else
       // Shut down any existing loggers
       logger.foreach { l =>
