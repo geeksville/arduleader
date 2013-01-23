@@ -17,6 +17,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var status: Option[String] = None
   var location: Option[Location] = None
   var batteryPercent: Option[Float] = None
+  var batteryVoltage: Option[Float] = None
 
   var waypoints = Seq[msg_mission_item]()
 
@@ -53,6 +54,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       onStatusChanged(m.getText)
 
     case msg: msg_sys_status =>
+      batteryVoltage = Some(msg.voltage_battery / 1000.0f)
       batteryPercent = Some(msg.battery_remaining / 100.0f)
       onSysStatusChanged()
 

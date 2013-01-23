@@ -167,6 +167,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     // We are doing something important now - please don't kill us
     requestForeground()
 
+    // We now want a way to override our service lifecycle
+    warn("Manually starting service - need to stop it somewhere...")
+    startService(new Intent(this, classOf[AndropilotService]))
+
     // Find out when the device goes away
     registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
   }
@@ -178,6 +182,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       a ! PoisonPill
       stopForeground(true) // Get rid of our notification
       serial = None
+
+      warn("Stopping our service, because no serial means not useful...")
+      stopSelf()
     }
   }
 
@@ -197,7 +204,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   }
 
   override def onDestroy() {
-    info("in onDestroy")
+    warn("in onDestroy")
     logPrefListener.foreach(unregisterOnPreferenceChanged)
     serialDetached()
     MockAkka.shutdown()

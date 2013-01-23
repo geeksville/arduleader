@@ -2,6 +2,10 @@
 * Add a preferences screen
 * Make logging controllable by preferences
 * Make altitude to use for guided mode set by preferences
+* Fix crash when waking from sleep
+* Don't leave service running unless we must (to service the serial port) - saves battery
+* Show battery voltage on the status pop-up
+* When we download waypoints, don't blow away the icon for the plane (duh)
 
 # 1.0.10
 * Fixes for auto crash reports on devices I don't have to test with...

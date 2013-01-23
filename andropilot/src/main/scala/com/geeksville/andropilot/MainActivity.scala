@@ -101,7 +101,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         "Altitude %.1fm".format(l.alt)
       }
 
-      val batStr = batteryPercent.map { p => "Battery %d%%".format(p * 100 toInt) }
+      val batStr = batteryPercent.map { p => "Battery %sV (%d%%)".format(batteryVoltage.get, p * 100 toInt) }
 
       val r = Seq(status, locStr, batStr).flatten.mkString("\n")
       //log.debug("snippet: " + r)
@@ -171,7 +171,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           if (!hasLocation) {
             // On first update zoom in to plane
             hasLocation = true
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 12.0f))
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15.0f))
           }
           updateMarker()
         }
@@ -213,6 +213,9 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       service = Some(s)
 
       debug("Service is bound")
+
+      // We're about to recreate waypoint and plane icons, so for now blow away the map
+      map.clear()
 
       // Don't use akka until the service is created
       val actor = MockAkka.actorOf(new MyVehicleMonitor, "vmon")
@@ -262,8 +265,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     handler = new Handler
 
     initMap()
-
-    startService()
 
     // Did the user just plug something in?
     Option(getIntent).foreach(handleIntent)
@@ -412,8 +413,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
       val modeName = spinnerAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
-      if (modeName != "unknown" && modeName != myVehicle.get.currentMode)
-        myVehicle.get.setMode(modeName.toString)
+      myVehicle.foreach { v =>
+        if (modeName != "unknown" && modeName != v.currentMode)
+          v.setMode(modeName.toString)
+      }
     }
     s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
 
@@ -448,11 +451,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         }
       }
     })
-  }
-
-  def startService() {
-    warn("FIXME, manually starting service - need to stop it somewhere...")
-    startService(new Intent(this, classOf[AndropilotService]))
   }
 
   /** Ask for permission to access our device */
