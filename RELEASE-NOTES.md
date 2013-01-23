@@ -1,3 +1,8 @@
+# 1.0.11
+* Add a preferences screen
+* Make logging controllable by preferences
+* Make altitude to use for guided mode set by preferences
+
 # 1.0.10
 * Fixes for auto crash reports on devices I don't have to test with...
 

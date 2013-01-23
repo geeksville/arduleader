@@ -21,12 +21,14 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.hardware.usb.UsbManager
 import android.content.IntentFilter
+import com.ridemission.scandroid.UsesPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with FlurryService {
+class AndropilotService extends Service with AndroidLogger with FlurryService with UsesPreferences {
   val groundControlId = 255
   val arduPilotId = 1
 
@@ -34,6 +36,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
    * If we are logging the file is here
    */
   var logfile: Option[File] = None
+  var logger: Option[LogBinaryMavlink] = None
+  var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
 
   private var serial: Option[MavlinkStream] = None
 
@@ -67,6 +71,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
     getLines().mkString("\n")
 
   def isSerialConnected = serial.isDefined
+
+  /**
+   * A human readable description of our logging state
+   */
+  def logmsg = if (loggingEnabled)
+    logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
+  else
+    "Logging disabled"
+
+  def loggingEnabled = boolPreference("log_to_file", false)
 
   override def onCreate() {
     super.onCreate()
@@ -103,20 +117,32 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
           LogIncomingMavlink.allowNothing), "ardlog")
     }
 
-    startLogging()
+    setLogging()
+
+    // If preferences change, automatically toggle logging as needed
+    logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
 
     info("Done starting service")
   }
 
-  def startLogging() {
+  def setLogging() {
     // Generate log files mission control would understand
-    logDirectory.foreach { d =>
-      logfile = Some(LogBinaryMavlink.getFilename(d))
-      val logger = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
-      MavlinkEventBus.subscribe(logger, arduPilotId)
-      MavlinkEventBus.subscribe(logger, groundControlId)
-      MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)
-    }
+    if (loggingEnabled) {
+      logDirectory.foreach { d =>
+        logfile = Some(LogBinaryMavlink.getFilename(d))
+        val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
+        MavlinkEventBus.subscribe(l, arduPilotId)
+        MavlinkEventBus.subscribe(l, groundControlId)
+        MavlinkEventBus.subscribe(l, VehicleSimulator.andropilotId)
+        logger = Some(l)
+      }
+    } else
+      // Shut down any existing loggers
+      logger.foreach { l =>
+        l ! PoisonPill
+        logger = None
+        logfile = None
+      }
   }
 
   def serialAttached() {
@@ -172,6 +198,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
 
   override def onDestroy() {
     info("in onDestroy")
+    logPrefListener.foreach(unregisterOnPreferenceChanged)
     serialDetached()
     MockAkka.shutdown()
     super.onDestroy()
@@ -188,7 +215,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService {
       .setContentText("Receiving Mavlink")
       .setSmallIcon(R.drawable.icon)
       .setContentIntent(pendingIntent)
-      .getNotification()  // Don't use .build, it isn't in rev12
+      .getNotification() // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
   }

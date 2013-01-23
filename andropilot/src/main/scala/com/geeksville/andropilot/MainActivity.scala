@@ -37,8 +37,9 @@ import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.Segment
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 import android.view.MenuItem
+import com.ridemission.scandroid.UsesPreferences
 
-class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
+class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity with UsesPreferences {
 
   implicit val context = this
 
@@ -218,8 +219,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       MavlinkEventBus.subscribe(actor, ardupilotId)
       myVehicle = Some(actor)
 
-      val logmsg = s.logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
-      toast(logmsg)
+      toast(s.logmsg)
 
       // If we already had a serial port open start watching it
       registerSerialReceiver()
@@ -437,7 +437,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       // On click set guided to there
       def onMapLongClick(l: LatLng) {
         // FIXME show a menu instead & don't loose the icon if we get misled
-        val alt = 100
+        val alt = intPreference("guide_alt", 100)
         val loc = Location(l.latitude, l.longitude, alt)
         myVehicle.foreach { v =>
           val wp = v.setGuided(loc)
