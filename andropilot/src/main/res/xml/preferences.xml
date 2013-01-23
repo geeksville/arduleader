@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="Flight Preferences" >
+        <EditTextPreference
+            android:defaultValue="100"
+            android:dialogTitle="Guided flight altitude (meters AGL)"
+            android:inputType="number"
+            android:key="guide_alt"
+            android:summary="Altitude above ground level in meters"
+            android:title="Guided flight altitude" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Mavlink Preferences" >
+        <CheckBoxPreference
+            android:key="log_to_file"
+            android:summary="Log packets to /sdcard/andropilot"
+            android:title="Log to file" android:defaultValue="false" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Networking Preferences" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="outbound_udp_enable"
+            android:summary="Send UDP packets to selected host"
+            android:title="Outbound UDP enable" />
+
+        <EditTextPreference
+            android:dependency="outbound_udp_enable"
+            android:dialogTitle="Hostname/IP address for any outbound packets"
+            android:key="outbound_udp_host"
+            android:summary="Hostname/IP address for any outbound packets"
+            android:title="Outbound host" android:defaultValue="192.168.0.4" />
+        <EditTextPreference
+            android:dependency="outbound_udp_enable"
+            android:dialogTitle="Port number to send to on destination machine"
+            android:inputType="number"
+            android:key="outbound_port"
+            android:summary="Port number to send to on destination machine"
+            android:title="Outbound port number"
+            android:defaultValue="14550" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -36,6 +36,7 @@ import com.geeksville.gmaps.Scene
 import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.Segment
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
+import android.view.MenuItem
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity {
 
@@ -380,7 +381,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         }.get
       }
       myVehicle.foreach { v =>
-	val n = findIndex(v.currentMode)
+        val n = findIndex(v.currentMode)
         //debug("Setting mode spinner to: " + n)
 
         s.setSelection(n)
@@ -417,6 +418,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
 
     true
+  }
+
+  override def onOptionsItemSelected(item: MenuItem) = {
+    if (item.getItemId() == R.id.menu_settings)
+      startActivity(new Intent(this, classOf[SettingsActivity]))
+
+    super.onOptionsItemSelected(item)
   }
 
   def initMap() {
