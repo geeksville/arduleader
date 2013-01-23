@@ -91,7 +91,7 @@ object ScalaFlyBuild extends Build {
     "andropilot",
     file("andropilot"),
     settings = androidAppSettings
-  ) dependsOn(common, scandroid, googlePlayServices)
+  ) dependsOn(common, scandroid)
 
   lazy val scandroid = Project(id = "scandroid", base = file("scandroid"), settings = androidLibrarySettings)
   lazy val googlePlayServices = Project(id = "google-play-services", base = file("google-play-services"), settings = androidLibrarySettings)

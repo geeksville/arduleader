@@ -1,3 +1,6 @@
+# 1.0.10
+* Fixes for auto crash reports on devices I don't have to test with...
+
 # 1.0.9
 * Minor changes to work with ICS
 
