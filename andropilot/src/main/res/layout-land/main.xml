@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal" >
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        class="com.google.android.gms.maps.MapFragment"
+        map:mapType="satellite"
+        map:uiCompass="true"
+        android:layout_weight="1"
+        map:uiRotateGestures="true"
+        map:uiScrollGestures="true"
+        map:uiTiltGestures="false"
+        map:uiZoomControls="true"
+        map:uiZoomGestures="true" />
+
+    <fragment
+        android:id="@+id/parameter_fragment"
+        android:layout_weight="2"
+        android:name="com.geeksville.andropilot.ParameterListFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent" />
+    
+</LinearLayout>

@@ -48,8 +48,8 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
-  // Send a heartbeat every 10 seconds 
-  context.system.scheduler.schedule(0 milliseconds, 1 seconds) {
+  // Send a heartbeat every few seconds 
+  context.system.scheduler.schedule(0 milliseconds, 3 seconds) {
     //self.log.debug("Sending heartbeat")
     sendMavlink(heartbeat)
   }

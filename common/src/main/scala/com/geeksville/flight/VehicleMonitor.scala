@@ -9,6 +9,8 @@ import scala.language.postfixOps
 import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
+import org.mavlink.messages.MAV_TYPE
+import com.geeksville.akka.Cancellable
 
 //
 // Messages we publish on our event bus when something happens
@@ -16,7 +18,7 @@ import com.geeksville.akka.EventStream
 case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
 case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
-case object ParametersDownloaded
+case object MsgParametersDownloaded
 
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
@@ -24,6 +26,7 @@ case object ParametersDownloaded
 class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   case object RetryExpired
+  case object FinishParameters
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
@@ -39,6 +42,19 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private var nextWaypointToFetch = 0
 
   var parameters = new Array[ParamValue](0)
+  private var retryingParameters = false
+
+  val MAVLINK_TYPE_CHAR = 0
+  val MAVLINK_TYPE_UINT8_T = 1
+  val MAVLINK_TYPE_INT8_T = 2
+  val MAVLINK_TYPE_UINT16_T = 3
+  val MAVLINK_TYPE_INT16_T = 4
+  val MAVLINK_TYPE_UINT32_T = 5
+  val MAVLINK_TYPE_INT32_T = 6
+  val MAVLINK_TYPE_UINT64_T = 7
+  val MAVLINK_TYPE_INT64_T = 8
+  val MAVLINK_TYPE_FLOAT = 9
+  val MAVLINK_TYPE_DOUBLE = 10
 
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
@@ -47,8 +63,19 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     private[VehicleMonitor] var raw: Option[msg_param_value] = None
 
     def getId = raw.map(_.getParam_id)
-    def getValue = raw.map(_.param_value)
+
+    def getValue = raw.map { v =>
+      val asfloat = v.param_value
+
+      raw.get.param_type match {
+        case MAVLINK_TYPE_FLOAT => asfloat: AnyVal
+        case _ => asfloat.toInt: AnyVal
+      }
+    }
+
     def setValue(v: Float) { raw.getOrElse(throw new Exception("Can not set uninited param")).param_value = v }
+
+    override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
   }
 
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
@@ -62,7 +89,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
   private def onSysStatusChanged() { eventStream.publish(MsgSysStatusChanged) }
   private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
-  private def onParametersDownloaded() { eventStream.publish(ParametersDownloaded) }
+  private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 
   private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
@@ -149,17 +176,17 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         parameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
 
       parameters(msg.param_index).raw = Some(msg)
+      if (retryingParameters)
+        readNextParameter()
 
-      // FIXME - need to ask for any missing parameters at the end
-      if (msg.param_index == msg.param_count - 1)
-        onParametersDownloaded()
+    case FinishParameters =>
+      readNextParameter()
   }
 
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
     // First contact, download any waypoints from the vehicle and get params
-    startParameterDownload()
     startWaypointDownload()
   }
 
@@ -168,6 +195,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   val retryInterval = 3000
   var expectedResponse: Option[Class[_]] = None
   var retryPacket: Option[MAVLinkMessage] = None
+  var retryTimer: Option[Cancellable] = None
 
   /**
    * Send a packet that expects a certain packet type in response, if the response doesn't arrive, then retry
@@ -189,6 +217,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         // Success!
         retryPacket = None
         expectedResponse = None
+        retryTimer.foreach(_.cancel())
         Some(reply)
       } else
         None
@@ -212,7 +241,27 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   }
 
   def startParameterDownload() {
+    retryingParameters = false
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
+    MockAkka.scheduler.scheduleOnce(10 seconds, this, FinishParameters)
+  }
+
+  /**
+   * If we are still missing parameters, try to read again
+   */
+  def readNextParameter() {
+    retryingParameters = true
+
+    val wasMissing = parameters.zipWithIndex.find {
+      case (v, i) =>
+        val hasData = v.raw.isDefined
+        if (!hasData)
+          sendWithRetry(paramRequestRead(i), classOf[msg_param_value])
+        !hasData // Stop here?
+    }.isDefined
+
+    if (!wasMissing)
+      onParametersDownloaded() // Yay - we have everything!
   }
 
   /**
@@ -238,7 +287,12 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     if (numWaypointsRemaining > 0) {
       numWaypointsRemaining -= 1
       sendWithRetry(missionRequest(nextWaypointToFetch), classOf[msg_mission_item])
-    } else
+    } else {
       onWaypointsDownloaded()
+
+      // FIXME - not quite ready - figure out what is wrong with my retry code - and flow control
+      //serial woes
+      // startParameterDownload()
+    }
   }
 }

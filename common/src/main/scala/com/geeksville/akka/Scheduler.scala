@@ -5,44 +5,37 @@ import scala.actors.Actor
 import scala.actors.TIMEOUT
 import com.geeksville.logback.Logger
 import com.geeksville.logback.Logging
+import com.geeksville.util.ThreadTools._
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.ScheduledFuture
 
-case class Cancellable(actor: Actor) {
+case class Cancellable(f: ScheduledFuture[_]) {
   def cancel() {
-    actor ! PoisonPill
+    f.cancel(false)
   }
 }
 
 class Scheduler extends Logging {
+  val jscheduler = Executors.newScheduledThreadPool(1)
+
   def scheduleOnce(d: Duration, dest: InstrumentedActor, msg: Any) = {
 
     val msecs = d.toMillis
 
-    def runOnce = {
-      //logger.info("Waiting " + msecs)
-
-      Actor.reactWithin(msecs) {
-        case TIMEOUT =>
-          //logger.info("handle once")
-          dest ! msg
-        case PoisonPill =>
-      }
+    def cb() {
+      logger.info("handle once")
+      dest ! msg
     }
-    Cancellable(Actor.actor(runOnce))
+    val r = jscheduler.schedule(cb _, d.toMillis, TimeUnit.MILLISECONDS)
+
+    Cancellable(r)
   }
 
   def schedule(initial: Duration, next: Duration)(cb: => Unit) = {
-    val initialMs = initial.toMillis
-    val nextMs = next.toMillis
 
-    logger.warn("FIXME, ignoring initialMs")
-    def fixedRateLoop {
-      Actor.reactWithin(nextMs) {
-        case TIMEOUT =>
-          //logger.info("handle fixed rate")
-          cb; fixedRateLoop
-        case PoisonPill =>
-      }
-    }
-    Cancellable(Actor.actor(fixedRateLoop))
+    val r = jscheduler.scheduleWithFixedDelay(cb _, initial.toMillis, next.toMillis, TimeUnit.MILLISECONDS)
+
+    Cancellable(r)
   }
 }

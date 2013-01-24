@@ -43,6 +43,7 @@ import com.geeksville.flight.MsgStatusChanged
 import com.geeksville.mavlink.MsgHeartbeatLost
 import com.geeksville.mavlink.MsgHeartbeatFound
 import com.geeksville.flight.MsgWaypointsDownloaded
+import com.geeksville.flight.MsgParametersDownloaded
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity with UsesPreferences {
 
@@ -69,6 +70,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   private var guidedMarker: Option[Marker] = None
 
   var planeMarker: Option[Marker] = None
+
+  def parameterFragment = Option(getFragmentManager.findFragmentById(R.id.parameter_fragment).asInstanceOf[ParameterListFragment])
 
   /**
    * Does work in the GUIs thread
@@ -190,6 +193,12 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       case MsgWaypointsDownloaded(wp) =>
         handler.post { () =>
           handleWaypoints(wp)
+        }
+
+      // Super crufty - do this someplace else
+      case MsgParametersDownloaded =>
+        handler.post { () =>
+          parameterFragment.foreach(_.setVehicle(v))
         }
     }
 
