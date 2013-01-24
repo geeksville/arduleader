@@ -7,6 +7,10 @@ import LogIncomingMavlink._
 import scala.concurrent._
 import scala.concurrent.duration._
 import com.geeksville.akka.Cancellable
+import com.geeksville.akka.EventStream
+
+case class MsgHeartbeatLost(id: Int)
+case class MsgHeartbeatFound(id: Int)
 
 /**
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
@@ -14,6 +18,8 @@ import com.geeksville.akka.Cancellable
 class HeartbeatMonitor extends InstrumentedActor {
 
   private case object WatchdogExpired
+
+  val eventStream = new EventStream
 
   private var timer: Option[Cancellable] = None
   private var mySysId: Option[Int] = None
@@ -28,6 +34,7 @@ class HeartbeatMonitor extends InstrumentedActor {
       resetWatchdog(msg.sysId)
 
     case WatchdogExpired =>
+      mySysId.foreach { id => eventStream.publish(MsgHeartbeatLost(id)) }
       mySysId = None
       onHeartbeatLost()
   }
@@ -44,6 +51,7 @@ class HeartbeatMonitor extends InstrumentedActor {
     if (!mySysId.isDefined) {
       mySysId = Some(sysId)
       onHeartbeatFound()
+      eventStream.publish(MsgHeartbeatFound(sysId))
     }
     cancelWatchdog()
 

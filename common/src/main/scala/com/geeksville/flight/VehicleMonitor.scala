@@ -7,13 +7,26 @@ import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.collection.mutable.ArrayBuffer
+import com.geeksville.util.Throttled
+import com.geeksville.akka.EventStream
 
-case object RetryExpired
+//
+// Messages we publish on our event bus when something happens
+//
+case class MsgStatusChanged(s: String)
+case object MsgSysStatusChanged
+case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
+case object ParametersDownloaded
 
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
 class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
+
+  case object RetryExpired
+
+  // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
+  private val locationThrottle = new Throttled(1000)
 
   var status: Option[String] = None
   var location: Option[Location] = None
@@ -40,11 +53,16 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
 
-  protected def onLocationChanged(l: Location) {}
-  protected def onStatusChanged(s: String) {}
-  protected def onSysStatusChanged() {}
-  protected def onWaypointsDownloaded() {}
-  protected def onParametersDownloaded() {}
+  private def onLocationChanged(l: Location) {
+    locationThrottle {
+      eventStream.publish(l)
+    }
+  }
+
+  private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
+  private def onSysStatusChanged() { eventStream.publish(MsgSysStatusChanged) }
+  private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
+  private def onParametersDownloaded() { eventStream.publish(ParametersDownloaded) }
 
   private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
@@ -58,6 +76,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
    * The mode names we understand
    */
   def modeNames = modeToCodeMap.keys
+
+  override def onReceive = mReceive.orElse(super.onReceive)
 
   private def mReceive: Receiver = {
     case RetryExpired =>
@@ -221,6 +241,4 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     } else
       onWaypointsDownloaded()
   }
-
-  override def onReceive = mReceive.orElse(super.onReceive)
 }

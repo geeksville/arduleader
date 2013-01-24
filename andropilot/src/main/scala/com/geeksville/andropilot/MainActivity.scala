@@ -38,14 +38,17 @@ import com.geeksville.gmaps.Segment
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 import android.view.MenuItem
 import com.ridemission.scandroid.UsesPreferences
+import com.geeksville.akka.InstrumentedActor
+import com.geeksville.flight.MsgStatusChanged
+import com.geeksville.mavlink.MsgHeartbeatLost
+import com.geeksville.mavlink.MsgHeartbeatFound
+import com.geeksville.flight.MsgWaypointsDownloaded
 
 class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity with UsesPreferences {
 
   implicit val context = this
 
-  val ardupilotId = 1 // the sysId of our plane
-
-  private var myVehicle: Option[MyVehicleMonitor] = None
+  private var myVehicle: Option[MyVehicleListener] = None
   private var service: Option[AndropilotService] = None
 
   private var mainView: View = null
@@ -86,32 +89,37 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   /**
    * Used to eavesdrop on location/state changes for our vehicle
    */
-  class MyVehicleMonitor extends VehicleMonitor {
-    // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
-    private val throttle = new Throttled(1000)
+  class MyVehicleListener(val v: VehicleMonitor) extends InstrumentedActor {
 
     /// On first position update zoom in on plane
     private var hasLocation = false
 
-    def titleStr = "Mode " + currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (hasHeartbeat) "" else " (Lost Comms)"))
+    val subscription = v.eventStream.subscribe(this, { evt: Any => true })
+
+    def titleStr = "Mode " + v.currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
     def snippet = {
       // Generate a few optional lines of text
 
-      val locStr = location.map { l =>
+      val locStr = v.location.map { l =>
         "Altitude %.1fm".format(l.alt)
       }
 
-      val batStr = batteryPercent.map { p => "Battery %sV (%d%%)".format(batteryVoltage.get, p * 100 toInt) }
+      val batStr = v.batteryPercent.map { p => "Battery %sV (%d%%)".format(v.batteryVoltage.get, p * 100 toInt) }
 
-      val r = Seq(status, locStr, batStr).flatten.mkString("\n")
+      val r = Seq(v.status, locStr, batStr).flatten.mkString("\n")
       //log.debug("snippet: " + r)
       r
+    }
+
+    override def postStop() {
+      v.eventStream.removeSubscription(subscription)
+      super.postStop()
     }
 
     private def updateMarker() {
       setModeSpinner() // FIXME, do this someplace better
 
-      location.foreach { l => marker.setPosition(new LatLng(l.lat, l.lon)) }
+      v.location.foreach { l => marker.setPosition(new LatLng(l.lat, l.lon)) }
       marker.setTitle(titleStr)
       marker.setSnippet(snippet)
       if (marker.isInfoWindowShown)
@@ -126,11 +134,11 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     def marker() = {
       if (!planeMarker.isDefined) {
 
-        val icon = if (hasHeartbeat && service.get.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
+        val icon = if (v.hasHeartbeat && service.get.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
 
         log.debug("Creating vehicle marker")
         planeMarker = Some(map.addMarker(new MarkerOptions()
-          .position(location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
+          .position(v.location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
           .draggable(false)
           .title(titleStr)
           .snippet(snippet)
@@ -152,17 +160,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       wasShown
     }
 
-    override def onWaypointsDownloaded() {
-      handler.post { () =>
-        handleWaypoints(waypoints)
-      }
-      super.onWaypointsDownloaded()
-    }
-
-    override def onLocationChanged(l: Location) {
-      super.onLocationChanged(l)
-
-      throttle {
+    override def onReceive: Receiver = {
+      case l: Location =>
         // log.debug("Handling location: " + l)
         handler.post { () =>
           //log.debug("GUI set position")
@@ -175,22 +174,23 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           }
           updateMarker()
         }
-      }
-    }
 
-    override def onStatusChanged(s: String) {
-
-      super.onStatusChanged(s)
-      throttle {
+      case MsgStatusChanged(s) =>
         log.debug("Status changed: " + s)
         handler.post(updateMarker _)
-      }
-    }
 
-    override def onHeartbeatLost() {
-      super.onHeartbeatLost()
-      //log.debug("heartbeat lost")
-      handler.post(redrawMarker _)
+      case MsgHeartbeatLost(_) =>
+        //log.debug("heartbeat lost")
+        handler.post(redrawMarker _)
+
+      case MsgHeartbeatFound(_) =>
+        log.debug("heartbeat found")
+        handler.post(redrawMarker _)
+
+      case MsgWaypointsDownloaded(wp) =>
+        handler.post { () =>
+          handleWaypoints(wp)
+        }
     }
 
     private def redrawMarker() {
@@ -198,12 +198,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       marker() // Recreate in red 
       if (wasShown)
         showInfoWindow()
-    }
-
-    override def onHeartbeatFound() {
-      super.onHeartbeatFound()
-      log.debug("heartbeat found")
-      handler.post(redrawMarker _)
     }
   }
 
@@ -218,9 +212,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       map.clear()
 
       // Don't use akka until the service is created
-      val actor = MockAkka.actorOf(new MyVehicleMonitor, "vmon")
-      MavlinkEventBus.subscribe(actor, ardupilotId)
-      myVehicle = Some(actor)
+      s.vehicle.foreach { v =>
+        val actor = MockAkka.actorOf(new MyVehicleListener(v), "lst")
+        myVehicle = Some(actor)
+      }
 
       toast(s.logmsg)
 
@@ -382,7 +377,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         }.get
       }
       myVehicle.foreach { v =>
-        val n = findIndex(v.currentMode)
+        val n = findIndex(v.v.currentMode)
         //debug("Setting mode spinner to: " + n)
 
         s.setSelection(n)
@@ -414,8 +409,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       val modeName = spinnerAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
       myVehicle.foreach { v =>
-        if (modeName != "unknown" && modeName != v.currentMode)
-          v.setMode(modeName.toString)
+        if (modeName != "unknown" && modeName != v.v.currentMode)
+          v.v.setMode(modeName.toString)
       }
     }
     s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
@@ -443,7 +438,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
         val alt = intPreference("guide_alt", 100)
         val loc = Location(l.latitude, l.longitude, alt)
         myVehicle.foreach { v =>
-          val wp = v.setGuided(loc)
+          val wp = v.v.setGuided(loc)
           val marker = new WaypointMarker(wp)
           guidedMarker.foreach(_.remove())
           guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map

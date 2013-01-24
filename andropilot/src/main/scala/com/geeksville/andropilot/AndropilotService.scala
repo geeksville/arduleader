@@ -23,14 +23,18 @@ import android.hardware.usb.UsbManager
 import android.content.IntentFilter
 import com.ridemission.scandroid.UsesPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import com.geeksville.flight.VehicleMonitor
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
+object AndropilotService {
+  val arduPilotId = 1
+}
+
 class AndropilotService extends Service with AndroidLogger with FlurryService with UsesPreferences {
   val groundControlId = 255
-  val arduPilotId = 1
 
   /**
    * If we are logging the file is here
@@ -38,6 +42,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   var logfile: Option[File] = None
   var logger: Option[LogBinaryMavlink] = None
   var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
+
+  var vehicle: Option[VehicleMonitor] = None
 
   private var serial: Option[MavlinkStream] = None
 
@@ -110,12 +116,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       info("Starting packet log")
 
       // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-      MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
+      MockAkka.actorOf(new LogIncomingMavlink(AndropilotService.arduPilotId,
         if (dumpSerialRx)
           LogIncomingMavlink.allowDefault
         else
           LogIncomingMavlink.allowNothing), "ardlog")
     }
+
+    val actor = MockAkka.actorOf(new VehicleMonitor, "vmon")
+    MavlinkEventBus.subscribe(actor, AndropilotService.arduPilotId)
+    vehicle = Some(actor)
 
     setLogging()
 
@@ -133,7 +143,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         logDirectory.foreach { d =>
           logfile = Some(LogBinaryMavlink.getFilename(d))
           val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
-          MavlinkEventBus.subscribe(l, arduPilotId)
+          MavlinkEventBus.subscribe(l, AndropilotService.arduPilotId)
           MavlinkEventBus.subscribe(l, groundControlId)
           MavlinkEventBus.subscribe(l, VehicleSimulator.andropilotId)
           logger = Some(l)
