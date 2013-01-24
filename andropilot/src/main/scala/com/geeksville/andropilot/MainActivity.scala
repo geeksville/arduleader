@@ -362,13 +362,16 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   def handleWaypoints(wpts: Seq[msg_mission_item]) {
     // Crufty - shouldn't touch this
     scene.markers.clear()
-    scene.markers ++= wpts.map { w => new WaypointMarker(w) }
 
-    // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-    val pairs = scene.markers.zip(scene.markers.tail)
-    scene.segments.clear()
-    scene.segments ++= pairs.map(p => Segment(p))
-    scene.render()
+    if(!scene.markers.isEmpty) {
+      scene.markers ++= wpts.map { w => new WaypointMarker(w) }
+
+      // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+      val pairs = scene.markers.zip(scene.markers.tail)
+      scene.segments.clear()
+      scene.segments ++= pairs.map(p => Segment(p))
+      scene.render()
+    }
   }
 
   /**
