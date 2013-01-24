@@ -6,6 +6,7 @@ import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.collection.mutable.ArrayBuffer
 
 case object RetryExpired
 
@@ -24,12 +25,26 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
 
+  var parameters = new Array[ParamValue](0)
+
+  /**
+   * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
+   */
+  class ParamValue {
+    private[VehicleMonitor] var raw: Option[msg_param_value] = None
+
+    def getId = raw.map(_.getParam_id)
+    def getValue = raw.map(_.param_value)
+    def setValue(v: Float) { raw.getOrElse(throw new Exception("Can not set uninited param")).param_value = v }
+  }
+
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
 
   protected def onLocationChanged(l: Location) {}
   protected def onStatusChanged(s: String) {}
   protected def onSysStatusChanged() {}
   protected def onWaypointsDownloaded() {}
+  protected def onParametersDownloaded() {}
 
   private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
@@ -102,12 +117,29 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         log.debug("Receive: " + msg)
         checkRetryReply(msg)
       }
+
+    //
+    // Messages for downloading parameters from vehicle
+
+    case msg: msg_param_value =>
+      log.debug("Receive: " + msg)
+      checkRetryReply(msg)
+      if (msg.param_count != parameters.size)
+        // Resize for new parameter count
+        parameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
+
+      parameters(msg.param_index).raw = Some(msg)
+
+      // FIXME - need to ask for any missing parameters at the end
+      if (msg.param_index == msg.param_count - 1)
+        onParametersDownloaded()
   }
 
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
-    // First contact, download any waypoints from the vehicle
+    // First contact, download any waypoints from the vehicle and get params
+    startParameterDownload()
     startWaypointDownload()
   }
 
@@ -157,6 +189,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   def startWaypointDownload() {
     sendWithRetry(missionRequestList(), classOf[msg_mission_count])
+  }
+
+  def startParameterDownload() {
+    sendWithRetry(paramRequestList(), classOf[msg_param_value])
   }
 
   /**

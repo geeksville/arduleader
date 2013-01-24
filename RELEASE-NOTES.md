@@ -1,4 +1,4 @@
-# 1.0.11
+# 0.1.11
 * Add a preferences screen
 * Make logging controllable by preferences
 * Make altitude to use for guided mode set by preferences

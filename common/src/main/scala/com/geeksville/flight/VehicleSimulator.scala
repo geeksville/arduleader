@@ -94,6 +94,21 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def commandAuto(targetSystem: Int = 1, targetComponent: Int = 1) = secondarySetMode(MAV_MODE.MAV_MODE_AUTO_ARMED, targetSystem, targetComponent)
   def commandFBWA(targetSystem: Int = 1, targetComponent: Int = 1) = secondarySetMode(MAV_MODE.MAV_MODE_STABILIZE_ARMED, targetSystem, targetComponent)
 
+  def paramRequestList(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_param_request_list(systemId, componentId)
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def paramRequestRead(paramIndex: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_param_request_read(systemId, componentId)
+    msg.param_index = paramIndex
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
   def missionRequestList(targetSystem: Int = 1, targetComponent: Int = 1) = {
     /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
 * MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
