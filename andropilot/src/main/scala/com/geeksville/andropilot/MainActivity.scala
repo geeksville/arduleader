@@ -363,7 +363,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     // Crufty - shouldn't touch this
     scene.markers.clear()
 
-    if(!scene.markers.isEmpty) {
+    if (!scene.markers.isEmpty) {
       scene.markers ++= wpts.map { w => new WaypointMarker(w) }
 
       // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
@@ -465,17 +465,23 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     AndroidSerial.getDevice match {
       case Some(device) =>
         accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
+          // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
+          // our GUI thread
           // requestAccess is not called until the service is up, so we can safely access this
           // If we are already talking to the serial device ignore this
-          if (!service.get.isSerialConnected) {
-            toast("3DR Telemetry allowed...")
-            service.get.serialAttached()
+          handler.post { () =>
+            if (!service.get.isSerialConnected) {
+              toast("Connecting link...")
+              service.get.serialAttached()
+            }
           }
         }, { d =>
-          toast("User denied access to USB device")
+          handler.post { () =>
+            toast("User denied access to USB device")
+          }
         }))
       case None =>
-        toast("Please attach 3dr telemetry device")
+        toast("Please attach telemetry or APM")
       // startService() // FIXME, remove this
     }
   }
