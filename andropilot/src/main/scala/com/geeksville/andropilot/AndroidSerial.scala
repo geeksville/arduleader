@@ -163,7 +163,12 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     //disconnectReceiver.register()
 
     d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
-    d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
+    try {
+      d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
+    } catch {
+      case ex: IOException =>
+        error(ex.toString) // Not yet implemented for ACM devices
+    }
     info("Port open")
     driver.put(d)
   }
@@ -180,6 +185,10 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 }
 
 object AndroidSerial extends AndroidLogger {
+
+  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && dvr.getProductId == 0x6001
+  def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
+
   def getDevice(implicit context: Context) = {
     val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]
     val devices = manager.getDeviceList.asScala.values
@@ -187,7 +196,7 @@ object AndroidSerial extends AndroidLogger {
       "%s:vend=%04x:id=%04x".format(dvr.getDeviceName, dvr.getVendorId, dvr.getProductId)
     }.mkString(","))
 
-    val filtered = devices.filter { dvr => dvr.getVendorId == 0x0403 && dvr.getProductId == 0x6001 }
+    val filtered = devices.filter { dvr => isTelemetry(dvr) || isAPM(dvr) }
     if (filtered.size == 0)
       None
     else if (filtered.size != 1)

@@ -162,7 +162,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def serialAttached() {
     info("Starting serial")
 
-    val baudRate = baudWireless 
+    val baudRate = if (AndroidSerial.isTelemetry(AndroidSerial.getDevice.get))
+      baudWireless
+    else
+      baudDirect
     val port = MavlinkAndroid.create(baudRate)
 
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
