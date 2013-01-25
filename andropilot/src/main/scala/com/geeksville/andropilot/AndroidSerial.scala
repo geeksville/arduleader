@@ -163,6 +163,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     //disconnectReceiver.register()
 
     d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
+    d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
     info("Port open")
     driver.put(d)
   }
