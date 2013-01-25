@@ -43,7 +43,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
   }
 
   override def postStop() {
-    // FIXME - close the serial device?
+    log.debug("MavlinkStream postStop")
 
     // This should cause the rx thread to bail
     instream.close()
@@ -67,8 +67,8 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
             if (reader.getLostBytes > lostBytes) {
               // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
               // ignore silently because it seems okay (I bet the bytes are ftdi header bytes)
-              if (reader.getLostBytes != lostBytes + 2)
-                log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
+              // if (reader.getLostBytes != lostBytes + 2)
+              log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
               lostBytes = reader.getLostBytes
             }
 

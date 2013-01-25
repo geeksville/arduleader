@@ -30,6 +30,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
+  private val sysStatusThrottle = new Throttled(1000)
 
   var status: Option[String] = None
   var location: Option[Location] = None
@@ -87,7 +88,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   }
 
   private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
-  private def onSysStatusChanged() { eventStream.publish(MsgSysStatusChanged) }
+  private def onSysStatusChanged() { sysStatusThrottle { eventStream.publish(MsgSysStatusChanged) } }
   private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
   private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 

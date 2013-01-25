@@ -12,7 +12,7 @@
 
 		<filter class="com.geeksville.logback.NameLevelFilter">
 			<Prefix>com.geeksville.mavlink</Prefix>
-			<MinLevel>INFO</MinLevel>
+			<MinLevel>DEBUG</MinLevel>
 		</filter>
 
 		<filter class="com.geeksville.logback.MuteAllFilter" />

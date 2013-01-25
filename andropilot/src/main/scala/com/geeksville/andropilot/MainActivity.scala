@@ -122,7 +122,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     private def updateMarker() {
       setModeSpinner() // FIXME, do this someplace better
 
-      v.location.foreach { l => marker.setPosition(new LatLng(l.lat, l.lon)) }
+      v.location.foreach { l =>
+        val pos = new LatLng(l.lat, l.lon)
+        marker.setPosition(pos)
+      }
       marker.setTitle(titleStr)
       marker.setSnippet(snippet)
       if (marker.isInfoWindowShown)

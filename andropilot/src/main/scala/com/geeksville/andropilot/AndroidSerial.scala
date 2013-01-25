@@ -56,9 +56,13 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
   val in = new InputStream {
 
+    private var closed = false
+
     // FIXME, the android-usb-serial library is buggy, get my bytebuffer based fix working here first, then
     // prop it into that lib
     private val rxBuf = ByteBuffer.allocate(510) // +2 bytes for ftdi header == preferred ftdi 512 bytes
+
+    debug("Opening serial input stream")
 
     override def available = if (driver.isSet) 1 else 0
 
@@ -86,7 +90,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         // android-usb-serial
         val d = driver.get(10000) // Give enough time for the port to open at startup
         r = d.map(_.read(rxBuf.array, readTimeout)).getOrElse(throw new EOFException("Port not open"))
-      } while (r == 0)
+      } while (r == 0 && !closed)
 
       // If success, update # available bytes
       if (r >= 0)
@@ -114,7 +118,9 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
       while (numremaining > 0 && resultcode >= 0) {
         val available = rxBuf.limit - rxBuf.position
 
-        resultcode = if (numremaining <= available) {
+        resultcode = if (closed)
+          -1
+        else if (numremaining <= available) {
           // We have all the needed bytes in our buffer
           extract(numremaining)
           0 // Claim success
@@ -133,6 +139,8 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     }
 
     override def close() {
+      debug("Closing serial input stream")
+      closed = true
       AndroidSerial.this.close()
       super.close()
     }
