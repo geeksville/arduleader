@@ -87,6 +87,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     "Logging disabled"
 
   def loggingEnabled = boolPreference("log_to_file", false)
+  def baudWireless = intPreference("baud_wireless", 57600)
+  def baudDirect = intPreference("baud_direct", 115200)
 
   override def onCreate() {
     super.onCreate()
@@ -160,8 +162,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def serialAttached() {
     info("Starting serial")
 
-    val port = MavlinkAndroid.create(57600)
-    val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
+    val baudRate = baudWireless 
+    val port = MavlinkAndroid.create(baudRate)
 
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
     val mavSerial = MockAkka.actorOf(port, "serrx")

@@ -39,5 +39,20 @@
             android:title="Outbound port number"
             android:defaultValue="14550" />
     </PreferenceCategory>
-
+    <PreferenceCategory android:title="Serial Preferences" >
+        <EditTextPreference
+            android:dialogTitle="Baud rate to use for wireless link"
+            android:inputType="number"
+            android:key="baud_wireless"
+            android:summary="Baud rate for wireless link (normally 57600)"
+            android:title="Wireless baud rate"
+            android:defaultValue="57600" />
+        <EditTextPreference
+            android:dialogTitle="Baud rate for direct APM connection"
+            android:inputType="number"
+            android:key="baud_direct"
+            android:summary="Baud rate direct APM connection (normally 115200)"
+            android:title="APM baud rate"
+            android:defaultValue="115200" />
+    </PreferenceCategory>
 </PreferenceScreen>

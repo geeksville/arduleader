@@ -1,3 +1,11 @@
+# 0.1.12
+* Fix crash when no waypoints were on the target (auto bug report from China)
+* Allow adjusting serial link baud rates
+* FIXME: work with direct APM connection
+* FIXME: display parameters when in portrait mode (parameter editing coming in next release)
+* FIXME: RTS/CTS flow control
+* FIXME: UDP gateway support
+
 # 0.1.11
 * Add a preferences screen
 * Make logging controllable by preferences
