@@ -8,7 +8,7 @@ object MockAkka extends Logging {
 
   // The system event stream
   val eventStream = new EventStream
-  val scheduler = new Scheduler
+  var scheduler = new Scheduler
 
   private val actors = HashSet[InstrumentedActor]()
 
@@ -20,7 +20,13 @@ object MockAkka extends Logging {
 
   def shutdown() {
     logger.info("Shutting down actors")
-    actors.foreach(_ ! PoisonPill)
+    actors.foreach { a =>
+      logger.debug("Killing " + a)
+      a ! PoisonPill
+    }
+    scheduler.close()
+    // Make a new scheduler since we just torched the current one
+    scheduler = new Scheduler
     logger.info("Done shutting down")
   }
 }

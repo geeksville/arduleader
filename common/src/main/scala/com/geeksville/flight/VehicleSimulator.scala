@@ -13,7 +13,7 @@ import com.geeksville.akka.InstrumentedActor
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
  */
-trait VehicleSimulator { self: InstrumentedActor =>
+trait VehicleSimulator extends InstrumentedActor {
 
   val componentId = 190 // FIXME, just copied what mission control was doing
 
@@ -49,7 +49,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   }
 
   // Send a heartbeat every few seconds 
-  context.system.scheduler.schedule(0 milliseconds, 3 seconds) {
+  val heartbeatSender = context.system.scheduler.schedule(1 seconds, 3 seconds) {
     //self.log.debug("Sending heartbeat")
     sendMavlink(heartbeat)
   }
@@ -57,6 +57,11 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def systemId: Int
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
+
+  override def postStop() {
+    heartbeatSender.cancel()
+    super.postStop()
+  }
 
   /**
    * Set by ardupilot custom modes

@@ -99,6 +99,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     val subscription = v.eventStream.subscribe(this, { evt: Any => true })
 
+    // The monitor might already have state - in which case we should just draw what he has
+    updateMarker()
+    handleWaypoints(v.waypoints)
+
     def titleStr = "Mode " + v.currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
     def snippet = {
       // Generate a few optional lines of text
@@ -366,7 +370,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     // Crufty - shouldn't touch this
     scene.markers.clear()
 
-    if (!scene.markers.isEmpty) {
+    if (!wpts.isEmpty) {
       scene.markers ++= wpts.map { w => new WaypointMarker(w) }
 
       // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)

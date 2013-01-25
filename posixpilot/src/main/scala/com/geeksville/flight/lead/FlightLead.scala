@@ -15,6 +15,7 @@ import gnu.io.NoSuchPortException
 import com.geeksville.logback.Logging
 import com.geeksville.flight.FlightLead
 import com.geeksville.akka.MockAkka
+import java.io.File
 
 object Main extends Logging {
 
@@ -29,11 +30,14 @@ object Main extends Logging {
 
   def createSerial() {
     try {
-      val baudRate = 57600 // Use 115200 for a local connection, 57600 for 3dr telemetry
-      val port = "/dev/ttyUSB0" // Use ttyACM0 for local serial
+      val telemPort = "/dev/ttyUSB0"
+      val serDriver = if ((new File(telemPort)).exists)
+        MavlinkPosix.openFtdi(telemPort, 57600)
+      else
+        MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
 
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = MockAkka.actorOf(MavlinkPosix.openFtdi(port, baudRate)(), "serrx")
+      val mavSerial = MockAkka.actorOf(serDriver, "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -124,17 +128,13 @@ object Main extends Logging {
       MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)
     }
 
-    val shell = new ScalaShell() {
+    def shell = new ScalaShell() {
       override def name = "flight"
       override def initCmds = Seq("import com.geeksville.flight.lead.ShellCommands._")
-
-      override def onExit() {
-        logger.info("Shutting down actors...")
-        MockAkka.shutdown()
-
-        super.onExit()
-      }
     }
     shell.run()
+
+    logger.info("Shutting down actors...")
+    MockAkka.shutdown()
   }
 }

@@ -16,9 +16,7 @@ import com.geeksville.logback.Logging
 // with SerialPortEventListener
 
 object MavlinkPosix extends Logging {
-  type Generator = (Unit => InstrumentedActor)
-
-  def openSerial(portName: String, baudRate: Int): Generator = {
+  def openSerial(portName: String, baudRate: Int) = {
     val portIdentifier = CommPortIdentifier.getPortIdentifier(portName)
     if (portIdentifier.isCurrentlyOwned)
       throw new IOException("Error: Port is currently in use")
@@ -33,10 +31,10 @@ object MavlinkPosix extends Logging {
 
     val out = new BufferedOutputStream(port.getOutputStream, 8192)
     val instream = new ByteOnlyInputStream(port.getInputStream)
-    (Unit => new MavlinkStream(out, instream))
+    new MavlinkStream(out, instream)
   }
 
-  def openFtdi(portName: String, baudRate: Int): Generator = {
+  def openFtdi(portName: String, baudRate: Int) = {
     logger.info("Opening ftdi")
     val dev = LibFtdi.open(0x0403, 0x6001)
     logger.info("Ftdi open")
@@ -49,6 +47,6 @@ object MavlinkPosix extends Logging {
     // dev.setTimeouts(10, 5000) // Need a short read timeout if using streams
 
     dev.setBaudRate(baudRate)
-    (Unit => new MavlinkStream(dev.out, dev.in))
+    new MavlinkStream(dev.out, dev.in)
   }
 }

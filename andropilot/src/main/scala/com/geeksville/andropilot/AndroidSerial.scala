@@ -23,7 +23,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   // FIXME - eventually allowed delayed creation?
   private var driver = new SyncVar[UsbSerialDriver]
 
-  val readTimeout = 1000 * 1000 // FIXME
+  val readTimeout = 1000
   val writeTimeout = 1000
 
   /*
@@ -139,10 +139,13 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     }
 
     override def close() {
-      debug("Closing serial input stream")
-      closed = true
-      AndroidSerial.this.close()
-      super.close()
+      if (!closed) {
+        debug("Closing serial input stream")
+        closed = true
+        AndroidSerial.this.close()
+        super.close()
+        debug("Done closing serial input stream")
+      }
     }
   }
 
@@ -184,8 +187,10 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   def close() {
     // disconnectReceiver.unregister()
     getDriverNoWait.foreach { d =>
+      debug("closing serial driver")
       d.close()
       driver.take() // Discard our driver reference
+      debug("done closing serial driver")
     }
   }
 

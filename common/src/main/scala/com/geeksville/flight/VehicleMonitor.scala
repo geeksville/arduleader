@@ -244,7 +244,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   def startParameterDownload() {
     retryingParameters = false
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
-    MockAkka.scheduler.scheduleOnce(10 seconds, this, FinishParameters)
+    MockAkka.scheduler.scheduleOnce(20 seconds, this, FinishParameters)
   }
 
   /**
@@ -291,9 +291,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     } else {
       onWaypointsDownloaded()
 
-      // FIXME - not quite ready - figure out what is wrong with my retry code - and flow control
-      //serial woes
-      // startParameterDownload()
+      // FIXME - not quite ready
+      startParameterDownload()
     }
   }
 }

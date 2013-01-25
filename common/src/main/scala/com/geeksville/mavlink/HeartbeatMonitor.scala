@@ -39,6 +39,10 @@ class HeartbeatMonitor extends InstrumentedActor {
       onHeartbeatLost()
   }
 
+  override def postStop() {
+    cancelWatchdog()
+    super.postStop()
+  }
   protected def onHeartbeatLost() {
     log.error("Lost heartbeat")
   }
