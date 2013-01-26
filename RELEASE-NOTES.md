@@ -1,8 +1,8 @@
 # 0.1.12
 * Fix crash when no waypoints were on the target (auto bug report from China)
 * Allow adjusting serial link baud rates
-* (buggy) support of direct APM connection
-* FIXME: display parameters when in portrait mode (parameter editing coming in next release)
+* support of direct APM connection
+* FIXME: parameter display/editing not quite ready 
 * RTS/CTS flow control for the telemetry link
 * Fix crash that could occur the first time a device was ever connected
 * Ask for more stream types (so we work with arducopter)
