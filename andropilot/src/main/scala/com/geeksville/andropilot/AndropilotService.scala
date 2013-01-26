@@ -25,6 +25,7 @@ import com.ridemission.scandroid.UsesPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.geeksville.flight.VehicleMonitor
 import com.geeksville.util.ThreadTools._
+import com.geeksville.mavlink.MavlinkUDP
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -47,6 +48,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   var vehicle: Option[VehicleMonitor] = None
 
   private var serial: Option[MavlinkStream] = None
+  private var udp: Option[MavlinkUDP] = None
 
   implicit val context = this
 
@@ -91,6 +93,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def baudWireless = intPreference("baud_wireless", 57600)
   def baudDirect = intPreference("baud_direct", 115200)
 
+  def outboundUdpEnabled = boolPreference("outbound_udp_enable", false)
+  def outboundUdpHost = stringPreference("outbound_udp_host", "192.168.0.4")
+  def outboundPort = intPreference("outbound_port", 14550)
+
   override def onCreate() {
     super.onCreate()
 
@@ -132,11 +138,27 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     setLogging()
     serialAttached()
+    startUDP()
 
     // If preferences change, automatically toggle logging as needed
     logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
 
     info("Done starting service")
+  }
+
+  def startUDP() {
+    udp = if (outboundUdpEnabled) {
+      info("Creating outbound UDP port")
+      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = outboundUdpHost, destPortNumber = Some(outboundPort), localPortNumber = Some(outboundPort)), "mavudp")
+
+      // Anything from the ardupilot, forward it to the controller app
+      MavlinkEventBus.subscribe(a, AndropilotService.arduPilotId)
+
+      Some(a)
+    } else {
+      info("No UDP port enabled")
+      None
+    }
   }
 
   def setLogging() {
@@ -230,6 +252,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   override def onDestroy() {
     warn("in onDestroy ******************************")
     logPrefListener.foreach(unregisterOnPreferenceChanged)
+    udp.foreach(_ ! PoisonPill)
     serialDetached()
     MockAkka.shutdown()
     super.onDestroy()

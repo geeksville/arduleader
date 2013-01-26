@@ -4,8 +4,9 @@
 * (buggy) support of direct APM connection
 * FIXME: display parameters when in portrait mode (parameter editing coming in next release)
 * RTS/CTS flow control for the telemetry link
-* FIXME: UDP gateway support
 * Fix crash that could occur the first time a device was ever connected
+* Ask for more stream types (so we work with arducopter)
+* Add outbound UDP gateway support (see settings menu - for now you need to unplug/replug serial port if you change settings)
 
 # 0.1.11
 * Add a preferences screen

@@ -20,15 +20,12 @@ import com.geeksville.akka.InstrumentedActor
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
-
-  // Do I open a port and listen at that address, or am I trying to reach out and talk to a particular port
-  val isListener = false
+class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[Int] = Some(14550), val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
 
   val portNumber: Int = 14550
-  val serverHost = InetAddress.getByName("localhost")
+  val serverHost = InetAddress.getByName(destHostName)
 
-  val socket = if (isListener) new DatagramSocket(portNumber) else new DatagramSocket()
+  val socket = localPortNumber.map { n => new DatagramSocket(n) }.getOrElse(new DatagramSocket)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker _)
 
@@ -43,16 +40,20 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
     case msg: MAVLinkMessage ⇒
       //log.debug("Sending: " + msg)
       val bytes = msg.encode()
-      if (isListener) {
+
+      // Do we know a remote port?
+      destPortNumber.map { destPort =>
+        val packet = new DatagramPacket(bytes, bytes.length, serverHost, destPort)
+        socket.send(packet)
+      }.getOrElse {
+        // Has anyone called into us?
+
         remote.map { r =>
           val packet = new DatagramPacket(bytes, bytes.length, r)
           socket.send(packet)
         }.getOrElse {
           log.debug("Can't send message, we haven't heard from a peer")
         }
-      } else {
-        val packet = new DatagramPacket(bytes, bytes.length, serverHost, portNumber)
-        socket.send(packet)
       }
   }
 
@@ -89,7 +90,7 @@ class MavlinkUDP extends InstrumentedActor with MavlinkReceiver {
 
   private def worker() {
     try {
-      while (true) {
+      while (!self.isTerminated) {
         receivePacket.foreach(handlePacket)
       }
     } catch {

@@ -18,7 +18,7 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="Networking Preferences" >
         <CheckBoxPreference
-            android:enabled="false"
+            android:enabled="true"
             android:defaultValue="false"
             android:key="outbound_udp_enable"
             android:summary="Send UDP packets to selected host"
