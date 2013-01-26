@@ -35,7 +35,6 @@ trait FlurryContext extends Context with FlurryClient {
 trait FlurryActivity extends Activity with FlurryContext {
   override def onStart() {
     super.onStart()
-    FlurryAgent.setCaptureUncaughtExceptions(false) // So we get the reports through google instead
     startFlurry()
   }
 
@@ -50,7 +49,6 @@ trait FlurryService extends Service with FlurryContext {
 
   override def onCreate() {
     super.onCreate()
-    FlurryAgent.setCaptureUncaughtExceptions(false) // So we get the reports through google instead
     startFlurry()
   }
 
