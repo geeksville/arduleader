@@ -11,6 +11,8 @@ class EventStream extends Publisher[Any] {
     override def notify(p: Pub, evt: Any) {
       if (!dest.isTerminated)
         dest ! evt
+      else
+        removeSubscription(this) // Our actor died - remove our filter
     }
   }
 
