@@ -43,6 +43,7 @@ class HeartbeatMonitor extends InstrumentedActor {
     cancelWatchdog()
     super.postStop()
   }
+
   protected def onHeartbeatLost() {
     log.error("Lost heartbeat")
   }
@@ -63,7 +64,7 @@ class HeartbeatMonitor extends InstrumentedActor {
   }
 
   private def cancelWatchdog() {
-    timer.foreach(_.cancel)
+    timer.foreach(_.cancel())
     timer = None
   }
 }

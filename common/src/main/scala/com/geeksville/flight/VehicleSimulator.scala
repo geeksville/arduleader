@@ -59,6 +59,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 
   override def postStop() {
+    log.debug("cancelling heartbeat sender")
     heartbeatSender.cancel()
     super.postStop()
   }
