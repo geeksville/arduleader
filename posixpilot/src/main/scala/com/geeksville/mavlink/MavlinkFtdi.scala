@@ -27,10 +27,16 @@ object MavlinkPosix extends Logging {
     port.setInputBufferSize(16384)
     port.setOutputBufferSize(16384)
     port.disableReceiveFraming()
-    port.setFlowControlMode(SerialPort.FLOWCONTROL_NONE)
+    port.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN | SerialPort.FLOWCONTROL_RTSCTS_OUT)
 
     val out = new BufferedOutputStream(port.getOutputStream, 8192)
-    val instream = new ByteOnlyInputStream(port.getInputStream)
+    val instream = new ByteOnlyInputStream(port.getInputStream) {
+      override def close() {
+        logger.debug("Closing port")
+        port.close()
+        super.close()
+      }
+    }
     new MavlinkStream(out, instream)
   }
 
