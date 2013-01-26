@@ -11,6 +11,7 @@ import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
 import com.geeksville.akka.Cancellable
+import org.mavlink.messages.MAV_DATA_STREAM
 
 //
 // Messages we publish on our event bus when something happens
@@ -187,6 +188,19 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
+    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3)
+
+    interestingStreams.foreach { id =>
+      sendMavlink(requestDataStream(id))
+      sendMavlink(requestDataStream(id))
+    }
+
     // First contact, download any waypoints from the vehicle and get params
     startWaypointDownload()
   }
@@ -292,7 +306,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       onWaypointsDownloaded()
 
       // FIXME - not quite ready
-      startParameterDownload()
+      // startParameterDownload()
     }
   }
 }
