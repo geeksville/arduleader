@@ -239,7 +239,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       registerSerialReceiver()
 
       // Ask for any already connected serial devices
-      requestAccess()
+      //requestAccess()
 
       waitingForService.foreach { intent =>
         handleIntent(intent)
@@ -266,7 +266,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
-    warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
+    debug("Main onCreate")
+    // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
     setContentView(mainView)
@@ -305,7 +306,11 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
 
     unregisterSerialReceiver()
+
+    debug("Unbinding from service")
     unbindService(serviceConnection)
+    service = None
+
     super.onPause()
   }
 
@@ -345,12 +350,13 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     debug("Received intent: " + intent)
     service.map { s =>
       intent.getAction match {
-        case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
-          if (AndroidSerial.getDevice.isDefined && !s.isSerialConnected) {
+        case Intent.ACTION_MAIN =>
+          // Normal app start - just ask for access to any connected devices
+          requestAccess()
 
+        case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
+          if (AndroidSerial.getDevice.isDefined) {
             toast("3DR Telemetry connected...")
-            s.serialAttached()
-            registerSerialReceiver()
           } else
             warn("Ignoring attach for some other device")
 
@@ -469,20 +475,28 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   /** Ask for permission to access our device */
   def requestAccess() {
+    warn("Requesting USB access")
     AndroidSerial.getDevice match {
       case Some(device) =>
         accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
-          // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
-          // our GUI thread
-          // requestAccess is not called until the service is up, so we can safely access this
-          // If we are already talking to the serial device ignore this
-          handler.post { () =>
+
+          // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
+          warn("USB access received")
+
+          /* handler.post { () =>
             if (!service.get.isSerialConnected) {
               toast("Connecting link...")
               service.get.serialAttached()
             }
           }
+          */
         }, { d =>
+
+          // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
+          // our GUI thread
+          // requestAccess is not called until the service is up, so we can safely access this
+          // If we are already talking to the serial device ignore this
+
           handler.post { () =>
             toast("User denied access to USB device")
           }

@@ -24,6 +24,7 @@ import android.content.IntentFilter
 import com.ridemission.scandroid.UsesPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.geeksville.flight.VehicleMonitor
+import com.geeksville.util.ThreadTools._
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -130,6 +131,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     vehicle = Some(actor)
 
     setLogging()
+    serialAttached()
 
     // If preferences change, automatically toggle logging as needed
     logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
@@ -159,37 +161,42 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       }
   }
 
-  def serialAttached() {
-    info("Starting serial")
+  private def serialAttached() {
+    AndroidSerial.getDevice.map { sdev =>
 
-    val baudRate = if (AndroidSerial.isTelemetry(AndroidSerial.getDevice.get))
-      baudWireless
-    else
-      baudDirect
-    val port = MavlinkAndroid.create(baudRate)
+      info("Starting serial")
 
-    // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-    val mavSerial = MockAkka.actorOf(port, "serrx")
-    serial = Some(mavSerial)
+      val baudRate = if (AndroidSerial.isTelemetry(sdev))
+        baudWireless
+      else
+        baudDirect
+      val port = MavlinkAndroid.create(baudRate)
 
-    // Anything coming from the controller app, forward it to the serial port
-    MavlinkEventBus.subscribe(mavSerial, groundControlId)
+      // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
+      val mavSerial = MockAkka.actorOf(port, "serrx")
+      serial = Some(mavSerial)
 
-    // Also send anything from our active agent to the serial port
-    MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
+      // Anything coming from the controller app, forward it to the serial port
+      MavlinkEventBus.subscribe(mavSerial, groundControlId)
 
-    // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
-    // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
+      // Also send anything from our active agent to the serial port
+      MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
 
-    // We are doing something important now - please don't kill us
-    requestForeground()
+      // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
+      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
-    // We now want a way to override our service lifecycle
-    warn("Manually starting service - need to stop it somewhere...")
-    startService(new Intent(this, classOf[AndropilotService]))
+      // The service will now want a way to override our service lifecycle
+      warn("Manually starting service - need to stop it somewhere...")
+      startService(new Intent(this, classOf[AndropilotService]))
 
-    // Find out when the device goes away
-    registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
+      // We are doing something important now - please don't kill us
+      requestForeground()
+
+      // Find out when the device goes away
+      registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
+    }.getOrElse {
+      warn("No serial port found by service")
+    }
   }
 
   private def serialDetached() {
@@ -221,16 +228,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   }
 
   override def onDestroy() {
-    warn("in onDestroy")
+    warn("in onDestroy ******************************")
     logPrefListener.foreach(unregisterOnPreferenceChanged)
     serialDetached()
     MockAkka.shutdown()
     super.onDestroy()
   }
 
-  val ONGOING_NOTIFICATION = 1
+  private val ONGOING_NOTIFICATION = 1
 
-  def requestForeground() {
+  private def requestForeground() {
     val notificationIntent = new Intent(this, classOf[MainActivity])
     val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
