@@ -103,7 +103,10 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     updateMarker()
     handleWaypoints(v.waypoints)
 
-    def titleStr = "Mode " + v.currentMode + (if (!service.get.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+    def titleStr = service.map { s =>
+      "Mode " + v.currentMode + (if (!s.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+    }.getOrElse("No service")
+
     def snippet = {
       // Generate a few optional lines of text
 
