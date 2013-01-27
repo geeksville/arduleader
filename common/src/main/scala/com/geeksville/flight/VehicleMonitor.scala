@@ -122,6 +122,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       batteryPercent = Some(msg.battery_remaining / 100.0f)
       onSysStatusChanged()
 
+    case msg: msg_gps_raw_int =>
+      VehicleSimulator.decodePosition(msg).foreach { loc =>
+        //log.debug("Received location: " + loc)
+        location = Some(loc)
+        onLocationChanged(loc)
+      }
+
     case msg: msg_global_position_int ⇒
       val loc = VehicleSimulator.decodePosition(msg)
       //log.debug("Received location: " + loc)

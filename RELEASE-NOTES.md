@@ -1,3 +1,9 @@
+# 0.1.13
+
+* Support GPS_RAW_INT - makes copters work
+* Fix race condition with USB notification on some devices
+* Replace the bum 0.1.12 release with something that doesn't crash
+
 # 0.1.12
 * Fix crash when no waypoints were on the target (auto bug report from China)
 * Allow adjusting serial link baud rates

@@ -253,6 +253,11 @@ object VehicleSimulator {
    */
   val andropilotId = 253
 
-  def decodePosition(m: msg_global_position_int) =
+  def decodePosition(m: msg_global_position_int): Location =
     Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
+
+  def decodePosition(m: msg_gps_raw_int): Option[Location] =
+    if (m.fix_type >= 2)
+      Some(Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0))
+    else None
 }

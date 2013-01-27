@@ -483,13 +483,14 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
           // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
           warn("USB access received")
 
-          /* handler.post { () =>
-            if (!service.get.isSerialConnected) {
-              toast("Connecting link...")
-              service.get.serialAttached()
+          handler.post { () =>
+            service.foreach { s =>
+              if (!s.isSerialConnected) {
+                toast("Connecting link...")
+                s.serialAttached()
+              }
             }
           }
-          */
         }, { d =>
 
           // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
