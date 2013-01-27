@@ -93,6 +93,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def baudWireless = intPreference("baud_wireless", 57600)
   def baudDirect = intPreference("baud_direct", 115200)
 
+  def inboundUdpEnabled = boolPreference("inbound_udp_enable", false)
+  def inboundPort = intPreference("inbound_port", 14550)
   def outboundUdpEnabled = boolPreference("outbound_udp_enable", false)
   def outboundUdpHost = stringPreference("outbound_udp_host", "192.168.0.4")
   def outboundPort = intPreference("outbound_port", 14550)
@@ -149,10 +151,18 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def startUDP() {
     udp = if (outboundUdpEnabled) {
       info("Creating outbound UDP port")
-      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = outboundUdpHost, destPortNumber = Some(outboundPort), localPortNumber = Some(outboundPort)), "mavudp")
+      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = outboundUdpHost, destPortNumber = Some(outboundPort), localPortNumber = Some(inboundPort)), "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(a, AndropilotService.arduPilotId)
+
+      Some(a)
+    } else if (inboundUdpEnabled) {
+      // Let aircraft port
+      val a = MockAkka.actorOf(new MavlinkUDP(localPortNumber = Some(inboundPort)), "mavudp")
+
+      // Send our control packets to this UDP link
+      MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)
 
       Some(a)
     } else {
@@ -183,7 +193,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       }
   }
 
-  private def serialAttached() {
+  def serialAttached() {
     AndroidSerial.getDevice.map { sdev =>
 
       info("Starting serial")
