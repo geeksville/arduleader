@@ -15,6 +15,8 @@ import android.app.PendingIntent
 import android.content.IntentFilter
 import scala.language.reflectiveCalls
 
+class NoAcquirePortException extends Exception
+
 class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLogger {
   //Get UsbManager from Android.
   info("Looking for USB service")
@@ -167,6 +169,9 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     info("Acquiring")
     val rawDevice = AndroidSerial.getDevice.get // We assume we already have access
     val d = UsbSerialProber.acquire(manager, rawDevice)
+
+    if (d == null)
+      throw new NoAcquirePortException
 
     info("Opening port")
     d.open()
