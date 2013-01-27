@@ -1,3 +1,10 @@
+# 0.1.14
+
+* Support inbound UDP (in addition to the outbound support from the previous release)
+* FIXME: parameter display
+* FIXME: serial port
+* FIXME: parameter editing
+
 # 0.1.13
 
 * Support GPS_RAW_INT - makes copters work

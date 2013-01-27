@@ -113,10 +113,17 @@ downloading http://repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.0/s
 [success] Total time: 69 s, completed Jan 20, 2013 7:45:59 AM
 ```
 
-If the previous step says success your basic build environment is okay.  Now lets try android.
+If the previous step says success your basic build environment is okay.  Now lets try android.  First we need to install some google stuff (I haven't figured out how to reference it any other way - this is a 'one time' step).
+```
+> project google-play-services
+> publish-local
+```
+
+Now you can try building our app (this is what you'll rebuild as you make changes)
+
 ```
 > project andropilot
-> android:start-device
+> android:start-device or android:start-emulator
 ...
 Dexing /oldroot/home/testuser/development/arduleader/andropilot/target/classes.dex
 Packaging /oldroot/home/testuser/development/arduleader/andropilot/target/andropilot-0.1.2.apk
@@ -125,7 +132,7 @@ Packaging /oldroot/home/testuser/development/arduleader/andropilot/target/androp
 Done!  You should now have the app running on your USB debugging connected tablet.  For debugging with the 3dr module attached, I recommend installing one of the ADB over Wifi applications (search for "adb wifi" on the play store).
 
 ### Working with eclipse
-If you would like to use eclipse, then type "eclipse" at the sbt prompt to autogenerate the project files.
+If you would like to use eclipse, then type "eclipse" at the sbt prompt to autogenerate the project files.  Then go into eclipse and import all of the project directories in this tree.
 
 
 
