@@ -14,7 +14,9 @@ object MavlinkAndroid {
 
     // Buffer reads a little, so the dumb byte reads in MAVLinkReader don't kill us
     // One FTDI packet is 62 bytes of payload + 2 bytes control
-    val instream = new BufferedInputStream(port.in, 32)
+    // FIXME - buffering doesn't work yet with my serial reader
+    //val instream = new BufferedInputStream(port.in, 64)
+    val instream = port.in
     new MavlinkStream(out, instream)
   }
 }
