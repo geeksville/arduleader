@@ -76,7 +76,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       }
     }
 
-    def setValue(v: Float) { raw.getOrElse(throw new Exception("Can not set uninited param")).param_value = v }
+    def setValue(v: Float) {
+      val p = raw.getOrElse(throw new Exception("Can not set uninited param"))
+
+      p.param_value = v
+      log.debug("Telling device to set value: " + this)
+      sendMavlink(paramSet(p.getParam_id, p.param_type, v))
+    }
 
     override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
   }
@@ -189,7 +195,14 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         // Resize for new parameter count
         parameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
 
-      parameters(msg.param_index).raw = Some(msg)
+      var index = msg.param_index
+      if (index == 65535) { // Apparently means unknown, find by name (kinda slow - FIXME)
+        index = parameters.zipWithIndex.find {
+          case (p, i) =>
+            p.getId.getOrElse("") == msg.getParam_id
+        }.get._2
+      }
+      parameters(index).raw = Some(msg)
       if (retryingParameters)
         readNextParameter()
 
@@ -277,18 +290,20 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
    * If we are still missing parameters, try to read again
    */
   def readNextParameter() {
-    retryingParameters = true
-
     val wasMissing = parameters.zipWithIndex.find {
       case (v, i) =>
         val hasData = v.raw.isDefined
         if (!hasData)
           sendWithRetry(paramRequestRead(i), classOf[msg_param_value])
+
         !hasData // Stop here?
     }.isDefined
 
-    if (!wasMissing)
+    retryingParameters = wasMissing
+    if (!wasMissing) {
+      parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
       onParametersDownloaded() // Yay - we have everything!
+    }
   }
 
   /**

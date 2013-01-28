@@ -3,8 +3,11 @@
 * Support inbound UDP (in addition to the outbound support from the previous release)
 * parameter display works!!!
 * serial port IO is now fully async (prevents nasty retry hacks)
-* FIXME: parameter editing
+* Basic (but ugly) parameter editing
 * Fix one more whacky auto crash report from strange devices...
+* FIXME: Add checkbox to save params to flash (currently changes just live in RAM)
+* Sort parameters by name
+* Add inbound UDP gateway support (previous release added outbound support)
 
 # 0.1.13
 
