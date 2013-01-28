@@ -57,6 +57,7 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
       val reader = new MAVLinkReader(new DataInputStream(stream), IMAVLinkMessage.MAVPROT_PACKET_START_V10)
 
       var lostBytes = 0
+      var badSeq = 0
 
       while (!self.isTerminated) {
         try {
@@ -68,8 +69,13 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
               // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
               // ignore silently because it seems okay (I bet the bytes are ftdi header bytes)
               // if (reader.getLostBytes != lostBytes + 2)
-              log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
+              //log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
               lostBytes = reader.getLostBytes
+            }
+
+            if (reader.getBadSequence > badSeq) {
+              badSeq = reader.getBadSequence
+              log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
             }
 
             handlePacket(s)
@@ -78,6 +84,10 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
           case ex: EOFException =>
             // Kill our actor if our port gets closed
             self ! PoisonPill
+
+          case ex: IOException =>
+            if (!self.isTerminated)
+              throw ex // Ignore errors while shutting down
         }
       }
     }

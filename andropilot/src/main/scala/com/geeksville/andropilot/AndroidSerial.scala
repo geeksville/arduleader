@@ -14,6 +14,8 @@ import android.content.Intent
 import android.app.PendingIntent
 import android.content.IntentFilter
 import scala.language.reflectiveCalls
+import com.geeksville.aserial.AsyncSerial
+import com.hoho.android.usbserial.driver.FtdiSerialDriver
 
 class NoAcquirePortException extends Exception
 
@@ -27,6 +29,11 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
   val readTimeout = 1000
   val writeTimeout = 1000
+
+  private lazy val async = driver.get(10000).map { d =>
+    val toSkip = if (d.isInstanceOf[FtdiSerialDriver]) 2 else 0
+    new AsyncSerial(d, toSkip)
+  } // Give enough time for the port to open at startup
 
   /*
   val disconnectReceiver = new BroadcastReceiver {
@@ -62,7 +69,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     // FIXME, the android-usb-serial library is buggy, get my bytebuffer based fix working here first, then
     // prop it into that lib
-    private val rxBuf = ByteBuffer.allocate(510) // +2 bytes for ftdi header == preferred ftdi 512 bytes
+    private val rxBuf = ByteBuffer.allocate(512) // +2 bytes for ftdi header == preferred ftdi 512 bytes
 
     debug("Opening serial input stream")
 
@@ -90,13 +97,14 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         // count was zero
         // FIXME - this is super inefficient - because we will spin the CPU hard, need to fix
         // android-usb-serial
-        val d = driver.get(10000) // Give enough time for the port to open at startup
-        r = d.map(_.read(rxBuf.array, readTimeout)).getOrElse(throw new EOFException("Port not open"))
+        r = async.map(_.read(rxBuf.array, readTimeout)).getOrElse(throw new EOFException("Port not open"))
       } while (r == 0 && !closed)
 
       // If success, update # available bytes
       if (r >= 0)
         rxBuf.limit(r)
+
+      //debug("Fill: " + rxBuf.array.take(r).map { b => "%02x".format(b) }.mkString(","))
 
       r
     }
@@ -118,7 +126,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
       var resultcode = 0
       while (numremaining > 0 && resultcode >= 0) {
-        val available = rxBuf.limit - rxBuf.position
+        val available = rxBuf.remaining
 
         resultcode = if (closed)
           -1
@@ -133,7 +141,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         }
       }
 
-      //debug("Bytes read: " + arr.mkString(","))
+      //debug("Bytes read: " + (arr.toSeq.map { x => "%02x".format(x) }.mkString(",")))
       if (resultcode < 0)
         resultcode
       else
@@ -160,7 +168,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     override def write(b: Array[Byte], off: Int, len: Int) = {
       //debug("Writing: " + b.take(len).mkString(","))
-      getDriverNoWait.foreach(_.write(b, writeTimeout)) // If port isn't open just ignore writes
+      async.foreach(_.write(b, writeTimeout))
     }
   }
 
@@ -178,7 +186,15 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     //disconnectReceiver.register()
 
-    d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
+    Thread.sleep(200) // Give USB device some time to settle before setting params
+
+    try {
+      d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
+    } catch {
+      case ex: IOException =>
+        error("Second attempt to set parameters")
+        d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
+    }
     try {
       d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
     } catch {
@@ -193,6 +209,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     // disconnectReceiver.unregister()
     getDriverNoWait.foreach { d =>
       debug("closing serial driver")
+      async.foreach(_.close())
       d.close()
       driver.take() // Discard our driver reference
       debug("done closing serial driver")

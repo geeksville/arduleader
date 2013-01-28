@@ -28,6 +28,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   case object RetryExpired
   case object FinishParameters
+  case object StartWaypointDownload
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
@@ -139,6 +140,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     // Messages for downloading waypoints from vehicle
     //
 
+    case StartWaypointDownload =>
+      startWaypointDownload()
+    //startParameterDownload() // For testing
+
     case msg: msg_mission_count =>
       if (msg.target_system == systemId) {
         log.info("Vehicle has %d waypoints, downloading...".format(msg.count))
@@ -209,7 +214,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     }
 
     // First contact, download any waypoints from the vehicle and get params
-    startWaypointDownload()
+    MockAkka.scheduler.scheduleOnce(10 seconds, this, StartWaypointDownload)
   }
 
   val numRetries = 5
@@ -312,8 +317,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     } else {
       onWaypointsDownloaded()
 
-      // FIXME - not quite ready
-      // startParameterDownload()
+      // FIXME - not quite ready?
+      startParameterDownload()
     }
   }
 }

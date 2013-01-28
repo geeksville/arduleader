@@ -1,9 +1,10 @@
 # 0.1.14
 
 * Support inbound UDP (in addition to the outbound support from the previous release)
-* FIXME: parameter display
-* FIXME: serial port
+* parameter display works!!!
+* serial port IO is now fully async (prevents nasty retry hacks)
 * FIXME: parameter editing
+* Fix one more whacky auto crash report from strange devices...
 
 # 0.1.13
 

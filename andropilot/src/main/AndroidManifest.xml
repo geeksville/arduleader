@@ -39,6 +39,7 @@
         android:required="false" />
 
     <application
+        android:debuggable="true"
         android:name="MyApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
