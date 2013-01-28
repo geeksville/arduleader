@@ -92,6 +92,8 @@ public class MAVLinkReader {
   private int lengthToRead = 0;
 
   private int lostBytes = 0;
+  private int badSequence = 0;
+  private int badCRC = 0;
 
   /**
    * Constructor with MAVLink 1.0 by default
@@ -212,9 +214,12 @@ public class MAVLinkReader {
         if (msg != null) {
           msg.sequence = sequence;
           if (!checkSequence(sysId, sequence)) {
-            System.err.println("SEQUENCE error, packets lost! Last sequence : "
-                + lastSequence[sysId] + " Current sequence : " + sequence
-                + " Id=" + msgId + " nbReceived=" + nbReceived);
+            badSequence += 1;
+            /*
+             * System.err.println("SEQUENCE error, packets lost! Last sequence : "
+             * + lastSequence[sysId] + " Current sequence : " + sequence +
+             * " Id=" + msgId + " nbReceived=" + nbReceived);
+             */
           }
           packets.addElement(msg);
           // if (debug)
@@ -223,16 +228,21 @@ public class MAVLinkReader {
           System.err.println("ERROR creating message  Id=" + msgId);
           validData = false;
         }
+
+        // Mark this sequence # as current
+        lastSequence[sysId] = sequence;
       } else {
-        System.err.println("ERROR mavlink CRC16-CCITT compute= "
-            + Integer.toHexString(crc) + "  expected : "
-            + Integer.toHexString(crcHigh & 0x00FF)
-            + Integer.toHexString(crcLow & 0x00FF) + " Id=" + msgId
-            + " nbReceived=" + nbReceived);
+        badCRC += 1;
+        // stdout very slow on android
+        /*
+         * System.err.println("ERROR mavlink CRC16-CCITT compute= " +
+         * Integer.toHexString(crc) + "  expected : " +
+         * Integer.toHexString(crcHigh & 0x00FF) + Integer.toHexString(crcLow &
+         * 0x00FF) + " Id=" + msgId + " nbReceived=" + nbReceived);
+         */
         validData = false;
       }
       // restart buffer
-      lastSequence[sysId] = sequence;
       nbReceived = 0;
     } else {
       validData = false;
@@ -248,6 +258,14 @@ public class MAVLinkReader {
 
   public int getLostBytes() {
     return lostBytes;
+  }
+
+  public int getBadSequence() {
+    return badSequence;
+  }
+
+  public int getBadCRC() {
+    return badCRC;
   }
 
   /**
