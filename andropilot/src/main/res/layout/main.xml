@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
@@ -16,11 +17,10 @@
         map:uiZoomControls="true"
         map:uiZoomGestures="true" />
 
-    <!--  
     <TextView
-        android:id="@+id/textview"
+        android:id="@+id/maps_error"
         android:layout_width="wrap_content"
-        android:visibility="gone"
-        android:layout_height="80dip" />
-    -->
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
 </LinearLayout>

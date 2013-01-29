@@ -65,7 +65,8 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
-  def map = Option(mFragment.getMap).get // Could be null if no maps app
+  def mapOpt = Option(mFragment.getMap)
+  def map = mapOpt.get // Could be null if no maps app
   var scene: Scene = null
   private var guidedMarker: Option[Marker] = None
 
@@ -279,10 +280,17 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     handler = new Handler
 
-    initMap()
+    if (mapOpt.isDefined) {
+      initMap()
 
-    // Did the user just plug something in?
-    Option(getIntent).foreach(handleIntent)
+      // Did the user just plug something in?
+      Option(getIntent).foreach(handleIntent)
+    } else {
+      val v = findView(TR.maps_error)
+      v.setText("Google Maps is not installed - you will not be able to run this application...")
+      v.setVisibility(View.VISIBLE)
+      Option(mFragment.getView).foreach(_.setVisibility(View.GONE))
+    }
   }
 
   /**
