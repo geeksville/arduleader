@@ -30,13 +30,17 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
       sm.onDrag()
     }
     override def onMarkerDragEnd(m: Marker) {
+      debug("End drag: " + sm)
       val sm = getMarker(m)
       sm.lat = m.getPosition.latitude
       sm.lon = m.getPosition.longitude
       handleMarkerDrag(sm)
       sm.onDragEnd()
     }
-    override def onMarkerDragStart(m: Marker) {}
+    override def onMarkerDragStart(m: Marker) {
+      val sm = getMarker(m)
+      debug("Start drag: " + sm)
+    }
   }
 
   map.setOnMarkerDragListener(markerDragListener)

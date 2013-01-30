@@ -20,6 +20,7 @@ case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
 case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
 case object MsgParametersDownloaded
+case class MsgModeChanged(m: Int)
 
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
@@ -208,6 +209,11 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     case FinishParameters =>
       readNextParameter()
+  }
+
+  override def onModeChanged(m: Int) {
+    super.onModeChanged(m)
+    eventStream.publish(MsgModeChanged(m))
   }
 
   override def onHeartbeatFound() {

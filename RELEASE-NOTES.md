@@ -1,3 +1,14 @@
+# 0.1.15
+
+* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* FIXME: Add checkbox to save params to flash (currently changes just live in RAM)
+* Show home icon for first waypoint (home).  For safety that waypoint is not yet draggable.
+* Allow click/drag to move waypoints.
+* FIXME: add dropdown menu on waypoint (include goto, delete)
+* FIXME: allow click to create new waypoint (between two closest waypoints)
+* Show a small 'toast' window whenever we receive vehicle status messages
+* We now ignore stale mode messages from the device (prevents mode menu flickering)
+
 # 0.1.14
 
 * Support inbound UDP (in addition to the outbound support from the previous release)

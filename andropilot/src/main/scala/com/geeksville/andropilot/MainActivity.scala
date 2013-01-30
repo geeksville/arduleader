@@ -44,13 +44,18 @@ import com.geeksville.mavlink.MsgHeartbeatLost
 import com.geeksville.mavlink.MsgHeartbeatFound
 import com.geeksville.flight.MsgWaypointsDownloaded
 import com.geeksville.flight.MsgParametersDownloaded
+import com.geeksville.flight.MsgModeChanged
 
-class MainActivity extends Activity with TypedActivity with AndroidLogger with FlurryActivity with UsesPreferences {
+class MainActivity extends Activity with TypedActivity
+  with AndroidLogger with FlurryActivity with UsesPreferences
+  with AndroServiceClient {
 
-  implicit val context = this
+  implicit def context = this
 
-  private var myVehicle: Option[MyVehicleListener] = None
-  private var service: Option[AndropilotService] = None
+  /**
+   * If the user just changed the mode menu, ignore device mode msgs briefly
+   */
+  private var ignoreModeChangesTill = 0L
 
   private var mainView: View = null
   private var modeSpinner: Option[Spinner] = None
@@ -64,13 +69,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   // We don't cache these - so that if we get rotated we pull the correct one
-  def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MapFragment]
-  def mapOpt = Option(mFragment.getMap)
-  def map = mapOpt.get // Could be null if no maps app
-  var scene: Scene = null
-  private var guidedMarker: Option[Marker] = None
-
-  var planeMarker: Option[Marker] = None
+  def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment]
 
   def parameterFragment = Option(getFragmentManager.findFragmentById(R.id.parameter_fragment).asInstanceOf[ParameterListFragment])
 
@@ -90,180 +89,35 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
   }
 
-  /**
-   * Used to eavesdrop on location/state changes for our vehicle
-   */
-  class MyVehicleListener(val v: VehicleMonitor) extends InstrumentedActor {
-
-    /// On first position update zoom in on plane
-    private var hasLocation = false
-
-    val subscription = v.eventStream.subscribe(this, { evt: Any => true })
-
-    // The monitor might already have state - in which case we should just draw what he has
-    updateMarker()
-    handleWaypoints(v.waypoints)
-
-    def titleStr = service.map { s =>
-      "Mode " + v.currentMode + (if (!s.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
-    }.getOrElse("No service")
-
-    def snippet = {
-      // Generate a few optional lines of text
-
-      val locStr = v.location.map { l =>
-        "Altitude %.1fm".format(l.alt)
-      }
-
-      val batStr = v.batteryPercent.map { p => "Battery %sV (%d%%)".format(v.batteryVoltage.get, p * 100 toInt) }
-
-      val r = Seq(v.status, locStr, batStr).flatten.mkString("\n")
-      //log.debug("snippet: " + r)
-      r
-    }
-
-    override def postStop() {
-      v.eventStream.removeSubscription(subscription)
-      super.postStop()
-    }
-
-    private def updateMarker() {
+  override def onVehicleReceive = {
+    case MsgModeChanged(_) =>
       setModeSpinner() // FIXME, do this someplace better
 
-      v.location.foreach { l =>
-        val pos = new LatLng(l.lat, l.lon)
-        marker.setPosition(pos)
-      }
-      marker.setTitle(titleStr)
-      marker.setSnippet(snippet)
-      if (marker.isInfoWindowShown)
-        marker.showInfoWindow() // Force redraw
-    }
-
-    private def showInfoWindow() {
-      updateMarker()
-      marker.showInfoWindow()
-    }
-
-    def marker() = {
-      if (!planeMarker.isDefined) {
-
-        val icon = if (v.hasHeartbeat && service.get.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
-
-        log.debug("Creating vehicle marker")
-        planeMarker = Some(map.addMarker(new MarkerOptions()
-          .position(v.location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
-          .draggable(false)
-          .title(titleStr)
-          .snippet(snippet)
-          .icon(BitmapDescriptorFactory.fromResource(icon))))
+    case MsgStatusChanged(s) =>
+      debug("Status changed: " + s)
+      handler.post { () =>
+        toast(s)
       }
 
-      planeMarker.get
-    }
-
-    /**
-     * Return true if we were showing the info window
-     */
-    def removeMarker() = {
-      val wasShown = planeMarker.isDefined && marker.isInfoWindowShown
-
-      planeMarker.foreach(_.remove())
-      planeMarker = None // Will be recreated when we need it
-
-      wasShown
-    }
-
-    override def onReceive: Receiver = {
-      case l: Location =>
-        // log.debug("Handling location: " + l)
-        handler.post { () =>
-          //log.debug("GUI set position")
-          val pos = new LatLng(l.lat, l.lon)
-          marker.setPosition(pos)
-          if (!hasLocation) {
-            // On first update zoom in to plane
-            hasLocation = true
-            map.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15.0f))
-          }
-          updateMarker()
-        }
-
-      case MsgStatusChanged(s) =>
-        log.debug("Status changed: " + s)
-        handler.post(updateMarker _)
-
-      case MsgHeartbeatLost(_) =>
-        //log.debug("heartbeat lost")
-        handler.post(redrawMarker _)
-
-      case MsgHeartbeatFound(_) =>
-        log.debug("heartbeat found")
-        handler.post(redrawMarker _)
-
-      case MsgWaypointsDownloaded(wp) =>
-        handler.post { () =>
-          handleWaypoints(wp)
-        }
-
-      // Super crufty - do this someplace else
-      case MsgParametersDownloaded =>
-        handler.post { () =>
-          parameterFragment.foreach(_.setVehicle(v))
-        }
-    }
-
-    private def redrawMarker() {
-      val wasShown = removeMarker()
-      marker() // Recreate in red 
-      if (wasShown)
-        showInfoWindow()
-    }
+    // Super crufty - do this someplace else
+    case MsgParametersDownloaded =>
+      handler.post { () =>
+        for { f <- parameterFragment; v <- myVehicle } yield { f.setVehicle(v) }
+      }
   }
 
-  val serviceConnection = new ServiceConnection() {
-    def onServiceConnected(className: ComponentName, serviceIn: IBinder) {
-      val s = serviceIn.asInstanceOf[ServiceAPI].service
-      service = Some(s)
+  override def onServiceConnected(s: AndropilotService) {
+    toast(s.logmsg)
 
-      debug("Service is bound")
+    // If we already had a serial port open start watching it
+    registerSerialReceiver()
 
-      // We're about to recreate waypoint and plane icons, so for now blow away the map
-      map.clear()
+    // Ask for any already connected serial devices
+    //requestAccess()
 
-      // Don't use akka until the service is created
-      s.vehicle.foreach { v =>
-        val actor = MockAkka.actorOf(new MyVehicleListener(v), "lst")
-        myVehicle = Some(actor)
-      }
-
-      toast(s.logmsg)
-
-      // If we already had a serial port open start watching it
-      registerSerialReceiver()
-
-      // Ask for any already connected serial devices
-      //requestAccess()
-
-      waitingForService.foreach { intent =>
-        handleIntent(intent)
-        waitingForService = None
-      }
-    }
-
-    def onServiceDisconnected(className: ComponentName) {
-      error("Service disconnected")
-
-      // No service anymore - don't need my actor
-      stopVehicleMonitor()
-      service = None
-    }
-  }
-
-  def stopVehicleMonitor() {
-    myVehicle.foreach { v =>
-      v ! PoisonPill
-      myVehicle = None
+    waitingForService.foreach { intent =>
+      handleIntent(intent)
+      waitingForService = None
     }
   }
 
@@ -280,9 +134,7 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
 
     handler = new Handler
 
-    if (mapOpt.isDefined) {
-      initMap()
-
+    if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS) {
       // Did the user just plug something in?
       Option(getIntent).foreach(handleIntent)
     } else {
@@ -303,13 +155,11 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   override def onResume() {
     super.onResume()
 
-    debug("Binding to service")
-    val intent = new Intent(this, classOf[AndropilotService])
-    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)
+    serviceOnResume()
   }
 
   override def onPause() {
-    stopVehicleMonitor()
+    serviceOnPause()
 
     accessGrantReceiver.foreach { r =>
       unregisterReceiver(r)
@@ -317,10 +167,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
     }
 
     unregisterSerialReceiver()
-
-    debug("Unbinding from service")
-    unbindService(serviceConnection)
-    service = None
 
     super.onPause()
   }
@@ -381,44 +227,27 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
   }
 
   /**
-   * Generate our scene
-   */
-  def handleWaypoints(wpts: Seq[msg_mission_item]) {
-    // Crufty - shouldn't touch this
-    scene.markers.clear()
-
-    if (!wpts.isEmpty) {
-      scene.markers ++= wpts.map { w => new WaypointMarker(w) }
-
-      // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-      val pairs = scene.markers.zip(scene.markers.tail)
-      scene.segments.clear()
-      scene.segments ++= pairs.map(p => Segment(p))
-      scene.render()
-    }
-  }
-
-  /**
    * Update our mode display
    */
   def setModeSpinner() {
-    modeSpinner.foreach { s =>
-      // Crufty way of finding which element of spinner needs selecting
-      def findIndex(str: String) = {
-        val adapter = s.getAdapter
+    if (System.currentTimeMillis > ignoreModeChangesTill)
+      modeSpinner.foreach { s =>
+        // Crufty way of finding which element of spinner needs selecting
+        def findIndex(str: String) = {
+          val adapter = s.getAdapter
 
-        (0 until adapter.getCount).find { i =>
-          val is = adapter.getItem(i).toString
-          is == str || is == "unknown"
-        }.get
-      }
-      myVehicle.foreach { v =>
-        val n = findIndex(v.v.currentMode)
-        //debug("Setting mode spinner to: " + n)
+          (0 until adapter.getCount).find { i =>
+            val is = adapter.getItem(i).toString
+            is == str || is == "unknown"
+          }.get
+        }
+        myVehicle.foreach { v =>
+          val n = findIndex(v.currentMode)
+          //debug("Setting mode spinner to: " + n)
 
-        s.setSelection(n)
+          s.setSelection(n)
+        }
       }
-    }
   }
 
   /**
@@ -445,8 +274,11 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       val modeName = spinnerAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
       myVehicle.foreach { v =>
-        if (modeName != "unknown" && modeName != v.v.currentMode)
-          v.v.setMode(modeName.toString)
+        if (modeName != "unknown" && modeName != v.currentMode) {
+          // Give up to two seconds before we pay attention to mode msgs - so we don't get confused by stale msgs in our queue
+          ignoreModeChangesTill = System.currentTimeMillis + 2000
+          v.setMode(modeName.toString)
+        }
       }
     }
     s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
@@ -459,29 +291,6 @@ class MainActivity extends Activity with TypedActivity with AndroidLogger with F
       startActivity(new Intent(this, classOf[SettingsActivity]))
 
     super.onOptionsItemSelected(item)
-  }
-
-  def initMap() {
-    scene = new Scene(map)
-    map.setMyLocationEnabled(true)
-    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
-    map.getUiSettings.setTiltGesturesEnabled(false)
-    map.setOnMapLongClickListener(new OnMapLongClickListener {
-
-      // On click set guided to there
-      def onMapLongClick(l: LatLng) {
-        // FIXME show a menu instead & don't loose the icon if we get misled
-        val alt = intPreference("guide_alt", 100)
-        val loc = Location(l.latitude, l.longitude, alt)
-        myVehicle.foreach { v =>
-          val wp = v.v.setGuided(loc)
-          val marker = new WaypointMarker(wp)
-          guidedMarker.foreach(_.remove())
-          guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map
-          toast("Guided flight selected (alt %dm AGL)".format(alt))
-        }
-      }
-    })
   }
 
   /** Ask for permission to access our device */

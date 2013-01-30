@@ -30,7 +30,11 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   def onReceive = {
     case msg: msg_heartbeat =>
-      customMode = Some(msg.custom_mode.toInt)
+      val oldVal = customMode.getOrElse(-1)
+      val newVal = msg.custom_mode.toInt
+      customMode = Some(newVal)
+      if (oldVal != newVal)
+        onModeChanged(newVal)
       resetWatchdog(msg.sysId)
 
     case WatchdogExpired =>
@@ -42,6 +46,10 @@ class HeartbeatMonitor extends InstrumentedActor {
   override def postStop() {
     cancelWatchdog()
     super.postStop()
+  }
+
+  protected def onModeChanged(m: Int) {
+    log.error("Received new mode: " + m)
   }
 
   protected def onHeartbeatLost() {

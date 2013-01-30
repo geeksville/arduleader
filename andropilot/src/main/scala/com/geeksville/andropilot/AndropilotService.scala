@@ -93,9 +93,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def baudWireless = intPreference("baud_wireless", 57600)
   def baudDirect = intPreference("baud_direct", 115200)
 
-  def inboundUdpEnabled = boolPreference("inbound_udp_enable", false)
+  object UDPMode extends Enumeration {
+    val Disabled = Value("Disabled")
+    val Uplink = Value("Uplink")
+    val Downlink = Value("Downlink")
+  }
+
+  def udpMode = enumPreference("inbound_udp_enable", UDPMode, UDPMode.Disabled)
+  def inboundUdpEnabled = udpMode == UDPMode.Downlink
   def inboundPort = intPreference("inbound_port", 14550)
-  def outboundUdpEnabled = boolPreference("outbound_udp_enable", false)
+  def outboundUdpEnabled = udpMode == UDPMode.Uplink
   def outboundUdpHost = stringPreference("outbound_udp_host", "192.168.0.4")
   def outboundPort = intPreference("outbound_port", 14550)
 

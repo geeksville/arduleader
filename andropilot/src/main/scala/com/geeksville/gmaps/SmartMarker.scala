@@ -6,12 +6,13 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener
 import scala.collection.mutable.HashMap
 import android.graphics.Color
+import com.ridemission.scandroid.AndroidLogger
 
 /**
  * Allows callbacks to subclasses when markers change or need new data for the gmaps v2 view.
  * Also understands graphs of polylines
  */
-abstract class SmartMarker {
+abstract class SmartMarker extends AndroidLogger {
   def lat: Double
   def lon: Double
   def lat_=(n: Double) { throw new Exception("not draggable") }
@@ -42,6 +43,8 @@ abstract class SmartMarker {
     icon.foreach { t => r = r.icon(t) }
     title.foreach { t => r = r.title(t) }
     snippet.foreach { t => r = r.snippet(t) }
+
+    debug("Create marker %s, draggable=%s".format(this, draggable))
     r
   }
 }

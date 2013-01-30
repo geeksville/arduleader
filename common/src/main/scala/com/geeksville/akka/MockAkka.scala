@@ -24,6 +24,7 @@ object MockAkka extends Logging {
       logger.debug("Killing " + a)
       a ! PoisonPill
     }
+    actors.clear()
     scheduler.close()
     // Make a new scheduler since we just torched the current one
     scheduler = new Scheduler
