@@ -11,8 +11,8 @@
         class="com.geeksville.andropilot.MyMapFragment"
         map:mapType="satellite"
         map:uiCompass="true"
-        map:uiRotateGestures="true"
-        map:uiScrollGestures="true"
+        map:uiRotateGestures="false"
+        map:uiScrollGestures="false"
         map:uiTiltGestures="false"
         map:uiZoomControls="true"
         map:uiZoomGestures="true" />

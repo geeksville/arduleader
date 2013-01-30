@@ -1,13 +1,18 @@
 # 0.1.15
 
-* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
-* FIXME: Add checkbox to save params to flash (currently changes just live in RAM)
 * Show home icon for first waypoint (home).  For safety that waypoint is not yet draggable.
 * Allow click/drag to move waypoints.
-* FIXME: add dropdown menu on waypoint (include goto, delete)
-* FIXME: allow click to create new waypoint (between two closest waypoints)
 * Show a small 'toast' window whenever we receive vehicle status messages
 * We now ignore stale mode messages from the device (prevents mode menu flickering)
+* Substantial cleanup of map code
+
+* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* FIXME: Add checkbox to save params to flash (currently changes just live in RAM)
+* FIXME: add dropdown menu on waypoint (include goto, delete)
+* FIXME: allow click to create new waypoint (between two closest waypoints)
+* FIXME: listen for WAYPOINT_CURRENT message
+* FIXME: send SET_CURRENT to activate waypoints http://qgroundcontrol.org/mavlink/waypoint_protocol#write_mav_waypoint_list
+* FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
 
 # 0.1.14
 

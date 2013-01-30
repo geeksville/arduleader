@@ -157,6 +157,17 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
+  def missionCount(count: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
+* MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
+* MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
+    val msg = new msg_mission_count(systemId, componentId)
+    msg.count = count
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
   /**
    * * Here's what mission planner sends when you choose go-to some point at 100m alt:
    * MAVLINK_MSG_ID_MISSION_ITEM :   param1=0.0  param2=0.0  param3=0.0  param4=0.0  x=37.52122  y=-122.31037  z=100.0  seq=0  command=16  target_system=1  target_component=1  frame=3  current=2  autocontinue=0

@@ -12,8 +12,8 @@
         map:mapType="satellite"
         map:uiCompass="true"
         android:layout_weight="1"
-        map:uiRotateGestures="true"
-        map:uiScrollGestures="true"
+        map:uiRotateGestures="false"
+        map:uiScrollGestures="false"
         map:uiTiltGestures="false"
         map:uiZoomControls="true"
         map:uiZoomGestures="true" />

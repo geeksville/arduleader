@@ -21,6 +21,10 @@ case object MsgSysStatusChanged
 case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
 case object MsgParametersDownloaded
 case class MsgModeChanged(m: Int)
+/**
+ * Start sending waypoints TO the vehicle
+ */
+case object SendWaypoints
 
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
@@ -144,6 +148,25 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       onLocationChanged(loc)
 
     //
+    // Messages for uploading waypoints
+    //
+    case SendWaypoints =>
+      sendWithRetry(missionCount(waypoints.size), classOf[msg_mission_request])
+
+    case msg: msg_mission_request =>
+      if (msg.target_system == systemId) {
+        log.debug("Vehicle requesting waypoint %d".format(msg.seq))
+        checkRetryReply(msg).foreach { msg =>
+          val wp = waypoints(msg.seq)
+          // Make sure that the target system is correct
+          wp.target_system = msg.sysId
+          wp.target_component = msg.componentId
+          log.debug("Sending wp: " + wp)
+          sendMavlink(wp)
+        }
+      }
+
+    //
     // Messages for downloading waypoints from vehicle
     //
 
@@ -190,7 +213,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     // Messages for downloading parameters from vehicle
 
     case msg: msg_param_value =>
-      log.debug("Receive: " + msg)
+      // log.debug("Receive: " + msg)
       checkRetryReply(msg)
       if (msg.param_count != parameters.size)
         // Resize for new parameter count
@@ -246,7 +269,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * Send a packet that expects a certain packet type in response, if the response doesn't arrive, then retry
    */
-  def sendWithRetry(msg: MAVLinkMessage, expected: Class[_]) {
+  private def sendWithRetry(msg: MAVLinkMessage, expected: Class[_]) {
     expectedResponse = Some(expected)
     retriesLeft = numRetries
     retryPacket = Some(msg)
@@ -257,7 +280,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * Check to see if this satisfies our retry reply requirement, if it does and it isn't a dup return the message, else None
    */
-  def checkRetryReply[T <: MAVLinkMessage](reply: T): Option[T] = {
+  private def checkRetryReply[T <: MAVLinkMessage](reply: T): Option[T] = {
     expectedResponse.flatMap { e =>
       if (reply.getClass == e) {
         // Success!
@@ -270,7 +293,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     }
   }
 
-  def retryExpired() {
+  private def retryExpired() {
     retryPacket.foreach { pkt =>
       if (retriesLeft > 0) {
         log.debug("Retry expired on " + pkt + " trying again...")
@@ -282,12 +305,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     }
   }
 
-  def startWaypointDownload() {
+  private def startWaypointDownload() {
     sendWithRetry(missionRequestList(), classOf[msg_mission_count])
   }
 
-  def startParameterDownload() {
+  private def startParameterDownload() {
     retryingParameters = false
+    log.debug("Requesting vehicle parameters")
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
     MockAkka.scheduler.scheduleOnce(20 seconds, this, FinishParameters)
   }
@@ -295,7 +319,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * If we are still missing parameters, try to read again
    */
-  def readNextParameter() {
+  private def readNextParameter() {
     val wasMissing = parameters.zipWithIndex.find {
       case (v, i) =>
         val hasData = v.raw.isDefined

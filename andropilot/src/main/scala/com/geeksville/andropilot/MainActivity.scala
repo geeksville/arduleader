@@ -91,7 +91,9 @@ class MainActivity extends Activity with TypedActivity
 
   override def onVehicleReceive = {
     case MsgModeChanged(_) =>
-      setModeSpinner() // FIXME, do this someplace better
+      handler.post { () =>
+        setModeSpinner() // FIXME, do this someplace better
+      }
 
     case MsgStatusChanged(s) =>
       debug("Status changed: " + s)
@@ -102,7 +104,10 @@ class MainActivity extends Activity with TypedActivity
     // Super crufty - do this someplace else
     case MsgParametersDownloaded =>
       handler.post { () =>
-        for { f <- parameterFragment; v <- myVehicle } yield { f.setVehicle(v) }
+        parameterFragment.foreach { f =>
+          updateParameters()
+          // Option(f.getView).foreach(_.invalidate())
+        }
       }
   }
 
@@ -115,10 +120,17 @@ class MainActivity extends Activity with TypedActivity
     // Ask for any already connected serial devices
     //requestAccess()
 
+    updateParameters()
+
     waitingForService.foreach { intent =>
       handleIntent(intent)
       waitingForService = None
     }
+  }
+
+  private def updateParameters() {
+    // Let our parameter view start updating
+    for { f <- parameterFragment; v <- myVehicle } yield { f.setVehicle(v) }
   }
 
   override def onCreate(bundle: Bundle) {

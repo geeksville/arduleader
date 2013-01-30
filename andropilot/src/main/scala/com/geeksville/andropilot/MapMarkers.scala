@@ -6,11 +6,12 @@ import com.ridemission.scandroid.AndroidLogger
 import com.google.android.gms.maps.model._
 import com.geeksville.flight.VehicleMonitor
 import org.mavlink.messages.ardupilotmega.msg_mission_ack
+import com.geeksville.flight.SendWaypoints
 
 class WaypointMarker(val msg: msg_mission_item) extends SmartMarker with AndroidLogger {
   def lat = msg.x
   def lon = msg.y
-  override def title = Some("Waypoint #" + msg.seq)
+  override def title = Some("Waypoint #" + msg.seq + " cmd=" + msg.command)
   override def snippet = Some(msg.toString)
 
   override def icon: Option[BitmapDescriptor] = {
@@ -47,7 +48,6 @@ class DraggableWaypointMarker(val v: VehicleMonitor, msg: msg_mission_item) exte
     super.onDragEnd()
     debug("Drag ended on " + this)
 
-    val r = msg
-    v.sendWithRetry(r, classOf[msg_mission_ack])
+    v ! SendWaypoints
   }
 }

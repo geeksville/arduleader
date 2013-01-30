@@ -31,6 +31,9 @@ class ParameterListFragment extends ListFragment with AndroidLogger {
 
   def setVehicle(v: VehicleMonitor) {
     vehicle = Some(v)
-    setListAdapter(new ArrayAdapter(getActivity, android.R.layout.simple_list_item_1, v.parameters))
+    debug("Setting parameter list to " + v.parameters.size + " items")
+    // Don't expand the view until we have _something_ to display
+    if (v.parameters.size != 0 && getActivity != null)
+      setListAdapter(new ArrayAdapter(getActivity, android.R.layout.simple_list_item_1, v.parameters))
   }
 }
