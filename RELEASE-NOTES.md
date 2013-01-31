@@ -1,3 +1,7 @@
+# 0.1.16
+
+* clean up param list to be two nice columns
+
 # 0.1.15
 
 * Show home icon for first waypoint (home).  For safety that waypoint is not yet draggable.
@@ -7,7 +11,7 @@
 * Substantial cleanup of map code
 * We now listen for WAYPOINT_CURRENT message and show current waypoint in red
 
-* FIXME: Add checkbox to save params to flash (currently changes just live in RAM)
+For next release:
 * FIXME: add dropdown menu on waypoint (include goto, delete)
 * FIXME: allow click to create new waypoint (between two closest waypoints)
 * FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)

@@ -275,7 +275,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     }
 
     // First contact, download any waypoints from the vehicle and get params
-    MockAkka.scheduler.scheduleOnce(10 seconds, this, StartWaypointDownload)
+    MockAkka.scheduler.scheduleOnce(5 seconds, this, StartWaypointDownload)
   }
 
   val numRetries = 5
