@@ -28,7 +28,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   implicit def context = getActivity
 
-  var scene: Scene = null
+  var scene: Option[Scene] = None
 
   def mapOpt = Option(getMap)
 
@@ -191,7 +191,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   def initMap() {
     mapOpt.foreach { map =>
-      scene = new Scene(map)
+      scene = Some(new Scene(map))
       map.setMyLocationEnabled(true)
       map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
       map.getUiSettings.setTiltGesturesEnabled(false)
@@ -233,17 +233,19 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     myVehicle.foreach { v =>
       val wpts = v.waypoints
 
-      // Crufty - shouldn't touch this
-      scene.markers.clear()
+      scene.foreach { scene =>
+        // Crufty - shouldn't touch this
+        scene.markers.clear()
 
-      if (!wpts.isEmpty) {
-        scene.markers ++= wpts.map { w => new DraggableWaypointMarker(v, w) }
+        if (!wpts.isEmpty) {
+          scene.markers ++= wpts.map { w => new DraggableWaypointMarker(v, w) }
 
-        // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-        val pairs = scene.markers.zip(scene.markers.tail)
-        scene.segments.clear()
-        scene.segments ++= pairs.map(p => Segment(p))
-        scene.render()
+          // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+          val pairs = scene.markers.zip(scene.markers.tail)
+          scene.segments.clear()
+          scene.segments ++= pairs.map(p => Segment(p))
+          scene.render()
+        }
       }
     }
   }
