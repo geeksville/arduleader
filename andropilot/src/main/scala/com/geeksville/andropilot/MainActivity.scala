@@ -150,9 +150,15 @@ class MainActivity extends Activity with TypedActivity
       // Did the user just plug something in?
       Option(getIntent).foreach(handleIntent)
     } else {
-      val v = findView(TR.maps_error)
-      v.setText("Google Maps is not installed - you will not be able to run this application...")
-      v.setVisibility(View.VISIBLE)
+      Option(findView(TR.maps_error)).map { v =>
+        v.setText("""|Google Maps is not installed - you will not be able to run this application... 
+                   |(If you are seeing this message and using a 'hobbyist' ROM, check with the
+                   |person who made that ROM - it seems like they forgot to include a working version of Google
+                   |Play services)""".stripMargin)
+        v.setVisibility(View.VISIBLE)
+      }.getOrElse {
+        error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
+      }
       Option(mFragment.getView).foreach(_.setVisibility(View.GONE))
     }
   }

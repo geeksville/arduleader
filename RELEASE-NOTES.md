@@ -1,3 +1,7 @@
+# 0.1.18
+
+* Fix a FC if google maps was not installed
+
 # 0.1.16
 
 * Clean up param list to be two nice columns
