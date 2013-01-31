@@ -12,6 +12,7 @@ import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
 import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
+import org.mavlink.messages.MAV_MISSION_RESULT
 
 //
 // Messages we publish on our event bus when something happens
@@ -20,6 +21,7 @@ case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
 case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
 case object MsgParametersDownloaded
+case object MsgWaypointsChanged
 case class MsgModeChanged(m: Int)
 /**
  * Start sending waypoints TO the vehicle
@@ -103,6 +105,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
   private def onSysStatusChanged() { sysStatusThrottle { eventStream.publish(MsgSysStatusChanged) } }
   private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
+  private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
   private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 
   private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
@@ -156,14 +159,16 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     case msg: msg_mission_request =>
       if (msg.target_system == systemId) {
         log.debug("Vehicle requesting waypoint %d".format(msg.seq))
-        checkRetryReply(msg).foreach { msg =>
-          val wp = waypoints(msg.seq)
-          // Make sure that the target system is correct
-          wp.target_system = msg.sysId
-          wp.target_component = msg.componentId
-          log.debug("Sending wp: " + wp)
-          sendMavlink(wp)
-        }
+        checkRetryReply(msg) // Cancel any retries that were waiting for this message
+
+        val wp = waypoints(msg.seq)
+        // Make sure that the target system is correct (FIXME - it seems like this is not correct)
+        wp.target_system = msg.sysId
+        wp.target_component = msg.componentId
+        wp.sysId = systemId
+        wp.componentId = componentId
+        log.debug("Sending wp: " + wp)
+        sendMavlink(wp)
       }
 
     //
@@ -207,7 +212,21 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       if (msg.target_system == systemId) {
         log.debug("Receive: " + msg)
         checkRetryReply(msg)
+        if (msg.`type` == MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED)
+          // The target expects us to ack his ack...
+          sendMavlink(missionAck(MAV_MISSION_RESULT.MAV_MISSION_ACCEPTED))
       }
+
+    case msg: msg_mission_current =>
+      // Update the current waypoint
+      if (waypoints.count { w =>
+        val newval = if (w.seq == msg.seq) 1 else 0
+        val changed = newval != w.current
+        if (changed)
+          w.current = newval
+        changed
+      } > 0)
+        onWaypointsChanged()
 
     //
     // Messages for downloading parameters from vehicle

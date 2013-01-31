@@ -99,7 +99,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     val Downlink = Value("Downlink")
   }
 
-  def udpMode = enumPreference("inbound_udp_enable", UDPMode, UDPMode.Disabled)
+  def udpMode = {
+    //debug("UDP prefs mode: " + stringPreference("udp_mode", ""))
+    enumPreference("udp_mode", UDPMode, UDPMode.Disabled)
+  }
   def inboundUdpEnabled = udpMode == UDPMode.Downlink
   def inboundPort = intPreference("inbound_port", 14550)
   def outboundUdpEnabled = udpMode == UDPMode.Uplink

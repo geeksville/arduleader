@@ -15,9 +15,16 @@ class WaypointMarker(val msg: msg_mission_item) extends SmartMarker with Android
   override def snippet = Some(msg.toString)
 
   override def icon: Option[BitmapDescriptor] = {
-    if (isHome) // Show a house for home
-      Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
-    else msg.current match {
+    if (isHome) { // Show a house for home
+      if (isCurrent)
+        Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_red))
+      else
+        Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
+    } else msg.current match {
+      case 0 =>
+        Some(BitmapDescriptorFactory.fromResource(R.drawable.blue))
+      case 1 =>
+        Some(BitmapDescriptorFactory.fromResource(R.drawable.red))
       case 2 => // Guided
         Some(BitmapDescriptorFactory.fromResource(R.drawable.flag))
       case _ =>

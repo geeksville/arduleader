@@ -63,7 +63,7 @@ object Main extends Logging {
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
     // FIXME create this somewhere else
-    val mavUDP = MockAkka.actorOf(new MavlinkUDP, "mavudp")
+    val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = "192.168.0.39"), "mavudp")
 
     val startSerial = true
     val startFlightLead = false

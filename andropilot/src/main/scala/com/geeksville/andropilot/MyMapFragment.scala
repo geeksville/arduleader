@@ -18,6 +18,7 @@ import android.widget.Toast
 import com.geeksville.gmaps.Segment
 import android.content.Context
 import com.google.android.gms.common.ConnectionResult
+import com.geeksville.flight.MsgWaypointsChanged
 
 /**
  * Our customized map fragment
@@ -153,6 +154,9 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       handler.post(redrawMarker _)
 
     case MsgWaypointsDownloaded(wp) =>
+      handler.post(handleWaypoints _)
+
+    case MsgWaypointsChanged =>
       handler.post(handleWaypoints _)
   }
 

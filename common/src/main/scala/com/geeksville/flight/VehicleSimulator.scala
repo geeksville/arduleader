@@ -157,6 +157,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
+  def missionAck(typ: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_mission_ack(systemId, componentId)
+    msg.`type` = typ
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
   def missionCount(count: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
 * MISSION_COUNT {target_system : 255, target_component : 190, count : 1}

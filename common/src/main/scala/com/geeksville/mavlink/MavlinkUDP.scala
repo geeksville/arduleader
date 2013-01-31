@@ -23,9 +23,10 @@ import com.geeksville.akka.InstrumentedActor
 class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[Int] = Some(14550), val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
 
   val portNumber: Int = 14550
-  val serverHost = InetAddress.getByName(destHostName)
 
-  val socket = localPortNumber.map { n => new DatagramSocket(n) }.getOrElse(new DatagramSocket)
+  // These must be lazy - to ensure we don't do networking in the main thread (an android restriction)
+  lazy val serverHost = InetAddress.getByName(destHostName)
+  lazy val socket = localPortNumber.map { n => new DatagramSocket(n) }.getOrElse(new DatagramSocket)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker _)
 
@@ -76,7 +77,7 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
       case Array(start, payLength, packSeq, sysId, compId, msgId, payload @ _*) =>
         if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
           val packet = MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray)
-          //log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
+          log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
           Option(packet)
         } else {
           log.error("Ignoring bad MAVLink packet")
