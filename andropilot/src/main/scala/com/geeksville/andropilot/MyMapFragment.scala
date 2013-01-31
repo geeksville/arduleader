@@ -31,7 +31,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   var scene: Scene = null
 
   def mapOpt = Option(getMap)
-  def map = mapOpt.get // Could be null if no maps app
 
   private var guidedMarker: Option[Marker] = None
 
@@ -44,7 +43,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   override def onServiceConnected(s: AndropilotService) {
     // We're about to recreate waypoint and plane icons, so for now blow away the map
-    map.clear()
+    mapOpt.foreach(_.clear())
 
     // The monitor might already have state - in which case we should just draw what he has
     updateMarker()
@@ -75,37 +74,43 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   }
 
   private def updateMarker() {
-    for (v <- myVehicle; l <- v.location) yield {
-      val pos = new LatLng(l.lat, l.lon)
-      marker.setPosition(pos)
+    markerOpt.foreach { marker =>
+      for (v <- myVehicle; l <- v.location) yield {
+        val pos = new LatLng(l.lat, l.lon)
+        marker.setPosition(pos)
+      }
+      marker.setTitle(titleStr)
+      marker.setSnippet(snippet)
+      if (marker.isInfoWindowShown)
+        marker.showInfoWindow() // Force redraw
     }
-    marker.setTitle(titleStr)
-    marker.setSnippet(snippet)
-    if (marker.isInfoWindowShown)
-      marker.showInfoWindow() // Force redraw
   }
 
   private def showInfoWindow() {
     updateMarker()
-    marker.showInfoWindow()
+    markerOpt.foreach { marker =>
+      marker.showInfoWindow()
+    }
   }
 
-  def marker() = {
+  def markerOpt() = {
     if (!planeMarker.isDefined) {
 
       val v = myVehicle.get // FIXME - this is dangerous
       val icon = if (v.hasHeartbeat && service.get.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
 
       debug("Creating vehicle marker")
-      planeMarker = Some(map.addMarker(new MarkerOptions()
-        .position(v.location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
-        .draggable(false)
-        .title(titleStr)
-        .snippet(snippet)
-        .icon(BitmapDescriptorFactory.fromResource(icon))))
+      mapOpt.foreach { map =>
+        planeMarker = Some(map.addMarker(new MarkerOptions()
+          .position(v.location.map { l => new LatLng(l.lat, l.lon) }.getOrElse(new LatLng(0, 0)))
+          .draggable(false)
+          .title(titleStr)
+          .snippet(snippet)
+          .icon(BitmapDescriptorFactory.fromResource(icon))))
+      }
     }
 
-    planeMarker.get
+    planeMarker
   }
 
   private def toast(str: String) {
@@ -116,7 +121,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
    * Return true if we were showing the info window
    */
   def removeMarker() = {
-    val wasShown = planeMarker.isDefined && marker.isInfoWindowShown
+    val wasShown = planeMarker.isDefined && markerOpt.map(_.isInfoWindowShown).getOrElse(false)
 
     planeMarker.foreach(_.remove())
     planeMarker = None // Will be recreated when we need it
@@ -130,11 +135,11 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       handler.post { () =>
         //log.debug("GUI set position")
         val pos = new LatLng(l.lat, l.lon)
-        marker.setPosition(pos)
+        markerOpt.foreach { marker => marker.setPosition(pos) }
         if (!hasLocation) {
           // On first update zoom in to plane
           hasLocation = true
-          map.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15.0f))
+          mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 15.0f)))
         }
         updateMarker()
       }
@@ -162,7 +167,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   private def redrawMarker() {
     val wasShown = removeMarker()
-    marker() // Recreate in red 
+    markerOpt() // Recreate in red 
     if (wasShown)
       showInfoWindow()
   }
@@ -185,26 +190,28 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   }
 
   def initMap() {
-    scene = new Scene(map)
-    map.setMyLocationEnabled(true)
-    map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
-    map.getUiSettings.setTiltGesturesEnabled(false)
-    map.setOnMapLongClickListener(new OnMapLongClickListener {
+    mapOpt.foreach { map =>
+      scene = new Scene(map)
+      map.setMyLocationEnabled(true)
+      map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
+      map.getUiSettings.setTiltGesturesEnabled(false)
+      map.setOnMapLongClickListener(new OnMapLongClickListener {
 
-      // On click set guided to there
-      def onMapLongClick(l: LatLng) {
-        // FIXME show a menu instead & don't loose the icon if we get misled
-        val alt = intPreference("guide_alt", 100)
-        val loc = Location(l.latitude, l.longitude, alt)
-        myVehicle.foreach { v =>
-          val wp = v.setGuided(loc)
-          val marker = new WaypointMarker(wp)
-          guidedMarker.foreach(_.remove())
-          guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map
-          toast("Guided flight selected (alt %dm AGL)".format(alt))
+        // On click set guided to there
+        def onMapLongClick(l: LatLng) {
+          // FIXME show a menu instead & don't loose the icon if we get misled
+          val alt = intPreference("guide_alt", 100)
+          val loc = Location(l.latitude, l.longitude, alt)
+          myVehicle.foreach { v =>
+            val wp = v.setGuided(loc)
+            val marker = new WaypointMarker(wp)
+            guidedMarker.foreach(_.remove())
+            guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map
+            toast("Guided flight selected (alt %dm AGL)".format(alt))
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   override def onResume() {

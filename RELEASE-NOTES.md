@@ -1,6 +1,15 @@
 # 0.1.16
 
-* clean up param list to be two nice columns
+* Clean up param list to be two nice columns
+* fix an auto bug report
+
+For next release:
+* FIXME: fix udp receiver
+* FIXME: add dropdown menu on waypoint (include goto, delete)
+* FIXME: allow click to create new waypoint (between two closest waypoints)
+* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.15
 
@@ -10,13 +19,6 @@
 * We now ignore stale mode messages from the device (prevents mode menu flickering)
 * Substantial cleanup of map code
 * We now listen for WAYPOINT_CURRENT message and show current waypoint in red
-
-For next release:
-* FIXME: add dropdown menu on waypoint (include goto, delete)
-* FIXME: allow click to create new waypoint (between two closest waypoints)
-* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
-* FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.14
 

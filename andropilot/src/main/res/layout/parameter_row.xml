@@ -9,14 +9,13 @@
         android:id="@+id/param_name"
         android:layout_width="160dip"
         android:layout_height="wrap_content"
-        android:layout_gravity="left"/>
+        android:layout_gravity="left" />
 
     <TextView
         android:id="@+id/param_value"
         android:layout_width="100dip"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:gravity="right"
-        />
+        android:gravity="right" />
 
 </LinearLayout>
