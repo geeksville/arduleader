@@ -146,16 +146,25 @@ class MainActivity extends Activity with TypedActivity
 
     handler = new Handler
 
-    if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS) {
+    val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
+    if (probe == ConnectionResult.SUCCESS) {
       // Did the user just plug something in?
       Option(getIntent).foreach(handleIntent)
     } else {
       Option(findView(TR.maps_error)).map { v =>
-        v.setText("""|Google Maps is not installed - you will not be able to run this application... 
-                   |(If you are seeing this message and using a 'hobbyist' ROM, check with the
-                   |person who made that ROM - it seems like they forgot to include a working version of Google
-                   |Play services)""".stripMargin)
+        val msg = if (probe == ConnectionResult.SERVICE_INVALID)
+          """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
+             |(If you are seeing this message and using a 'hobbyist' ROM, check with the
+             |person who made that ROM - it seems like they made a mistake repackaging the service)""".stripMargin
+        else
+          """|Google Maps is not installed (code=%d) - you will not be able to run this application... 
+             |(If you are seeing this message and using a 'hobbyist' ROM, check with the
+             |person who made that ROM - it seems like they forgot to include a working version of 'Google
+             |Play Services')""".stripMargin.format(probe)
+        v.setText(msg)
         v.setVisibility(View.VISIBLE)
+
+        GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
       }.getOrElse {
         error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
       }
