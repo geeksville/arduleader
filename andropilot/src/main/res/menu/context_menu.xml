@@ -1,0 +1,29 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu_goto"
+        android:showAsAction="always"
+        android:title="Goto"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_add"
+        android:showAsAction="always"
+        android:title="Add WP"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_setalt"
+        android:showAsAction="always"
+        android:title="Change Alt"
+        android:visible="true"/>
+    <item
+        android:id="@+id/menu_changetype"
+        android:showAsAction="always"
+        android:title="Change Type"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_delete"
+        android:showAsAction="always"
+        android:title="Delete WP"
+        android:visible="false"/>
+
+</menu>

@@ -39,7 +39,7 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      //log.debug("Sending: " + msg)
+      log.debug("UDPSend: " + msg)
       val bytes = msg.encode()
 
       // Do we know a remote port?

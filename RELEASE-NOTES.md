@@ -2,11 +2,6 @@
 
 * Fix a FC if google maps was not installed
 
-# 0.1.16
-
-* Clean up param list to be two nice columns
-* fix an auto bug report
-
 For next release:
 * FIXME: fix udp receiver
 * FIXME: add dropdown menu on waypoint (include goto, delete)
@@ -14,6 +9,11 @@ For next release:
 * FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
 * FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+
+# 0.1.16
+
+* Clean up param list to be two nice columns
+* fix an auto bug report
 
 # 0.1.15
 

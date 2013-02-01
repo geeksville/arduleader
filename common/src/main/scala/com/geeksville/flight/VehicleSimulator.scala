@@ -198,6 +198,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   }
 
   /**
+   * FIXME - we currently assume dest has a relative altitude
+   */
+  def makeGuided(dest: Location) = {
+    val r = missionItem(0, dest, current = 2)
+    r
+  }
+
+  /**
    * lat & lng in degrees
    * alt in meters MSL (we will compute relative_alt / agl)
    * velocities in m/s

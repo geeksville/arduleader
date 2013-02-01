@@ -8,18 +8,24 @@ import scala.collection.mutable.HashMap
 import android.graphics.Color
 import com.ridemission.scandroid.AndroidLogger
 import scala.collection.JavaConverters._
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
+import scala.collection.mutable.HashSet
 
 /**
  * A collection of SmartMarkers and the segments that connect them
  */
 class Scene(val map: GoogleMap) extends AndroidLogger {
   val segments = ListBuffer[Segment]()
-  val markers = ListBuffer[SmartMarker]()
+  private val markers = HashSet[SmartMarker]()
 
   /**
    * Used to find our smart marker based on a google marker handle
    */
-  private var markerMap = Map[Marker, SmartMarker]()
+  private val markerMap = HashMap[Marker, SmartMarker]()
+
+  val markerClickListener = new OnMarkerClickListener {
+    override def onMarkerClick(m: Marker) = getMarker(m).onClick()
+  }
 
   val markerDragListener = new OnMarkerDragListener {
     override def onMarkerDrag(m: Marker) {
@@ -44,17 +50,25 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
   }
 
   map.setOnMarkerDragListener(markerDragListener)
+  map.setOnMarkerClickListener(markerClickListener)
 
   def getMarker(m: Marker) = markerMap(m)
 
-  /**
-   * Redraw all markers
-   */
-  private def renderMarkers() {
-    debug("Rendering " + markers.size + " markers")
-    markerMap = Map(markers.map { m =>
-      map.addMarker(m.markerOptions) -> m
-    }: _*)
+  def addMarker(sm: SmartMarker) = {
+    val gm = map.addMarker(sm.markerOptions)
+    sm.gmarker = Some(gm)
+    sm.myScene = Some(this)
+    markerMap(gm) = sm
+    markers.add(sm)
+    gm
+  }
+
+  private[gmaps] def removeMarker(sm: SmartMarker) {
+    sm.gmarker.get.remove()
+    markers.remove(sm)
+    markerMap.remove(sm.gmarker.get)
+    sm.myScene = None
+    sm.gmarker = None
   }
 
   /**
@@ -81,7 +95,7 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
 
   def render() {
     //map.clear() // FIXME - don't add this back until we are sure it won't blow away the plane icon
-    renderMarkers()
+    //renderMarkers()
     renderSegments()
   }
 }

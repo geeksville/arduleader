@@ -365,10 +365,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * FIXME - we currently assume dest has a relative altitude
    */
-  def setGuided(dest: Location) = {
-    val r = missionItem(0, dest, current = 2)
-    sendWithRetry(r, classOf[msg_mission_ack])
-    r
+  def gotoGuided(m: msg_mission_item) {
+    sendWithRetry(m, classOf[msg_mission_ack])
   }
 
   /**

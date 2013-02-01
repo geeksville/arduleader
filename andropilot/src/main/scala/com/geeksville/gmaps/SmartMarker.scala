@@ -13,6 +13,14 @@ import com.ridemission.scandroid.AndroidLogger
  * Also understands graphs of polylines
  */
 abstract class SmartMarker extends AndroidLogger {
+
+  private[gmaps] var myScene: Option[Scene] = None
+
+  /**
+   * The google marker we are associated with
+   */
+  private[gmaps] var gmarker: Option[Marker] = None
+
   def lat: Double
   def lon: Double
   def lat_=(n: Double) { throw new Exception("not draggable") }
@@ -21,6 +29,15 @@ abstract class SmartMarker extends AndroidLogger {
   def snippet: Option[String] = None
   def icon: Option[BitmapDescriptor] = None
   def draggable = false
+
+  /**
+   * Remove us from the map & scene
+   */
+  def remove() {
+    gmarker.foreach(_.remove())
+    myScene.foreach(_.removeMarker(this))
+    gmarker = None
+  }
 
   /**
    * Someone has just moved our marker
@@ -32,12 +49,20 @@ abstract class SmartMarker extends AndroidLogger {
    */
   def onDragEnd() {}
 
+  /**
+   * Someone has clicked on our marker
+   * @return true to suppress default behavior
+   */
+  def onClick() = {
+    false
+  }
+
   final def latLng = new LatLng(lat, lon)
 
   /**
    * Generate options given the current state of this marker
    */
-  final def markerOptions: MarkerOptions = {
+  final private[gmaps] def markerOptions: MarkerOptions = {
     var r = (new MarkerOptions).position(latLng).draggable(draggable)
 
     icon.foreach { t => r = r.icon(t) }

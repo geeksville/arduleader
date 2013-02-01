@@ -19,6 +19,11 @@ import com.geeksville.gmaps.Segment
 import android.content.Context
 import com.google.android.gms.common.ConnectionResult
 import com.geeksville.flight.MsgWaypointsChanged
+import android.view.ActionMode
+import android.view.Menu
+import android.view.MenuItem
+import org.mavlink.messages.ardupilotmega.msg_mission_item
+import com.geeksville.gmaps.SmartMarker
 
 /**
  * Our customized map fragment
@@ -32,7 +37,11 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   def mapOpt = Option(getMap)
 
-  private var guidedMarker: Option[Marker] = None
+  /**
+   * If we are going to a GUIDED location
+   */
+  private var guidedMarker: Option[WaypointMarker] = None
+  private var provisionalMarker: Option[ProvisionalMarker] = None
 
   var planeMarker: Option[Marker] = None
 
@@ -40,6 +49,173 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
    * Does work in the GUIs thread
    */
   var handler: Handler = null
+
+  private var actionMode: Option[ActionMode] = None
+  private var selectedMarker: Option[MyMarker] = None
+
+  private val contextMenuCallback = new ActionMode.Callback {
+
+    private var oldSelected: Option[MyMarker] = None
+
+    // Called when the action mode is created; startActionMode() was called
+    override def onCreateActionMode(mode: ActionMode, menu: Menu) = {
+      // Inflate a menu resource providing context menu items
+      val inflater = mode.getMenuInflater()
+      inflater.inflate(R.menu.context_menu, menu)
+      true
+    }
+
+    // Called each time the action mode is shown. Always called after onCreateActionMode, but
+    // may be called multiple times if the mode is invalidated.
+    override def onPrepareActionMode(mode: ActionMode, menu: Menu) = {
+      val changed = oldSelected != selectedMarker
+      if (changed) {
+        val goto = menu.findItem(R.id.menu_goto)
+        val add = menu.findItem(R.id.menu_add)
+        val delete = menu.findItem(R.id.menu_delete)
+        val setalt = menu.findItem(R.id.menu_setalt)
+        val changetype = menu.findItem(R.id.menu_changetype)
+
+        // Default to nothing
+        Seq(goto, add, delete, setalt, changetype).foreach(_.setVisible(false))
+        selectedMarker.foreach { marker =>
+          marker match {
+            case x: ProvisionalMarker =>
+              Seq(goto, add, setalt).foreach(_.setVisible(true))
+              Seq(delete, changetype).foreach(_.setVisible(false))
+            case x: WaypointMarker =>
+              Seq(goto, delete, changetype, setalt).foreach(_.setVisible(true))
+              Seq(add).foreach(_.setVisible(false))
+          }
+        }
+        oldSelected = selectedMarker
+      }
+      changed // Return false if nothing is done
+    }
+
+    // Called when the user selects a contextual menu item
+    override def onActionItemClicked(mode: ActionMode, item: MenuItem) =
+      selectedMarker.map { marker =>
+        item.getItemId match {
+          case R.id.menu_goto =>
+            marker.doGoto()
+            mode.finish() // Action picked, so close the CAB
+            true
+
+          case R.id.menu_add =>
+            marker.doAdd()
+            mode.finish() // Action picked, so close the CAB
+            true
+
+          case R.id.menu_delete =>
+            marker.doDelete()
+            mode.finish() // Action picked, so close the CAB
+            true
+
+          case R.id.menu_setalt =>
+            marker.doSetAlt()
+            mode.finish() // Action picked, so close the CAB
+            true
+
+          case R.id.menu_changetype =>
+            marker.doChangeType()
+            mode.finish() // Action picked, so close the CAB
+            true
+
+          case _ =>
+            false
+        }
+      }.getOrElse(false)
+
+    // Called when the user exits the action mode
+    override def onDestroyActionMode(mode: ActionMode) {
+      provisionalMarker.foreach(_.remove()) // User didn't activate our provisional waypoint - remove it from the map
+      actionMode = None
+    }
+  }
+
+  abstract class MyMarker extends SmartMarker {
+    override def onClick() = {
+      selectMarker(this)
+      super.onClick() // Default will show the info window
+    }
+
+    /**
+     * Have vehicle go to this waypoint
+     */
+    def doGoto() { toast("FIXME Goto waypoint not yet implemented") }
+    def doAdd() { toast("FIXME Add WP not yet implemented") }
+    def doDelete() { toast("FIXME Delete WP not yet implemented") }
+    def doSetAlt() { toast("FIXME SetAlt not yet implemented") }
+    def doChangeType() { toast("FIXME Add change type not yet implemented") }
+  }
+
+  /**
+   * Shows as a question mark
+   */
+  class ProvisionalMarker(latlng: LatLng, var alt: Double) extends MyMarker {
+    def lat = latlng.latitude
+    def lon = latlng.longitude
+
+    override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
+    override def title = Some("Provisional waypoint")
+    override def snippet = Some("Alt=%sm (Select menu item to adjust/use)".format(alt))
+
+    override def doGoto() {
+      doGuideTo()
+    }
+  }
+
+  class WaypointMarker(val msg: msg_mission_item) extends MyMarker with AndroidLogger {
+    def lat = msg.x
+    def lon = msg.y
+    override def title = Some("Waypoint #" + msg.seq + " cmd=" + msg.command)
+    override def snippet = Some(msg.toString)
+
+    override def icon: Option[BitmapDescriptor] = {
+      if (isHome) { // Show a house for home
+        if (isCurrent)
+          Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_red))
+        else
+          Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
+      } else msg.current match {
+        case 0 =>
+          Some(BitmapDescriptorFactory.fromResource(R.drawable.blue))
+        case 1 =>
+          Some(BitmapDescriptorFactory.fromResource(R.drawable.red))
+        case 2 => // Guided
+          Some(BitmapDescriptorFactory.fromResource(R.drawable.flag))
+        case _ =>
+          None // Default
+      }
+    }
+
+    /// The magic home position
+    def isHome = (msg.current != 2) && (msg.seq == 0)
+
+    /// If the airplane is heading here
+    def isCurrent = msg.current == 1
+
+    override def toString = title.get
+  }
+
+  /**
+   * A draggable marker that will send movement commands to the vehicle
+   */
+  class DraggableWaypointMarker(val v: VehicleMonitor, msg: msg_mission_item) extends WaypointMarker(msg) {
+
+    override def lat_=(n: Double) { msg.x = n.toFloat }
+    override def lon_=(n: Double) { msg.y = n.toFloat }
+
+    override def draggable = !isHome
+
+    override def onDragEnd() {
+      super.onDragEnd()
+      debug("Drag ended on " + this)
+
+      v ! SendWaypoints
+    }
+  }
 
   override def onServiceConnected(s: AndropilotService) {
     // We're about to recreate waypoint and plane icons, so for now blow away the map
@@ -199,18 +375,62 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
         // On click set guided to there
         def onMapLongClick(l: LatLng) {
-          // FIXME show a menu instead & don't loose the icon if we get misled
-          val alt = intPreference("guide_alt", 100)
-          val loc = Location(l.latitude, l.longitude, alt)
-          myVehicle.foreach { v =>
-            val wp = v.setGuided(loc)
-            val marker = new WaypointMarker(wp)
-            guidedMarker.foreach(_.remove())
-            guidedMarker = Some(map.addMarker(marker.markerOptions)) // For now we just plop it into the map
-            toast("Guided flight selected (alt %dm AGL)".format(alt))
-          }
+          makeProvisionalMarker(l)
         }
       })
+    }
+  }
+
+  private def selectMarker(m: MyMarker) {
+    selectedMarker = Some(m)
+
+    // Stare up action menu if necessary
+    actionMode match {
+      case Some(am) =>
+        am.invalidate() // menu choices might have changed
+      case None =>
+        actionMode = Some(getActivity.startActionMode(contextMenuCallback))
+        getView.setSelected(true)
+    }
+  }
+
+  private def makeProvisionalMarker(l: LatLng) {
+    mapOpt.foreach { map =>
+      // FIXME Allow altitude choice (by adding altitude to provisional marker)
+      myVehicle.foreach { v =>
+        removeProvisionalMarker()
+        val marker = new ProvisionalMarker(l, intPreference("guide_alt", 100))
+        val m = scene.get.addMarker(marker)
+        m.showInfoWindow()
+        provisionalMarker = Some(marker)
+        selectMarker(marker)
+      }
+    }
+  }
+
+  private def removeProvisionalMarker() {
+    provisionalMarker.foreach(_.remove())
+    provisionalMarker = None
+  }
+
+  /**
+   * Go to our previously placed guide marker
+   */
+  private def doGuideTo() {
+    for { map <- mapOpt; v <- myVehicle; provis <- provisionalMarker } yield {
+      // Allow altitude choice (by adding altitude to provisional marker)
+      val alt = intPreference("guide_alt", 100)
+      val loc = Location(provis.lat, provis.lon, provis.alt)
+      val wp = v.makeGuided(loc)
+
+      guidedMarker.foreach(_.remove())
+
+      val marker = new WaypointMarker(wp)
+      scene.get.addMarker(marker)
+      guidedMarker = Some(marker)
+
+      v.gotoGuided(marker.msg)
+      toast("Guided flight selected")
     }
   }
 
@@ -226,6 +446,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     super.onPause()
   }
 
+  private var waypointMarkers = Seq[DraggableWaypointMarker]()
+
   /**
    * Generate our scene
    */
@@ -234,15 +456,18 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       val wpts = v.waypoints
 
       scene.foreach { scene =>
-        // Crufty - shouldn't touch this
-        scene.markers.clear()
+        waypointMarkers.foreach(_.remove())
 
         if (!wpts.isEmpty) {
-          scene.markers ++= wpts.map { w => new DraggableWaypointMarker(v, w) }
+          waypointMarkers = wpts.map { w =>
+            val r = new DraggableWaypointMarker(v, w)
+            scene.addMarker(r)
+            r
+          }
 
           // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-          val pairs = scene.markers.zip(scene.markers.tail)
-          scene.segments.clear()
+          val pairs = waypointMarkers.zip(waypointMarkers.tail)
+          scene.segments.clear() // FIXME - shouldn't touch this
           scene.segments ++= pairs.map(p => Segment(p))
           scene.render()
         }
