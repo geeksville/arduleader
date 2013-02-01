@@ -219,6 +219,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     case msg: msg_mission_current =>
       // Update the current waypoint
+      checkRetryReply(msg)
       if (waypoints.count { w =>
         val newval = if (w.seq == msg.seq) 1 else 0
         val changed = newval != w.current
@@ -367,6 +368,11 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
    */
   def gotoGuided(m: msg_mission_item) {
     sendWithRetry(m, classOf[msg_mission_ack])
+  }
+
+  def setCurrent(seq: Int) {
+    val m = missionSetCurrent(seq)
+    sendWithRetry(m, classOf[msg_mission_current])
   }
 
   /**

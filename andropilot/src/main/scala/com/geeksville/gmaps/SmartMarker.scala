@@ -72,6 +72,24 @@ abstract class SmartMarker extends AndroidLogger {
     debug("Create marker %s, draggable=%s".format(this, draggable))
     r
   }
+
+  /**
+   * lat/lon might have changed - update the GUI
+   */
+  def setPosition() {
+    gmarker.foreach(_.setPosition(latLng))
+  }
+
+  def setTitle() {
+    for { gm <- gmarker; t <- title } yield { gm.setTitle(t) }
+  }
+
+  def setSnippet() {
+    for { gm <- gmarker; t <- snippet } yield { gm.setSnippet(t) }
+  }
+
+  def isInfoWindowShown = gmarker.map(_.isInfoWindowShown).getOrElse(false)
+  def showInfoWindow() = gmarker.foreach(_.showInfoWindow())
 }
 
 /**

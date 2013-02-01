@@ -93,6 +93,13 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
     }
   }
 
+  def clearSegments() {
+    segments.foreach { m =>
+      m.polyline.foreach(_.remove())
+    }
+    segments.clear()
+  }
+
   def render() {
     //map.clear() // FIXME - don't add this back until we are sure it won't blow away the plane icon
     //renderMarkers()

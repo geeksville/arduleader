@@ -8,7 +8,7 @@
     <item
         android:id="@+id/menu_add"
         android:showAsAction="always"
-        android:title="Add WP"
+        android:title="Add"
         android:visible="false"/>
     <item
         android:id="@+id/menu_setalt"
@@ -23,7 +23,7 @@
     <item
         android:id="@+id/menu_delete"
         android:showAsAction="always"
-        android:title="Delete WP"
+        android:title="Delete"
         android:visible="false"/>
 
 </menu>

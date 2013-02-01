@@ -1,14 +1,19 @@
-# 0.1.18
+# 0.1.21
 
-* Fix a FC if google maps was not installed
+* Add waypoint editing (drag, add, delete, etc...)
+* Add waypoint goto
 
 For next release:
 * FIXME: fix udp receiver
-* FIXME: add dropdown menu on waypoint (include goto, delete)
-* FIXME: allow click to create new waypoint (between two closest waypoints)
+* FIXME: add waypoint set altitude
+* FIXME: add waypoint change type
 * FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
 * FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+
+# 0.1.18
+
+* Fix a FC if google maps was not installed
 
 # 0.1.16
 

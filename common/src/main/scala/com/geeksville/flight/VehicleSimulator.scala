@@ -166,11 +166,16 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   }
 
   def missionCount(count: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
-    /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
-* MISSION_COUNT {target_system : 255, target_component : 190, count : 1}
-* MISSION_REQUEST {target_system : 1, target_component : 1, seq : 0} */
     val msg = new msg_mission_count(systemId, componentId)
     msg.count = count
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def missionSetCurrent(seq: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_mission_set_current(systemId, componentId)
+    msg.seq = seq
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg
@@ -182,7 +187,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
    * The device responds with: INFO  c.g.mavlink.LogIncomingMavlink      : Rcv1: MAVLINK_MSG_ID_MISSION_ACK :   target_system=255  target_component=190  type=0
    *
    */
-  def missionItem(seq: Int, location: Location, current: Int, isRelativeAlt: Boolean = true, targetSystem: Int = 1, targetComponent: Int = 1) = {
+  def missionItem(seq: Int, location: Location, current: Int = 0, isRelativeAlt: Boolean = true, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_mission_item(systemId, componentId)
     msg.seq = seq
     msg.x = location.lat.toFloat
