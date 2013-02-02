@@ -189,10 +189,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
             mode.finish() // Action picked, so close the CAB
             true
 
-          case R.id.menu_setalt =>
+          /* Handled all in the edittext box now... 
+            case R.id.menu_setalt =>
             marker.doSetAlt()
             mode.finish() // Action picked, so close the CAB
             true
+           */
 
           case R.id.menu_changetype =>
             marker.doChangeType()
@@ -234,7 +236,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     def doGoto() { toast("FIXME Goto waypoint not yet implemented") }
     def doAdd() { toast("FIXME Add WP not yet implemented") }
     def doDelete() { toast("FIXME Delete WP not yet implemented") }
-    def doSetAlt() { toast("FIXME SetAlt not yet implemented") }
     def doChangeType() { toast("FIXME Add change type not yet implemented") }
   }
 
@@ -272,6 +273,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
         guidedMarker = Some(marker)
 
         v.gotoGuided(marker.msg)
+        handleWaypoints()
+
         toast("Guided flight selected")
       }
     }
@@ -418,6 +421,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
         v.setCurrent(msg.seq)
+        v.setMode("AUTO")
         //toast("Goto " + title)
       }
     }
@@ -511,7 +515,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   def minVoltage = floatPreference("min_voltage", 9.5f)
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
   def minRssi = intPreference("min_rssi", 100)
-  def minNumSats = intPreference("min_numsats", 4)
+  def minNumSats = intPreference("min_numsats", 5)
 
   override def onServiceConnected(s: AndropilotService) {
     // FIXME - we leave the vehicle marker dangling
@@ -574,7 +578,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       }
 
     case MsgSysStatusChanged =>
-      debug("SysStatus changed")
+      //debug("SysStatus changed")
       handler.post { () =>
         updateMarker()
       }
@@ -587,6 +591,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
     case MsgModeChanged(_) =>
       handler.post { () =>
+        myVehicle.foreach { v =>
+
+          // we may need to update the segment lines 
+          handleWaypoints()
+        }
+
         updateMarker()
       }
 
@@ -703,19 +713,10 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       val wpts = v.waypoints
 
       scene.foreach { scene =>
-        waypointMarkers.foreach(_.remove())
 
-        if (!wpts.isEmpty) {
-          waypointMarkers = wpts.map { w =>
-            val r = new DraggableWaypointMarker(w)
-            scene.addMarker(r)
-            r
-          }
-
+        def createWaypointSegments() {
           // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
           val pairs = waypointMarkers.zip(waypointMarkers.tail)
-          scene.clearSegments() // FIXME - shouldn't touch this
-
           scene.segments ++= pairs.map { p =>
             val color = if (p._1.isAutocontinue)
               Color.GREEN
@@ -724,8 +725,47 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
             Segment(p, color)
           }
-          scene.render()
         }
+
+        val isAuto = v.currentMode == "AUTO"
+        var destMarker: Option[MyMarker] = None
+
+        waypointMarkers.foreach(_.remove())
+
+        scene.clearSegments() // FIXME - shouldn't touch this
+
+        if (!wpts.isEmpty) {
+          waypointMarkers = wpts.map { w =>
+            val r = new DraggableWaypointMarker(w)
+            scene.addMarker(r)
+
+            if (isAuto && r.isCurrent)
+              destMarker = Some(r)
+
+            r
+          }
+
+          createWaypointSegments()
+        }
+
+        // Set 'special' destinations
+        v.currentMode match {
+          case "AUTO" =>
+          // Was set above
+          case "GUIDED" =>
+            destMarker = guidedMarker
+          case "RTL" =>
+            destMarker = if (!waypointMarkers.isEmpty) Some(waypointMarkers(0)) else None // Assume we are going to a lat/lon that matches home
+          case _ =>
+            destMarker = None
+        }
+
+        // Create a segment for the path we expect the plane to take
+        for { dm <- destMarker; pm <- planeMarker } yield {
+          scene.segments += Segment(pm -> dm, Color.RED)
+        }
+
+        scene.render()
       }
     }
   }

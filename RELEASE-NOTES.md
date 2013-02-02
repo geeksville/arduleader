@@ -1,3 +1,8 @@
+# 0.1.26
+
+* Show a line to indicate where the plane is heading (if we know)
+* Implicitly set AUTO mode if someone does GOTO on a waypoint
+
 # 0.1.25
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
