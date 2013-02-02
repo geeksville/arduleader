@@ -425,6 +425,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
   class VehicleMarker extends MyMarker with AndroidLogger {
 
+    private var oldWarning = false
+
     def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(floatPreference("cur_lat", 0.0f))
     def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(floatPreference("cur_lon", 0.0f))
 
@@ -459,15 +461,23 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           "Battery %sV (%d%%)%s%s".format(volt, pct * 100 toInt, vWarn, pWarn)
         }
 
-        val r = Seq(v.status, locStr, batStr).flatten.mkString("\n")
+        val radioStr = for { r <- v.radio } yield {
+          val warn = if (isLowRssi) " LowRssi!" else ""
+          "rssi %d, remrssi %d, rxerr %d%s".format(r.rssi, r.remrssi, r.rxerrors, warn)
+        }
+
+        val gpsStr = Some(if (isLowNumSats) " LowSats!" else "")
+
+        val r = Seq(v.status, locStr, batStr, radioStr, gpsStr).flatten.mkString("\n")
         //debug("snippet: " + r)
         r
       }.getOrElse("No service"))
 
     def isLowVolt = (for { v <- myVehicle; volt <- v.batteryVoltage } yield { volt < minVoltage }).getOrElse(false)
     def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
-
-    def isWarning = isLowVolt || isLowBatPercent
+    def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield { r.rssi < minRssi || r.remrssi < minRssi }).getOrElse(false)
+    def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(false)
+    def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
     override def toString = title.get
 
@@ -475,6 +485,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
      * Something (other than icon) changed about our marker - redraw it
      */
     def update() {
+      // Do we need to change icons?
+      if (isWarning != oldWarning) {
+        oldWarning = isWarning
+        redraw()
+      }
+
       setPosition()
       setTitle()
       setSnippet()
@@ -482,10 +498,20 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       if (isInfoWindowShown)
         showInfoWindow() // Force redraw of existing info window
     }
+
+    /**
+     * The icon has changed
+     */
+    def redraw() {
+      setIcon()
+      update()
+    }
   }
 
   def minVoltage = floatPreference("min_voltage", 9.5f)
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
+  def minRssi = intPreference("min_rssi", 100)
+  def minNumSats = intPreference("min_numsats", 4)
 
   override def onServiceConnected(s: AndropilotService) {
     // FIXME - we leave the vehicle marker dangling
@@ -528,18 +554,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
   }
 
-  /**
-   * Return true if we were showing the info window
-   */
-  def removeMarker() = {
-    val wasShown = planeMarker.isDefined && markerOpt.map(_.isInfoWindowShown).getOrElse(false)
-
-    planeMarker.foreach(_.remove())
-    planeMarker = None // Will be recreated when we need it
-
-    wasShown
-  }
-
   override def onVehicleReceive = {
     case l: Location =>
       // log.debug("Handling location: " + l)
@@ -556,6 +570,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
         // Store last known position in prefs
         preferences.edit.putFloat("cur_lat", l.lat.toFloat).putFloat("cur_lon", l.lon.toFloat).commit()
 
+        updateMarker()
+      }
+
+    case MsgSysStatusChanged =>
+      debug("SysStatus changed")
+      handler.post { () =>
         updateMarker()
       }
 
@@ -592,10 +612,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   }
 
   private def redrawMarker() {
-    val wasShown = removeMarker()
-    markerOpt() // Recreate in red 
-    if (wasShown)
-      showInfoWindow()
+    markerOpt.foreach(_.redraw())
   }
 
   /// menu choices might have changed)

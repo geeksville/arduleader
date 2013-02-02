@@ -23,6 +23,20 @@
             android:key="min_batpct"
             android:summary="If battery percent falls below this level, Andropilot will warn you"
             android:title="Percent charge warn level" />
+        <EditTextPreference
+            android:defaultValue="100"
+            android:dialogTitle="Minimum Rssi"
+            android:inputType="number"
+            android:key="min_rssi"
+            android:summary="Warn if the radio signal strength falls below this value"
+            android:title="Rssi warn level" />
+        <EditTextPreference
+            android:defaultValue="5"
+            android:dialogTitle="Minimum number of satellites"
+            android:inputType="number"
+            android:key="min_numsats"
+            android:summary="Warn if number of GPS satellites falls below this value"
+            android:title="Satellite warn level" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Mavlink Preferences" >
         <CheckBoxPreference

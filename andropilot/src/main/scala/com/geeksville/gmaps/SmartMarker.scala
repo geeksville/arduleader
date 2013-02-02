@@ -88,6 +88,19 @@ abstract class SmartMarker extends AndroidLogger {
     for { gm <- gmarker; t <- snippet } yield { gm.setSnippet(t) }
   }
 
+  /**
+   * to change the icon we need to completely recreate the marker
+   */
+  def setIcon() {
+    myScene.foreach { s =>
+      val wasShown = isInfoWindowShown
+      remove()
+      s.addMarker(this)
+      if (wasShown)
+        showInfoWindow()
+    }
+  }
+
   def isInfoWindowShown = gmarker.map(_.isInfoWindowShown).getOrElse(false)
   def showInfoWindow() = gmarker.foreach(_.showInfoWindow())
 }

@@ -62,9 +62,7 @@ object Main extends Logging {
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
-    // FIXME create this somewhere else
-    val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = "192.168.0.39"), "mavudp")
-
+    val startUDP = false
     val startSerial = true
     val startFlightLead = false
     val startWingman = false
@@ -90,12 +88,17 @@ object Main extends Logging {
     // Wire up our subscribers
     //
 
-    // Anything from the ardupilot, forward it to the controller app
-    MavlinkEventBus.subscribe(mavUDP, arduPilotId)
+    if (startUDP) {
+      // FIXME create this somewhere else
+      val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = "192.168.0.39"), "mavudp")
 
-    // Also send our wingman and flightlead planes to the ground control app
-    MavlinkEventBus.subscribe(mavUDP, wingmanId)
-    MavlinkEventBus.subscribe(mavUDP, systemId)
+      // Anything from the ardupilot, forward it to the controller app
+      MavlinkEventBus.subscribe(mavUDP, arduPilotId)
+
+      // Also send our wingman and flightlead planes to the ground control app
+      MavlinkEventBus.subscribe(mavUDP, wingmanId)
+      MavlinkEventBus.subscribe(mavUDP, systemId)
+    }
 
     // Keep a complete model of the arduplane state
     val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleMonitor), arduPilotId)

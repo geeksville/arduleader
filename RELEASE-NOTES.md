@@ -2,6 +2,9 @@
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
 * all mavlink packets are now stored to the log file (not just packets we were expecting)
+* draw plane in yellow if voltage falls too low
+* draw plane in yellow if rssi falls too low
+* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
 
 # 0.1.24
 
@@ -17,8 +20,7 @@ For next release:
 * Request help with waypoint icons
 * display & log 3dr rssi information
 * FIXME: make a website
-* FIXME: properly decode/encode waypoint cmd types.  Change icons as appropriate...
-* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* Change waypoint icons as appropriate...
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.22

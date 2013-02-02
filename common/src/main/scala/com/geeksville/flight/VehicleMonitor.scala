@@ -15,6 +15,7 @@ import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
+import com.geeksville.mavlink.MavlinkEventBus
 
 //
 // Messages we publish on our event bus when something happens
@@ -41,7 +42,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
-  private val sysStatusThrottle = new Throttled(1000)
+  private val sysStatusThrottle = new Throttled(5000)
 
   private val retries = HashSet[RetryContext]()
 
@@ -49,6 +50,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var location: Option[Location] = None
   var batteryPercent: Option[Float] = None
   var batteryVoltage: Option[Float] = None
+  var radio: Option[msg_radio] = None
+  var numSats: Option[Int] = None
 
   var waypoints = Seq[msg_mission_item]()
 
@@ -91,6 +94,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
   private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
+
+  // We always want to see radio packets (which are hardwired for this sys id)
+  val radioSysId = 51
+  MavlinkEventBus.subscribe(this, radioSysId)
 
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
@@ -166,6 +173,11 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     case RetryExpired(ctx) =>
       ctx.doRetry()
 
+    case m: msg_radio =>
+      //log.info("Received radio from " + m.sysId + ": " + m)
+      radio = Some(m)
+      onSysStatusChanged()
+
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
       status = Some(m.getText)
@@ -179,6 +191,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     case msg: msg_gps_raw_int =>
       VehicleSimulator.decodePosition(msg).foreach { loc =>
         //log.debug("Received location: " + loc)
+        if (msg.satellites_visible != 255)
+          numSats = Some(msg.satellites_visible)
         location = Some(loc)
         onLocationChanged(loc)
       }
