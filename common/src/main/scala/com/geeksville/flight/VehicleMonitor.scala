@@ -322,8 +322,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         retriesLeft -= 1
         sendMavlink(retryPacket)
         retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleMonitor.this, RetryExpired(this)))
-      } else
+      } else {
         log.error("No more retries, giving up: " + retryPacket)
+        close()
+      }
     }
   }
 
