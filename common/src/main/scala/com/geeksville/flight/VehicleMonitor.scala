@@ -70,6 +70,28 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   val MAVLINK_TYPE_FLOAT = 9
   val MAVLINK_TYPE_DOUBLE = 10
 
+  private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
+    5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
+    11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
+
+  private val copterCodeToModeMap = Map(
+    0 -> "STABILIZE",
+    1 -> "ACRO",
+    2 -> "ALT_HOLD",
+    3 -> "AUTO",
+    4 -> "GUIDED",
+    5 -> "LOITER",
+    6 -> "RTL",
+    7 -> "CIRCLE",
+    8 -> "POSITION",
+    9 -> "LAND",
+    10 -> "OF_LOITER",
+    11 -> "TOY_A",
+    12 -> "TOY_B")
+
+  private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
+  private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
+
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
@@ -106,24 +128,37 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     }
   }
 
-  private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
-  private def onSysStatusChanged() { sysStatusThrottle { eventStream.publish(MsgSysStatusChanged) } }
-  private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
-  private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
-  private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
+  def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
+  def isCopter = vehicleType.map { t =>
+    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
+  }.getOrElse(false)
 
-  private val codeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
-    5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
-    11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
+  private def codeToModeMap = if (isPlane)
+    planeCodeToModeMap
+  else if (isCopter)
+    copterCodeToModeMap
+  else
+    Map[Int, String]()
 
-  private val modeToCodeMap = codeToModeMap.map { case (k, v) => (v, k) }
+  private def modeToCodeMap = if (isPlane)
+    planeModeToCodeMap
+  else if (isCopter)
+    copterModeToCodeMap
+  else
+    Map[String, Int]()
 
   def currentMode = codeToModeMap.getOrElse(customMode.getOrElse(-1), "unknown")
 
   /**
    * The mode names we understand
    */
-  def modeNames = modeToCodeMap.keys
+  def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
+
+  private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
+  private def onSysStatusChanged() { sysStatusThrottle { eventStream.publish(MsgSysStatusChanged) } }
+  private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
+  private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
+  private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 
   override def onReceive = mReceive.orElse(super.onReceive)
 

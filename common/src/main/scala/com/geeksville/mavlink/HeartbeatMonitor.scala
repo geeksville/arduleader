@@ -26,14 +26,20 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   var customMode: Option[Int] = None
 
+  /// A MAV_TYPE vehicle code
+  var vehicleType: Option[Int] = None
+
   def hasHeartbeat = mySysId.isDefined
 
   def onReceive = {
     case msg: msg_heartbeat =>
-      val oldVal = customMode.getOrElse(-1)
+      val oldVal = customMode
       val newVal = msg.custom_mode.toInt
       customMode = Some(newVal)
-      if (oldVal != newVal)
+
+      val oldVehicle = vehicleType
+      vehicleType = Some(msg.`type`)
+      if (oldVal != customMode || oldVehicle != vehicleType)
         onModeChanged(newVal)
       resetWatchdog(msg.sysId)
 

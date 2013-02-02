@@ -78,6 +78,8 @@ class MainActivity extends Activity with TypedActivity
    */
   var handler: Handler = null
 
+  private var oldVehicleType: Option[Int] = None
+
   /**
    * We install this receiver only once we're connected to a device -
    * only used to show a Toast about disconnection...
@@ -92,9 +94,14 @@ class MainActivity extends Activity with TypedActivity
   override def onVehicleReceive = {
     case MsgModeChanged(_) =>
       handler.post { () =>
-        setModeSpinner() // FIXME, do this someplace better
+        myVehicle.foreach { v =>
+          if (oldVehicleType != v.vehicleType) {
+            oldVehicleType = v.vehicleType
+            setModeOptions()
+          }
+          setModeSpinner() // FIXME, do this someplace better
+        }
       }
-
     case MsgStatusChanged(s) =>
       debug("Status changed: " + s)
       handler.post { () =>
@@ -290,16 +297,26 @@ class MainActivity extends Activity with TypedActivity
     }
   }
 
+  /**
+   * Update the set of options in the mode menu (called when vehicle type changes)
+   */
+  private def setModeOptions() {
+    for { s <- modeSpinner; v <- myVehicle } yield {
+      val spinnerAdapter = new ArrayAdapter(getThemedContext, android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
+      // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
+      s.setAdapter(spinnerAdapter); // set the adapter
+    }
+  }
+
   override def onCreateOptionsMenu(menu: Menu) = {
     getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
     val s = menu.findItem(R.id.menu_mode).getActionView().asInstanceOf[Spinner] // find the spinner
     modeSpinner = Some(s)
-    val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
-    s.setAdapter(spinnerAdapter); // set the adapter
+    setModeOptions()
     setModeSpinner()
 
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
-      val modeName = spinnerAdapter.getItem(pos)
+      val modeName = s.getAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
       myVehicle.foreach { v =>
         if (modeName != "unknown" && modeName != v.currentMode) {

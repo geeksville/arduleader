@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- The following strings should probably be localized -->
-    <string-array name="mode_names">
+    <!-- The following strings should probably be localized - moved into scala code (so it can work for copters)-->
+    <!--  <string-array name="mode_names">
         <item>MANUAL</item>
         <item>STABILIZE</item>
         <item>FLY_BY_WIRE_A</item>
@@ -12,7 +12,7 @@
         <item>LOITER</item>
         <item>GUIDED</item>
         <item>unknown</item>
-    </string-array>
+    </string-array> -->
     <string-array name="udp_mode">
         <item>Disabled</item>
         <item>Uplink (send UDP to another host)</item>
