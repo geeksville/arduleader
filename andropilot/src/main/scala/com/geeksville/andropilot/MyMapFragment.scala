@@ -431,7 +431,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(iconRes))
 
     private def iconRes = (for { s <- service; v <- myVehicle } yield {
-      if (v.hasHeartbeat && s.isSerialConnected) R.drawable.plane_blue else R.drawable.plane_red
+      if (!v.hasHeartbeat || !s.isSerialConnected)
+        R.drawable.plane_red
+      else if (isWarning)
+        R.drawable.plane_yellow
+      else
+        R.drawable.plane_blue
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
@@ -448,15 +453,39 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           "Altitude %.1fm".format(l.alt)
         }
 
-        val batStr = v.batteryPercent.map { p => "Battery %sV (%d%%)".format(v.batteryVoltage.get, p * 100 toInt) }
+        val batStr = for { pct <- v.batteryPercent; volt <- v.batteryVoltage } yield {
+          val vWarn = if (isLowVolt) " LowVolt!" else ""
+          val pWarn = if (isLowBatPercent) " LowPct!" else ""
+          "Battery %sV (%d%%)%s%s".format(volt, pct * 100 toInt, vWarn, pWarn)
+        }
 
         val r = Seq(v.status, locStr, batStr).flatten.mkString("\n")
         //debug("snippet: " + r)
         r
       }.getOrElse("No service"))
 
+    def isLowVolt = (for { v <- myVehicle; volt <- v.batteryVoltage } yield { volt < minVoltage }).getOrElse(false)
+    def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
+
+    def isWarning = isLowVolt || isLowBatPercent
+
     override def toString = title.get
+
+    /**
+     * Something (other than icon) changed about our marker - redraw it
+     */
+    def update() {
+      setPosition()
+      setTitle()
+      setSnippet()
+
+      if (isInfoWindowShown)
+        showInfoWindow() // Force redraw of existing info window
+    }
   }
+
+  def minVoltage = floatPreference("min_voltage", 9.5f)
+  def minBatPercent = intPreference("min_batpct", 25) / 100.0f
 
   override def onServiceConnected(s: AndropilotService) {
     // FIXME - we leave the vehicle marker dangling
@@ -472,14 +501,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   private var hasLocation = false
 
   private def updateMarker() {
-    markerOpt.foreach { marker =>
-      marker.setPosition()
-      marker.setTitle()
-      marker.setSnippet()
-
-      if (marker.isInfoWindowShown)
-        marker.showInfoWindow() // Force redraw
-    }
+    markerOpt.foreach(_.update())
   }
 
   private def showInfoWindow() {

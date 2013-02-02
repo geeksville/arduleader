@@ -1,6 +1,7 @@
 # 0.1.25
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
+* all mavlink packets are now stored to the log file (not just packets we were expecting)
 
 # 0.1.24
 
