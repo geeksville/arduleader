@@ -1,3 +1,7 @@
+# 0.1.25
+
+* keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
+
 # 0.1.24
 
 * Fix mode display/setting for arducopter (if you are using an arducopter, please report success/failure in the forum)

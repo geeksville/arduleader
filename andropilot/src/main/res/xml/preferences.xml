@@ -16,13 +16,18 @@
             android:key="log_to_file"
             android:summary="Log packets to /sdcard/andropilot"
             android:title="Log to file" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="stay_awake"
+            android:summary="Keeps CPU from sleeping when device is connected"
+            android:title="Stay awake when connected" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Networking Preferences" >
         <ListPreference
+            android:defaultValue="Disabled"
             android:entries="@array/udp_mode"
             android:entryValues="@array/udp_mode_values"
             android:key="udp_mode"
-            android:defaultValue="Disabled"
             android:summary="Select type of UDP link"
             android:title="UDP mode selection" />
 

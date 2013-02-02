@@ -52,6 +52,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   implicit val context = this
 
+  private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
+
   /**
    * Class for clients to access.  Because we know this service always
    * runs in the same process as its clients, we don't need to deal with
@@ -92,6 +94,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def loggingEnabled = boolPreference("log_to_file", false)
   def baudWireless = intPreference("baud_wireless", 57600)
   def baudDirect = intPreference("baud_direct", 115200)
+
+  def stayAwakeEnabled = boolPreference("stay_awake", true)
 
   object UDPMode extends Enumeration {
     val Disabled = Value("Disabled")
@@ -249,6 +253,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   private def serialDetached() {
     serial.foreach { a =>
+      if (wakeLock.isHeld)
+        wakeLock.release()
+
       unregisterReceiver(disconnectReceiver)
 
       a ! PoisonPill
@@ -298,5 +305,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       .getNotification() // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
+
+    if (stayAwakeEnabled)
+      wakeLock.acquire()
   }
 }
