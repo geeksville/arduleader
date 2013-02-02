@@ -7,10 +7,13 @@ import com.geeksville.logback.Logging
 
 object MavlinkEventBus extends EventStream with Logging {
 
+  /**
+   * @param sysId use -1 for any system
+   */
   def subscribe(a: InstrumentedActor, sysId: Int) = {
     def interested(ev: Any) = {
       val r = ev match {
-        case m: MAVLinkMessage => m.sysId == sysId
+        case m: MAVLinkMessage => (m.sysId == sysId) || (sysId == -1)
         case _ => false
       }
 

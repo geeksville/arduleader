@@ -193,9 +193,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         logDirectory.foreach { d =>
           logfile = Some(LogBinaryMavlink.getFilename(d))
           val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
-          MavlinkEventBus.subscribe(l, AndropilotService.arduPilotId)
-          MavlinkEventBus.subscribe(l, groundControlId)
-          MavlinkEventBus.subscribe(l, VehicleSimulator.andropilotId)
+          MavlinkEventBus.subscribe(l, -1)
           logger = Some(l)
         }
     } else
