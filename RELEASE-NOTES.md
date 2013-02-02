@@ -3,6 +3,14 @@
 * Show a line to indicate where the plane is heading (if we know)
 * Implicitly set AUTO mode if someone does GOTO on a waypoint
 
+For next release:
+* FIXME: fix udp receiver
+* FIXME: add waypoint change type (via menu dropdown)
+* Request help with waypoint icons
+* FIXME: make a website
+* Change waypoint icons as appropriate...
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+
 # 0.1.25
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
@@ -17,16 +25,6 @@
 * Auto close keyboard after editing altitude
 * Turn on optimization in the compiler
 * Store last known vehicle position in android prefs (so even if the app is terminated you still know where the plane was)
-
-For next release:
-* If someone does goto for a waypoint, implicitly set auto
-* FIXME: fix udp receiver
-* FIXME: add waypoint change type (via menu dropdown)
-* Request help with waypoint icons
-* display & log 3dr rssi information
-* FIXME: make a website
-* Change waypoint icons as appropriate...
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.22
 

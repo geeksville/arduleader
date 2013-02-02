@@ -464,23 +464,26 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
         // Generate a few optional lines of text
 
         val locStr = v.location.map { l =>
-          "Altitude %.1fm".format(l.alt)
+          "Alt %.1fm".format(l.alt)
         }
 
         val batStr = for { pct <- v.batteryPercent; volt <- v.batteryVoltage } yield {
           val vWarn = if (isLowVolt) " LowVolt!" else ""
           val pWarn = if (isLowBatPercent) " LowPct!" else ""
-          "Battery %sV (%d%%)%s%s".format(volt, pct * 100 toInt, vWarn, pWarn)
+          "Bat %sV (%d%%)%s%s".format(volt, pct * 100 toInt, vWarn, pWarn)
         }
 
         val radioStr = for { r <- v.radio } yield {
           val warn = if (isLowRssi) " LowRssi!" else ""
-          "rssi %d, remrssi %d, rxerr %d%s".format(r.rssi, r.remrssi, r.rxerrors, warn)
+          "Rssi %d/%d rxerr %d%s".format(r.rssi, r.remrssi, r.rxerrors, warn)
         }
 
-        val gpsStr = Some(if (isLowNumSats) " LowSats!" else "")
+        val gpsStr = for { r <- v.numSats } yield {
+          val warn = if (isLowNumSats) " LowSats!" else ""
+          "Sats %d%s".format(r, warn)
+        }
 
-        val r = Seq(v.status, locStr, batStr, radioStr, gpsStr).flatten.mkString("\n")
+        val r = Seq(v.status, locStr, batStr, radioStr, gpsStr).flatten.mkString(", ")
         //debug("snippet: " + r)
         r
       }.getOrElse("No service"))
