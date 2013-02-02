@@ -164,7 +164,8 @@ class MainActivity extends Activity with TypedActivity
         v.setText(msg)
         v.setVisibility(View.VISIBLE)
 
-        GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
+        // Alas - this seems to not work
+        // GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
       }.getOrElse {
         error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
       }
