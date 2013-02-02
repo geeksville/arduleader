@@ -138,13 +138,16 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
                 editAlt.setText(marker.altitude.toString)
               }
 
+              if (marker.isAllowGoto)
+                goto.setVisible(true)
+
               marker match {
                 case x: GuidedWaypointMarker =>
                   // No context menu yet for guided waypoints
                   mode.finish()
 
                 case x: ProvisionalMarker =>
-                  Seq(goto, add, setalt).foreach(_.setVisible(true))
+                  Seq(add, setalt).foreach(_.setVisible(true))
                 case x: WaypointMarker =>
                   if (x.draggable) {
                     // Don't allow delete of the current waypoint (for now)
@@ -152,7 +155,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
                       Seq(delete).foreach(_.setVisible(true))
                     Seq(changetype, setalt).foreach(_.setVisible(true))
                   }
-                  Seq(goto).foreach(_.setVisible(true))
                 case _ =>
                   // For other marker types - exit context menu mode
                   mode.finish()
@@ -230,6 +232,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     def altitude = 0.0
     def altitude_=(n: Double) { throw new Exception("Not implemented") }
 
+    def isAllowGoto = false
+
     /**
      * Have vehicle go to this waypoint
      */
@@ -256,6 +260,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
         setSnippet()
       }
     }
+
+    override def isAllowGoto = true
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
     override def title = Some("Provisional waypoint")
@@ -312,6 +318,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
     def lat = msg.x
     def lon = msg.y
+
+    override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
 
     override def isAltitudeEditable = !isHome
     override def altitude = msg.z
