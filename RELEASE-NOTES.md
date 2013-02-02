@@ -4,7 +4,7 @@
 * all mavlink packets are now stored to the log file (not just packets we were expecting)
 * draw plane in yellow if voltage falls too low
 * draw plane in yellow if rssi falls too low
-* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
 
 # 0.1.24
 
