@@ -20,6 +20,10 @@
         android:showAsAction="always"
         android:title="Change Type"
         android:visible="false"/>
+    
+    <item android:id="@+id/menu_autocontinue"
+        android:checkable="true"
+        android:title="Continue"/>
     <item
         android:id="@+id/menu_delete"
         android:showAsAction="always"

@@ -95,9 +95,9 @@ abstract class SmartMarker extends AndroidLogger {
 /**
  * A line between two SmartMarkers
  */
-case class Segment(endpoints: (SmartMarker, SmartMarker), colorOptions: PolylineOptions = (new PolylineOptions).color(Color.GREEN)) {
+case class Segment(endpoints: (SmartMarker, SmartMarker), color: Int) {
   var polyline: Option[Polyline] = None
 
-  final def lineOptions = colorOptions.add(endpoints._1.latLng).add(endpoints._2.latLng)
+  final def lineOptions = (new PolylineOptions).color(color).add(endpoints._1.latLng).add(endpoints._2.latLng)
 }
 

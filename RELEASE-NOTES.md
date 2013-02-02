@@ -1,3 +1,8 @@
+# 0.1.22
+
+* add support for auto continue checkbox
+* Remove an autocrash for another whacky Android clone with quasi-legal maps
+
 # 0.1.21
 
 * Add waypoint editing (drag, add, delete, etc...)
@@ -5,8 +10,15 @@
 
 For next release:
 * FIXME: fix udp receiver
-* FIXME: add waypoint set altitude
-* FIXME: add waypoint change type
+* FIXME: add waypoint set altitude (via textbox in actionbar?)
+* FIXME: add waypoint change type (via menu dropdown)
+* Fix icon and status update
+* If someone does goto for a waypoint, implicitly set auto
+* make mavlink retries independent of each other
+* add support for xbee modules (if it doesn't already work)
+* display & log 3dr rssi information
+* FIXME: make a website
+* FIXME: properly decode/encode waypoint cmd types.  Change icons as appropriate...
 * FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
 * FIXME: If you drag a waypoint while the parameter list is being downloaded, bad things happen (need separate retry timers)
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints

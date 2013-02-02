@@ -24,6 +24,7 @@ import android.view.Menu
 import android.view.MenuItem
 import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.SmartMarker
+import android.graphics.Color
 
 /**
  * Our customized map fragment
@@ -77,9 +78,10 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
         val delete = menu.findItem(R.id.menu_delete)
         val setalt = menu.findItem(R.id.menu_setalt)
         val changetype = menu.findItem(R.id.menu_changetype)
+        val autocontinue = menu.findItem(R.id.menu_autocontinue)
 
         // Default to nothing
-        Seq(goto, add, delete, setalt, changetype).foreach(_.setVisible(false))
+        Seq(goto, add, delete, setalt, changetype, autocontinue).foreach(_.setVisible(false))
 
         // We only enable options if we are talking to a real vehicle
         if (myVehicle.map(_.hasHeartbeat).getOrElse(false)) {
@@ -89,6 +91,11 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
               mode.finish()
 
             case Some(marker) =>
+              if (marker.isAllowAutocontinue) {
+                autocontinue.setVisible(true)
+                autocontinue.setChecked(marker.isAutocontinue)
+              }
+
               marker match {
                 case x: GuidedWaypointMarker =>
                   // No context menu yet for guided waypoints
@@ -119,6 +126,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     override def onActionItemClicked(mode: ActionMode, item: MenuItem) =
       selectedMarker.map { marker =>
         item.getItemId match {
+          case R.id.menu_autocontinue =>
+            debug("Toggle continue, oldmode " + item.isChecked)
+            item.setChecked(!item.isChecked)
+            marker.isAutocontinue = item.isChecked
+            true
+
           case R.id.menu_goto =>
             marker.doGoto()
             mode.finish() // Action picked, so close the CAB
@@ -161,6 +174,13 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       selectMarker(this)
       super.onClick() // Default will show the info window
     }
+
+    /**
+     * Can the user see/change auto continue
+     */
+    def isAllowAutocontinue = false
+    def isAutocontinue = false
+    def isAutocontinue_=(b: Boolean) { throw new Exception("Not implemented") }
 
     /**
      * Have vehicle go to this waypoint
@@ -218,11 +238,25 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   class WaypointMarker(val msg: msg_mission_item) extends MyMarker with AndroidLogger {
     def lat = msg.x
     def lon = msg.y
+
     override def title = Some("Waypoint #" + msg.seq + " cmd=" + msg.command)
+
     override def snippet = {
       import msg._
-      val r = "Alt=%sm params=%s,%s,%s,%s frame=%s autocont=%s".format(z, param1, param2, param3, param4, frame, autocontinue)
+      val r = "Alt=%sm params=%s,%s,%s,%s frame=%s".format(z, param1, param2, param3, param4, frame)
       Some(r)
+    }
+
+    /**
+     * Can the user see/change auto continue
+     */
+    override def isAllowAutocontinue = true
+    override def isAutocontinue = msg.autocontinue != 0
+    override def isAutocontinue_=(b: Boolean) {
+      if (b != isAutocontinue) {
+        msg.autocontinue = if (b) 1 else 0
+        sendWaypointsAndUpdate()
+      }
     }
 
     override def icon: Option[BitmapDescriptor] = {
@@ -250,6 +284,11 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     def isCurrent = msg.current == 1
 
     override def toString = title.get
+
+    protected def sendWaypointsAndUpdate() {
+      myVehicle.foreach(_ ! SendWaypoints)
+      handleWaypoints() // Update GUI
+    }
   }
 
   class GuidedWaypointMarker(loc: Location) extends WaypointMarker(myVehicle.get.makeGuided(loc)) {
@@ -285,8 +324,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           keepme
         }
 
-        v ! SendWaypoints
-        handleWaypoints() // Update GUI
+        sendWaypointsAndUpdate()
         toast("Waypoint deleted")
       }
     }
@@ -548,7 +586,15 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
           val pairs = waypointMarkers.zip(waypointMarkers.tail)
           scene.clearSegments() // FIXME - shouldn't touch this
-          scene.segments ++= pairs.map(p => Segment(p))
+
+          scene.segments ++= pairs.map { p =>
+            val color = if (p._1.isAutocontinue)
+              Color.GREEN
+            else
+              Color.GRAY
+
+            Segment(p, color)
+          }
           scene.render()
         }
       }
