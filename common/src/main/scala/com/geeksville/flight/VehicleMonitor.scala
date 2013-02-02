@@ -13,6 +13,8 @@ import org.mavlink.messages.MAV_TYPE
 import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
+import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.HashSet
 
 //
 // Messages we publish on our event bus when something happens
@@ -33,13 +35,15 @@ case object SendWaypoints
  */
 class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
-  case object RetryExpired
+  case class RetryExpired(ctx: RetryContext)
   case object FinishParameters
   case object StartWaypointDownload
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
   private val sysStatusThrottle = new Throttled(1000)
+
+  private val retries = HashSet[RetryContext]()
 
   var status: Option[String] = None
   var location: Option[Location] = None
@@ -124,8 +128,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def onReceive = mReceive.orElse(super.onReceive)
 
   private def mReceive: Receiver = {
-    case RetryExpired =>
-      retryExpired()
+    case RetryExpired(ctx) =>
+      ctx.doRetry()
 
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
@@ -254,6 +258,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       readNextParameter()
   }
 
+  override def postStop() {
+    // Close off any retry timers
+    retries.toList.foreach(_.close())
+
+    super.postStop()
+  }
+
   override def onModeChanged(m: Int) {
     super.onModeChanged(m)
     eventStream.publish(MsgModeChanged(m))
@@ -279,50 +290,59 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     MockAkka.scheduler.scheduleOnce(5 seconds, this, StartWaypointDownload)
   }
 
-  val numRetries = 5
-  var retriesLeft = 0
-  val retryInterval = 3000
-  var expectedResponse: Option[Class[_]] = None
-  var retryPacket: Option[MAVLinkMessage] = None
-  var retryTimer: Option[Cancellable] = None
+  case class RetryContext(val retryPacket: MAVLinkMessage, val expectedResponse: Class[_]) {
+    val numRetries = 5
+    var retriesLeft = numRetries
+    val retryInterval = 3000
+    var retryTimer: Option[Cancellable] = None
+
+    doRetry()
+
+    def close() {
+      log.debug("Closing a retry")
+      retryTimer.foreach(_.cancel())
+      retries.remove(this)
+    }
+
+    /**
+     * Return true if we handled it
+     */
+    def handleRetryReply[T <: MAVLinkMessage](reply: T) = {
+      if (reply.getClass == expectedResponse) {
+        // Success!
+        close()
+        true
+      } else
+        false
+    }
+
+    def doRetry() {
+      if (retriesLeft > 0) {
+        log.debug("Retry expired on " + retryPacket + " trying again...")
+        retriesLeft -= 1
+        sendMavlink(retryPacket)
+        retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleMonitor.this, RetryExpired(this)))
+      } else
+        log.error("No more retries, giving up: " + retryPacket)
+    }
+  }
 
   /**
    * Send a packet that expects a certain packet type in response, if the response doesn't arrive, then retry
    */
   private def sendWithRetry(msg: MAVLinkMessage, expected: Class[_]) {
-    expectedResponse = Some(expected)
-    retriesLeft = numRetries
-    retryPacket = Some(msg)
-    MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, this, RetryExpired)
-    sendMavlink(msg)
+    retries.add(RetryContext(msg, expected))
   }
 
   /**
    * Check to see if this satisfies our retry reply requirement, if it does and it isn't a dup return the message, else None
    */
   private def checkRetryReply[T <: MAVLinkMessage](reply: T): Option[T] = {
-    expectedResponse.flatMap { e =>
-      if (reply.getClass == e) {
-        // Success!
-        retryPacket = None
-        expectedResponse = None
-        retryTimer.foreach(_.cancel())
-        Some(reply)
-      } else
-        None
-    }
-  }
-
-  private def retryExpired() {
-    retryPacket.foreach { pkt =>
-      if (retriesLeft > 0) {
-        log.debug("Retry expired on " + pkt + " trying again...")
-        retriesLeft -= 1
-        sendMavlink(pkt)
-        MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, this, RetryExpired)
-      } else
-        log.error("No more retries, giving up: " + pkt)
-    }
+    val numHandled = retries.count(_.handleRetryReply(reply))
+    if (numHandled > 0) {
+      Some(reply)
+    } else
+      None
   }
 
   private def startWaypointDownload() {

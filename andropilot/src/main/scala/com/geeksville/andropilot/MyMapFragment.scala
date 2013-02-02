@@ -30,6 +30,7 @@ import android.widget.TextView
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import org.mavlink.messages.MAV_FRAME
 
 /**
  * Our customized map fragment
@@ -293,12 +294,17 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
       MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
 
-    def commandStr = commandCodes.get(msg.command).getOrElse("cmd=unknown")
+    private val frameCodes = Map(
+      MAV_FRAME.MAV_FRAME_GLOBAL -> "MSL",
+      MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT -> "AGL")
+
+    def commandStr = commandCodes.get(msg.command).getOrElse("cmd=" + msg.command)
+    def frameStr = frameCodes.get(msg.frame).getOrElse("frame=" + msg.frame)
 
     def lat = msg.x
     def lon = msg.y
 
-    override def isAltitudeEditable = true
+    override def isAltitudeEditable = !isHome
     override def altitude = msg.z
     override def altitude_=(n: Double) {
       if (n != altitude) {
@@ -312,7 +318,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
     override def snippet = {
       import msg._
-      val r = "Alt=%sm params=%s,%s,%s,%s frame=%s".format(z, param1, param2, param3, param4, frame)
+      val params = Seq(param1, param2, param3, param4)
+      val hasParams = params.find(_ != 0.0f).isDefined
+      val r = if (hasParams)
+        "Alt=%sm %s params=%s".format(z, frameStr, params.mkString(","))
+      else
+        "Altitude %sm %s".format(z, frameStr)
       Some(r)
     }
 
