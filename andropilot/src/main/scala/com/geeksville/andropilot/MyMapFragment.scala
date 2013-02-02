@@ -424,8 +424,9 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   }
 
   class VehicleMarker extends MyMarker with AndroidLogger {
-    def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(0.0)
-    def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(0.0)
+
+    def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(floatPreference("cur_lat", 0.0f))
+    def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(floatPreference("cur_lon", 0.0f))
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(iconRes))
 
@@ -530,6 +531,9 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           val pos = new LatLng(l.lat, l.lon)
           mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16.0f)))
         }
+        // Store last known position in prefs
+        preferences.edit.putFloat("cur_lat", l.lat.toFloat).putFloat("cur_lon", l.lon.toFloat).commit()
+
         updateMarker()
       }
 

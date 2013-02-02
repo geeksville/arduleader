@@ -1,3 +1,21 @@
+# 0.1.24
+
+* Fix mode display/setting for arducopter (if you are using an arducopter, please report success/failure in the forum)
+* Auto close keyboard after editing altitude
+* Turn on optimization in the compiler
+* Store last known vehicle position in android prefs (so even if the app is terminated you still know where the plane was)
+
+For next release:
+* If someone does goto for a waypoint, implicitly set auto
+* FIXME: fix udp receiver
+* FIXME: add waypoint change type (via menu dropdown)
+* Request help with waypoint icons
+* display & log 3dr rssi information
+* FIXME: make a website
+* FIXME: properly decode/encode waypoint cmd types.  Change icons as appropriate...
+* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+
 # 0.1.22
 
 * add an altitude editor box for waypoints
@@ -6,18 +24,6 @@
 * add support for auto continue checkbox
 * Remove an autocrash for another whacky Android clone with quasi-legal maps
 * If you drag a waypoint while the parameter list is being downloaded, bad things no longer happen (needed separate retry timers)
-
-For next release:
-* FIXME: fix udp receiver
-* FIXME: add waypoint change type (via menu dropdown)
-* If someone does goto for a waypoint, implicitly set auto
-* make mavlink retries independent of each other
-* Request help with waypoint icons
-* display & log 3dr rssi information
-* FIXME: make a website
-* FIXME: properly decode/encode waypoint cmd types.  Change icons as appropriate...
-* FIXME: show # of sats in view & warn if below min # (per http://www.diydrones.com/forum/topics/apm2-5-gone)
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.21
 
