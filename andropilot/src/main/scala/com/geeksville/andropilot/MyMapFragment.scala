@@ -25,6 +25,7 @@ import android.view.MenuItem
 import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.SmartMarker
 import android.graphics.Color
+import org.mavlink.messages.MAV_CMD
 
 /**
  * Our customized map fragment
@@ -236,10 +237,21 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   }
 
   class WaypointMarker(val msg: msg_mission_item) extends MyMarker with AndroidLogger {
+    private val commandCodes = Map(
+      MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
+      MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
+      MAV_CMD.MAV_CMD_NAV_LAND -> "Land", // LAND to Waypoint
+      MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> "Loiter", // Loiter indefinitely
+      MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> "LoiterN", // Loiter N Times
+      MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
+      MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
+
+    def commandStr = commandCodes.get(msg.command).getOrElse("cmd=unknown")
+
     def lat = msg.x
     def lon = msg.y
 
-    override def title = Some("Waypoint #" + msg.seq + " cmd=" + msg.command)
+    override def title = Some("Waypoint #" + msg.seq + " (" + commandStr + ")")
 
     override def snippet = {
       import msg._

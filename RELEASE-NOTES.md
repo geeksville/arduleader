@@ -2,6 +2,7 @@
 
 * add support for auto continue checkbox
 * Remove an autocrash for another whacky Android clone with quasi-legal maps
+* waypoint command codes are now displayed as strings (land, rtl, etc...)
 
 # 0.1.21
 
@@ -16,6 +17,7 @@ For next release:
 * If someone does goto for a waypoint, implicitly set auto
 * make mavlink retries independent of each other
 * add support for xbee modules (if it doesn't already work)
+* Request help with waypoint icons
 * display & log 3dr rssi information
 * FIXME: make a website
 * FIXME: properly decode/encode waypoint cmd types.  Change icons as appropriate...
