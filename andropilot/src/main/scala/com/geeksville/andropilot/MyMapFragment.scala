@@ -31,6 +31,7 @@ import android.text.InputType
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import org.mavlink.messages.MAV_FRAME
+import android.view.inputmethod.InputMethodManager
 
 /**
  * Our customized map fragment
@@ -74,7 +75,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
       val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
       editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
-      editAlt.setImeOptions(EditorInfo.IME_ACTION_DONE) // Make keyboard go away after editing
 
       // Apparently IME_ACTION_DONE fires when the user leaves the edit text
       editAlt.setOnEditorActionListener(new TextView.OnEditorActionListener {
@@ -89,6 +89,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
                 error("Error parsing user alt: " + ex)
             }
             selectedMarker.foreach { m => v.setText(m.altitude.toString) }
+
+            // Force the keyboard to go away
+            val imm = getActivity.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
+            imm.hideSoftInputFromWindow(v.getWindowToken, 0)
+
+            // We handled the event
             true
           } else
             false
