@@ -1,8 +1,10 @@
 # 0.1.22
 
 * add support for auto continue checkbox
-* Remove an autocrash for another whacky Android clone with quasi-legal maps
+* add an altitude editor box for waypoints
 * waypoint command codes are now displayed as strings (land, rtl, etc...)
+* Remove an autocrash for another whacky Android clone with quasi-legal maps
+
 
 # 0.1.21
 

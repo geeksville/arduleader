@@ -26,6 +26,10 @@ import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.SmartMarker
 import android.graphics.Color
 import org.mavlink.messages.MAV_CMD
+import android.widget.TextView
+import android.text.InputType
+import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 
 /**
  * Our customized map fragment
@@ -66,7 +70,31 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       // Inflate a menu resource providing context menu items
       val inflater = mode.getMenuInflater()
       inflater.inflate(R.menu.context_menu, menu)
-      true
+
+      val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
+      editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
+      editAlt.setImeOptions(EditorInfo.IME_ACTION_DONE) // Make keyboard go away after editing
+
+      // Apparently IME_ACTION_DONE fires when the user leaves the edit text
+      editAlt.setOnEditorActionListener(new TextView.OnEditorActionListener {
+        override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
+          if (actionId == EditorInfo.IME_ACTION_DONE) {
+            val str = v.getText.toString
+            debug("Editing completed: " + str)
+            try {
+              selectedMarker.foreach(_.altitude = str.toDouble)
+            } catch {
+              case ex: Exception =>
+                error("Error parsing user alt: " + ex)
+            }
+            selectedMarker.foreach { m => v.setText(m.altitude.toString) }
+            true
+          } else
+            false
+        }
+      })
+
+      true // Did create a menu
     }
 
     // Called each time the action mode is shown. Always called after onCreateActionMode, but
@@ -95,6 +123,12 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
               if (marker.isAllowAutocontinue) {
                 autocontinue.setVisible(true)
                 autocontinue.setChecked(marker.isAutocontinue)
+              }
+
+              if (marker.isAltitudeEditable) {
+                setalt.setVisible(true)
+                val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
+                editAlt.setText(marker.altitude.toString)
               }
 
               marker match {
@@ -183,6 +217,10 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     def isAutocontinue = false
     def isAutocontinue_=(b: Boolean) { throw new Exception("Not implemented") }
 
+    def isAltitudeEditable = false
+    def altitude = 0.0
+    def altitude_=(n: Double) { throw new Exception("Not implemented") }
+
     /**
      * Have vehicle go to this waypoint
      */
@@ -196,15 +234,24 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   /**
    * Shows as a question mark
    */
-  class ProvisionalMarker(latlng: LatLng, var alt: Double) extends MyMarker {
+  class ProvisionalMarker(latlng: LatLng, private var alt: Double) extends MyMarker {
     def lat = latlng.latitude
     def lon = latlng.longitude
 
-    def loc = Location(lat, lon, alt)
+    def loc = Location(lat, lon, altitude)
+
+    override def isAltitudeEditable = true
+    override def altitude = alt
+    override def altitude_=(n: Double) {
+      if (n != altitude) {
+        alt = n
+        setSnippet()
+      }
+    }
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
     override def title = Some("Provisional waypoint")
-    override def snippet = Some("Alt=%sm (Select menu item to adjust/use)".format(alt))
+    override def snippet = Some("Altitude %sm".format(altitude))
 
     /**
      * Go to our previously placed guide marker
@@ -250,6 +297,16 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
 
     def lat = msg.x
     def lon = msg.y
+
+    override def isAltitudeEditable = true
+    override def altitude = msg.z
+    override def altitude_=(n: Double) {
+      if (n != altitude) {
+        msg.z = n.toFloat
+        setSnippet()
+        sendWaypointsAndUpdate()
+      }
+    }
 
     override def title = Some("Waypoint #" + msg.seq + " (" + commandStr + ")")
 

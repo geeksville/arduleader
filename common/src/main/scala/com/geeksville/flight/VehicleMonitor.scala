@@ -351,6 +351,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     retryingParameters = wasMissing
     if (!wasMissing) {
+      log.info("Downloaded " + parameters.size + " parameters!")
       parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
       onParametersDownloaded() // Yay - we have everything!
     }

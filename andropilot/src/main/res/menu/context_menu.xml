@@ -13,16 +13,18 @@
     <item
         android:id="@+id/menu_setalt"
         android:showAsAction="always"
-        android:title="Change Alt"
-        android:visible="true"/>
+        android:title="Altitude"
+        android:visible="true"
+        android:actionViewClass="android.widget.EditText"
+        />
     <item
         android:id="@+id/menu_changetype"
-        android:showAsAction="always"
         android:title="Change Type"
         android:visible="false"/>
     
     <item android:id="@+id/menu_autocontinue"
         android:checkable="true"
+        android:showAsAction="never" <!-- Checkbox won't show if in action bar -->
         android:title="Continue"/>
     <item
         android:id="@+id/menu_delete"
