@@ -195,12 +195,15 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
         error("Second attempt to set parameters")
         d.setParameters(baudRate, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE)
     }
-    try {
+
+    // on apm just turn on rts/dtr because that's what linux does...
+    if (AndroidSerial.isAPM(rawDevice)) {
+      d.setRTS(true)
+      d.setDTR(true)
+    } else
       d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
-    } catch {
-      case ex: IOException =>
-        error(ex.toString) // Not yet implemented for ACM devices
-    }
+    // Not yet implemented for ACM devices
+
     info("Port open")
     driver.put(d)
   }
