@@ -71,8 +71,6 @@ class MainActivity extends Activity with TypedActivity
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment]
 
-  def parameterFragment = Option(getFragmentManager.findFragmentById(R.id.parameter_fragment).asInstanceOf[ParameterListFragment])
-
   /**
    * Does work in the GUIs thread
    */
@@ -107,15 +105,6 @@ class MainActivity extends Activity with TypedActivity
       handler.post { () =>
         toast(s)
       }
-
-    // Super crufty - do this someplace else
-    case MsgParametersDownloaded =>
-      handler.post { () =>
-        parameterFragment.foreach { f =>
-          updateParameters()
-          // Option(f.getView).foreach(_.invalidate())
-        }
-      }
   }
 
   override def onServiceConnected(s: AndropilotService) {
@@ -131,17 +120,10 @@ class MainActivity extends Activity with TypedActivity
     setModeOptions()
     setModeSpinner()
 
-    updateParameters()
-
     waitingForService.foreach { intent =>
       handleIntent(intent)
       waitingForService = None
     }
-  }
-
-  private def updateParameters() {
-    // Let our parameter view start updating
-    for { f <- parameterFragment; v <- myVehicle } yield { f.setVehicle(v) }
   }
 
   override def onCreate(bundle: Bundle) {

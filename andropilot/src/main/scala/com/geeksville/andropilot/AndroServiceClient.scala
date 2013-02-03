@@ -86,6 +86,16 @@ trait AndroServiceClient extends AndroidLogger {
   }
 
   /**
+   * Subclasses can override to filter the set of events that are delivered to them.
+   * Though usually this check of partially defined functions will do the right thing...
+   */
+  protected def isInterested(evt: Any) = {
+    val r = onVehicleReceive.isDefinedAt(evt)
+    if (!r) debug("%s is not interested in %s".format(this, evt))
+    r
+  }
+
+  /**
    * Used to eavesdrop on location/state changes for our vehicle
    */
   class MyVehicleListener(val v: VehicleMonitor) extends InstrumentedActor {
@@ -93,7 +103,7 @@ trait AndroServiceClient extends AndroidLogger {
     /// On first position update zoom in on plane
     private var hasLocation = false
 
-    val subscription = v.eventStream.subscribe(this, { evt: Any => true })
+    val subscription = v.eventStream.subscribe(this, isInterested _)
 
     override def postStop() {
       v.eventStream.removeSubscription(subscription)

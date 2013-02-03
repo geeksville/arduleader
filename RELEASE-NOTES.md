@@ -2,7 +2,7 @@
 
 * Add preferences option to force the screen to stay on (default off)
 * Fix mode display when waking from sleep
-*FIXME - change param list over to new fragment system
+* change param list over to new fragment system
 *FIXME - add swipes to change the info panels
 *FIXME - add vehicle info panel
 *FIXME - add waypoint panel

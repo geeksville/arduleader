@@ -36,10 +36,8 @@ import android.view.inputmethod.InputMethodManager
 /**
  * Our customized map fragment
  */
-class MyMapFragment extends com.google.android.gms.maps.MapFragment with AndroidLogger
-  with UsesPreferences with AndroServiceClient {
-
-  implicit def context = getActivity
+class MyMapFragment extends com.google.android.gms.maps.MapFragment
+  with UsesPreferences with AndroServiceFragment {
 
   var scene: Option[Scene] = None
 
@@ -54,11 +52,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   private var provisionalMarker: Option[ProvisionalMarker] = None
 
   var planeMarker: Option[VehicleMarker] = None
-
-  /**
-   * Does work in the GUIs thread
-   */
-  var handler: Handler = null
 
   private var actionMode: Option[ActionMode] = None
   private var selectedMarker: Option[MyMarker] = None
@@ -655,10 +648,6 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   override def onActivityCreated(bundle: Bundle) {
     super.onActivityCreated(bundle)
 
-    debug("Maps onCreate")
-
-    handler = new Handler
-
     if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity) == ConnectionResult.SUCCESS) {
       initMap()
     }
@@ -718,16 +707,8 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   override def onResume() {
     super.onResume()
 
-    serviceOnResume()
-
     // Force the screen on if the user wants that (FIXME this only works if the _map_ is shown) - possibly worth doing somewhere better
     Option(getView).foreach(_.setKeepScreenOn(isKeepScreenOn))
-  }
-
-  override def onPause() {
-    serviceOnPause()
-
-    super.onPause()
   }
 
   /**

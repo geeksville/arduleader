@@ -13,25 +13,7 @@ import android.widget.SimpleAdapter
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 import com.geeksville.flight.MsgRcChannelsChanged
 
-class RcChannelsFragment extends ListFragment with AndroidLogger with AndroServiceClient {
-
-  implicit def context = getActivity
-
-  override def onActivityCreated(saved: Bundle) {
-    super.onActivityCreated(saved)
-  }
-
-  override def onResume() {
-    super.onResume()
-
-    serviceOnResume()
-  }
-
-  override def onPause() {
-    serviceOnPause()
-
-    super.onPause()
-  }
+class RcChannelsFragment extends ListFragment with AndroServiceFragment {
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
