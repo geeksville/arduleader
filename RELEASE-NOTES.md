@@ -1,3 +1,7 @@
+# 0.1.27
+
+* Don't consider -1 for battery pct a problem (it just means vehicle doesn't have appropriate hw)
+
 # 0.1.26
 
 * Show a line to indicate where the plane is heading (if we know)
@@ -10,7 +14,7 @@ For next release:
 * FIXME: make a website
 * Change waypoint icons as appropriate...
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-
+a
 # 0.1.25
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use
