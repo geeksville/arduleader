@@ -1,6 +1,7 @@
 # 0.1.27
 
 * Don't consider -1 for battery pct a problem (it just means vehicle doesn't have appropriate hw)
+* Fix rare autobug of first time direct connect to APM failing...
 
 # 0.1.26
 
