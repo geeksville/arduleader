@@ -185,7 +185,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     case msg: msg_sys_status =>
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
-      batteryPercent = Some(msg.battery_remaining / 100.0f)
+      batteryPercent = if (msg.battery_remaining == -1) None else Some(msg.battery_remaining / 100.0f)
       onSysStatusChanged()
 
     case msg: msg_gps_raw_int =>

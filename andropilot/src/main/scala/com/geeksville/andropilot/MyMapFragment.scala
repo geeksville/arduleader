@@ -467,10 +467,11 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
           "Alt %.1fm".format(l.alt)
         }
 
-        val batStr = for { pct <- v.batteryPercent; volt <- v.batteryVoltage } yield {
+        val batStr = for { volt <- v.batteryVoltage } yield {
           val vWarn = if (isLowVolt) " LowVolt!" else ""
           val pWarn = if (isLowBatPercent) " LowPct!" else ""
-          "Bat %sV (%d%%)%s%s".format(volt, pct * 100 toInt, vWarn, pWarn)
+          val pctStr = v.batteryPercent.map { pct => "(%d%%)".format(pct * 100 toInt) }.getOrElse("")
+          "Bat %sV %s%s%s".format(volt, pctStr, vWarn, pWarn)
         }
 
         val radioStr = for { r <- v.radio } yield {
@@ -491,7 +492,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     def isLowVolt = (for { v <- myVehicle; volt <- v.batteryVoltage } yield { volt < minVoltage }).getOrElse(false)
 
     /// Apparently ardupane treats -1 for pct charge as 'no idea'
-    def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent && pct >= -0.5f }).getOrElse(false)
+    def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
     def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield { r.rssi < minRssi || r.remrssi < minRssi }).getOrElse(false)
     def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(false)
     def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
