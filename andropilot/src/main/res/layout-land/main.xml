@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal" >
@@ -8,10 +9,10 @@
         android:id="@+id/map"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         class="com.geeksville.andropilot.MyMapFragment"
         map:mapType="satellite"
         map:uiCompass="true"
-        android:layout_weight="1"
         map:uiRotateGestures="false"
         map:uiScrollGestures="false"
         map:uiTiltGestures="false"
@@ -20,9 +21,16 @@
 
     <fragment
         android:id="@+id/parameter_fragment"
-        android:layout_weight="2"
         android:name="com.geeksville.andropilot.ParameterListFragment"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent" />
-    
+        android:layout_height="match_parent"
+        android:layout_weight="2" />
+
+    <fragment
+        android:id="@+id/rchannels_fragment"
+        android:name="com.geeksville.andropilot.RcChannelsFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="2" />
+
 </LinearLayout>

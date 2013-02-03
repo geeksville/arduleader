@@ -25,6 +25,7 @@ case object MsgSysStatusChanged
 case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
 case object MsgParametersDownloaded
 case object MsgWaypointsChanged
+case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgModeChanged(m: Int)
 /**
  * Start sending waypoints TO the vehicle
@@ -42,6 +43,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
+  private val rcChannelsThrottle = new Throttled(1000)
   private val sysStatusThrottle = new Throttled(5000)
 
   private val retries = HashSet[RetryContext]()
@@ -52,6 +54,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var batteryVoltage: Option[Float] = None
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
+  var rcChannels: Option[msg_rc_channels_raw] = None
 
   var waypoints = Seq[msg_mission_item]()
 
@@ -172,6 +175,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private def mReceive: Receiver = {
     case RetryExpired(ctx) =>
       ctx.doRetry()
+
+    case m: msg_rc_channels_raw =>
+      rcChannels = Some(m)
+      rcChannelsThrottle { eventStream.publish(MsgRcChannelsChanged(m)) }
 
     case m: msg_radio =>
       //log.info("Received radio from " + m.sysId + ": " + m)

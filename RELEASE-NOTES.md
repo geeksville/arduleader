@@ -1,3 +1,13 @@
+# 0.1.28
+
+* Add preferences option to force the screen to stay on (default off)
+* Fix mode display when waking from sleep
+*FIXME - change param list over to new fragment system
+*FIXME - add swipes to change the info panels
+*FIXME - add vehicle info panel
+*FIXME - add waypoint panel
+*FIXME - add periodic updates for rcchannels (share actor client code with map & mainactivity)
+
 # 0.1.27
 
 * Don't consider -1 for battery pct a problem (it just means vehicle doesn't have appropriate hw)
