@@ -48,6 +48,8 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.app.FragmentActivity
 import android.support.v4.view.ViewPager
+import android.support.v4.app.FragmentStatePagerAdapter
+import android.view.ViewGroup
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with UsesPreferences
@@ -72,10 +74,14 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   /**
-   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one
-   * of the sections/tabs/pages.
+   * FIXME
+   * We might want to use a version of the pager adapter that destroys fragments when not in use (so we don't spend cycles updating RC channels when not visible)
+   * FIXME - move this out into a general scandroid utility class
+   *
    */
   lazy val sectionsPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager) {
+
+    private var curPage: Option[PagerPage] = None
 
     case class PageInfo(title: String, generator: () => Fragment)
 
@@ -96,6 +102,18 @@ class MainActivity extends FragmentActivity with TypedActivity
     override def getCount() = pages.size
 
     override def getPageTitle(i: Int) = pages(i).title
+
+    override def setPrimaryItem(container: ViewGroup, position: Int, obj: Object) {
+      super.setPrimaryItem(container, position, obj)
+
+      val asPage = obj.asInstanceOf[PagerPage]
+      val newPage = Some(asPage)
+      if (curPage != newPage) { // Android seems to send redundant notifications - don't get confused
+        curPage.foreach(_.onPageHidden())
+        curPage = newPage
+        asPage.onPageShown()
+      }
+    }
   }
 
   // We don't cache these - so that if we get rotated we pull the correct one

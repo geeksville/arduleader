@@ -1,12 +1,20 @@
 # 0.1.28
 
+* Add a basic RC channels info panel
 * Add preferences option to force the screen to stay on (default off)
 * Fix mode display when waking from sleep
-* change param list over to new fragment system
-*FIXME - add swipes to change the info panels
-*FIXME - add vehicle info panel
-*FIXME - add waypoint panel
-*FIXME - add periodic updates for rcchannels (share actor client code with map & mainactivity)
+* Change param list over to new fragment system
+* Allow swipes to change the info panels
+* Add periodic updates for rcchannels (share actor client code with map & mainactivity)
+
+For next release:
+* FIXME - add vehicle info panel (should be easy now that I have the slidy panel stuff in)
+* FIXME - add waypoint panel (should be easy now that I have the slidy panel stuff in)
+* FIXME: fix udp receiver
+* FIXME: add waypoint change type (via menu dropdown)
+* FIXME: make a website
+* Change waypoint icons as appropriate...
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 
 # 0.1.27
 
@@ -18,14 +26,6 @@
 * Show a line to indicate where the plane is heading (if we know)
 * Implicitly set AUTO mode if someone does GOTO on a waypoint
 
-For next release:
-* FIXME: fix udp receiver
-* FIXME: add waypoint change type (via menu dropdown)
-* Request help with waypoint icons
-* FIXME: make a website
-* Change waypoint icons as appropriate...
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-a
 # 0.1.25
 
 * keep CPU awake if we are connected to the serial port (needed to keep logging etc...) - you should unplug the device when not in use

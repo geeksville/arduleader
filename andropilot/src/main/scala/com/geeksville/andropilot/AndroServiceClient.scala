@@ -117,7 +117,7 @@ trait AndroServiceClient extends AndroidLogger {
 
   private def stopVehicleMonitor() {
     myVListener.foreach { v =>
-      debug("Shutting down VListener")
+      //debug("Shutting down VListener")
       v ! PoisonPill
       myVehicle = None
       myVListener = None
@@ -133,7 +133,7 @@ trait AndroServiceClient extends AndroidLogger {
   }
 
   protected def serviceOnResume() {
-    debug("Binding to service")
+    //debug("Binding to service")
     assert(context != null)
     val intent = new Intent(context, classOf[AndropilotService])
     context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)

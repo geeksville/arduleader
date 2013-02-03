@@ -14,13 +14,21 @@ import com.geeksville.flight.MsgRcChannelsChanged
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
 
-class RcChannelsFragment extends ListFragment with AndroServiceFragment {
+class RcChannelsFragment extends ListFragment with AndroServicePage {
+
+  /**
+   * Make our list read-only
+   */
+  override def onViewCreated(view: View, savedInstanceState: Bundle) {
+    super.onViewCreated(view, savedInstanceState)
+    view.setFocusable(false)
+  }
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
 
     // Don't expand the view until we have _something_ to display
-    if (getActivity != null) {
+    if (isVisible) {
       debug("Setting rcchannel")
       updateList()
     }
@@ -28,8 +36,10 @@ class RcChannelsFragment extends ListFragment with AndroServiceFragment {
 
   override def onVehicleReceive = {
     case MsgRcChannelsChanged(_) =>
-      debug("Received Rc channels")
-      handler.post(updateList _)
+      if (isVisible) {
+        //debug("Received Rc channels")
+        handler.post(updateList _)
+      }
   }
 
   private def updateList() {
@@ -41,9 +51,9 @@ class RcChannelsFragment extends ListFragment with AndroServiceFragment {
   }
 
   private def rcToSeq(m: msg_rc_channels_raw) =
-    Seq("ch1" -> m.chan1_raw, "ch2" -> m.chan2_raw, "ch3" -> m.chan3_raw, "ch4" -> m.chan4_raw,
-      "ch5" -> m.chan5_raw, "ch6" -> m.chan6_raw, "ch7" -> m.chan7_raw, "ch8" -> m.chan8_raw,
-      "rssi" -> m.rssi)
+    Seq("Channel 1" -> m.chan1_raw, "Channel 2" -> m.chan2_raw, "Channel 3" -> m.chan3_raw, "Channel 4" -> m.chan4_raw,
+      "Channel 5" -> m.chan5_raw, "Channel 6" -> m.chan6_raw, "Channel 7" -> m.chan7_raw, "Channel 8" -> m.chan8_raw,
+      "Rssi" -> m.rssi)
 
   private def makeAdapter() = {
     for { v <- myVehicle; rc <- v.rcChannels } yield {

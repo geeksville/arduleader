@@ -14,7 +14,7 @@ import com.geeksville.flight.MsgParametersDownloaded
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
 
-class ParameterListFragment extends ListFragment with AndroServiceFragment {
+class ParameterListFragment extends ListFragment with AndroServicePage {
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)

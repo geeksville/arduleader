@@ -43,7 +43,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
-  private val rcChannelsThrottle = new Throttled(1000)
+  private val rcChannelsThrottle = new Throttled(200)
   private val sysStatusThrottle = new Throttled(5000)
 
   private val retries = HashSet[RetryContext]()

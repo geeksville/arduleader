@@ -16,8 +16,10 @@ import android.support.v4.app.Fragment
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
+ * This variant is careful to only start using the service when our page is shown (being careful to only start it once
+ * and to only stop it when once
  */
-trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient {
+trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClient with PagerPage {
 
   implicit def context = getActivity
 
@@ -26,26 +28,51 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
    */
   protected final var handler: Handler = null
 
+  private var serviceBound = false
+
   override def onCreate(saved: Bundle) {
     super.onCreate(saved)
 
-    debug("androFragment onCreate")
+    debug("androPage onCreate")
     handler = new Handler
   }
 
   override def onResume() {
-    debug("androFragment onResume")
+    debug("androPage onResume")
     super.onResume()
 
-    serviceOnResume()
+    if (isShown) // Only do this we we were already the selected page
+      bind()
   }
 
   override def onPause() {
-    debug("androFragment onPause")
-    serviceOnPause()
+    debug("androPage onPause")
+
+    unbind()
 
     super.onPause()
   }
 
-  // protected def isVisible = (getActivity != null) && (getView != null)
+  private def unbind() {
+    if (serviceBound) {
+      serviceOnPause()
+      serviceBound = false
+    }
+  }
+
+  private def bind() {
+    serviceOnResume()
+    serviceBound = true
+  }
+
+  override def onPageShown() {
+    super.onPageShown()
+    bind()
+  }
+
+  override def onPageHidden() {
+    unbind()
+
+    super.onPageHidden()
+  }
 }
