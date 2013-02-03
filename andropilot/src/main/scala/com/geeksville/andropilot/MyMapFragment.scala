@@ -537,6 +537,7 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
   def minRssi = intPreference("min_rssi", 100)
   def minNumSats = intPreference("min_numsats", 5)
+  def isKeepScreenOn = boolPreference("force_screenon", false)
 
   override def onServiceConnected(s: AndropilotService) {
     // FIXME - we leave the vehicle marker dangling
@@ -718,6 +719,9 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
     super.onResume()
 
     serviceOnResume()
+
+    // Force the screen on if the user wants that (FIXME this only works if the _map_ is shown) - possibly worth doing somewhere better
+    Option(getView).foreach(_.setKeepScreenOn(isKeepScreenOn))
   }
 
   override def onPause() {
