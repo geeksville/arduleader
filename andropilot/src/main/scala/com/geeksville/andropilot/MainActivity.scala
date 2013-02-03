@@ -127,6 +127,10 @@ class MainActivity extends Activity with TypedActivity
     // Ask for any already connected serial devices
     //requestAccess()
 
+    // If the menu is already up - update the set of options & selected mode
+    setModeOptions()
+    setModeSpinner()
+
     updateParameters()
 
     waitingForService.foreach { intent =>
@@ -309,6 +313,7 @@ class MainActivity extends Activity with TypedActivity
   }
 
   override def onCreateOptionsMenu(menu: Menu) = {
+    debug("Creating option menu")
     getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
     val s = menu.findItem(R.id.menu_mode).getActionView().asInstanceOf[Spinner] // find the spinner
     modeSpinner = Some(s)
