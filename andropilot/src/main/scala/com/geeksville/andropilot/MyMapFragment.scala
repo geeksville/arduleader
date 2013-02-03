@@ -331,7 +331,14 @@ class MyMapFragment extends com.google.android.gms.maps.MapFragment with Android
       }
     }
 
-    override def title = Some("Waypoint #" + msg.seq + " (" + commandStr + ")")
+    override def title = {
+      val r = if (isHome)
+        "Home"
+      else
+        "Waypoint #" + msg.seq + " (" + commandStr + ")"
+
+      Some(r)
+    }
 
     override def snippet = {
       import msg._
