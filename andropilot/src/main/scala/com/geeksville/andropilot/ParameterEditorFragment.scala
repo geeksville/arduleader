@@ -1,6 +1,5 @@
 package com.geeksville.andropilot
 
-import android.app.DialogFragment
 import com.ridemission.scandroid.AndroidLogger
 import android.view._
 import android.os.Bundle
@@ -10,6 +9,7 @@ import TypedResource._
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.widget.Toast
+import android.support.v4.app.DialogFragment
 
 class ParameterEditorFragment(val param: VehicleMonitor#ParamValue) extends DialogFragment with AndroidLogger {
   setCancelable(true)
@@ -57,43 +57,3 @@ class ParameterEditorFragment(val param: VehicleMonitor#ParamValue) extends Dial
     builder.create()
   }
 }
-/*
-
-    v.findView(TR.button_ok).onClick { view =>
-      
-    }
-    v
-  }
-08
- 
-09
-    public override View OnCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-10
-    {
-11
-        var view = inflater.Inflate(Resource.Layout.dialog_fragment_layout, container, false);
-12
-        var textView = view.FindViewById<TextView>(Resource.Id.dialog_text_view);
-13
-             
-14
-        view.FindViewById<Button>(Resource.Id.dialog_button).Click += delegate
-15
-                                                                              {
-16
-                                                                                   
-17
-                                                                                  textView.Text = "You clicked the button " + _clickCount++ + " times.";
-18
-                                                                              };
-19
-        // Set up a handler to dismiss this DialogFragment when this button is clicked.
-20
-            view.FindViewById<Button>(Resource.Id.dismiss_dialog_button).Click += (sender, args) => Dismiss();
-21
-            return view;
-22
-        }
-23
-    }
-*/ 

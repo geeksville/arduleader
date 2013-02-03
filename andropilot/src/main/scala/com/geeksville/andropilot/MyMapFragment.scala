@@ -4,6 +4,7 @@ import com.geeksville.gmaps.Scene
 import com.google.android.gms.maps.model._
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.SupportMapFragment
 import com.geeksville.flight._
 import com.geeksville.akka._
 import com.geeksville.mavlink._
@@ -36,8 +37,7 @@ import android.view.inputmethod.InputMethodManager
 /**
  * Our customized map fragment
  */
-class MyMapFragment extends com.google.android.gms.maps.MapFragment
-  with UsesPreferences with AndroServiceFragment {
+class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroServiceFragment {
 
   var scene: Option[Scene] = None
 

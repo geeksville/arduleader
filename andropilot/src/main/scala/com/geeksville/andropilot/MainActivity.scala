@@ -1,6 +1,5 @@
 package com.geeksville.andropilot
 
-import android.app.Activity
 import _root_.android.os.Bundle
 import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
@@ -45,8 +44,12 @@ import com.geeksville.mavlink.MsgHeartbeatFound
 import com.geeksville.flight.MsgWaypointsDownloaded
 import com.geeksville.flight.MsgParametersDownloaded
 import com.geeksville.flight.MsgModeChanged
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentPagerAdapter
+import android.support.v4.app.FragmentActivity
+import android.support.v4.view.ViewPager
 
-class MainActivity extends Activity with TypedActivity
+class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with UsesPreferences
   with AndroServiceClient {
 
@@ -67,6 +70,33 @@ class MainActivity extends Activity with TypedActivity
 
   private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
+
+  /**
+   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one
+   * of the sections/tabs/pages.
+   */
+  lazy val sectionsPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager) {
+
+    case class PageInfo(title: String, generator: () => Fragment)
+
+    val pages = IndexedSeq(PageInfo("Parameters", { () => new ParameterListFragment }),
+      PageInfo("RC Channels", { () => new RcChannelsFragment }))
+
+    override def getItem(position: Int) = {
+      // getItem is called to instantiate the fragment for the given page.
+      // Return a DummySectionFragment (defined as a static inner class
+      // below) with the page number as its lone argument.
+      val fragment = pages(position).generator()
+      //Bundle args = new Bundle();
+      //args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
+      //fragment.setArguments(args);
+      fragment
+    }
+
+    override def getCount() = pages.size
+
+    override def getPageTitle(i: Int) = pages(i).title
+  }
 
   // We don't cache these - so that if we get rotated we pull the correct one
   def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment]
@@ -138,6 +168,9 @@ class MainActivity extends Activity with TypedActivity
     // textView.setText("hello, world!")
 
     handler = new Handler
+
+    // Set up the ViewPager with the sections adapter (if it is present on this layout)
+    Option(findViewById(R.id.pager).asInstanceOf[ViewPager]).foreach(_.setAdapter(sectionsPagerAdapter))
 
     val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
     if (probe == ConnectionResult.SUCCESS) {

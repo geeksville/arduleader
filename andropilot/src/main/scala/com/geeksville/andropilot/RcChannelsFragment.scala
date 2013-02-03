@@ -1,6 +1,5 @@
 package com.geeksville.andropilot
 
-import android.app.ListFragment
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import com.ridemission.scandroid.AndroidLogger
@@ -12,6 +11,8 @@ import scala.collection.JavaConverters._
 import android.widget.SimpleAdapter
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 import com.geeksville.flight.MsgRcChannelsChanged
+import com.geeksville.util.ThreadTools._
+import android.support.v4.app.ListFragment
 
 class RcChannelsFragment extends ListFragment with AndroServiceFragment {
 
@@ -21,13 +22,18 @@ class RcChannelsFragment extends ListFragment with AndroServiceFragment {
     // Don't expand the view until we have _something_ to display
     if (getActivity != null) {
       debug("Setting rcchannel")
-      makeAdapter.foreach(setListAdapter)
+      updateList()
     }
   }
 
   override def onVehicleReceive = {
     case MsgRcChannelsChanged(_) =>
-      debug("Received Rc channels - fixme")
+      debug("Received Rc channels")
+      handler.post(updateList _)
+  }
+
+  private def updateList() {
+    makeAdapter.foreach(setListAdapter)
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

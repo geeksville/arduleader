@@ -91,7 +91,7 @@ trait AndroServiceClient extends AndroidLogger {
    */
   protected def isInterested(evt: Any) = {
     val r = onVehicleReceive.isDefinedAt(evt)
-    if (!r) debug("%s is not interested in %s".format(this, evt))
+    //if (!r) debug("%s is not interested in %s".format(this, evt))
     r
   }
 

@@ -1,6 +1,5 @@
 package com.geeksville.andropilot
 
-import android.app.ListFragment
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import com.ridemission.scandroid.AndroidLogger
@@ -13,7 +12,7 @@ import android.widget.SimpleAdapter
 import android.os.Handler
 import com.geeksville.flight.MsgParametersDownloaded
 import com.geeksville.util.ThreadTools._
-import android.app.Fragment
+import android.support.v4.app.Fragment
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
