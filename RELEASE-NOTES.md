@@ -4,7 +4,7 @@
 * Add preferences option to force the screen to stay on (default off)
 * Fix mode display when waking from sleep
 * Change param list over to new fragment system
-* Allow swipes to change the info panels
+* Use gestures to change the info panels
 * Add periodic updates for rcchannels (share actor client code with map & mainactivity)
 
 For next release:
