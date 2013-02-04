@@ -12,6 +12,7 @@
 * Add periodic updates for rcchannels (share actor client code with map & mainactivity)
 
 For next release:
+* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
 * FIXME - add waypoint panel (should be easy now that I have the slidy panel stuff in)
 * FIXME: fix udp receiver
 * FIXME: add waypoint change type (via menu dropdown)

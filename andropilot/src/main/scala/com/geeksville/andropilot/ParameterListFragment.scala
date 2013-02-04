@@ -14,7 +14,7 @@ import com.geeksville.flight.MsgParametersDownloaded
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
 
-class ParameterListFragment extends ListFragment with AndroServicePage {
+class ParameterListFragment extends ListFragment with AndroServiceFragment {
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
@@ -25,7 +25,6 @@ class ParameterListFragment extends ListFragment with AndroServicePage {
   }
 
   override def onVehicleReceive = {
-    // Super crufty - do this someplace else
     case MsgParametersDownloaded =>
       handler.post(updateParameters _)
   }

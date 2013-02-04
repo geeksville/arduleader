@@ -88,6 +88,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val pages = IndexedSeq(
       PageInfo("Overview", { () => new OverviewFragment }),
       PageInfo("Parameters", { () => new ParameterListFragment }),
+      PageInfo("Waypoints", { () => new WaypointListFragment }),
       PageInfo("RC Channels", { () => new RcChannelsFragment }))
 
     override def getItem(position: Int) = {

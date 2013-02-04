@@ -22,7 +22,7 @@ import com.geeksville.mavlink.MavlinkEventBus
 //
 case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
-case class MsgWaypointsDownloaded(wp: Seq[msg_mission_item])
+case class MsgWaypointsDownloaded(wp: Seq[Waypoint])
 case object MsgParametersDownloaded
 case object MsgWaypointsChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
@@ -56,7 +56,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var numSats: Option[Int] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
 
-  var waypoints = Seq[msg_mission_item]()
+  var waypoints = IndexedSeq[Waypoint]()
 
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
@@ -221,7 +221,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         log.debug("Vehicle requesting waypoint %d".format(msg.seq))
         checkRetryReply(msg) // Cancel any retries that were waiting for this message
 
-        val wp = waypoints(msg.seq)
+        val wp = waypoints(msg.seq).msg
         // Make sure that the target system is correct (FIXME - it seems like this is not correct)
         wp.target_system = msg.sysId
         wp.target_component = msg.componentId
@@ -246,7 +246,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
           // We were just told how many waypoints the target has, now fetch them (one at a time)
           numWaypointsRemaining = msg.count
           nextWaypointToFetch = 0
-          waypoints = Seq()
+          waypoints = IndexedSeq()
           requestNextWaypoint()
         }
       }
@@ -258,7 +258,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
           log.error("Ignoring duplicate waypoint response")
         else
           checkRetryReply(msg).foreach { msg =>
-            waypoints = waypoints :+ msg
+            waypoints = waypoints :+ Waypoint(msg)
 
             /*
  * MISSION_ITEM {target_system : 255, target_component : 190, seq : 0, frame : 0, command : 16, current : 1, autocontinue : 1, param1 : 0.0, param2 : 0.0, param3 : 0.0, param4 : 0.0, x : 37.5209159851, y : -122.309059143, z : 143.479995728}
@@ -282,9 +282,9 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       checkRetryReply(msg)
       if (waypoints.count { w =>
         val newval = if (w.seq == msg.seq) 1 else 0
-        val changed = newval != w.current
+        val changed = newval != w.msg.current
         if (changed)
-          w.current = newval
+          w.msg.current = newval
         changed
       } > 0)
         onWaypointsChanged()

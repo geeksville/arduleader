@@ -33,6 +33,7 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import org.mavlink.messages.MAV_FRAME
 import android.view.inputmethod.InputMethodManager
+import com.geeksville.flight.Waypoint
 
 /**
  * Our customized map fragment
@@ -271,7 +272,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         scene.get.addMarker(marker)
         guidedMarker = Some(marker)
 
-        v.gotoGuided(marker.msg)
+        v.gotoGuided(marker.wp.msg)
         handleWaypoints()
 
         toast("Guided flight selected")
@@ -283,7 +284,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         val wp = v.missionItem(v.waypoints.size, loc)
 
         // FIXME - we shouldn't be touching this
-        v.waypoints = v.waypoints :+ wp
+        v.waypoints = v.waypoints :+ Waypoint(wp)
 
         v ! SendWaypoints
         handleWaypoints() // Update GUI
@@ -292,33 +293,18 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
     }
   }
 
-  class WaypointMarker(val msg: msg_mission_item) extends MyMarker with AndroidLogger {
-    private val commandCodes = Map(
-      MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
-      MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
-      MAV_CMD.MAV_CMD_NAV_LAND -> "Land", // LAND to Waypoint
-      MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> "Loiter", // Loiter indefinitely
-      MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> "LoiterN", // Loiter N Times
-      MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
-      MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
+  class WaypointMarker(val wp: Waypoint) extends MyMarker with AndroidLogger {
 
-    private val frameCodes = Map(
-      MAV_FRAME.MAV_FRAME_GLOBAL -> "MSL",
-      MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT -> "AGL")
-
-    def commandStr = commandCodes.get(msg.command).getOrElse("cmd=" + msg.command)
-    def frameStr = frameCodes.get(msg.frame).getOrElse("frame=" + msg.frame)
-
-    def lat = msg.x
-    def lon = msg.y
+    def lat = wp.msg.x
+    def lon = wp.msg.y
 
     override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
 
     override def isAltitudeEditable = !isHome
-    override def altitude = msg.z
+    override def altitude = wp.msg.z
     override def altitude_=(n: Double) {
       if (n != altitude) {
-        msg.z = n.toFloat
+        wp.msg.z = n.toFloat
         setSnippet()
         sendWaypointsAndUpdate()
       }
@@ -328,19 +314,19 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
       val r = if (isHome)
         "Home"
       else
-        "Waypoint #" + msg.seq + " (" + commandStr + ")"
+        "Waypoint #" + wp.msg.seq + " (" + wp.commandStr + ")"
 
       Some(r)
     }
 
     override def snippet = {
-      import msg._
+      import wp.msg._
       val params = Seq(param1, param2, param3, param4)
       val hasParams = params.find(_ != 0.0f).isDefined
       val r = if (hasParams)
-        "Alt=%sm %s params=%s".format(z, frameStr, params.mkString(","))
+        "Alt=%sm %s params=%s".format(z, wp.frameStr, params.mkString(","))
       else
-        "Altitude %sm %s".format(z, frameStr)
+        "Altitude %sm %s".format(z, wp.frameStr)
       Some(r)
     }
 
@@ -348,10 +334,10 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
      * Can the user see/change auto continue
      */
     override def isAllowAutocontinue = true
-    override def isAutocontinue = msg.autocontinue != 0
+    override def isAutocontinue = wp.msg.autocontinue != 0
     override def isAutocontinue_=(b: Boolean) {
       if (b != isAutocontinue) {
-        msg.autocontinue = if (b) 1 else 0
+        wp.msg.autocontinue = if (b) 1 else 0
         sendWaypointsAndUpdate()
       }
     }
@@ -362,7 +348,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
           Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_red))
         else
           Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
-      } else msg.current match {
+      } else wp.msg.current match {
         case 0 =>
           Some(BitmapDescriptorFactory.fromResource(R.drawable.blue))
         case 1 =>
@@ -375,10 +361,10 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
     }
 
     /// The magic home position
-    def isHome = (msg.current != 2) && (msg.seq == 0)
+    def isHome = wp.isHome
 
     /// If the airplane is heading here
-    def isCurrent = msg.current == 1
+    def isCurrent = wp.isCurrent
 
     override def toString = title.get
 
@@ -388,16 +374,16 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
     }
   }
 
-  class GuidedWaypointMarker(loc: Location) extends WaypointMarker(myVehicle.get.makeGuided(loc)) {
+  class GuidedWaypointMarker(loc: Location) extends WaypointMarker(Waypoint(myVehicle.get.makeGuided(loc))) {
   }
 
   /**
    * A draggable marker that will send movement commands to the vehicle
    */
-  class DraggableWaypointMarker(msg: msg_mission_item) extends WaypointMarker(msg) {
+  class DraggableWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
 
-    override def lat_=(n: Double) { msg.x = n.toFloat }
-    override def lon_=(n: Double) { msg.y = n.toFloat }
+    override def lat_=(n: Double) { wp.msg.x = n.toFloat }
+    override def lon_=(n: Double) { wp.msg.y = n.toFloat }
 
     override def draggable = !isHome
 
@@ -412,11 +398,11 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
       for { map <- mapOpt; v <- myVehicle } yield {
         // FIXME - we shouldn't be touching this
         v.waypoints = v.waypoints.filter { w =>
-          val keepme = w.seq != msg.seq
+          val keepme = w.seq != wp.seq
 
           // For items after the msg we are deleting, we need to fixup their sequence numbers
-          if (w.seq > msg.seq)
-            w.seq -= 1
+          if (w.seq > wp.seq)
+            w.msg.seq -= 1
 
           keepme
         }
@@ -428,7 +414,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
 
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
-        v.setCurrent(msg.seq)
+        v.setCurrent(wp.seq)
         v.setMode("AUTO")
         //toast("Goto " + title)
       }
