@@ -12,7 +12,6 @@
 * Add periodic updates for rcchannels (share actor client code with map & mainactivity)
 
 For next release:
-* FIXME - add vehicle info panel (should be easy now that I have the slidy panel stuff in)
 * FIXME - add waypoint panel (should be easy now that I have the slidy panel stuff in)
 * FIXME: fix udp receiver
 * FIXME: add waypoint change type (via menu dropdown)

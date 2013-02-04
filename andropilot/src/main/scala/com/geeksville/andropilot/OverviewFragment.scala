@@ -24,22 +24,27 @@ import java.util.LinkedList
 
 class OverviewFragment extends Fragment with AndroServiceFragment {
 
-  private lazy val statusItems = new ArrayAdapter(getActivity, android.R.layout.simple_list_item_1, new LinkedList[String]())
+  private lazy val statusItems = {
+    val r = new ArrayAdapter(getActivity, R.layout.simple_list_item_1_small, new LinkedList[String]())
+    r.add("Looking for vehicle...") // Mostly for testing, but gives the user a hint also...
+    r
+  }
 
-  private lazy val latView = getView.findView(TR.latitude)
-  private lazy val lonView = getView.findView(TR.longitude)
-  private lazy val altView = getView.findView(TR.altitude)
-  private lazy val numSatView = getView.findView(TR.gps_numsats)
-  private lazy val rssiLocalView = getView.findView(TR.rssi_local)
-  private lazy val batteryView = getView.findView(TR.battery_volt)
-  private lazy val listView = getView.findView(TR.status_list)
+  private def latView = getView.findView(TR.latitude)
+  private def lonView = getView.findView(TR.longitude)
+  private def altView = getView.findView(TR.altitude)
+  private def numSatView = getView.findView(TR.gps_numsats)
+  private def rssiLocalView = getView.findView(TR.rssi_local)
+  private def batteryView = getView.findView(TR.battery_volt)
+  private def listView = getView.findView(TR.status_list)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     // Inflate the layout for this fragment
     val v = inflater.inflate(R.layout.vehicle_overview, container, false)
 
-    v.findView(TR.status_list).setAdapter(statusItems)
-
+    val list = v.findView(TR.status_list)
+    list.setAdapter(statusItems)
+    list.setFocusable(false)
     v
   }
 
