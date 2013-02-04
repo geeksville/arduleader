@@ -152,11 +152,14 @@ class MainActivity extends FragmentActivity with TypedActivity
           setModeSpinner() // FIXME, do this someplace better
         }
       }
+    /*
+       * We now just show this in the overview panel
     case MsgStatusChanged(s) =>
       debug("Status changed: " + s)
       handler.post { () =>
         toast(s)
       }
+      */
   }
 
   override def onServiceConnected(s: AndropilotService) {

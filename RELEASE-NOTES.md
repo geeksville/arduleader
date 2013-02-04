@@ -13,7 +13,7 @@
 
 For next release:
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* FIXME - add waypoint panel (should be easy now that I have the slidy panel stuff in)
+* Show heartbeat lost on the overview screen
 * FIXME: fix udp receiver
 * FIXME: add waypoint change type (via menu dropdown)
 * FIXME: make a website

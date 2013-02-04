@@ -82,7 +82,7 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
       debug("Status changed: " + s)
       handler.post { () =>
         if (getView != null) {
-          val maxNumStatus = 10
+          val maxNumStatus = 32
 
           statusItems.add(s)
           if (statusItems.getCount > maxNumStatus)
