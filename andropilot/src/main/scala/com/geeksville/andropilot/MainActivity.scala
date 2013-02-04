@@ -66,7 +66,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var modeSpinner: Option[Spinner] = None
 
   /**
-   * If an intent arrives before our service is up, squirell it away until we can handle it
+   * If an intent arrives before our service is up, squirel it away until we can handle it
    */
   private var waitingForService: Option[Intent] = None
 
@@ -85,7 +85,9 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case class PageInfo(title: String, generator: () => Fragment)
 
-    val pages = IndexedSeq(PageInfo("Parameters", { () => new ParameterListFragment }),
+    val pages = IndexedSeq(
+      PageInfo("Overview", { () => new OverviewFragment }),
+      PageInfo("Parameters", { () => new ParameterListFragment }),
       PageInfo("RC Channels", { () => new RcChannelsFragment }))
 
     override def getItem(position: Int) = {
@@ -106,12 +108,13 @@ class MainActivity extends FragmentActivity with TypedActivity
     override def setPrimaryItem(container: ViewGroup, position: Int, obj: Object) {
       super.setPrimaryItem(container, position, obj)
 
-      val asPage = obj.asInstanceOf[PagerPage]
-      val newPage = Some(asPage)
+      // If the fragment doesn't care to be notified of extra page stuff - don't bother with it
+      val newPage = if (obj.isInstanceOf[PagerPage]) Some(obj.asInstanceOf[PagerPage]) else None
+
       if (curPage != newPage) { // Android seems to send redundant notifications - don't get confused
         curPage.foreach(_.onPageHidden())
         curPage = newPage
-        asPage.onPageShown()
+        newPage.foreach(_.onPageShown())
       }
     }
   }

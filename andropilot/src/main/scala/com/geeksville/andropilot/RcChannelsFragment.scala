@@ -46,10 +46,6 @@ class RcChannelsFragment extends ListFragment with AndroServicePage {
     makeAdapter.foreach(setListAdapter)
   }
 
-  override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    info("Item clicked: " + id)
-  }
-
   private def rcToSeq(m: msg_rc_channels_raw) =
     Seq("Channel 1" -> m.chan1_raw, "Channel 2" -> m.chan2_raw, "Channel 3" -> m.chan3_raw, "Channel 4" -> m.chan4_raw,
       "Channel 5" -> m.chan5_raw, "Channel 6" -> m.chan6_raw, "Channel 7" -> m.chan7_raw, "Channel 8" -> m.chan8_raw,
