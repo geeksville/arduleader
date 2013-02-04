@@ -464,27 +464,15 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         // Generate a few optional lines of text
 
         val locStr = v.location.map { l =>
-          "Alt %.1fm".format(l.alt)
+          "Altitude %.1fm".format(l.alt)
         }
 
-        val batStr = for { volt <- v.batteryVoltage } yield {
-          val vWarn = if (isLowVolt) " LowVolt!" else ""
-          val pWarn = if (isLowBatPercent) " LowPct!" else ""
-          val pctStr = v.batteryPercent.map { pct => "(%d%%)".format(pct * 100 toInt) }.getOrElse("")
-          "Bat %sV %s%s%s".format(volt, pctStr, vWarn, pWarn)
-        }
+        val batStr = if (isLowVolt) Some("LowVolt!") else None
+        val pctStr = if (isLowBatPercent) Some("LowPct!") else None
+        val radioStr = if (isLowRssi) Some("LowRssi!") else None
+        val gpsStr = if (isLowNumSats) Some("LowSats!") else None
 
-        val radioStr = for { r <- v.radio } yield {
-          val warn = if (isLowRssi) " LowRssi!" else ""
-          "Rssi %d/%d rxerr %d%s".format(r.rssi, r.remrssi, r.rxerrors, warn)
-        }
-
-        val gpsStr = for { r <- v.numSats } yield {
-          val warn = if (isLowNumSats) " LowSats!" else ""
-          "Sats %d%s".format(r, warn)
-        }
-
-        val r = Seq(v.status, locStr, batStr, radioStr, gpsStr).flatten.mkString(", ")
+        val r = Seq(locStr, batStr, pctStr, radioStr, gpsStr).flatten.mkString(" ")
         //debug("snippet: " + r)
         r
       }.getOrElse("No service"))

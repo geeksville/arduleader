@@ -20,14 +20,19 @@ import com.ridemission.scandroid.AndroidUtil._
 import TypedResource._
 import android.widget.ArrayAdapter
 import com.geeksville.flight._
+import java.util.LinkedList
 
 class OverviewFragment extends Fragment with AndroServiceFragment {
 
-  private lazy val statusItems = new ArrayAdapter(getActivity, android.R.layout.simple_list_item_1, Array[String]())
+  private lazy val statusItems = new ArrayAdapter(getActivity, android.R.layout.simple_list_item_1, new LinkedList[String]())
 
   private lazy val latView = getView.findView(TR.latitude)
   private lazy val lonView = getView.findView(TR.longitude)
   private lazy val altView = getView.findView(TR.altitude)
+  private lazy val numSatView = getView.findView(TR.gps_numsats)
+  private lazy val rssiLocalView = getView.findView(TR.rssi_local)
+  private lazy val batteryView = getView.findView(TR.battery_volt)
+  private lazy val listView = getView.findView(TR.status_list)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     // Inflate the layout for this fragment
@@ -50,26 +55,41 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
 
   override def onVehicleReceive = {
     case l: Location =>
-      debug("Handling location: " + l)
+      //debug("Handling location: " + l)
       handler.post { () =>
         val degSymbol = "\u00B0"
         latView.setText(l.lat.toString + degSymbol)
         lonView.setText(l.lon.toString + degSymbol)
         altView.setText(l.alt + " m")
+        myVehicle.foreach { v =>
+          v.numSats.foreach { n => numSatView.setText(n.toString) }
+        }
       }
 
     case MsgSysStatusChanged =>
+      handler.post { () =>
+        myVehicle.foreach { v =>
+          v.radio.foreach { n =>
+            rssiLocalView.setText(n.rssi.toString + "/" + n.remrssi.toString)
+          }
+          v.batteryVoltage.foreach { n =>
+            val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
+            batteryView.setText(n.toString + "V " + socStr)
+          }
+        }
+      }
 
     case MsgStatusChanged(s) =>
       debug("Status changed: " + s)
       handler.post { () =>
 
-        val maxNumStatus = 4
+        val maxNumStatus = 10
 
         statusItems.add(s)
         if (statusItems.getCount > maxNumStatus)
           statusItems.remove(statusItems.getItem(0))
         statusItems.notifyDataSetChanged()
+        listView.smoothScrollToPosition(statusItems.getCount - 1)
       }
   }
 

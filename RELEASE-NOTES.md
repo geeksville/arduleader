@@ -1,3 +1,7 @@
+# 0.1.29
+
+* Add an overview panel - make it the default panel
+
 # 0.1.28
 
 * Add a basic RC channels info panel
