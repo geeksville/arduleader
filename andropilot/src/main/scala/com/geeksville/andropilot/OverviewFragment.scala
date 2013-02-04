@@ -44,42 +44,36 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
 
     val list = v.findView(TR.status_list)
     list.setAdapter(statusItems)
-    list.setFocusable(false)
+    list.setItemsCanFocus(false)
     v
-  }
-
-  override def onServiceConnected(s: AndropilotService) {
-    super.onServiceConnected(s)
-
-    // Don't expand the view until we have _something_ to display
-    if (isVisible) {
-      debug("Setting rcchannel")
-      // updateList()
-    }
   }
 
   override def onVehicleReceive = {
     case l: Location =>
       //debug("Handling location: " + l)
       handler.post { () =>
-        val degSymbol = "\u00B0"
-        latView.setText(l.lat.toString + degSymbol)
-        lonView.setText(l.lon.toString + degSymbol)
-        altView.setText(l.alt + " m")
-        myVehicle.foreach { v =>
-          v.numSats.foreach { n => numSatView.setText(n.toString) }
+        if (getView != null) {
+          val degSymbol = "\u00B0"
+          latView.setText(l.lat.toString + degSymbol)
+          lonView.setText(l.lon.toString + degSymbol)
+          altView.setText(l.alt + "m")
+          myVehicle.foreach { v =>
+            v.numSats.foreach { n => numSatView.setText(n.toString) }
+          }
         }
       }
 
     case MsgSysStatusChanged =>
       handler.post { () =>
-        myVehicle.foreach { v =>
-          v.radio.foreach { n =>
-            rssiLocalView.setText(n.rssi.toString + "/" + n.remrssi.toString)
-          }
-          v.batteryVoltage.foreach { n =>
-            val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
-            batteryView.setText(n.toString + "V " + socStr)
+        if (getView != null) {
+          myVehicle.foreach { v =>
+            v.radio.foreach { n =>
+              rssiLocalView.setText(n.rssi.toString + "/" + n.remrssi.toString)
+            }
+            v.batteryVoltage.foreach { n =>
+              val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
+              batteryView.setText(n.toString + "V " + socStr)
+            }
           }
         }
       }
@@ -87,14 +81,15 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
     case MsgStatusChanged(s) =>
       debug("Status changed: " + s)
       handler.post { () =>
+        if (getView != null) {
+          val maxNumStatus = 10
 
-        val maxNumStatus = 10
-
-        statusItems.add(s)
-        if (statusItems.getCount > maxNumStatus)
-          statusItems.remove(statusItems.getItem(0))
-        statusItems.notifyDataSetChanged()
-        listView.smoothScrollToPosition(statusItems.getCount - 1)
+          statusItems.add(s)
+          if (statusItems.getCount > maxNumStatus)
+            statusItems.remove(statusItems.getItem(0))
+          statusItems.notifyDataSetChanged()
+          listView.smoothScrollToPosition(statusItems.getCount - 1)
+        }
       }
   }
 
