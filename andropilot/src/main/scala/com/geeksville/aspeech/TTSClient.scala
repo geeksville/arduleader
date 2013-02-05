@@ -16,7 +16,7 @@ trait TTSClient extends Activity with TextToSpeech.OnInitListener {
   }
 
   /**
-   * Notify us that TTS is ready to role
+   * Notify us that TTS is ready to roll
    * @param errorCode 0 means okay
    */
   override def onInit(errorCode: Int) {
