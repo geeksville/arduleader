@@ -1,0 +1,13 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+<TableRow>
+	<TextView android:text="Pitch" android:layout_weight="1" android:id="@+id/minmax_name" />
+	<TextView android:text="Min: 1000" android:layout_weight="1"  android:id="@+id/minmax_Min"/>
+	<TextView android:text="1500" android:layout_weight="1" android:id="@+id/minmax_Current"/>
+	<TextView android:text="Max: 2000" android:layout_weight="1" android:id="@+id/minmax_Max"/>
+</TableRow>
+<TableRow>
+    <SeekBar android:id="@+id/minmax_seekBar" android:layout_span="4" android:layout_weight="1" />
+</TableRow>
+
+</merge>

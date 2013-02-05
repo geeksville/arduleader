@@ -8,6 +8,7 @@ A prebuilt version of the Android application is [on the Play store](https://pla
 
 * Mavlink compiler and library kindly created and donated by Guillaume Helle (antispamprefixremovemeghelle31@gmail.com).  If you 
 would like to use this code in your own project, the source is located in the mavjava directory.
+* Copter-gcs provided the nice HUD display code
 
 # License
 

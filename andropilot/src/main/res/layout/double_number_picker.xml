@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<TextView 
+	android:id="@+id/valueName" 
+	android:text="   P   " 
+	android:layout_width="wrap_content" 
+	android:layout_height="wrap_content"
+	/>
+	<Button android:id="@+id/doubleMinusLarge"
+			android:text="0.1" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"
+  				/>
+	
+	<Button android:id="@+id/doubleMinusSmall"
+			android:text="0.01" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"
+  				/>
+				
+	<EditText 
+	android:id="@+id/TextP" 
+	android:text="NA"
+	android:gravity="center_horizontal"
+	android:layout_width="match_parent" 
+	android:layout_height="wrap_content"
+	android:layout_weight="1"
+	android:numeric="decimal"
+	 />
+
+	<Button android:id="@+id/doublePlusSmall"
+			android:text="0.01" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"
+  				/>
+  				
+  	<Button android:id="@+id/doublePlusLarge"
+  			android:text="0.1" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"
+  				/>
+  	
+ <!--   <TextView 
+	android:id="@+id/valueName" 
+	android:text="   P   " 
+	android:layout_width="fill_parent" android:layout_height="wrap_content"
+	/>
+
+	<SeekBar 
+	android:id="@+id/seekBarP" 
+	android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1"
+	 />
+
+	<EditText 
+	android:id="@+id/TextP" 
+	android:text="NA"
+	android:gravity="center_horizontal"
+	android:layout_width="fill_parent" android:layout_height="wrap_content"
+	 />
+	  -->
+<!-- 
+	<Button android:text="-0.1" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"/>
+				
+	<TextView android:text="0.25" 
+			android:id="@+id/Text"
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:numeric="decimal"			
+			android:layout_weight="1"/>
+
+	<Button android:text="0.1" 
+			android:layout_width="wrap_content"
+  			android:layout_height="wrap_content"/>
+ -->
+
+</merge>
