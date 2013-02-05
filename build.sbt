@@ -12,8 +12,6 @@ libraryDependencies += "org.scala-lang" % "scala-compiler" % "2.10.0" withSource
 
 libraryDependencies += "org.scala-lang" % "jline" % "2.10.0" withSources()
 
-libraryDependencies += "net.java.dev.jna" % "jna" % "3.5.1" // For libFtdi
-
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
 
 EclipseKeys.createSrc in ThisBuild := EclipseCreateSrc.Default + EclipseCreateSrc.Resource // Include resources dir in eclipse classpath
