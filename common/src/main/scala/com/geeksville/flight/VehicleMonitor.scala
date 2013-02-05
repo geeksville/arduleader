@@ -329,17 +329,18 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
-    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3)
+    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> 1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> 1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 5,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> 1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> 1,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> 1)
 
-    interestingStreams.foreach { id =>
-      sendMavlink(requestDataStream(id))
-      sendMavlink(requestDataStream(id))
+    interestingStreams.foreach {
+      case (id, freqHz) =>
+        sendMavlink(requestDataStream(id, freqHz))
+        sendMavlink(requestDataStream(id, freqHz))
     }
 
     // First contact, download any waypoints from the vehicle and get params

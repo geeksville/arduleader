@@ -125,12 +125,12 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
-  def requestDataStream(id: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+  def requestDataStream(id: Int, freqHz: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_request_data_stream(systemId, componentId)
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg.req_stream_id = id
-    msg.req_message_rate = 1 // for 10Hz, use 5 for 50Hz
+    msg.req_message_rate = freqHz
     msg.start_stop = 1 // start
     msg
   }
