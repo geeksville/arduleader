@@ -38,21 +38,19 @@ import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 import android.view.MenuItem
 import com.ridemission.scandroid.UsesPreferences
 import com.geeksville.akka.InstrumentedActor
-import com.geeksville.flight.MsgStatusChanged
-import com.geeksville.mavlink.MsgHeartbeatLost
-import com.geeksville.mavlink.MsgHeartbeatFound
-import com.geeksville.flight.MsgWaypointsDownloaded
-import com.geeksville.flight.MsgParametersDownloaded
-import com.geeksville.flight.MsgModeChanged
+import com.geeksville.flight._
+import com.geeksville.mavlink._
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.app.FragmentActivity
 import android.support.v4.view.ViewPager
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.view.ViewGroup
+import com.geeksville.aspeech.TTSClient
+import com.geeksville.util.ThrottleByBucket
 
 class MainActivity extends FragmentActivity with TypedActivity
-  with AndroidLogger with FlurryActivity with UsesPreferences
+  with AndroidLogger with FlurryActivity with UsesPreferences with TTSClient
   with AndroServiceClient {
 
   implicit def context = this
@@ -130,6 +128,9 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private var oldVehicleType: Option[Int] = None
 
+  private val throttleAlt = new ThrottleByBucket(10)
+  private val throttleBattery = new ThrottleByBucket(10)
+
   /**
    * We install this receiver only once we're connected to a device -
    * only used to show a Toast about disconnection...
@@ -142,6 +143,25 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onVehicleReceive = {
+
+    case l: Location =>
+      throttleAlt(l.alt.toInt) { alt =>
+        handler.post { () =>
+          debug("Speak alt: " + alt)
+          speak("Altitude " + alt)
+        }
+      }
+
+    case MsgSysStatusChanged =>
+      for { v <- myVehicle; pct <- v.batteryPercent } yield {
+        throttleBattery((pct * 100).toInt) { pct =>
+          handler.post { () =>
+            debug("Speak battery: " + pct)
+            speak("Battery " + pct + " percent")
+          }
+        }
+      }
+
     case MsgModeChanged(_) =>
       handler.post { () =>
         myVehicle.foreach { v =>
@@ -222,6 +242,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
       Option(mFragment.getView).foreach(_.setVisibility(View.GONE))
     }
+
+    initSpeech()
   }
 
   /**
@@ -292,6 +314,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
           if (AndroidSerial.getDevice.isDefined) {
+            // speak("Connected")
             toast("3DR Telemetry connected...")
           } else
             warn("Ignoring attach for some other device")
@@ -321,6 +344,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           }.get
         }
         myVehicle.foreach { v =>
+          speak("Mode: " + v.currentMode)
           val n = findIndex(v.currentMode)
           //debug("Setting mode spinner to: " + n)
 
@@ -360,6 +384,8 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeOptions()
     setModeSpinner()
 
+    menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
       val modeName = s.getAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
@@ -377,8 +403,16 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onOptionsItemSelected(item: MenuItem) = {
-    if (item.getItemId() == R.id.menu_settings)
-      startActivity(new Intent(this, classOf[SettingsActivity]))
+    item.getItemId match {
+      case R.id.menu_settings =>
+        startActivity(new Intent(this, classOf[SettingsActivity]))
+      case R.id.menu_speech =>
+        val n = !item.isChecked
+        debug("Toggle speech, newmode " + n)
+        isSpeechEnabled = n
+        item.setChecked(n)
+      case _ =>
+    }
 
     super.onOptionsItemSelected(item)
   }

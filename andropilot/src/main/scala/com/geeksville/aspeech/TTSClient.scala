@@ -3,41 +3,121 @@ package com.geeksville.aspeech
 import android.app.Activity
 import android.content.Intent
 import android.speech.tts.TextToSpeech
+import com.ridemission.scandroid.UsesPreferences
+import com.ridemission.scandroid.AndroidLogger
+import android.content.Context
+import java.util.Locale
 
-trait TTSClient extends Activity with TextToSpeech.OnInitListener {
+/**
+ * Speak using the Android TTS library
+ */
+trait TTSClient extends Activity with UsesPreferences with AndroidLogger {
   private val MY_DATA_CHECK_CODE = 0x4403
 
   private var tts: Option[TextToSpeech] = None
 
-  def startTTSCheck() {
-    val checkIntent = new Intent();
-    checkIntent.setAction("android.speech.tts.engine.CHECK_TTS_DATA")
-    startActivityForResult(checkIntent, MY_DATA_CHECK_CODE)
+  private val listener = new TextToSpeech.OnInitListener {
+    /**
+     * Notify us that TTS is ready to roll
+     * @param errorCode 0 means okay
+     */
+    override def onInit(errorCode: Int) {
+      if (errorCode != 0)
+        error("Can't open TTS")
+      else {
+        info("Opened TTS")
+        tts.foreach { t =>
+          val langCheck = t.setLanguage(Locale.getDefault())
+          langCheck match {
+            case TextToSpeech.LANG_MISSING_DATA =>
+              error("Missing lang data")
+              askInstall()
+            case TextToSpeech.LANG_NOT_SUPPORTED =>
+              error("Lang not supported")
+            case _ =>
+              speak("Speech enabled")
+          }
+        }
+      }
+    }
+  }
+
+  def isSpeechEnabled = boolPreference("speech_enabled", false)
+  def isSpeechEnabled_=(b: Boolean) {
+    preferences.edit.putBoolean("speech_enabled", b).commit()
   }
 
   /**
-   * Notify us that TTS is ready to roll
-   * @param errorCode 0 means okay
+   * Say a phrase
+   *
+   * @param urgent if true then previously queued text will be abandoned
    */
-  override def onInit(errorCode: Int) {
-
+  def speak(str: String, urgent: Boolean = false) {
+    if (isSpeechEnabled)
+      tts.foreach(_.speak(str, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
   }
 
-  override protected def onActivityResult(
-    requestCode: Int, resultCode: Int, data: Intent) {
+  /**
+   * Begin asking if TTS is available, result will come in onActivityResult
+   */
+  /*
+  def startTTSCheck() {
+    if (isSpeechEnabled) {
+      val checkIntent = new Intent();
+      checkIntent.setAction("android.speech.tts.engine.CHECK_TTS_DATA")
+      startActivityForResult(checkIntent, MY_DATA_CHECK_CODE)
+    }
+  }
+  */
+
+  def initSpeech() {
+    val t = new TextToSpeech(this, listener)
+    tts = Some(t)
+  }
+
+  override def onDestroy() {
+    tts.foreach(_.shutdown())
+    tts = None
+  }
+
+  /*
+  override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
     val CHECK_VOICE_DATA_PASS = 0x00000001
 
+    // Ugh - this seems busted on Jellybean
+    // http://code.google.com/p/android/issues/detail?id=36430
+    val CHECK_VOICE_DATA_MISSING_DATA = -2
+
     if (requestCode == MY_DATA_CHECK_CODE) {
-      if (resultCode == CHECK_VOICE_DATA_PASS) {
+      debug("Voice activity result: " + resultCode)
+
+      if (resultCode == CHECK_VOICE_DATA_PASS || resultCode == CHECK_VOICE_DATA_MISSING_DATA) {
         // success, create the TTS instance
-        tts = Some(new TextToSpeech(this, this))
-      } else {
-        // missing data, install it
-        val installIntent = new Intent()
-        installIntent.setAction("android.speech.tts.engine.INSTALL_TTS_DATA")
-        startActivity(installIntent)
-      }
+        val t = new TextToSpeech(this, listener)
+
+        val langCheck = t.isLanguageAvailable(Locale.getDefault())
+        debug("langCheck: " + langCheck)
+        langCheck match {
+          case TextToSpeech.LANG_MISSING_DATA =>
+            askInstall()
+          case TextToSpeech.LANG_NOT_SUPPORTED =>
+            ;
+          case _ =>
+            tts = Some(t)
+        }
+      } else
+        askInstall
     } else
       super.onActivityResult(requestCode, resultCode, data)
+  }
+  */
+
+  private def askInstall() {
+    debug("Asking to install TTS")
+
+    // missing data, install it
+    val installIntent = new Intent()
+    installIntent.setAction("android.speech.tts.engine.INSTALL_TTS_DATA")
+    startActivity(installIntent)
   }
 }

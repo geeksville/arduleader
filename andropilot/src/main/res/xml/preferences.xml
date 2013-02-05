@@ -37,6 +37,12 @@
             android:key="min_numsats"
             android:summary="Warn if number of GPS satellites falls below this value"
             android:title="Satellite warn level" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="speech_enabled"
+            android:summary="Should Andropilot say critical messages"
+            android:title="Speech enable" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Mavlink Preferences" >
         <CheckBoxPreference
