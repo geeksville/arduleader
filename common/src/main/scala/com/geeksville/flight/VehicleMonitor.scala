@@ -16,6 +16,7 @@ import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
+import com.geeksville.mavlink.MavlinkStream
 
 //
 // Messages we publish on our event bus when something happens
@@ -45,6 +46,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private val locationThrottle = new Throttled(1000)
   private val rcChannelsThrottle = new Throttled(200)
   private val sysStatusThrottle = new Throttled(5000)
+  private val attitudeThrottle = new Throttled(100)
 
   private val retries = HashSet[RetryContext]()
 
@@ -55,6 +57,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
+  var attitude: Option[msg_attitude] = None
 
   var waypoints = IndexedSeq[Waypoint]()
 
@@ -175,6 +178,10 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private def mReceive: Receiver = {
     case RetryExpired(ctx) =>
       ctx.doRetry()
+
+    case m: msg_attitude =>
+      attitude = Some(m)
+      attitudeThrottle { eventStream.publish(m) }
 
     case m: msg_rc_channels_raw =>
       rcChannels = Some(m)
@@ -329,19 +336,22 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
-    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> 1,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> 1)
+    val defaultFreq = 1
+    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> defaultFreq, // faster AHRS display use a bigger #
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultFreq)
 
     interestingStreams.foreach {
       case (id, freqHz) =>
         sendMavlink(requestDataStream(id, freqHz))
         sendMavlink(requestDataStream(id, freqHz))
     }
+
+    // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     // First contact, download any waypoints from the vehicle and get params
     MockAkka.scheduler.scheduleOnce(5 seconds, this, StartWaypointDownload)
@@ -356,7 +366,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     doRetry()
 
     def close() {
-      log.debug("Closing a retry")
+      //log.debug("Closing a retry")
       retryTimer.foreach(_.cancel())
       retries.remove(this)
     }

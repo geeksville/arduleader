@@ -19,6 +19,7 @@ import android.hardware.usb.UsbEndpoint
 class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends AndroidLogger {
 
   // 64 buffers, 64 bytes each gives 72 packets/sec
+  // using bigger than 64 byte buffers causes sequence errors (presumably because ftdi framing is being inserted every 64 bytes?)
   val numBuffers = 64
   val bufferSize = 64
 
@@ -39,8 +40,8 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
     def clear() {
       close() // Take back from USB ownership
 
-      // Work around/hack for the android bug - fill with zeros so we don't ever replay an old packet
-      Arrays.fill(buffer.array, 0.toByte)
+      // Work around/hack for the http://b.android.com/28023 android bug - fill with zeros so we don't ever replay an old packet
+      //Arrays.fill(buffer.array, 0.toByte)
       //buffer.clear()
       //buffer.put(emptyArray, 0, len)
 
@@ -68,6 +69,16 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
 
       success
     }
+
+    def clearAndStart() = {
+      clear()
+      if (!start()) {
+        error("Returning EOF for shutdown endpoint")
+        false
+      } else
+        true
+    }
+
   }
 
   def close() {
@@ -95,7 +106,10 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
     pkt.start()
   }
 
-  def read(dest: Array[Byte], timeoutMsec: Int) = {
+  /**
+   * Read a buffer - caller must call returnBuffer after they are finished processing
+   */
+  def readBuffer(timeoutMsec: Int) = {
 
     startReads()
 
@@ -104,43 +118,52 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
 
     pktOpt.map { pkt =>
       pkt.setCompletion()
-
       if (pkt.isRead) {
         if (pkt.buffer.position == 0) {
-          // error("Android position bug fixup")
+          // error("Android position bug fixup pos %d, lim %d".format(pkt.buffer.position, pkt.buffer.limit))
           // http://b.android.com/28023
-          pkt.buffer.position(bufferSize)
+          // pkt.buffer.position(0)
         }
+        pkt.buffer.flip()
 
-        var numBytes = pkt.buffer.position - bytesToSkip
+        var numBytes = pkt.buffer.remaining - bytesToSkip
 
         if (numBytes < 0) {
-          debug("Short: " + pkt.buffer.array.take(pkt.buffer.position).map { b => "%02x".format(b) }.mkString(","))
+          debug("Short: " + pkt.buffer.array.take(pkt.buffer.limit).map { b => "%02x".format(b) }.mkString(","))
           numBytes = 0 // Oops - not enough header bytes to discard
         }
 
-        if (numBytes > 0) {
-          //debug("Rx: " + pkt.buffer.array.map { b => "%02x".format(b) }.mkString(","))
+        pkt.buffer.position(bytesToSkip)
 
-          // FIXME: Super skanky - once this works just return the byte buffer instead
-          System.arraycopy(pkt.buffer.array, bytesToSkip, dest, 0, numBytes)
-        }
-
-        // Return to pool of active reads
-        pkt.clear()
-        if (!pkt.start()) {
-          error("Returning EOF for shutdown endpoint")
-          -1
-        } else
-          numBytes
+        Some(pkt)
       } else {
         pkt.clear() // Dealloc any resources this request was using
 
-        0 // Try again - we just got back results from a write
+        None // Try again - we just got back results from a write
       }
     }.getOrElse {
       error("null for requestWait")
-      0
+      None
+    }
+  }
+
+  def read(dest: Array[Byte], timeoutMsec: Int) = {
+
+    val pktOpt = readBuffer(timeoutMsec)
+
+    pktOpt.map { pkt =>
+      val numBytes = pkt.buffer.remaining
+
+      pkt.buffer.get(dest, 0, numBytes)
+
+      // Return to pool of active reads
+      if (!pkt.clearAndStart()) {
+        -1
+      } else
+        numBytes
+
+    }.getOrElse {
+      0 // Tell client to try again
     }
   }
 }

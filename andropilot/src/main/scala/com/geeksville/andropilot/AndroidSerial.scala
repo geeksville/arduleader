@@ -67,9 +67,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
     private var closed = false
 
-    // FIXME, the android-usb-serial library is buggy, get my bytebuffer based fix working here first, then
-    // prop it into that lib
-    private val rxBuf = ByteBuffer.allocate(512) // +2 bytes for ftdi header == preferred ftdi 512 bytes
+    private var rxBuf: Option[AsyncSerial#Request] = None
 
     debug("Opening serial input stream")
 
@@ -88,25 +86,22 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     /**
      * Refill our buffer
      */
-    private def fillBuffer() = {
-      rxBuf.clear()
-
-      var r = 0
+    private def fillBuffer() {
+      rxBuf.foreach(_.clearAndStart())
       do {
         // The ftdi driver can return zero if it received a serial packet but the length
         // count was zero
         // FIXME - this is super inefficient - because we will spin the CPU hard, need to fix
         // android-usb-serial
-        r = async.map(_.read(rxBuf.array, readTimeout)).getOrElse(throw new EOFException("Port not open"))
-      } while (r == 0 && !closed)
+        rxBuf = async.map(_.readBuffer(readTimeout)).getOrElse(throw new EOFException("Port not open"))
+      } while (!rxBuf.isDefined && !closed)
 
-      // If success, update # available bytes
-      if (r >= 0)
-        rxBuf.limit(r)
-
-      //debug("Fill: " + rxBuf.array.take(r).map { b => "%02x".format(b) }.mkString(","))
-
-      r
+      /*
+      rxBuf.foreach { r =>
+        val bytes = (r.buffer.array.map { x => "%02x".format(x) }.mkString(","))
+        debug("Bytes pos=%2d,limit=%2d: %s".format(r.buffer.position, r.buffer.limit, bytes))
+      }
+      */
     }
 
     override def read(arr: Array[Byte], off: Int, numrequested: Int) = {
@@ -119,14 +114,14 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
       /** move X bytes from our buffer to the result, updating invariants */
       def extract(numBytes: Int) {
         if (numBytes > 0)
-          rxBuf.get(arr, destoff, numBytes)
+          rxBuf.get.buffer.get(arr, destoff, numBytes)
         destoff += numBytes
         numremaining -= numBytes
       }
 
       var resultcode = 0
       while (numremaining > 0 && resultcode >= 0) {
-        val available = rxBuf.remaining
+        val available = rxBuf.map(_.buffer.remaining).getOrElse(0)
 
         resultcode = if (closed)
           -1
@@ -138,10 +133,11 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
           // User wants more than we have - give them what we got then start a new read
           extract(available)
           fillBuffer()
+          0 // try again
         }
       }
 
-      //debug("Bytes read: " + (arr.toSeq.map { x => "%02x".format(x) }.mkString(",")))
+      // debug("Bytes read: " + (arr.toSeq.map { x => "%02x".format(x) }.mkString(",")))
       if (resultcode < 0)
         resultcode
       else

@@ -445,14 +445,10 @@ public class MAVLinkReader {
    */
   protected byte[] readRawData(int nb) throws IOException {
     byte[] buffer = new byte[nb];
-    int index = 0;
-    /*
-     * while (dis.available() < nb) { ; }
-     */
-    for (int i = 0; i < nb; i++) {
-      receivedBuffer[nbReceived] = dis.readByte();
-      buffer[index++] = receivedBuffer[nbReceived++];
-    }
+
+    dis.read(buffer);
+    System.arraycopy(buffer, 0, receivedBuffer, nbReceived, nb);
+    nbReceived += nb;
     return buffer;
   }
 

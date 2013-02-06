@@ -20,9 +20,11 @@ import com.geeksville.akka.PoisonPill
 class MavlinkStream(val out: OutputStream, val instream: InputStream) extends InstrumentedActor with MavlinkReceiver {
 
   log.debug("MavlinkStream starting")
+  MavlinkStream.isIgnoreReceive = false
 
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 
+  rxThread.setPriority(Thread.MAX_PRIORITY)
   rxThread.start()
 
   // Mission control does this, seems to be necessary to keep device from hanging up on us
@@ -59,11 +61,18 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
       var lostBytes = 0
       var badSeq = 0
 
+      val messageThrottle = new Throttled(60 * 1000)
+      var oldLost = 0L
+      var oldNumPacket = 0L
+      var numPacket = 0L
+
       while (!self.isTerminated) {
         try {
           //log.debug("Reading next packet")
           val msg = Option(reader.getNextMessage())
           msg.foreach { s =>
+            numPacket += 1
+
             //log.debug("RxSer: " + s)
             if (reader.getLostBytes > lostBytes) {
               // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
@@ -78,7 +87,22 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
               log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
             }
 
-            handlePacket(s)
+            messageThrottle { dt =>
+              val numSec = dt / 1000.0
+
+              val newLost = reader.getLostBytes
+              val dropPerSec = (newLost - oldLost) / numSec
+              oldLost = newLost
+
+              val mPerSec = (numPacket - oldNumPacket) / numSec
+              oldNumPacket = numPacket
+
+              log.info("msgs per sec %s, bytes dropped per sec=%s".format(mPerSec, dropPerSec))
+            }
+
+            //  for profiling
+            if (!MavlinkStream.isIgnoreReceive)
+              handlePacket(s)
           }
         } catch {
           case ex: EOFException =>
@@ -95,3 +119,6 @@ class MavlinkStream(val out: OutputStream, val instream: InputStream) extends In
   }
 }
 
+object MavlinkStream {
+  var isIgnoreReceive = false
+}
