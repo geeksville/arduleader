@@ -69,15 +69,6 @@ class HudFragment extends Fragment with AndroServiceFragment {
           }
         }
       }
-
-    case MsgStatusChanged(s) =>
-      debug("Status changed: " + s)
-      handler.post { () =>
-        if (getView != null) {
-
-          //statusItems.add(s)
-        }
-      }
   }
 
 }

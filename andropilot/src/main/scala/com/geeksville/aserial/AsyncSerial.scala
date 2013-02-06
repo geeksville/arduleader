@@ -130,12 +130,12 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
 
         if (numBytes < 0) {
           debug("Short: " + pkt.buffer.array.take(pkt.buffer.limit).map { b => "%02x".format(b) }.mkString(","))
-          numBytes = 0 // Oops - not enough header bytes to discard
+          None // Oops - not enough header bytes to discard
+        } else {
+          pkt.buffer.position(bytesToSkip)
+
+          Some(pkt)
         }
-
-        pkt.buffer.position(bytesToSkip)
-
-        Some(pkt)
       } else {
         pkt.clear() // Dealloc any resources this request was using
 

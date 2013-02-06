@@ -7,12 +7,12 @@ package com.geeksville.util
 class Throttled(minIntervalMsec: Int) {
   private var lasttimeMsec = 0L
 
-  def apply(fn: => Unit) {
+  def apply(fn: () => Unit) {
     val now = System.currentTimeMillis
 
     val span = now - lasttimeMsec
     if (span >= minIntervalMsec || span < 0) {
-      fn
+      fn()
       lasttimeMsec = now
     }
   }

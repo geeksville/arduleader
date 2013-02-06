@@ -40,11 +40,19 @@ trait InstrumentedActor extends Actor with Logging {
       exit()
   }
 
+  private def onUnhandled: Receiver = {
+    case x @ _ =>
+      log.debug("Unhandled: " + x)
+  }
+
   def act() {
     log.info("Actor running: " + this)
     loop {
+      if (mailboxSize >= 10)
+        log.warn("getting behind %s (%d messages)".format(this, mailboxSize))
+
       try {
-        react(myReceive.orElse(onReceive))
+        react(myReceive.orElse(onReceive).orElse(onUnhandled))
       } catch {
         case ex: Exception =>
           log.error("Actor exception: " + ex)

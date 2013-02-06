@@ -17,6 +17,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
+import com.geeksville.util.ThrottledActor
 
 //
 // Messages we publish on our event bus when something happens
@@ -44,7 +45,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
-  private val rcChannelsThrottle = new Throttled(200)
+  private val rcChannelsThrottle = new Throttled(500)
   private val sysStatusThrottle = new Throttled(5000)
   private val attitudeThrottle = new Throttled(100)
 
@@ -136,7 +137,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
 
   private def onLocationChanged(l: Location) {
-    locationThrottle {
+    locationThrottle { () =>
       eventStream.publish(l)
     }
   }
@@ -168,7 +169,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
 
   private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
-  private def onSysStatusChanged() { sysStatusThrottle { eventStream.publish(MsgSysStatusChanged) } }
+  private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
   private def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
   private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
   private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
@@ -181,11 +182,11 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     case m: msg_attitude =>
       attitude = Some(m)
-      attitudeThrottle { eventStream.publish(m) }
+      attitudeThrottle { () => eventStream.publish(m) }
 
     case m: msg_rc_channels_raw =>
       rcChannels = Some(m)
-      rcChannelsThrottle { eventStream.publish(MsgRcChannelsChanged(m)) }
+      rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged(m)) }
 
     case m: msg_radio =>
       //log.info("Received radio from " + m.sysId + ": " + m)
@@ -339,9 +340,9 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     val defaultFreq = 1
     val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
       MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
       MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> defaultFreq, // faster AHRS display use a bigger #
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 10, // faster AHRS display use a bigger #
       MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultFreq,
       MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultFreq)
 

@@ -1,3 +1,24 @@
+# 0.1.31
+
+* Add speech output
+* Add HUD display (in portrait mode)
+* Fix nasty USB performance problem - we can get a very high packet rate now
+* Fix a problem where I was inadvertently never dequeing something from a worker thread (really nasty)
+* Set background colors on overview screen, so hacked up android builds will work better
+* Bump up stream rate on RC and stuff I need for the HUD
+
+For next release:
+* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
+* Show heartbeat lost on the overview screen
+* FIXME: fix udp receiver
+* FIXME: add waypoint change type (via menu dropdown)
+* FIXME: make a website
+* Change waypoint icons as appropriate...
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+* Clean up package namespace
+* Show docs on parameter names (if possible)
+* Handle the 'unusual' waypoint representations - look at mavproxy code for clues
+
 # 0.1.29
 
 * Add an overview panel - make it the default panel
@@ -11,16 +32,6 @@
 * Use gestures to change the info panels
 * Add periodic updates for rcchannels (share actor client code with map & mainactivity)
 
-For next release:
-* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* Show heartbeat lost on the overview screen
-* FIXME: fix udp receiver
-* FIXME: add waypoint change type (via menu dropdown)
-* FIXME: make a website
-* Change waypoint icons as appropriate...
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-* Clean up package namespace
-* Show docs on parameter names (if possible)
 
 # 0.1.27
 
