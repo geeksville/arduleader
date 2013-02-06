@@ -26,7 +26,7 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
 
   private lazy val statusItems = {
     val r = new ArrayAdapter(getActivity, R.layout.simple_list_item_1_small, new LinkedList[String]())
-    r.add("Looking for vehicle...") // Mostly for testing, but gives the user a hint also...
+    // r.add("Looking for vehicle...") // Mostly for testing, but gives the user a hint also...
     r
   }
 
@@ -54,8 +54,8 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
       handler.post { () =>
         if (getView != null) {
           val degSymbol = "\u00B0"
-          latView.setText(l.lat.toString + degSymbol)
-          lonView.setText(l.lon.toString + degSymbol)
+          latView.setText("%.4f".format(l.lat) + degSymbol)
+          lonView.setText("%.4f".format(l.lon) + degSymbol)
           altView.setText(l.alt + "m")
           myVehicle.foreach { v =>
             v.numSats.foreach { n => numSatView.setText(n.toString) }

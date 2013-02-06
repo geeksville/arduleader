@@ -2,12 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent" android:orientation="vertical" >
 
     <fragment
         android:id="@+id/map"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         class="com.geeksville.andropilot.MyMapFragment"
         map:mapType="satellite"
         map:uiCompass="true"
@@ -16,6 +17,13 @@
         map:uiTiltGestures="false"
         map:uiZoomControls="true"
         map:uiZoomGestures="true" />
+
+    <fragment
+        android:id="@+id/hud_fragment"
+        android:name="com.geeksville.andropilot.HudFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2" />
 
     <TextView
         android:id="@+id/maps_error"

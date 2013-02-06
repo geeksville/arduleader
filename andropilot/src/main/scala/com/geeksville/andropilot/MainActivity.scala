@@ -272,8 +272,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onPause()
   }
 
-  override def onStop() {
-    super.onStop()
+  override def onDestroy() {
+    destroySpeech()
+
+    super.onDestroy()
   }
 
   private def toast(str: String) {

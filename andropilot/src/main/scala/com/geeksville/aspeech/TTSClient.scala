@@ -75,7 +75,10 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger {
     tts = Some(t)
   }
 
-  override def onDestroy() {
+  /**
+   * FIXME - we really should just override onDestroy
+   */
+  def destroySpeech() {
     tts.foreach(_.shutdown())
     tts = None
   }

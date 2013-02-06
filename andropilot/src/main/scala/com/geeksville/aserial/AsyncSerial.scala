@@ -17,6 +17,8 @@ import android.hardware.usb.UsbEndpoint
  * That project is mostly affected by http://b.android.com/28023, but for my case I can work around it.
  */
 class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends AndroidLogger {
+
+  // 64 buffers, 64 bytes each gives 72 packets/sec
   val numBuffers = 64
   val bufferSize = 64
 

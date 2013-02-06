@@ -19,6 +19,8 @@ For next release:
 * FIXME: make a website
 * Change waypoint icons as appropriate...
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+* Clean up package namespace
+* Show docs on parameter names (if possible)
 
 # 0.1.27
 

@@ -13,6 +13,7 @@ import java.util.Date
 import java.io.BufferedOutputStream
 import java.io.FileOutputStream
 import com.geeksville.logback.Logging
+import com.geeksville.util.Throttled
 
 /**
  * Output a mission planner compatible tlog file
@@ -20,6 +21,10 @@ import com.geeksville.logback.Logging
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
 class LogBinaryMavlink(out: OutputStream) extends InstrumentedActor {
+
+  val messageThrottle = new Throttled(60 * 1000)
+  var oldNumPacket = 0L
+  var numPacket = 0L
 
   private val buf = ByteBuffer.allocate(8)
   buf.order(ByteOrder.BIG_ENDIAN)
@@ -32,8 +37,18 @@ class LogBinaryMavlink(out: OutputStream) extends InstrumentedActor {
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      def str = "Rcv" + msg.sysId + ": " + msg
+      // def str = "Rcv" + msg.sysId + ": " + msg
       //log.debug("Binary write: " + msg)
+      numPacket += 1
+
+      messageThrottle { dt =>
+        val numSec = dt / 1000.0
+
+        val mPerSec = (numPacket - oldNumPacket) / numSec
+        oldNumPacket = numPacket
+
+        log.info("msg write per sec %s".format(mPerSec))
+      }
 
       // Time in usecs
       val time = System.currentTimeMillis * 1000
