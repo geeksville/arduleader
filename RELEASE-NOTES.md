@@ -1,7 +1,7 @@
 # 0.1.31
 
 * Add speech output
-* Add HUD display (in portrait mode)
+* Add HUD display (in portrait mode) (thanks to the copter-gcs source!)
 * Fix nasty USB performance problem - we can get a very high packet rate now
 * Fix a problem where I was inadvertently never dequeing something from a worker thread (really nasty)
 * Set background colors on overview screen, so hacked up android builds will work better
@@ -18,6 +18,7 @@ For next release:
 * Clean up package namespace
 * Show docs on parameter names (if possible)
 * Handle the 'unusual' waypoint representations - look at mavproxy code for clues
+* Make a layout just for cellphones
 
 # 0.1.29
 
