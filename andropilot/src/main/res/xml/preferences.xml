@@ -43,6 +43,14 @@
             android:key="speech_enabled"
             android:summary="Should Andropilot say critical messages"
             android:title="Speech enable" />
+        
+        <EditTextPreference
+            android:defaultValue="10"
+            android:dialogTitle="If altitude changes by more than this, say something"
+            android:inputType="number"
+            android:key="speech_altbucket"
+            android:summary="Speak if altitude changes by more than this (meters)"
+            android:title="Announce altitude threshold" />
     </PreferenceCategory>
     <PreferenceCategory android:title="Mavlink Preferences" >
         <CheckBoxPreference

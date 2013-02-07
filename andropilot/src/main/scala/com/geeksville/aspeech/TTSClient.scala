@@ -35,7 +35,7 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger {
             case TextToSpeech.LANG_NOT_SUPPORTED =>
               error("Lang not supported")
             case _ =>
-              speak("Speech enabled")
+            // speak("Speech enabled")
           }
         }
       }

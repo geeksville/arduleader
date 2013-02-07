@@ -1,3 +1,11 @@
+# 0.1.33
+* Add back nasty USB hack if urb.position is always zero
+* If usb hack needed, limit most mavlink to 1 hz
+* Turn on direct zerocopy usb buffers
+* Don't announce speech enabled when orientation changes
+* Shorten many of the spoken phrases (but FIXME, haven't yet shortened mode names)
+* Use urgent mode for speech of mode changes (to make sure this overrides batteryish msgs)
+
 # 0.1.31
 
 * Add speech output
@@ -6,12 +14,8 @@
 * Fix a problem where I was inadvertently never dequeing something from a worker thread (really nasty)
 * Set background colors on overview screen, so hacked up android builds will work better
 * Bump up stream rate on RC and stuff I need for the HUD
-* sim 
 
 For next release:
-* Add back nasty USB hack if urb.position is always zero
-* If usb hack needed, limit most mavlink to 1 hz
-* Turn on direct zerocopy usb buffers
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
 * Show heartbeat lost on the overview screen
 * FIXME: fix udp receiver

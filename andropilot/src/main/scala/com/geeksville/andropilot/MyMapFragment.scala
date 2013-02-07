@@ -633,6 +633,8 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
       map.setMyLocationEnabled(true)
       map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
       map.getUiSettings.setTiltGesturesEnabled(false)
+      map.getUiSettings.setRotateGesturesEnabled(false)
+      map.getUiSettings.setCompassEnabled(true)
       map.setOnMapLongClickListener(new OnMapLongClickListener {
 
         // On click set guided to there

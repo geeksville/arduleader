@@ -23,7 +23,7 @@ import com.geeksville.flight._
 import java.util.LinkedList
 import org.mavlink.messages.ardupilotmega.msg_attitude
 
-class HudFragment extends Fragment with AndroServiceFragment {
+class HudFragment extends Fragment with AndroServicePage {
 
   private def hud = getView.findView(TR.hud_view)
 

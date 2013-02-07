@@ -2,7 +2,7 @@ package com.geeksville.andropilot
 
 import _root_.android.os.Bundle
 import android.content.Intent
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import com.ridemission.scandroid.AndroidUtil._
 import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.gms.common.ConnectionResult
@@ -43,7 +43,7 @@ import com.geeksville.mavlink._
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentPagerAdapter
 import android.support.v4.app.FragmentActivity
-import android.support.v4.view.ViewPager
+import android.support.v4.view._
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.view.ViewGroup
 import com.geeksville.aspeech.TTSClient
@@ -71,55 +71,23 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
+  private val stdPages = IndexedSeq(
+    PageInfo("Overview", { () => new OverviewFragment }),
+    PageInfo("Parameters", { () => new ParameterListFragment }),
+    PageInfo("Waypoints", { () => new WaypointListFragment }),
+    PageInfo("HUD", { () => new HudFragment }),
+    PageInfo("RC Channels", { () => new RcChannelsFragment }))
+
   /**
-   * FIXME
-   * We might want to use a version of the pager adapter that destroys fragments when not in use (so we don't spend cycles updating RC channels when not visible)
-   * FIXME - move this out into a general scandroid utility class
-   *
+   * If we don't have enough horizontal width - the layout will move the map into the only (pager) view.
+   * Make it the first/default page
    */
-  lazy val sectionsPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager) {
-
-    private var curPage: Option[PagerPage] = None
-
-    case class PageInfo(title: String, generator: () => Fragment)
-
-    val pages = IndexedSeq(
-      PageInfo("Overview", { () => new OverviewFragment }),
-      PageInfo("Parameters", { () => new ParameterListFragment }),
-      PageInfo("Waypoints", { () => new WaypointListFragment }),
-      PageInfo("RC Channels", { () => new RcChannelsFragment }))
-
-    override def getItem(position: Int) = {
-      // getItem is called to instantiate the fragment for the given page.
-      // Return a DummySectionFragment (defined as a static inner class
-      // below) with the page number as its lone argument.
-      val fragment = pages(position).generator()
-      //Bundle args = new Bundle();
-      //args.putInt(DummySectionFragment.ARG_SECTION_NUMBER, position + 1);
-      //fragment.setArguments(args);
-      fragment
-    }
-
-    override def getCount() = pages.size
-
-    override def getPageTitle(i: Int) = pages(i).title
-
-    override def setPrimaryItem(container: ViewGroup, position: Int, obj: Object) {
-      super.setPrimaryItem(container, position, obj)
-
-      // If the fragment doesn't care to be notified of extra page stuff - don't bother with it
-      val newPage = if (obj.isInstanceOf[PagerPage]) Some(obj.asInstanceOf[PagerPage]) else None
-
-      if (curPage != newPage) { // Android seems to send redundant notifications - don't get confused
-        curPage.foreach(_.onPageHidden())
-        curPage = newPage
-        newPage.foreach(_.onPageShown())
-      }
-    }
-  }
+  private val phonePages = PageInfo("Map", { () => new MyMapFragment }) +: stdPages
 
   // We don't cache these - so that if we get rotated we pull the correct one
-  def mFragment = getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment]
+  // Also - might not always be present, so we make it an option
+  def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
+  def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
 
   /**
    * Does work in the GUIs thread
@@ -128,7 +96,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private var oldVehicleType: Option[Int] = None
 
-  private val throttleAlt = new ThrottleByBucket(10)
+  private lazy val throttleAlt = new ThrottleByBucket(intPreference("speech_altbucket", 10))
   private val throttleBattery = new ThrottleByBucket(10)
 
   /**
@@ -148,7 +116,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       throttleAlt(l.alt.toInt) { alt =>
         handler.post { () =>
           debug("Speak alt: " + alt)
-          speak("Altitude " + alt)
+          speak(alt + " meters")
         }
       }
 
@@ -157,7 +125,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         throttleBattery((pct * 100).toInt) { pct =>
           handler.post { () =>
             debug("Speak battery: " + pct)
-            speak("Battery " + pct + " percent")
+            speak(pct + " percent")
           }
         }
       }
@@ -213,7 +181,12 @@ class MainActivity extends FragmentActivity with TypedActivity
     handler = new Handler
 
     // Set up the ViewPager with the sections adapter (if it is present on this layout)
-    Option(findViewById(R.id.pager).asInstanceOf[ViewPager]).foreach(_.setAdapter(sectionsPagerAdapter))
+    viewPager.foreach { v =>
+      val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+
+      warn("Need to set pager adapter")
+      v.setAdapter(sectionsPagerAdapter)
+    }
 
     val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
     if (probe == ConnectionResult.SUCCESS) {
@@ -238,10 +211,34 @@ class MainActivity extends FragmentActivity with TypedActivity
       }.getOrElse {
         error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
       }
-      Option(mFragment.getView).foreach(_.setVisibility(View.GONE))
+      for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
     }
 
     initSpeech()
+  }
+
+  // Workaround to make sure child fragment state is not saved on orientation page (makes fragment panes show correctly)
+  // http://stackoverflow.com/questions/13910826/viewpager-fragmentstatepageradapter-orientation-change
+  override def onSaveInstanceState(outState: Bundle) {
+    // super.onSaveInstanceState(outState);
+  }
+
+  private def sectionsPagerAdapter = {
+
+    new ScalaPagerAdapter(getSupportFragmentManager, pages) {
+
+      // Force views to get recreated on orientation change - http://stackoverflow.com/questions/7263291/viewpager-pageradapter-not-updating-the-view
+      override def getItemPosition(obj: Object) = {
+        PagerAdapter.POSITION_NONE
+      }
+    }
+  }
+
+  private def pages = {
+    val isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
+    val r = if (isWide) stdPages else phonePages
+    debug("Using wide view=" + isWide + " pages=" + r.mkString(","))
+    r
   }
 
   /**
@@ -344,7 +341,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           }.get
         }
         myVehicle.foreach { v =>
-          speak("Mode: " + v.currentMode)
+          speak(v.currentMode, true)
           val n = findIndex(v.currentMode)
           //debug("Setting mode spinner to: " + n)
 
