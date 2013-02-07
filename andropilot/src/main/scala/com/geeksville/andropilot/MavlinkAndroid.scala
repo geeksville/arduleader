@@ -5,6 +5,8 @@ import java.io._
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.flight.VehicleMonitor
+import com.geeksville.aserial.AsyncSerial
 
 object MavlinkAndroid {
   def create(baudRate: Int)(implicit context: Context) = {
@@ -17,6 +19,9 @@ object MavlinkAndroid {
     // FIXME - buffering doesn't work yet with my serial reader
     //val instream = new BufferedInputStream(port.in, 64)
     val instream = port.in
+
+    VehicleMonitor.isUsbBusted = AsyncSerial.isUsbBusted
+
     new MavlinkStream(out, instream)
   }
 }

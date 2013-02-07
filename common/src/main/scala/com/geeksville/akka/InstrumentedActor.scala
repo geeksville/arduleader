@@ -42,7 +42,8 @@ trait InstrumentedActor extends Actor with Logging {
 
   private def onUnhandled: Receiver = {
     case x @ _ =>
-      log.debug("Unhandled: " + x)
+      // log.debug("Unhandled: " + x)
+      ;
   }
 
   def act() {

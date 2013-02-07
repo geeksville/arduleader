@@ -9,6 +9,7 @@ import java.io.IOException
 import scala.collection.mutable.HashSet
 import java.util.Arrays
 import android.hardware.usb.UsbEndpoint
+import android.os.Build
 
 /**
  * I'm currently building upon the USB android serial library, which has a number of problems.
@@ -17,6 +18,7 @@ import android.hardware.usb.UsbEndpoint
  * That project is mostly affected by http://b.android.com/28023, but for my case I can work around it.
  */
 class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends AndroidLogger {
+  import AsyncSerial._
 
   // 64 buffers, 64 bytes each gives 72 packets/sec
   // using bigger than 64 byte buffers causes sequence errors (presumably because ftdi framing is being inserted every 64 bytes?)
@@ -31,8 +33,10 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
 
   private val emptyArray = Array.fill(bufferSize)(0xff.toByte)
 
-  class Request(val isRead: Boolean, len: Int = bufferSize) extends UsbRequest {
-    val buffer = ByteBuffer.allocate(len)
+  class Request(val isRead: Boolean, val len: Int = bufferSize) extends UsbRequest {
+
+    // Write buffers are transient, so it doesn't make sense to use expensive Direct buffers
+    val buffer = if (isRead) ByteBuffer.allocateDirect(len) else ByteBuffer.allocate(len)
 
     /**
      * Clear our buffer and deallocate any relation to the endpoint
@@ -40,10 +44,10 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
     def clear() {
       close() // Take back from USB ownership
 
-      // Work around/hack for the http://b.android.com/28023 android bug - fill with zeros so we don't ever replay an old packet
-      //Arrays.fill(buffer.array, 0.toByte)
-      //buffer.clear()
-      //buffer.put(emptyArray, 0, len)
+      if (isUsbBusted) {
+        buffer.clear()
+        buffer.put(emptyArray, 0, len)
+      }
 
       buffer.clear()
     }
@@ -119,12 +123,12 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
     pktOpt.map { pkt =>
       pkt.setCompletion()
       if (pkt.isRead) {
-        if (pkt.buffer.position == 0) {
-          // error("Android position bug fixup pos %d, lim %d".format(pkt.buffer.position, pkt.buffer.limit))
-          // http://b.android.com/28023
-          // pkt.buffer.position(0)
-        }
-        pkt.buffer.flip()
+        if (isUsbBusted) {
+          // http://b.android.com/28023 - we can't know number of bytes, so assume packet is full
+          pkt.buffer.limit(pkt.len)
+          pkt.buffer.position(0)
+        } else
+          pkt.buffer.flip()
 
         var numBytes = pkt.buffer.remaining - bytesToSkip
 
@@ -137,7 +141,7 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
           Some(pkt)
         }
       } else {
-        pkt.clear() // Dealloc any resources this request was using
+        // pkt.clear() // We just let the garbage collector handle write buffers
 
         None // Try again - we just got back results from a write
       }
@@ -166,4 +170,9 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
       0 // Tell client to try again
     }
   }
+}
+
+object AsyncSerial {
+  // Per http://code.google.com/p/android/issues/detail?id=28023 - fixed in 4.2, before then you can't depend on position in returned buffers
+  val isUsbBusted = Build.VERSION.SDK_INT < 17
 }

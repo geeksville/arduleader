@@ -6,8 +6,12 @@
 * Fix a problem where I was inadvertently never dequeing something from a worker thread (really nasty)
 * Set background colors on overview screen, so hacked up android builds will work better
 * Bump up stream rate on RC and stuff I need for the HUD
+* sim 
 
 For next release:
+* Add back nasty USB hack if urb.position is always zero
+* If usb hack needed, limit most mavlink to 1 hz
+* Turn on direct zerocopy usb buffers
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
 * Show heartbeat lost on the overview screen
 * FIXME: fix udp receiver
@@ -19,6 +23,7 @@ For next release:
 * Show docs on parameter names (if possible)
 * Handle the 'unusual' waypoint representations - look at mavproxy code for clues
 * Make a layout just for cellphones
+* Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
 
 # 0.1.29
 

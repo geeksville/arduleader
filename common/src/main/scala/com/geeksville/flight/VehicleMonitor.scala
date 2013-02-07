@@ -348,8 +348,9 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     interestingStreams.foreach {
       case (id, freqHz) =>
-        sendMavlink(requestDataStream(id, freqHz))
-        sendMavlink(requestDataStream(id, freqHz))
+        val f = if (VehicleMonitor.isUsbBusted) 1 else freqHz
+        sendMavlink(requestDataStream(id, f))
+        sendMavlink(requestDataStream(id, f))
     }
 
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
@@ -480,4 +481,11 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       startParameterDownload()
     }
   }
+}
+
+object VehicleMonitor {
+  /**
+   * Some android clients don't have working USB and therefore have very limited bandwidth.  This nasty global allows the android builds to change 'common' behavior.
+   */
+  var isUsbBusted = false
 }
