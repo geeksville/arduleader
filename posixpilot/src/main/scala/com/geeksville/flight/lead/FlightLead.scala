@@ -62,10 +62,11 @@ object Main extends Logging {
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
-    val startUDP = false
+    val startUDP = true
     val startSerial = true
     val startFlightLead = false
     val startWingman = false
+    val startMonitor = false
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = true
@@ -90,7 +91,7 @@ object Main extends Logging {
 
     if (startUDP) {
       // FIXME create this somewhere else
-      val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = "192.168.0.39"), "mavudp")
+      val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = Some("192.168.0.39"), destPortNumber = Some(MavlinkUDP.portNumber)), "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(mavUDP, arduPilotId)
@@ -100,8 +101,10 @@ object Main extends Logging {
       MavlinkEventBus.subscribe(mavUDP, systemId)
     }
 
-    // Keep a complete model of the arduplane state
-    val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleMonitor), arduPilotId)
+    if (startMonitor) {
+      // Keep a complete model of the arduplane state
+      val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleMonitor), arduPilotId)
+    }
 
     // Anything from our sim lead, send it to the controller app (so it will hopefully show him)
     // Doesn't work yet - mission planner freaks out

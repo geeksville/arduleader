@@ -1,10 +1,14 @@
-# 0.1.33
-* Add back nasty USB hack if urb.position is always zero
-* If usb hack needed, limit most mavlink to 1 hz
+# 0.1.34
+* Add back nasty USB hack if urb.position is always zero (should fix at least android 4.0, probably 3.1)
+* If usb hack needed, limit most mavlink streams to 1 hz
 * Turn on direct zerocopy usb buffers
+* Inbound UDP now works: Use this if your serial uplink is on some other machine (a different tablet or a PC)
+* Outbound UDP now works: Use this if you want to share your serial link with some other machine
 * Don't announce speech enabled when orientation changes
 * Shorten many of the spoken phrases (but FIXME, haven't yet shortened mode names)
 * Use urgent mode for speech of mode changes (to make sure this overrides batteryish msgs)
+* In portrait mode, don't show the info pane - use swipes to switch between map etc...
+* On phones never show info panels
 
 # 0.1.31
 

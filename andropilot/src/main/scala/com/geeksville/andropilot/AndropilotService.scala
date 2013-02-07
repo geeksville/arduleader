@@ -42,8 +42,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    * If we are logging the file is here
    */
   var logfile: Option[File] = None
-  var logger: Option[LogBinaryMavlink] = None
-  var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
+  private var logger: Option[LogBinaryMavlink] = None
+  private var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
+  private var udpPrefListener: Option[OnSharedPreferenceChangeListener] = None
 
   var vehicle: Option[VehicleMonitor] = None
 
@@ -158,14 +159,21 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     // If preferences change, automatically toggle logging as needed
     logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
+    udpPrefListener = Some(registerOnPreferenceChanged("udp_mode")(startUDP _))
 
     info("Done starting service")
   }
 
   def startUDP() {
+    val wasOn = udp.map { u =>
+      info("Shutting down old UDP daemon")
+      u ! PoisonPill
+      true
+    }.getOrElse(false)
+
     udp = if (outboundUdpEnabled) {
       info("Creating outbound UDP port")
-      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = outboundUdpHost, destPortNumber = Some(outboundPort), localPortNumber = Some(inboundPort)), "mavudp")
+      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = Some(outboundUdpHost), destPortNumber = Some(outboundPort)), "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(a, AndropilotService.arduPilotId)
@@ -173,6 +181,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       Some(a)
     } else if (inboundUdpEnabled) {
       // Let aircraft port
+      info("Creating inbound UDP port")
       val a = MockAkka.actorOf(new MavlinkUDP(localPortNumber = Some(inboundPort)), "mavudp")
 
       // Send our control packets to this UDP link
@@ -183,6 +192,11 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       info("No UDP port enabled")
       None
     }
+
+    if (udp.isDefined)
+      startHighValue()
+    else if (wasOn)
+      stopHighValue()
   }
 
   def setLogging() {
@@ -231,12 +245,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
         // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
-        // The service will now want a way to override our service lifecycle
-        warn("Manually starting service - need to stop it somewhere...")
-        startService(new Intent(this, classOf[AndropilotService]))
-
-        // We are doing something important now - please don't kill us
-        requestForeground()
+        startHighValue()
 
         // Find out when the device goes away
         registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
@@ -249,19 +258,42 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     }
   }
 
-  private def serialDetached() {
-    serial.foreach { a =>
+  /**
+   * We are now doing something important - don't kill us just because the activity goes away
+   */
+  private def startHighValue() {
+    if (serial.isDefined || udp.isDefined) {
+      // The service will now want a way to override our service lifecycle
+      warn("Manually starting service - need to stop it somewhere...")
+      startService(new Intent(this, classOf[AndropilotService]))
+
+      // We are doing something important now - please don't kill us
+      requestForeground()
+
+      if (stayAwakeEnabled)
+        wakeLock.acquire()
+    }
+  }
+
+  private def stopHighValue() {
+    if (!serial.isDefined && !udp.isDefined) {
       if (wakeLock.isHeld)
         wakeLock.release()
-
-      unregisterReceiver(disconnectReceiver)
-
-      a ! PoisonPill
       stopForeground(true) // Get rid of our notification
-      serial = None
 
       warn("Stopping our service, because no serial means not useful...")
       stopSelf()
+    }
+  }
+
+  private def serialDetached() {
+    serial.foreach { a =>
+      unregisterReceiver(disconnectReceiver)
+
+      a ! PoisonPill
+
+      serial = None
+      stopHighValue()
     }
   }
 
@@ -283,7 +315,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   override def onDestroy() {
     warn("in onDestroy ******************************")
     logPrefListener.foreach(unregisterOnPreferenceChanged)
+    udpPrefListener.foreach(unregisterOnPreferenceChanged)
     udp.foreach(_ ! PoisonPill)
+    udp = None
     serialDetached()
     MockAkka.shutdown()
     super.onDestroy()
@@ -303,8 +337,5 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       .getNotification() // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
-
-    if (stayAwakeEnabled)
-      wakeLock.acquire()
   }
 }

@@ -20,12 +20,10 @@ import com.geeksville.akka.InstrumentedActor
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[Int] = Some(14550), val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
-
-  val portNumber: Int = 14550
+class MavlinkUDP(destHostName: Option[String] = None, val destPortNumber: Option[Int] = None, val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
 
   // These must be lazy - to ensure we don't do networking in the main thread (an android restriction)
-  lazy val serverHost = InetAddress.getByName(destHostName)
+  lazy val serverHost = InetAddress.getByName(destHostName.get)
   lazy val socket = localPortNumber.map { n => new DatagramSocket(n) }.getOrElse(new DatagramSocket)
 
   val thread = ThreadTools.createDaemon("UDPMavReceive")(worker _)
@@ -39,7 +37,7 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
 
   def onReceive = {
     case msg: MAVLinkMessage ⇒
-      log.debug("UDPSend: " + msg)
+      //log.debug("UDPSend: " + msg)
       val bytes = msg.encode()
 
       // Do we know a remote port?
@@ -64,7 +62,6 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
   }
 
   private def receivePacket() = {
-    //log.info("In receive udp packet")
 
     val bytes = new Array[Byte](512)
     val packet = new DatagramPacket(bytes, bytes.length)
@@ -73,11 +70,13 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
 
     val msg = packet.getData
 
+    //log.info("Processing packet from " + remote.get)
+
     msg match {
       case Array(start, payLength, packSeq, sysId, compId, msgId, payload @ _*) =>
         if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
           val packet = MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray)
-          log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
+          //log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
           Option(packet)
         } else {
           log.error("Ignoring bad MAVLink packet")
@@ -105,5 +104,10 @@ class MavlinkUDP(destHostName: String = "localhost", val destPortNumber: Option[
 
     log.debug("UDP receiver exiting")
   }
+}
+
+object MavlinkUDP {
+  /// The standard port number people use
+  val portNumber = 14550
 }
 
