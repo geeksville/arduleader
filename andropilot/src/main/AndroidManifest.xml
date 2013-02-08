@@ -34,7 +34,9 @@
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true" />
-    <uses-feature android:name="android.hardware.usb.host" />
+    
+    <!-- USB host mode is listed as optional.  If the device doesn't have this then we will still run but UDP only -->
+    <uses-feature android:name="android.hardware.usb.host"  android:required="false" />
 
     <!-- Mark GPS as optional, in the hopes that the app will run on low end chinese tablets -->
     <uses-feature

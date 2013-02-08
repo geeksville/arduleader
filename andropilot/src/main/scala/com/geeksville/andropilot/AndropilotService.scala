@@ -26,13 +26,10 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.geeksville.flight.VehicleMonitor
 import com.geeksville.util.ThreadTools._
 import com.geeksville.mavlink.MavlinkUDP
+import com.flurry.android.FlurryAgent
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
-}
-
-object AndropilotService {
-  val arduPilotId = 1
 }
 
 class AndropilotService extends Service with AndroidLogger with FlurryService with UsesPreferences {
@@ -178,6 +175,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(a, AndropilotService.arduPilotId)
 
+      FlurryAgent.logEvent("udp_outbound")
       Some(a)
     } else if (inboundUdpEnabled) {
       // Let aircraft port
@@ -187,6 +185,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)
 
+      FlurryAgent.logEvent("udp_inbound")
       Some(a)
     } else {
       info("No UDP port enabled")
@@ -204,7 +203,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     if (loggingEnabled) {
       // If already logging ignore
       if (!logger.isDefined)
-        logDirectory.foreach { d =>
+        AndropilotService.logDirectory.foreach { d =>
           logfile = Some(LogBinaryMavlink.getFilename(d))
           val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
           MavlinkEventBus.subscribe(l, -1)
@@ -245,6 +244,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
         // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
+        FlurryAgent.logEvent("serial_attached")
         startHighValue()
 
         // Find out when the device goes away
@@ -267,6 +267,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       warn("Manually starting service - need to stop it somewhere...")
       startService(new Intent(this, classOf[AndropilotService]))
 
+      FlurryAgent.logEvent("high_value", true)
+
       // We are doing something important now - please don't kill us
       requestForeground()
 
@@ -277,6 +279,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   private def stopHighValue() {
     if (!serial.isDefined && !udp.isDefined) {
+      FlurryAgent.endTimedEvent("high_value")
+
       if (wakeLock.isHeld)
         wakeLock.release()
       stopForeground(true) // Get rid of our notification
@@ -294,21 +298,6 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
       serial = None
       stopHighValue()
-    }
-  }
-
-  /**
-   * Where we should spool our output files (if allowed)
-   */
-  def logDirectory = {
-    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-      None
-    else {
-      val sdcard = Environment.getExternalStorageDirectory()
-      if (!sdcard.exists())
-        None
-      else
-        Some(new File(sdcard, "ardupilot"))
     }
   }
 
@@ -338,4 +327,26 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     startForeground(ONGOING_NOTIFICATION, notification)
   }
+}
+
+object AndropilotService {
+  val arduPilotId = 1
+
+  /**
+   * Where we should spool our output files (if allowed)
+   */
+  def sdDirectory = {
+    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+      None
+    else {
+      val sdcard = Environment.getExternalStorageDirectory()
+      if (!sdcard.exists())
+        None
+      else
+        Some(new File(sdcard, "andropilot"))
+    }
+  }
+
+  def logDirectory = sdDirectory.map { sd => new File(sd, "logs") }
+  def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
 }
