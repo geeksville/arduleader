@@ -81,7 +81,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   val MAVLINK_TYPE_DOUBLE = 10
 
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
-    5 -> "FLY_BY_WIRE_A", 6 -> "FLY_BY_WIRE_B", 10 -> "AUTO",
+    5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
     11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
   private val copterCodeToModeMap = Map(

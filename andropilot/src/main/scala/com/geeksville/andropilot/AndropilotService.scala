@@ -26,6 +26,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.geeksville.flight.VehicleMonitor
 import com.geeksville.util.ThreadTools._
 import com.geeksville.mavlink.MavlinkUDP
+import com.flurry.android.FlurryAgent
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -178,6 +179,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(a, AndropilotService.arduPilotId)
 
+      FlurryAgent.logEvent("udp_outbound")
       Some(a)
     } else if (inboundUdpEnabled) {
       // Let aircraft port
@@ -187,6 +189,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)
 
+      FlurryAgent.logEvent("udp_inbound")
       Some(a)
     } else {
       info("No UDP port enabled")
@@ -245,6 +248,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
         // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
+        FlurryAgent.logEvent("serial_attached")
         startHighValue()
 
         // Find out when the device goes away
@@ -267,6 +271,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       warn("Manually starting service - need to stop it somewhere...")
       startService(new Intent(this, classOf[AndropilotService]))
 
+      FlurryAgent.logEvent("high_value", true)
+
       // We are doing something important now - please don't kill us
       requestForeground()
 
@@ -277,6 +283,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   private def stopHighValue() {
     if (!serial.isDefined && !udp.isDefined) {
+      FlurryAgent.endTimedEvent("high_value")
+
       if (wakeLock.isHeld)
         wakeLock.release()
       stopForeground(true) // Get rid of our notification

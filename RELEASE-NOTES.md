@@ -1,3 +1,7 @@
+#
+* Add settings option to control # of meter change needed for voice announcement (actually this was in 0.34)
+* Shorten some mode names so they sound better
+
 # 0.1.34
 * Add back nasty USB hack if urb.position is always zero (should fix at least android 4.0, probably 3.1)
 * If usb hack needed, limit most mavlink streams to 1 hz
@@ -22,7 +26,6 @@
 For next release:
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
 * Show heartbeat lost on the overview screen
-* FIXME: fix udp receiver
 * FIXME: add waypoint change type (via menu dropdown)
 * FIXME: make a website
 * Change waypoint icons as appropriate...
@@ -30,7 +33,6 @@ For next release:
 * Clean up package namespace
 * Show docs on parameter names (if possible)
 * Handle the 'unusual' waypoint representations - look at mavproxy code for clues
-* Make a layout just for cellphones
 * Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
 
 # 0.1.29
