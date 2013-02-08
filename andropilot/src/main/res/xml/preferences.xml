@@ -43,7 +43,7 @@
             android:key="speech_enabled"
             android:summary="Should Andropilot say critical messages"
             android:title="Speech enable" />
-        
+
         <EditTextPreference
             android:defaultValue="10"
             android:dialogTitle="If altitude changes by more than this, say something"
@@ -58,6 +58,11 @@
             android:key="log_to_file"
             android:summary="Log packets to /sdcard/andropilot"
             android:title="Log to file" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="params_to_file"
+            android:summary="Backup parameters to /sdcard/andropilot"
+            android:title="Backup parameters" />
         <CheckBoxPreference
             android:defaultValue="false"
             android:key="force_screenon"

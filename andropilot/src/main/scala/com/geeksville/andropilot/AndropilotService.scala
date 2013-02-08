@@ -32,10 +32,6 @@ trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-object AndropilotService {
-  val arduPilotId = 1
-}
-
 class AndropilotService extends Service with AndroidLogger with FlurryService with UsesPreferences {
   val groundControlId = 255
 
@@ -207,7 +203,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     if (loggingEnabled) {
       // If already logging ignore
       if (!logger.isDefined)
-        logDirectory.foreach { d =>
+        AndropilotService.logDirectory.foreach { d =>
           logfile = Some(LogBinaryMavlink.getFilename(d))
           val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
           MavlinkEventBus.subscribe(l, -1)
@@ -305,21 +301,6 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     }
   }
 
-  /**
-   * Where we should spool our output files (if allowed)
-   */
-  def logDirectory = {
-    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-      None
-    else {
-      val sdcard = Environment.getExternalStorageDirectory()
-      if (!sdcard.exists())
-        None
-      else
-        Some(new File(sdcard, "ardupilot"))
-    }
-  }
-
   override def onDestroy() {
     warn("in onDestroy ******************************")
     logPrefListener.foreach(unregisterOnPreferenceChanged)
@@ -346,4 +327,26 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     startForeground(ONGOING_NOTIFICATION, notification)
   }
+}
+
+object AndropilotService {
+  val arduPilotId = 1
+
+  /**
+   * Where we should spool our output files (if allowed)
+   */
+  def sdDirectory = {
+    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+      None
+    else {
+      val sdcard = Environment.getExternalStorageDirectory()
+      if (!sdcard.exists())
+        None
+      else
+        Some(new File(sdcard, "andropilot"))
+    }
+  }
+
+  def logDirectory = sdDirectory.map { sd => new File(sd, "logs") }
+  def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
 }

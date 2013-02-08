@@ -146,6 +146,9 @@ class MainActivity extends FragmentActivity with TypedActivity
       handler.post { () =>
         toast(s)
       }
+
+    case MsgParametersDownloaded =>
+      handler.post(handleParameters _)
   }
 
   override def onServiceConnected(s: AndropilotService) {
@@ -275,6 +278,22 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private def toast(str: String) {
     Toast.makeText(this, str, Toast.LENGTH_LONG).show()
+  }
+
+  private def handleParameters() {
+    // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
+
+    if (boolPreference("params_to_file", true))
+      for { dir <- AndropilotService.paramDirectory; vm <- myVehicle } yield {
+        val file = ParameterFile.getFilename(dir)
+        try {
+          ParameterFile.create(vm.parameters, file)
+          toast("Parameters backed up to " + dir)
+        } catch {
+          case ex: Exception =>
+            error("Can't write param file: " + ex.getMessage)
+        }
+      }
   }
 
   private def serialDetached() {

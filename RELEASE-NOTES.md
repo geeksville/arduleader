@@ -1,6 +1,22 @@
-#
+# 0.1.35
 * Add settings option to control # of meter change needed for voice announcement (actually this was in 0.34)
 * Shorten some mode names so they sound better
+* Make usb host mode optional (so folks can use UDP on non host mode devices)
+* Fix overview layout so it will look good on more devices 
+* Add preferences option to automatically back-up parameters to the SD card
+
+For next release:
+* Use new icons
+* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
+* Show heartbeat lost on the overview screen
+* FIXME: add waypoint change type (via menu dropdown)
+* FIXME: make a website
+* Change waypoint icons as appropriate...
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+* Clean up package namespace
+* Show docs on parameter names (if possible)
+* Handle the 'unusual' waypoint representations - look at mavproxy code for clues
+* Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
 
 # 0.1.34
 * Add back nasty USB hack if urb.position is always zero (should fix at least android 4.0, probably 3.1)
@@ -22,18 +38,6 @@
 * Fix a problem where I was inadvertently never dequeing something from a worker thread (really nasty)
 * Set background colors on overview screen, so hacked up android builds will work better
 * Bump up stream rate on RC and stuff I need for the HUD
-
-For next release:
-* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* Show heartbeat lost on the overview screen
-* FIXME: add waypoint change type (via menu dropdown)
-* FIXME: make a website
-* Change waypoint icons as appropriate...
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-* Clean up package namespace
-* Show docs on parameter names (if possible)
-* Handle the 'unusual' waypoint representations - look at mavproxy code for clues
-* Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
 
 # 0.1.29
 
