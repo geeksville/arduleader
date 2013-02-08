@@ -554,12 +554,15 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         //log.debug("GUI set position")
 
         markerOpt.foreach { marker => marker.setPosition() }
+
+        val mappos = new LatLng(l.lat, l.lon)
         if (!hasLocation) {
           // On first update zoom in to plane
           hasLocation = true
-          val pos = new LatLng(l.lat, l.lon)
-          mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 16.0f)))
-        }
+          mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLngZoom(mappos, 16.0f)))
+        } else if (boolPreference("follow_plane", true))
+          mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLng(mappos)))
+
         // Store last known position in prefs
         preferences.edit.putFloat("cur_lat", l.lat.toFloat).putFloat("cur_lon", l.lon.toFloat).commit()
 
