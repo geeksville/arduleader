@@ -54,6 +54,11 @@ trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClie
     super.onPause()
   }
 
+  /**
+   * Don't bother sending us anything if we are not visible...
+   */
+  override def isInterested(evt: Any) = isShown && super.isInterested(evt)
+
   private def unbind() {
     if (serviceBound) {
       serviceOnPause()
