@@ -22,7 +22,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Battery"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -31,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -42,7 +41,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Altitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -51,7 +49,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -62,7 +60,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Latitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -71,7 +68,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -82,7 +79,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Longitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -91,7 +87,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -102,7 +98,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="GPS satellites"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -111,7 +106,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -122,7 +117,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="Rssi (Local/Remote)"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -131,7 +125,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
-                android:layout_weight="1"
+                android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -147,6 +141,7 @@
         android:id="@+id/status_list"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         android:background="@drawable/my_border" >
     </ListView>
 
