@@ -24,7 +24,7 @@ trait VehicleSimulator extends InstrumentedActor {
    */
   val startTime = (new GregorianCalendar(2012, 12, 30)).getTime.getTime
 
-  def vehicleType = MAV_TYPE.MAV_TYPE_GCS // MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
+  def vehicleTypeCode = MAV_TYPE.MAV_TYPE_GCS // MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
 
   /**
    * Our heartbeat message
@@ -40,7 +40,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 * */
     val msg = new msg_heartbeat(systemId, componentId)
 
-    msg.`type` = vehicleType
+    msg.`type` = vehicleTypeCode
     msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID
     msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_AUTO_ENABLED
     msg.custom_mode = 0
