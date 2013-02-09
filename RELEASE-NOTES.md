@@ -1,8 +1,8 @@
 # 0.1.36
 * 'Follow-me' mode added to menu-bar (change settings for 'Lead distance' if you prefer lead-it mode)
 * 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
-* FIXME: add docs link https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide
-* FIXME: write developer docs, including how to embed http server
+* Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!
+* Add help menu contributed by Peter Meister.  Thanks Peter!
 * Internal code cleanup
 * Fix heartbeat vehicle type
      
@@ -14,7 +14,7 @@
 * Add preferences option to automatically back-up parameters to the SD card
 
 For next release:
-* Use new icons
+* FIXME: write developer docs, including how to embed http server
 * Save waypints to device only upon user command
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
 * Show heartbeat lost on the overview screen

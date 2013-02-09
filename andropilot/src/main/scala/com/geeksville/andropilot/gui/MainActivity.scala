@@ -50,6 +50,7 @@ import com.geeksville.aspeech.TTSClient
 import com.geeksville.util.ThrottleByBucket
 import com.geeksville.andropilot.service._
 import com.geeksville.andropilot._
+import android.net.Uri
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with UsesPreferences with TTSClient
@@ -405,6 +406,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
     service foreach { svc => menu.findItem(R.id.menu_followme).setChecked(svc.isFollowMe) }
 
+    // FIXME - host this help doc in some better location (local?) and possibly use a webview
+    menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
+      Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
+
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
       val modeName = s.getAdapter.getItem(pos)
       debug("Mode selected: " + modeName)
@@ -479,4 +484,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       // startService() // FIXME, remove this
     }
   }
+
+  private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
+
 }
