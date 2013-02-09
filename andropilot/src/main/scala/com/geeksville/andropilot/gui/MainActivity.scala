@@ -149,6 +149,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgHeartbeatLost =>
       handler.post { () =>
         speak("Heartbeat lost")
+        setModeSpinner()
       }
 
     case MsgStatusChanged(s) =>
@@ -370,8 +371,13 @@ class MainActivity extends FragmentActivity with TypedActivity
           }.get
         }
         myVehicle.foreach { v =>
-          speak(v.currentMode, true)
-          val n = findIndex(v.currentMode)
+          val modeName = if (v.hasHeartbeat) {
+            speak(v.currentMode, true)
+            v.currentMode
+          } else
+            "unknown"
+
+          val n = findIndex(modeName)
           //debug("Setting mode spinner to: " + n)
 
           s.setSelection(n)

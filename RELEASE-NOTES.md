@@ -7,6 +7,7 @@
 * Fix heartbeat vehicle type
 * Show vehicle alts as AGL (currently just relative to the home position)
 * Speak "Heartbeat lost" if we lose vehicle comms
+* Show mode as "unknown" if we don't have comms
      
 # 0.1.35
 * Add settings option to control # of meter change needed for voice announcement (actually this was in 0.34)
@@ -19,7 +20,6 @@ For next release:
 * FIXME: write developer docs, including how to embed http server
 * Save waypints to device only upon user command
 * Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* Show heartbeat lost on the overview screen
 * FIXME: add waypoint change type (via menu dropdown)
 * FIXME: make a website
 * Change waypoint icons as appropriate...
