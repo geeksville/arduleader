@@ -116,10 +116,12 @@ class MainActivity extends FragmentActivity with TypedActivity
   override def onVehicleReceive = {
 
     case l: Location =>
-      throttleAlt(l.alt.toInt) { alt =>
-        handler.post { () =>
-          debug("Speak alt: " + alt)
-          speak(alt + " meters")
+      myVehicle.foreach { v =>
+        throttleAlt(v.toAGL(l).toInt) { alt =>
+          handler.post { () =>
+            debug("Speak alt: " + alt)
+            speak(alt + " meters")
+          }
         }
       }
 
@@ -142,6 +144,11 @@ class MainActivity extends FragmentActivity with TypedActivity
           }
           setModeSpinner() // FIXME, do this someplace better
         }
+      }
+
+    case MsgHeartbeatLost =>
+      handler.post { () =>
+        speak("Heartbeat lost")
       }
 
     case MsgStatusChanged(s) =>

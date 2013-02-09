@@ -1,10 +1,12 @@
 # 0.1.36
-* 'Follow-me' mode added to menu-bar (change settings for 'Lead distance' if you prefer lead-it mode)
-* 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!
 * Add help menu contributed by Peter Meister.  Thanks Peter!
+* 'Follow-me' mode added to menu-bar (change settings for 'Lead distance' if you prefer lead-it mode)
+* 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
 * Internal code cleanup
 * Fix heartbeat vehicle type
+* Show vehicle alts as AGL (currently just relative to the home position)
+* Speak "Heartbeat lost" if we lose vehicle comms
      
 # 0.1.35
 * Add settings option to control # of meter change needed for voice announcement (actually this was in 0.34)
@@ -25,8 +27,8 @@ For next release:
 * Show docs on parameter names (if possible)
 * Handle the 'unusual' waypoint representations - look at mavproxy code for clues
 * Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
-* FIXME: announce and display a failsafe condition,
-* FIXME: announce arming and disarming.
+* FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
+* FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
 
 # 0.1.34
 * Add back nasty USB hack if urb.position is always zero (should fix at least android 4.0, probably 3.1)

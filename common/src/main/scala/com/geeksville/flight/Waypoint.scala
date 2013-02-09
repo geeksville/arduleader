@@ -32,6 +32,10 @@ case class Waypoint(val msg: msg_mission_item) {
   /// If the airplane is heading here
   def isCurrent = msg.current == 1
 
+  def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
+
+  def altitude = msg.z
+
   /**
    * A short description of this waypoint
    */

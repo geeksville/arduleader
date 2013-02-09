@@ -150,7 +150,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
   def isCopter = vehicleType.map { t =>
     (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
-  }.getOrElse(false)
+  }.getOrElse(true)
 
   private def codeToModeMap = if (isPlane)
     planeCodeToModeMap
@@ -454,6 +454,23 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
       parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
       onParametersDownloaded() // Yay - we have everything!
     }
+  }
+
+  /**
+   * Convert the specified altitude into an AGL altitude
+   * FIXME - currently we just use the home location - eventually we should use local terrain alt
+   */
+  def toAGL(l: Location) = {
+    val groundAlt = if (!waypoints.isEmpty) {
+      val wp = waypoints(0)
+      if (wp.isMSL)
+        wp.altitude
+      else
+        0.0f
+    } else
+      0.0f
+
+    l.alt - groundAlt
   }
 
   /**

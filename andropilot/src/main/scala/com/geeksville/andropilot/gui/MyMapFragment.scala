@@ -444,7 +444,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         // Generate a few optional lines of text
 
         val locStr = v.location.map { l =>
-          "Altitude %.1fm".format(l.alt)
+          "Altitude %.1fm".format(v.toAGL(l))
         }
 
         val batStr = if (isLowVolt) Some("LowVolt!") else None
