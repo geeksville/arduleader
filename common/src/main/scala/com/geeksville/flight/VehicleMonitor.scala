@@ -63,6 +63,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   var numSats: Option[Int] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
   var attitude: Option[msg_attitude] = None
+  var guidedDest: Option[Waypoint] = None
 
   var waypoints = IndexedSeq[Waypoint]()
 
@@ -467,6 +468,8 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
    */
   private def gotoGuided(m: msg_mission_item) {
     sendWithRetry(m, classOf[msg_mission_ack])
+    guidedDest = Some(Waypoint(m))
+    onWaypointsChanged()
   }
 
   def setCurrent(seq: Int) {

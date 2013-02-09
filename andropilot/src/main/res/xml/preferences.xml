@@ -1,92 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-	<PreferenceCategory android:title="Flight Preferences">
-		<EditTextPreference android:defaultValue="100"
-			android:dialogTitle="Guided flight altitude (meters AGL)"
-			android:inputType="number" android:key="guide_alt"
-			android:summary="Altitude above ground level in meters"
-			android:title="Guided flight altitude" />
-		<EditTextPreference android:defaultValue="9.5"
-			android:dialogTitle="Minimum battery voltage" android:inputType="numberDecimal"
-			android:key="min_volt"
-			android:summary="If voltage falls below this level, Andropilot will warn you"
-			android:title="Voltage warn level" />
-		<EditTextPreference android:defaultValue="25"
-			android:dialogTitle="Minimum battery percentage" android:inputType="number"
-			android:key="min_batpct"
-			android:summary="If battery percent falls below this level, Andropilot will warn you"
-			android:title="Percent charge warn level" />
-		<EditTextPreference android:defaultValue="100"
-			android:dialogTitle="Minimum Rssi" android:inputType="number"
-			android:key="min_rssi"
-			android:summary="Warn if the radio signal strength falls below this value"
-			android:title="Rssi warn level" />
-		<EditTextPreference android:defaultValue="5"
-			android:dialogTitle="Minimum number of satellites" android:inputType="number"
-			android:key="min_numsats" android:summary="Warn if number of GPS satellites falls below this value"
-			android:title="Satellite warn level" />
+    <PreferenceCategory android:title="Flight Preferences" >
+        <EditTextPreference
+            android:defaultValue="100"
+            android:dialogTitle="Guided flight altitude (meters AGL)"
+            android:inputType="number"
+            android:key="guide_alt"
+            android:summary="Altitude above ground level in meters"
+            android:title="Guided flight altitude" />
+        <EditTextPreference
+            android:defaultValue="9.5"
+            android:dialogTitle="Minimum battery voltage"
+            android:inputType="numberDecimal"
+            android:key="min_volt"
+            android:summary="If voltage falls below this level, Andropilot will warn you"
+            android:title="Voltage warn level" />
+        <EditTextPreference
+            android:defaultValue="25"
+            android:dialogTitle="Minimum battery percentage"
+            android:inputType="number"
+            android:key="min_batpct"
+            android:summary="If battery percent falls below this level, Andropilot will warn you"
+            android:title="Percent charge warn level" />
+        <EditTextPreference
+            android:defaultValue="100"
+            android:dialogTitle="Minimum Rssi"
+            android:inputType="number"
+            android:key="min_rssi"
+            android:summary="Warn if the radio signal strength falls below this value"
+            android:title="Rssi warn level" />
+        <EditTextPreference
+            android:defaultValue="5"
+            android:dialogTitle="Minimum number of satellites"
+            android:inputType="number"
+            android:key="min_numsats"
+            android:summary="Warn if number of GPS satellites falls below this value"
+            android:title="Satellite warn level" />
 
-		<CheckBoxPreference android:defaultValue="false"
-			android:key="speech_enabled" android:summary="Should Andropilot say critical messages"
-			android:title="Speech enable" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="speech_enabled"
+            android:summary="Should Andropilot say critical messages"
+            android:title="Speech enable" />
 
-		<EditTextPreference android:defaultValue="10"
-			android:dialogTitle="If altitude changes by more than this, say something"
-			android:inputType="number" android:key="speech_altbucket"
-			android:summary="Speak if altitude changes by more than this (meters)"
-			android:title="Announce altitude threshold" />
+        <EditTextPreference
+            android:defaultValue="10"
+            android:dialogTitle="If altitude changes by more than this, say something"
+            android:inputType="number"
+            android:key="speech_altbucket"
+            android:summary="Speak if altitude changes by more than this (meters)"
+            android:title="Announce altitude threshold" />
+        <EditTextPreference
+            android:defaultValue="0"
+            android:dialogTitle="How far away should the vehicle try to follow"
+            android:inputType="number"
+            android:key="follow_distance"
+            android:summary="How far away should the vehicle follow (meters)"
+            android:title="Follow-me distance" />
 
-		<CheckBoxPreference android:defaultValue="true"
-			android:key="follow_plane" android:summary="Try to keep vehicle centered in map"
-			android:title="Center on map" />
-	</PreferenceCategory>
-	<PreferenceCategory android:title="Mavlink Preferences">
-		<CheckBoxPreference android:defaultValue="false"
-			android:key="log_to_file" android:summary="Log packets to /sdcard/andropilot"
-			android:title="Log to file" />
-		<CheckBoxPreference android:defaultValue="true"
-			android:key="params_to_file" android:summary="Backup parameters to /sdcard/andropilot"
-			android:title="Backup parameters" />
-		<CheckBoxPreference android:defaultValue="false"
-			android:key="force_screenon" android:summary="Don&apos;t let the screen dim when map is shown"
-			android:title="Keep screen on" />
-		<CheckBoxPreference android:defaultValue="true"
-			android:key="stay_awake" android:summary="Keeps CPU from sleeping when device is connected"
-			android:title="Stay awake when connected" />
-	</PreferenceCategory>
-	<PreferenceCategory android:title="Networking Preferences">
-		<ListPreference android:defaultValue="Disabled"
-			android:entries="@array/udp_mode" android:entryValues="@array/udp_mode_values"
-			android:key="udp_mode" android:summary="Select type of UDP link"
-			android:title="UDP mode selection" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="follow_plane"
+            android:summary="Try to keep vehicle centered in map"
+            android:title="Center on map" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Mavlink Preferences" >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="log_to_file"
+            android:summary="Log packets to /sdcard/andropilot"
+            android:title="Log to file" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="params_to_file"
+            android:summary="Backup parameters to /sdcard/andropilot"
+            android:title="Backup parameters" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="force_screenon"
+            android:summary="Don&apos;t let the screen dim when map is shown"
+            android:title="Keep screen on" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="stay_awake"
+            android:summary="Keeps CPU from sleeping when device is connected"
+            android:title="Stay awake when connected" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Networking Preferences" >
+        <ListPreference
+            android:defaultValue="Disabled"
+            android:entries="@array/udp_mode"
+            android:entryValues="@array/udp_mode_values"
+            android:key="udp_mode"
+            android:summary="Select type of UDP link"
+            android:title="UDP mode selection" />
 
-		<EditTextPreference android:defaultValue="14550"
-			android:dialogTitle="Port number for listening to UDP packets"
-			android:inputType="number" android:key="inbound_port"
-			android:summary="Port number to send to on destination machine"
-			android:title="Inbound port number" />
-		<EditTextPreference android:defaultValue="192.168.0.4"
-			android:dialogTitle="Hostname/IP address for any outbound packets"
-			android:key="outbound_udp_host" android:summary="Hostname/IP address for any outbound packets"
-			android:title="Outbound host" />
-		<EditTextPreference android:defaultValue="14550"
-			android:dialogTitle="Port number to send to on destination machine"
-			android:inputType="number" android:key="outbound_port"
-			android:summary="Port number to send to on destination machine"
-			android:title="Outbound port number" />
-	</PreferenceCategory>
-	<PreferenceCategory android:title="Serial Preferences">
-		<EditTextPreference android:defaultValue="57600"
-			android:dialogTitle="Baud rate to use for wireless link"
-			android:inputType="number" android:key="baud_wireless"
-			android:summary="Baud rate for wireless link (normally 57600)"
-			android:title="Wireless baud rate" />
-		<EditTextPreference android:defaultValue="115200"
-			android:dialogTitle="Baud rate for direct APM connection"
-			android:inputType="number" android:key="baud_direct"
-			android:summary="Baud rate direct APM connection (normally 115200)"
-			android:title="APM baud rate" />
-	</PreferenceCategory>
+        <EditTextPreference
+            android:defaultValue="14550"
+            android:dialogTitle="Port number for listening to UDP packets"
+            android:inputType="number"
+            android:key="inbound_port"
+            android:summary="Port number to send to on destination machine"
+            android:title="Inbound port number" />
+        <EditTextPreference
+            android:defaultValue="192.168.0.4"
+            android:dialogTitle="Hostname/IP address for any outbound packets"
+            android:key="outbound_udp_host"
+            android:summary="Hostname/IP address for any outbound packets"
+            android:title="Outbound host" />
+        <EditTextPreference
+            android:defaultValue="14550"
+            android:dialogTitle="Port number to send to on destination machine"
+            android:inputType="number"
+            android:key="outbound_port"
+            android:summary="Port number to send to on destination machine"
+            android:title="Outbound port number" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Serial Preferences" >
+        <EditTextPreference
+            android:defaultValue="57600"
+            android:dialogTitle="Baud rate to use for wireless link"
+            android:inputType="number"
+            android:key="baud_wireless"
+            android:summary="Baud rate for wireless link (normally 57600)"
+            android:title="Wireless baud rate" />
+        <EditTextPreference
+            android:defaultValue="115200"
+            android:dialogTitle="Baud rate for direct APM connection"
+            android:inputType="number"
+            android:key="baud_direct"
+            android:summary="Baud rate direct APM connection (normally 115200)"
+            android:title="APM baud rate" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

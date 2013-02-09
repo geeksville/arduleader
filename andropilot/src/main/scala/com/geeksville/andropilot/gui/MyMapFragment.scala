@@ -266,14 +266,9 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
      */
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
-        guidedMarker.foreach(_.remove())
 
-        val marker = new GuidedWaypointMarker(loc)
-        scene.get.addMarker(marker)
-        guidedMarker = Some(marker)
-
-        v ! DoGotoGuided(marker.wp.msg)
-        handleWaypoints()
+        val wp = myVehicle.get.makeGuided(loc)
+        v ! DoGotoGuided(wp)
 
         toast("Guided flight selected")
       }
@@ -374,7 +369,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
     }
   }
 
-  class GuidedWaypointMarker(loc: Location) extends WaypointMarker(Waypoint(myVehicle.get.makeGuided(loc))) {
+  class GuidedWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
   }
 
   /**
@@ -731,6 +726,15 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
           }
 
           createWaypointSegments()
+        }
+
+        // Update any guided marker we might have
+        guidedMarker.foreach(_.remove())
+        guidedMarker = None
+        v.guidedDest.foreach { gwp =>
+          val marker = new GuidedWaypointMarker(gwp)
+          scene.addMarker(marker)
+          guidedMarker = Some(marker)
         }
 
         // Set 'special' destinations
