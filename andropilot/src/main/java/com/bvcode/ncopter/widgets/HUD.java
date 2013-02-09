@@ -258,6 +258,11 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
+	private void setDirty() {
+		if (renderer != null)
+			renderer.setDirty();
+	}
+
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		boolean retry = true;
@@ -277,6 +282,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		private SurfaceHolder _surfaceHolder;
 		private HUD scope;
 		private boolean running = false;
+		private Object dirty = new Object();
 
 		public ScopeThread(SurfaceHolder surfaceHolder, HUD panel) {
 			_surfaceHolder = surfaceHolder;
@@ -290,7 +296,14 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 
 		public void setRunning(boolean run) {
 			running = run;
+			setDirty();
+		}
 
+		/** We may need to redraw */
+		public void setDirty() {
+			synchronized (dirty) {
+				dirty.notify();
+			}
 		}
 
 		@Override
@@ -299,13 +312,18 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 			while (running) {
 				c = null;
 				try {
-					c = _surfaceHolder.lockCanvas(null);
-					synchronized (_surfaceHolder) {
-						if (c != null) {
-							Log.d("HUD", "Refreshing");
-							scope.onDraw(c);
+					synchronized (dirty) {
+						// dirty.wait(); // FIXME - not quite ready
+						c = _surfaceHolder.lockCanvas(null);
+						synchronized (_surfaceHolder) {
+							if (c != null) {
+								Log.d("HUD", "Refreshing");
+								scope.onDraw(c);
+							}
 						}
 					}
+				} catch (InterruptedException e) {
+					// we will try it again and again...
 				} finally {
 					// do this in a finally so that if an exception is thrown
 					// during the above, we don't leave the Surface in an
@@ -329,26 +347,27 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		this.roll = (roll * 180.0 / Math.PI);
 		this.pitch = (pitch * 180.0 / Math.PI);
 		this.yaw = (yaw * 180.0 / Math.PI);
-
+		setDirty();
 	}
 
 	public void setAltitude(String alt) {
 		altitude = alt;
-
+		setDirty();
 	}
 
 	public void setBatteryRemaining(String d) {
 		remainBatt = d;
-
+		setDirty();
 	}
 
 	public void setBatteryMVolt(String vbat) {
 		battVolt = vbat;
-
+		setDirty();
 	}
 
 	public void setGPSFix(String s) {
 		gpsFix = s;
+		setDirty();
 	}
 
 }
