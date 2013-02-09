@@ -32,12 +32,12 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
       }
     }
 
-    lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 3, locListener)
-
     override def onProviderDisabled(provider: String) {}
     override def onProviderEnabled(provider: String) {}
     override def onStatusChanged(provider: String, status: Int, extras: Bundle) {}
   }
+
+  lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 3, locListener)
 
   def close() {
     lm.removeUpdates(locListener)

@@ -40,8 +40,10 @@ class ThrottleByBucket(bucketSize: Int) {
   def apply(newVal: Int)(fn: Int => Unit) {
     val oldBucket = lastVal / bucketSize
     val newBucket = newVal / bucketSize
+    def delta = math.abs(newVal - lastVal)
 
-    if (oldBucket != newBucket) {
+    // Don't speak unless we move one full bucket away
+    if (oldBucket != newBucket && delta >= bucketSize) {
       fn(newVal)
       lastVal = newVal
     }

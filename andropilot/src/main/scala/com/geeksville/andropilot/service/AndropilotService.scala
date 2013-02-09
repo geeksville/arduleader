@@ -84,6 +84,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     getLines().mkString("\n")
 
   def isSerialConnected = serial.isDefined
+  def isFollowMe = follower.isDefined
 
   /**
    * A human readable description of our logging state

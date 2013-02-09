@@ -403,6 +403,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeSpinner()
 
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+    service foreach { svc => menu.findItem(R.id.menu_followme).setChecked(svc.isFollowMe) }
 
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
       val modeName = s.getAdapter.getItem(pos)
