@@ -20,7 +20,7 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
   private val throttle = new Throttled(2000)
 
   private var userGpsLoc: Option[Location] = None
-  private var userBearing: Int = 0
+  private var orientation = Array(0.0f, 0.0f, 0.0f)
 
   /**
    * Add an android location listener
@@ -45,35 +45,44 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
 
   private val compassListener = new SensorEventListener {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE).asInstanceOf[SensorManager]
-    val sensorType = Sensor.TYPE_ORIENTATION
 
     /**
      * If we have our sensor this will be !None
      */
-    val sensor = {
-      val sensors = sensorManager.getSensorList(sensorType);
-      if (sensors.size > 0)
-        Some(sensors.get(0))
-      else
-        None
-    }
+    private val magSensor = Option(sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD))
+    private val accelSensor = Option(sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER))
 
-    sensor.foreach { s =>
-      sensorManager.registerListener(
-        this,
-        s,
-        SensorManager.SENSOR_DELAY_NORMAL)
-    }
+    private var accelData: Option[Array[Float]] = None
+    private var magData: Option[Array[Float]] = None
+
+    magSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL) }
+    accelSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL) }
 
     override def onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
 
     override def onSensorChanged(event: SensorEvent) {
-      userBearing = event.values(0).toInt // Direction in degrees
-      updateTarget()
+      // userBearing = event.values(0).toInt // Direction in degrees
+      val s = Some(event.sensor)
+      if (s == magSensor)
+        magData = Some(event.values)
+      if (s == accelSensor)
+        accelData = Some(event.values) // FIXME - it would have been better to just have two instances
+      // of the sensor listener
+
+      for (m <- magData; a <- accelData) yield {
+        val r = new Array[Float](9)
+        val i = new Array[Float](9)
+        if (SensorManager.getRotationMatrix(r, i, a, m)) {
+          SensorManager.getOrientation(r, orientation)
+
+          updateTarget()
+        }
+      }
     }
 
     def close() {
-      sensor.foreach { s => sensorManager.unregisterListener(this) }
+      magSensor.foreach { s => sensorManager.unregisterListener(this, s) }
+      accelSensor.foreach { s => sensorManager.unregisterListener(this, s) }
     }
   }
 
@@ -89,10 +98,21 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
     throttle { () =>
       for (loc <- userGpsLoc) yield {
 
-        val followDistance = floatPreference("follow_distance", 0.0f)
+        val minDistance = floatPreference("minfollow_distance", 0.0f)
+        val maxDistance = floatPreference("maxfollow_distance", 0.0f)
 
-        val (lat, lon) = MathTools.applyBearing(loc.getLatitude, loc.getLongitude, followDistance, userBearing)
-        debug("Follow distance %s, bearing %s -> %s, %s".format(followDistance, userBearing, lat, lon))
+        val bearing = orientation(0).toInt
+        val pitch = orientation(1)
+        val roll = orientation(2)
+
+        val closePitch = 45
+        val farPitch = 20
+        val clampedPitch = math.max(math.min(closePitch, pitch), farPitch)
+        val distPercent = (clampedPitch - farPitch) / (closePitch - farPitch)
+        val followDistance = distPercent * (maxDistance - minDistance) + minDistance
+        val (lat, lon) = MathTools.applyBearing(loc.getLatitude, loc.getLongitude, followDistance, bearing)
+        debug("Follow distance %s (%s), bearing %s/%s/%s -> %s, %s".format(
+          followDistance, distPercent, bearing, pitch, roll, lat, lon))
 
         val myloc = new com.geeksville.flight.Location(lat, lon, loc.getAltitude)
 

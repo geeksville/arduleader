@@ -1,6 +1,8 @@
 # 0.1.36
-* Beginnings of follow-me mode
+* 'Follow-me' mode added to menu-bar (change settings for 'Lead distance' if you prefer lead-it mode)
+* 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
 * FIXME: add docs link https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide
+* FIXME: write developer docs, including how to embed http server
 * Internal code cleanup
 * Fix heartbeat vehicle type
 * announce and display a failsafe condition,
