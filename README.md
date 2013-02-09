@@ -1,7 +1,7 @@
 # An Android/Linux ground controller in Scala
 
 This project began with the goal of having an Arduplane follow a hang-glider and take pictures.  That work still continues (see the posixpilot subproject).  However, it quickly became apparant that much of this software could be used to make an Android based Ground Controller. 
-
+ 
 A prebuilt version of the Android application is [on the Play store](https://play.google.com/store/apps/details?id=com.geeksville.andropilot).  If you are not interested in coding, you probably want to go there. 
 
 # Credits
@@ -9,6 +9,8 @@ A prebuilt version of the Android application is [on the Play store](https://pla
 * Mavlink compiler and library kindly created and donated by Guillaume Helle (antispamprefixremovemeghelle31@gmail.com).  If you 
 would like to use this code in your own project, the source is located in the mavjava directory.
 * Copter-gcs provided the nice HUD display code
+* Wiki documentation mainly by Peter Meister
+* Most icons by Scott Berfield
 
 # License
 
