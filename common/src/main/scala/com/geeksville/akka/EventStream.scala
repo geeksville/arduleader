@@ -16,9 +16,16 @@ class EventStream extends Publisher[Any] {
     }
   }
 
-  def subscribe(a: InstrumentedActor, isInterested: Any => Boolean) = {
+  /**
+   * @param isInterested - if not specified we look at the actor's partial function to see what it understands
+   */
+  def subscribe(a: InstrumentedActor, isInterested: Any => Boolean = null) = {
+    val isInt = if (isInterested != null)
+      isInterested
+    else { evt => a.onReceive.isDefinedAt(evt) }
+
     val sub = new Subscriber(a)
-    super.subscribe(sub, isInterested)
+    super.subscribe(sub, isInt)
     sub
   }
 

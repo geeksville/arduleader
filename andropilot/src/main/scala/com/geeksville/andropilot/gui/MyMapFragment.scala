@@ -33,6 +33,7 @@ import com.geeksville.flight.Waypoint
 import com.geeksville.andropilot.R
 import scala.Option.option2Iterable
 import com.geeksville.andropilot.service._
+import com.geeksville.flight.DoGotoGuided
 
 /**
  * Our customized map fragment
@@ -271,7 +272,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
         scene.get.addMarker(marker)
         guidedMarker = Some(marker)
 
-        v.gotoGuided(marker.wp.msg)
+        v ! DoGotoGuided(marker.wp.msg)
         handleWaypoints()
 
         toast("Guided flight selected")

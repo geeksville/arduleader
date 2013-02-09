@@ -29,6 +29,10 @@ case object MsgParametersDownloaded
 case object MsgWaypointsChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgModeChanged(m: Int)
+
+// Commands we accept in our actor queue
+case class DoGotoGuided(m: msg_mission_item)
+
 /**
  * Start sending waypoints TO the vehicle
  */
@@ -177,6 +181,9 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   override def onReceive = mReceive.orElse(super.onReceive)
 
   private def mReceive: Receiver = {
+    case DoGotoGuided(m) =>
+      gotoGuided(m)
+
     case RetryExpired(ctx) =>
       ctx.doRetry()
 
@@ -458,7 +465,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * FIXME - we currently assume dest has a relative altitude
    */
-  def gotoGuided(m: msg_mission_item) {
+  private def gotoGuided(m: msg_mission_item) {
     sendWithRetry(m, classOf[msg_mission_ack])
   }
 
