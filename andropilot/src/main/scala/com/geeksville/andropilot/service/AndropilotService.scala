@@ -50,6 +50,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   private var serial: Option[MavlinkStream] = None
   private var udp: Option[MavlinkUDP] = None
 
+  private var follower: Option[FollowMe] = None
+
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
@@ -220,6 +222,19 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       }
   }
 
+  def setFollowMe(b: Boolean) {
+    debug("Setting follow: " + b)
+    if (b && !follower.isDefined)
+      vehicle.foreach { v =>
+        follower = Some(new FollowMe(this, v))
+      }
+
+    if (!b) {
+      follower.foreach(_.close())
+      follower = None
+    }
+  }
+
   def serialAttached() {
     AndroidSerial.getDevice.map { sdev =>
 
@@ -305,6 +320,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   override def onDestroy() {
     warn("in onDestroy ******************************")
+    setFollowMe(false)
     logPrefListener.foreach(unregisterOnPreferenceChanged)
     udpPrefListener.foreach(unregisterOnPreferenceChanged)
     udp.foreach(_ ! PoisonPill)

@@ -429,6 +429,15 @@ class MainActivity extends FragmentActivity with TypedActivity
         debug("Toggle speech, newmode " + n)
         isSpeechEnabled = n
         item.setChecked(n)
+
+      case R.id.menu_followme => // FIXME - move this into the map fragment
+        service.foreach { s =>
+          val n = !item.isChecked
+          debug("Toggle followme, newmode " + n)
+          s.setFollowMe(n)
+
+          item.setChecked(n)
+        }
       case _ =>
     }
 
