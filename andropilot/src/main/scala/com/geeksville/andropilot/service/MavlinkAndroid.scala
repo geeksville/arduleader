@@ -1,10 +1,8 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.service
 
 import android.content.Context
 import java.io._
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ByteOnlyInputStream
-import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight.VehicleMonitor
 import com.geeksville.aserial.AsyncSerial
 

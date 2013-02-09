@@ -1,4 +1,4 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.gui
 
 import _root_.android.os.Bundle
 import android.content.Intent
@@ -48,6 +48,8 @@ import android.support.v4.app.FragmentStatePagerAdapter
 import android.view.ViewGroup
 import com.geeksville.aspeech.TTSClient
 import com.geeksville.util.ThrottleByBucket
+import com.geeksville.andropilot.service._
+import com.geeksville.andropilot._
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with UsesPreferences with TTSClient

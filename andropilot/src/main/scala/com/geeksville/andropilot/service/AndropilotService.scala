@@ -1,4 +1,4 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.service
 
 import scala.concurrent.duration._
 import com.geeksville.flight.FlightLead
@@ -7,7 +7,6 @@ import android.app._
 import android.content.Intent
 import com.ridemission.scandroid.AndroidLogger
 import com.geeksville.mavlink.MavlinkEventBus
-import com.geeksville.mavlink.HeartbeatMonitor
 import android.os._
 import scala.io.Source
 import com.geeksville.mavlink.LogIncomingMavlink
@@ -27,6 +26,9 @@ import com.geeksville.flight.VehicleMonitor
 import com.geeksville.util.ThreadTools._
 import com.geeksville.mavlink.MavlinkUDP
 import com.flurry.android.FlurryAgent
+import com.geeksville.andropilot.R
+import com.geeksville.andropilot.gui.MainActivity
+import com.geeksville.andropilot.FlurryService
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService

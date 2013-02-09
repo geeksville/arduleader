@@ -1,4 +1,4 @@
-package com.geeksville.andropilot;
+package com.geeksville.andropilot.service
 
 import android.content.Context
 import android.hardware.usb._
@@ -8,14 +8,9 @@ import scala.collection.JavaConverters._
 import java.io._
 import com.hoho.android.usbserial.driver.UsbSerialDriver
 import scala.concurrent.SyncVar
-import java.nio.ByteBuffer
-import android.content.BroadcastReceiver
-import android.content.Intent
-import android.app.PendingIntent
-import android.content.IntentFilter
-import scala.language.reflectiveCalls
 import com.geeksville.aserial.AsyncSerial
 import com.hoho.android.usbserial.driver.FtdiSerialDriver
+import com.geeksville.andropilot.AccessGrantedReceiver
 
 class NoAcquirePortException extends Exception
 

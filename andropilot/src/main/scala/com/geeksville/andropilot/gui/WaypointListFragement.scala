@@ -1,18 +1,13 @@
-package com.geeksville.andropilot
-
-import android.os.Bundle
-import android.widget.ArrayAdapter
-import com.ridemission.scandroid.AndroidLogger
+package com.geeksville.andropilot.gui
 import android.widget.ListView
 import android.view.View
-import com.geeksville.flight.VehicleMonitor
-import android.app.FragmentManager
 import scala.collection.JavaConverters._
 import android.widget.SimpleAdapter
-import android.os.Handler
 import com.geeksville.flight._
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
+import com.geeksville.andropilot.R
+import com.geeksville.andropilot.service._
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
 

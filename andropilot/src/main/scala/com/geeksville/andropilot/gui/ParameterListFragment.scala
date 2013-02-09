@@ -1,18 +1,15 @@
-package com.geeksville.andropilot
-
-import android.os.Bundle
-import android.widget.ArrayAdapter
-import com.ridemission.scandroid.AndroidLogger
-import android.widget.ListView
-import android.view.View
-import com.geeksville.flight.VehicleMonitor
-import android.app.FragmentManager
+package com.geeksville.andropilot.gui
 import scala.collection.JavaConverters._
-import android.widget.SimpleAdapter
-import android.os.Handler
-import com.geeksville.flight.MsgParametersDownloaded
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
+import com.geeksville.andropilot.service.AndropilotService
+import com.geeksville.flight.MsgParametersDownloaded
+import android.widget.ListView
+import android.view.View
+import android.widget.SimpleAdapter
+import com.geeksville.andropilot.R
+import com.geeksville.andropilot.TypedResource._
+import com.geeksville.andropilot.TR
 
 class ParameterListFragment extends ListFragment with AndroServiceFragment {
 

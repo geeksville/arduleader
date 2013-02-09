@@ -1,15 +1,17 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.gui
 
 import com.ridemission.scandroid.AndroidLogger
 import android.view._
 import android.os.Bundle
 import com.geeksville.flight.VehicleMonitor
 import com.ridemission.scandroid.AndroidUtil._
-import TypedResource._
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.widget.Toast
 import android.support.v4.app.DialogFragment
+import com.geeksville.andropilot.R
+import com.geeksville.andropilot.TypedResource._
+import com.geeksville.andropilot.TR
 
 class ParameterEditorFragment(val param: VehicleMonitor#ParamValue) extends DialogFragment with AndroidLogger {
   setCancelable(true)

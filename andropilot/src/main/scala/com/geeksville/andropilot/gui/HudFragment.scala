@@ -1,27 +1,17 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.gui
 
 import android.os.Bundle
-import android.widget.ArrayAdapter
-import com.ridemission.scandroid.AndroidLogger
-import android.widget.ListView
-import android.view.View
-import com.geeksville.flight.VehicleMonitor
-import android.app.FragmentManager
 import scala.collection.JavaConverters._
-import android.widget.SimpleAdapter
-import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
-import com.geeksville.flight.MsgRcChannelsChanged
 import com.geeksville.util.ThreadTools._
-import android.support.v4.app.ListFragment
 import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.ridemission.scandroid.AndroidUtil._
-import TypedResource._
-import android.widget.ArrayAdapter
+import com.geeksville.andropilot.TypedResource._
+import com.geeksville.andropilot.TR
 import com.geeksville.flight._
-import java.util.LinkedList
 import org.mavlink.messages.ardupilotmega.msg_attitude
+import com.geeksville.andropilot.R
 
 class HudFragment extends Fragment with AndroServicePage {
 

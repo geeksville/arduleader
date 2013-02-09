@@ -1,4 +1,4 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.gui
 
 import com.geeksville.gmaps.Scene
 import com.google.android.gms.maps.model._
@@ -9,7 +9,6 @@ import com.geeksville.flight._
 import com.geeksville.akka._
 import com.geeksville.mavlink._
 import com.ridemission.scandroid.AndroidLogger
-import android.os.Handler
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.geeksville.util.ThreadTools._
 import com.google.android.gms.common.GooglePlayServicesUtil
@@ -23,17 +22,17 @@ import com.geeksville.flight.MsgWaypointsChanged
 import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
-import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.SmartMarker
 import android.graphics.Color
-import org.mavlink.messages.MAV_CMD
 import android.widget.TextView
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
-import org.mavlink.messages.MAV_FRAME
 import android.view.inputmethod.InputMethodManager
 import com.geeksville.flight.Waypoint
+import com.geeksville.andropilot.R
+import scala.Option.option2Iterable
+import com.geeksville.andropilot.service._
 
 /**
  * Our customized map fragment
