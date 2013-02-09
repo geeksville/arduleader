@@ -1,8 +1,10 @@
-package com.geeksville.andropilot
+package com.geeksville.andropilot.gui
 
 import android.os.Bundle
 import android.preference.PreferenceFragment
 import android.app.Activity
+import com.geeksville.andropilot.FlurryActivity
+import com.geeksville.andropilot.R
 
 class SettingsActivity extends Activity with FlurryActivity {
   override def onCreate(savedInstanceState: Bundle) {
