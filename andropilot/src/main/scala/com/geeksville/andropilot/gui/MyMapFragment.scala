@@ -427,11 +427,10 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
 
     private def iconRes = (for { s <- service; v <- myVehicle } yield {
       if (!v.hasHeartbeat || !s.isSerialConnected)
-        R.drawable.plane_red
+        if (v.isCopter) R.drawable.quad_red else R.drawable.plane_red
       else if (isWarning)
-        R.drawable.plane_yellow
-      else
-        R.drawable.plane_blue
+        if (v.isCopter) R.drawable.quad_yellow else R.drawable.plane_yellow
+      else if (v.isCopter) R.drawable.quad_blue else R.drawable.plane_blue
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
