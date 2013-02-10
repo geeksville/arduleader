@@ -416,7 +416,14 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeSpinner()
 
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
-    service foreach { svc => menu.findItem(R.id.menu_followme).setChecked(svc.isFollowMe) }
+    service foreach { svc =>
+      val follow = menu.findItem(R.id.menu_followme)
+
+      // If the user has customized min/max distances they are really going to be _leading_ instead
+      val isLeading = minDistance != 0.0f || maxDistance != 0.0f
+      follow.setTitle(if (isLeading) "Lead it" else "Follow me")
+      follow.setChecked(svc.isFollowMe)
+    }
 
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
     menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(

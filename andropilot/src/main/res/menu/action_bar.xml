@@ -7,7 +7,7 @@
 
 	<!-- FIXME - move this into the action bar for the map -->
 	<item android:id="@+id/menu_followme" android:checkable="true"
-		android:title="Follow Me" />
+		android:title="Follow me" />
 
 	<item android:id="@+id/menu_settings" android:showAsAction="never"
 		android:title="Settings" />
