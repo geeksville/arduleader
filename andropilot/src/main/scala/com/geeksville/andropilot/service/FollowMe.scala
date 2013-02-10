@@ -11,11 +11,12 @@ import com.ridemission.scandroid.AndroidLogger
 import android.hardware._
 import com.geeksville.util.MathTools
 import com.ridemission.scandroid.UsesPreferences
+import com.geeksville.andropilot.AndropilotPrefs
 
 /**
  * Try to drive vehicle to stay near us
  */
-class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogger with UsesPreferences {
+class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogger with AndropilotPrefs {
 
   private val throttle = new Throttled(2000)
 
@@ -98,9 +99,6 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
     throttle { () =>
       for (loc <- userGpsLoc) yield {
 
-        val minDistance = floatPreference("minfollow_distance", 0.0f)
-        val maxDistance = floatPreference("maxfollow_distance", 0.0f)
-
         val bearing = orientation(0).toInt
         val pitch = orientation(1)
         val roll = orientation(2)
@@ -114,7 +112,7 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
         debug("Follow distance %s (%s), bearing %s/%s/%s -> %s, %s".format(
           followDistance, distPercent, bearing, pitch, roll, lat, lon))
 
-        val myloc = new com.geeksville.flight.Location(lat, lon, loc.getAltitude)
+        val myloc = new com.geeksville.flight.Location(lat, lon, guideAlt)
 
         // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
         val msg = v.makeGuided(myloc)

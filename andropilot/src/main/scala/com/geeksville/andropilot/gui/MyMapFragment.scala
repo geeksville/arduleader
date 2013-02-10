@@ -34,11 +34,12 @@ import com.geeksville.andropilot.R
 import scala.Option.option2Iterable
 import com.geeksville.andropilot.service._
 import com.geeksville.flight.DoGotoGuided
+import com.geeksville.andropilot.AndropilotPrefs
 
 /**
  * Our customized map fragment
  */
-class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroServiceFragment {
+class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroServiceFragment {
 
   var scene: Option[Scene] = None
 
@@ -420,8 +421,8 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
 
     private var oldWarning = false
 
-    def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(floatPreference("cur_lat", 0.0f))
-    def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(floatPreference("cur_lon", 0.0f))
+    def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(curLatitude)
+    def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(curLongitude)
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(iconRes))
 
@@ -494,12 +495,6 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
     }
   }
 
-  def minVoltage = floatPreference("min_voltage", 9.5f)
-  def minBatPercent = intPreference("min_batpct", 25) / 100.0f
-  def minRssi = intPreference("min_rssi", 100)
-  def minNumSats = intPreference("min_numsats", 5)
-  def isKeepScreenOn = boolPreference("force_screenon", false)
-
   override def onServiceConnected(s: AndropilotService) {
     // FIXME - we leave the vehicle marker dangling
     planeMarker.foreach(_.remove())
@@ -554,7 +549,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
           // On first update zoom in to plane
           hasLocation = true
           mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLngZoom(mappos, 16.0f)))
-        } else if (boolPreference("follow_plane", true))
+        } else if (followPlane)
           mapOpt.foreach(_.animateCamera(CameraUpdateFactory.newLatLng(mappos)))
 
         // Store last known position in prefs
@@ -663,7 +658,7 @@ class MyMapFragment extends SupportMapFragment with UsesPreferences with AndroSe
       // FIXME Allow altitude choice (by adding altitude to provisional marker)
       myVehicle.foreach { v =>
         removeProvisionalMarker()
-        val marker = new ProvisionalMarker(l, intPreference("guide_alt", 100))
+        val marker = new ProvisionalMarker(l, guideAlt)
         val m = scene.get.addMarker(marker)
         m.showInfoWindow()
         provisionalMarker = Some(marker)

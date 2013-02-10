@@ -36,7 +36,6 @@ import org.mavlink.messages.ardupilotmega.msg_mission_item
 import com.geeksville.gmaps.Segment
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener
 import android.view.MenuItem
-import com.ridemission.scandroid.UsesPreferences
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight._
 import com.geeksville.mavlink._
@@ -53,7 +52,7 @@ import com.geeksville.andropilot._
 import android.net.Uri
 
 class MainActivity extends FragmentActivity with TypedActivity
-  with AndroidLogger with FlurryActivity with UsesPreferences with TTSClient
+  with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
   with AndroServiceClient {
 
   implicit def context = this
@@ -99,7 +98,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private var oldVehicleType: Option[Int] = None
 
-  private lazy val throttleAlt = new ThrottleByBucket(intPreference("speech_altbucket", 10))
+  private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)
 
   /**
@@ -294,7 +293,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   private def handleParameters() {
     // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
 
-    if (boolPreference("params_to_file", true))
+    if (paramsToFile)
       for { dir <- AndropilotService.paramDirectory; vm <- myVehicle } yield {
         val file = ParameterFile.getFilename(dir)
         try {

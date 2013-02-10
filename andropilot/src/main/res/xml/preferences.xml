@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<PreferenceCategory android:title="Flight Preferences">
-		<EditTextPreference android:defaultValue="100"
+		<EditTextPreference android:defaultValue="50"
 			android:dialogTitle="Guided flight altitude (meters AGL)"
 			android:inputType="number" android:key="guide_alt"
 			android:summary="Altitude above ground level in meters"
