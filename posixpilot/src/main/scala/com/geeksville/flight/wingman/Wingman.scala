@@ -60,7 +60,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
   } yield {
     Distance3D(
       distance(us.lat, us.lon, lead.lat, lead.lon),
-      lead.alt - us.alt,
+      lead.alt.get - us.alt.get,
       bearing(us.lat, us.lon, lead.lat, lead.lon))
   }
 
@@ -96,7 +96,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator {
    */
   def desiredLoc = leadLoc.map { l =>
     val (lat, lon) = applyBearing(l.lat, l.lon, desiredDistanceX, desiredBearing - 180)
-    Location(lat, lon, l.alt - desiredDistanceZ)
+    Location(lat, lon, Some(l.alt.get - desiredDistanceZ))
   }
 
   /**

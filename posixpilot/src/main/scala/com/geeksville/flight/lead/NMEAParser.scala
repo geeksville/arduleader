@@ -72,7 +72,7 @@ class NMEAParser {
       lat = latitude2Decimal(tokens(2), tokens(3)),
       lon = latitude2Decimal(tokens(4), tokens(5)),
       quality = tokens(6).toInt,
-      alt = tokens(9).toDouble)
+      alt = Some(tokens(9).toDouble))
 
   private def GPGGL(tokens: Array[String]) =
     Location(
@@ -102,5 +102,5 @@ class NMEAParser {
 
   private def GPRMZ(tokens: Array[String]) =
     Location(
-      alt = tokens(1).toDouble)
+      alt = Some(tokens(1).toDouble))
 }
