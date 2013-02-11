@@ -147,7 +147,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case MsgHeartbeatLost =>
       handler.post { () =>
-        speak("Heartbeat lost")
+        speak("Heartbeat lost", urgent = true)
         setModeSpinner()
       }
 
