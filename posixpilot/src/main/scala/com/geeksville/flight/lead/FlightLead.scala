@@ -103,7 +103,7 @@ object Main extends Logging {
 
     if (startMonitor) {
       // Keep a complete model of the arduplane state
-      val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleMonitor), arduPilotId)
+      val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleModel), arduPilotId)
     }
 
     // Anything from our sim lead, send it to the controller app (so it will hopefully show him)

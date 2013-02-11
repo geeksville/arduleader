@@ -3,7 +3,7 @@ package com.geeksville.andropilot.gui
 import com.ridemission.scandroid.AndroidLogger
 import android.view._
 import android.os.Bundle
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import com.ridemission.scandroid.AndroidUtil._
 import android.app.AlertDialog
 import android.content.DialogInterface
@@ -13,7 +13,7 @@ import com.geeksville.andropilot.R
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
 
-class ParameterEditorFragment(val param: VehicleMonitor#ParamValue) extends DialogFragment with AndroidLogger {
+class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger {
   setCancelable(true)
 
   private def toast(str: String) {

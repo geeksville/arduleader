@@ -22,7 +22,7 @@ import android.hardware.usb.UsbManager
 import android.content.IntentFilter
 import com.ridemission.scandroid.UsesPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import com.geeksville.util.ThreadTools._
 import com.geeksville.mavlink.MavlinkUDP
 import com.flurry.android.FlurryAgent
@@ -46,7 +46,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   private var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
   private var udpPrefListener: Option[OnSharedPreferenceChangeListener] = None
 
-  var vehicle: Option[VehicleMonitor] = None
+  var vehicle: Option[VehicleModel] = None
 
   private var serial: Option[MavlinkStream] = None
   private var udp: Option[MavlinkUDP] = None
@@ -133,7 +133,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
           LogIncomingMavlink.allowNothing), "ardlog")
     }
 
-    val actor = MockAkka.actorOf(new VehicleMonitor, "vmon")
+    val actor = MockAkka.actorOf(new VehicleModel, "vmon")
     MavlinkEventBus.subscribe(actor, AndropilotService.arduPilotId)
     vehicle = Some(actor)
 
@@ -241,7 +241,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
         // Also send anything from our active agent to the serial port
         MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
 
-        // Watch for failures - not needed , we watch in the activity with MyVehicleMonitor
+        // Watch for failures - not needed , we watch in the activity with MyVehicleModel
         // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
         FlurryAgent.logEvent("serial_attached")

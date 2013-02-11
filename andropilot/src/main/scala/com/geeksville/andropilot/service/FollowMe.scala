@@ -1,7 +1,7 @@
 package com.geeksville.andropilot.service
 
 import com.geeksville.akka.InstrumentedActor
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import android.content.Context
 import android.location._
 import android.os.Bundle
@@ -16,7 +16,7 @@ import com.geeksville.andropilot.AndropilotPrefs
 /**
  * Try to drive vehicle to stay near us
  */
-class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogger with AndropilotPrefs {
+class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger with AndropilotPrefs {
 
   private val throttle = new Throttled(2000)
 

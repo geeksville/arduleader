@@ -15,7 +15,7 @@ import android.os.IBinder
 import android.content.Context
 import com.google.android.gms.maps.model._
 import android.content.res.Configuration
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import com.geeksville.flight.Location
 import com.geeksville.akka.MockAkka
 import com.geeksville.mavlink.MavlinkEventBus

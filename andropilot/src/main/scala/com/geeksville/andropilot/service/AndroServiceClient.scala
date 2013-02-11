@@ -8,7 +8,7 @@ import android.content.ComponentName
 import android.os.IBinder
 import android.content.Context
 import com.google.android.gms.maps.model._
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import com.geeksville.akka.MockAkka
 import com.geeksville.util.ThreadTools._
 import com.geeksville.akka.PoisonPill
@@ -23,7 +23,7 @@ trait AndroServiceClient extends AndroidLogger {
 
   def context: Context
 
-  protected var myVehicle: Option[VehicleMonitor] = None
+  protected var myVehicle: Option[VehicleModel] = None
   private var myVListener: Option[MyVehicleListener] = None
   protected var service: Option[AndropilotService] = None
 
@@ -56,7 +56,7 @@ trait AndroServiceClient extends AndroidLogger {
       error("Service disconnected")
 
       // No service anymore - don't need my actor
-      stopVehicleMonitor()
+      stopVehicleModel()
       service = None
     }
   }
@@ -74,7 +74,7 @@ trait AndroServiceClient extends AndroidLogger {
   /**
    * Used to eavesdrop on location/state changes for our vehicle
    */
-  class MyVehicleListener(val v: VehicleMonitor) extends InstrumentedActor {
+  class MyVehicleListener(val v: VehicleModel) extends InstrumentedActor {
 
     /// On first position update zoom in on plane
     private var hasLocation = false
@@ -91,7 +91,7 @@ trait AndroServiceClient extends AndroidLogger {
 
   def onVehicleReceive: MyVehicleListener#Receiver
 
-  private def stopVehicleMonitor() {
+  private def stopVehicleModel() {
     myVListener.foreach { v =>
       //debug("Shutting down VListener")
       v ! PoisonPill
@@ -101,7 +101,7 @@ trait AndroServiceClient extends AndroidLogger {
   }
 
   protected def serviceOnPause() {
-    stopVehicleMonitor()
+    stopVehicleModel()
 
     debug("Unbinding from service")
     context.unbindService(serviceConnection)

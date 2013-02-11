@@ -43,7 +43,7 @@ case object SendWaypoints
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
-class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
+class VehicleModel extends HeartbeatMonitor with VehicleSimulator {
 
   case class RetryExpired(ctx: RetryContext)
   case object FinishParameters
@@ -111,13 +111,13 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
-  MavlinkEventBus.subscribe(this, radioSysId)
+  MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
 
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
   class ParamValue {
-    private[VehicleMonitor] var raw: Option[msg_param_value] = None
+    private[VehicleModel] var raw: Option[msg_param_value] = None
 
     def getId = raw.map(_.getParam_id)
 
@@ -364,7 +364,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
 
     interestingStreams.foreach {
       case (id, freqHz) =>
-        val f = if (VehicleMonitor.isUsbBusted) 1 else freqHz
+        val f = if (VehicleModel.isUsbBusted) 1 else freqHz
         sendMavlink(requestDataStream(id, f))
         sendMavlink(requestDataStream(id, f))
     }
@@ -372,7 +372,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     // First contact, download any waypoints from the vehicle and get params
-    MockAkka.scheduler.scheduleOnce(5 seconds, this, StartWaypointDownload)
+    MockAkka.scheduler.scheduleOnce(5 seconds, VehicleModel.this, StartWaypointDownload)
   }
 
   case class RetryContext(val retryPacket: MAVLinkMessage, val expectedResponse: Class[_]) {
@@ -406,7 +406,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
         log.debug("Retry expired on " + retryPacket + " trying again...")
         retriesLeft -= 1
         sendMavlink(retryPacket)
-        retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleMonitor.this, RetryExpired(this)))
+        retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleModel.this, RetryExpired(this)))
       } else {
         log.error("No more retries, giving up: " + retryPacket)
         close()
@@ -440,7 +440,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     retryingParameters = false
     log.debug("Requesting vehicle parameters")
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
-    MockAkka.scheduler.scheduleOnce(20 seconds, this, FinishParameters)
+    MockAkka.scheduler.scheduleOnce(20 seconds, VehicleModel.this, FinishParameters)
   }
 
   /**
@@ -518,7 +518,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   }
 }
 
-object VehicleMonitor {
+object VehicleModel {
   /**
    * Some android clients don't have working USB and therefore have very limited bandwidth.  This nasty global allows the android builds to change 'common' behavior.
    */

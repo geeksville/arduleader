@@ -3,7 +3,7 @@ package com.geeksville.andropilot.service
 import android.content.Context
 import java.io._
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.flight.VehicleMonitor
+import com.geeksville.flight.VehicleModel
 import com.geeksville.aserial.AsyncSerial
 
 object MavlinkAndroid {
@@ -18,7 +18,7 @@ object MavlinkAndroid {
     //val instream = new BufferedInputStream(port.in, 64)
     val instream = port.in
 
-    VehicleMonitor.isUsbBusted = AsyncSerial.isUsbBusted
+    VehicleModel.isUsbBusted = AsyncSerial.isUsbBusted
 
     new MavlinkStream(out, instream)
   }

@@ -9,7 +9,7 @@ class ParameterFile(out: OutputStream, header: String) {
 
   pout.println("# " + header)
 
-  def writeParams(params: Seq[VehicleMonitor#ParamValue]) {
+  def writeParams(params: Seq[VehicleModel#ParamValue]) {
     params.foreach { p =>
       pout.println(p.getId.get + "," + p.getValue.get)
     }
@@ -33,7 +33,7 @@ object ParameterFile extends Logging {
     new File(spoolDir, fname)
   }
 
-  def create(params: Seq[VehicleMonitor#ParamValue], file: File = getFilename()) = {
+  def create(params: Seq[VehicleModel#ParamValue], file: File = getFilename()) = {
     // Preflight to make sure all entries are valid
     if (!params.forall { p => p.getId.isDefined && p.getValue.isDefined })
       throw new Exception("Some parameters are not valid, not safe to write to disk...")
