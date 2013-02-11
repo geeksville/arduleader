@@ -71,7 +71,7 @@ class IGCReader(stream: InputStream) extends Logging {
 
       // fixme - calc vx and vy
 
-      val res = Location(lat, ltude, alt, d.getTime)
+      val res = Location(lat, ltude, Some(alt), d.getTime)
 
       // Log.d(TAG, "SimPos: " + lat + "," + ltude + "," + alt);
       return Some(res)

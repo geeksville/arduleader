@@ -112,7 +112,7 @@ class FollowMe(val context: Context, val v: VehicleMonitor) extends AndroidLogge
         debug("Follow distance %s (%s), bearing %s/%s/%s -> %s, %s".format(
           followDistance, distPercent, bearing, pitch, roll, lat, lon))
 
-        val myloc = new com.geeksville.flight.Location(lat, lon, guideAlt)
+        val myloc = new com.geeksville.flight.Location(lat, lon, Some(guideAlt))
 
         // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
         val msg = v.makeGuided(myloc)

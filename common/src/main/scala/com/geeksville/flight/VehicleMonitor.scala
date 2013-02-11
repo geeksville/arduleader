@@ -470,7 +470,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     } else
       0.0f
 
-    l.alt - groundAlt
+    l.alt.get - groundAlt
   }
 
   /**

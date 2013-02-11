@@ -245,7 +245,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     def lat = latlng.latitude
     def lon = latlng.longitude
 
-    def loc = Location(lat, lon, altitude)
+    def loc = Location(lat, lon, Some(altitude))
 
     override def isAltitudeEditable = true
     override def altitude = alt

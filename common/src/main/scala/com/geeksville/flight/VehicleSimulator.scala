@@ -194,7 +194,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.seq = seq
     msg.x = location.lat.toFloat
     msg.y = location.lon.toFloat
-    msg.z = location.alt.toFloat
+    msg.z = location.alt.get.toFloat
     msg.command = MAV_CMD.MAV_CMD_NAV_WAYPOINT
     msg.frame = if (isRelativeAlt) MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT else MAV_FRAME.MAV_FRAME_GLOBAL
     msg.current = current // Use 2 for guided mode, 3 means alt change only
@@ -235,8 +235,8 @@ hdg uint16_t  Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown,
     msg.time_boot_ms = System.currentTimeMillis - startTime
     msg.lat = (l.lat * 1e7).toInt
     msg.lon = (l.lon * 1e7).toInt
-    msg.alt = (l.alt * 1000).toInt
-    msg.relative_alt = ((l.alt - groundAltitude) * 1000).toInt
+    msg.alt = (l.alt.get * 1000).toInt
+    msg.relative_alt = ((l.alt.get - groundAltitude) * 1000).toInt
     msg.vx = (l.vx.getOrElse(0.0) * 100).toInt
     msg.vy = (l.vy.getOrElse(0.0) * 100).toInt
     //msg.vz = (l.vz.getOrElse(0.0) * 100).toInt
@@ -262,12 +262,13 @@ satellites_visible  uint8_t Number of satellites visible. If unknown, set to 255
     msg.time_usec = (System.currentTimeMillis - startTime) * 1000
     msg.lat = (l.lat * 1e7).toInt
     msg.lon = (l.lon * 1e7).toInt
-    msg.alt = (l.alt * 1000).toInt
+    msg.alt = (l.alt.get * 1000).toInt
     msg.eph = 65535
     msg.epv = 65535
     msg.vel = 65535
     msg.cog = 65535
     msg.satellites_visible = 255
+    msg.fix_type = 3
     msg
   }
 
@@ -298,10 +299,11 @@ object VehicleSimulator {
   val andropilotId = 253
 
   def decodePosition(m: msg_global_position_int): Location =
-    Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0)
+    Location(m.lat / 1e7, m.lon / 1e7, Some(m.alt / 1000.0))
 
   def decodePosition(m: msg_gps_raw_int): Option[Location] =
-    if (m.fix_type >= 2)
-      Some(Location(m.lat / 1e7, m.lon / 1e7, m.alt / 1000.0))
-    else None
+    if (m.fix_type >= 2) {
+      val alt = if (m.fix_type >= 3) Some(m.alt / 1000.0) else None
+      Some(Location(m.lat / 1e7, m.lon / 1e7, alt))
+    } else None
 }

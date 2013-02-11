@@ -50,7 +50,7 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
             val degSymbol = "\u00B0"
             latView.setText("%.4f".format(l.lat) + degSymbol)
             lonView.setText("%.4f".format(l.lon) + degSymbol)
-            altView.setText(v.toAGL(l) + "m")
+            altView.setText("%.1f".format(v.toAGL(l)) + "m")
             v.numSats.foreach { n => numSatView.setText(n.toString) }
           }
         }
