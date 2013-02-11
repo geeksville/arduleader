@@ -436,7 +436,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         if (modeName != "unknown" && modeName != v.currentMode) {
           // Give up to two seconds before we pay attention to mode msgs - so we don't get confused by stale msgs in our queue
           ignoreModeChangesTill = System.currentTimeMillis + 2000
-          v.setMode(modeName.toString)
+          v ! DoSetMode(modeName.toString)
         }
       }
     }

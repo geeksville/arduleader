@@ -32,6 +32,8 @@ case class MsgModeChanged(m: Int)
 
 // Commands we accept in our actor queue
 case class DoGotoGuided(m: msg_mission_item)
+case class DoSetMode(s: String)
+case class DoSetCurrent(n: Int)
 
 /**
  * Start sending waypoints TO the vehicle
@@ -184,6 +186,12 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   private def mReceive: Receiver = {
     case DoGotoGuided(m) =>
       gotoGuided(m)
+
+    case DoSetMode(m) =>
+      setMode(m)
+
+    case DoSetCurrent(n) =>
+      setCurrent(n)
 
     case RetryExpired(ctx) =>
       ctx.doRetry()
@@ -476,7 +484,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
   /**
    * Tell vehicle to select a new mode
    */
-  def setMode(mode: String) {
+  private def setMode(mode: String) {
     sendMavlink(setMode(modeToCodeMap(mode)))
   }
 
@@ -489,7 +497,7 @@ class VehicleMonitor extends HeartbeatMonitor with VehicleSimulator {
     onWaypointsChanged()
   }
 
-  def setCurrent(seq: Int) {
+  private def setCurrent(seq: Int) {
     val m = missionSetCurrent(seq)
     sendWithRetry(m, classOf[msg_mission_current])
   }

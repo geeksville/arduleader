@@ -410,8 +410,8 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
-        v.setCurrent(wp.seq)
-        v.setMode("AUTO")
+        v ! DoSetCurrent(wp.seq)
+        v ! DoSetMode("AUTO")
         //toast("Goto " + title)
       }
     }
