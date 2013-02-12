@@ -47,6 +47,8 @@ case class Waypoint(val msg: msg_mission_item) {
   //
   def isJump = msg.command != MAV_CMD.MAV_CMD_DO_JUMP
   def jumpSequence = msg.param1.toInt
+  def loiterTime = msg.param1
+  def loiterTurns = msg.param1
 
   /**
    * A short description of this waypoint
@@ -54,8 +56,18 @@ case class Waypoint(val msg: msg_mission_item) {
   def shortString = {
     val r = if (isHome)
       "Home"
-    else
-      commandStr
+    else {
+      msg.command match {
+        case MAV_CMD.MAV_CMD_DO_JUMP => "Jump to WP #%d".format(jumpSequence)
+        case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => "Loiter (forever)"
+        case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => "Loiter (%.1f turns)".format(loiterTurns)
+        case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => "Loiter (%.1f seconds)".format(loiterTime)
+
+        // FIXME - parse takeoff/land
+        case _ =>
+          commandStr
+      }
+    }
 
     r
   }

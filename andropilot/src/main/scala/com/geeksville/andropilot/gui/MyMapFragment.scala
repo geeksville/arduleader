@@ -35,6 +35,7 @@ import scala.Option.option2Iterable
 import com.geeksville.andropilot.service._
 import com.geeksville.flight.DoGotoGuided
 import com.geeksville.andropilot.AndropilotPrefs
+import org.mavlink.messages.MAV_CMD
 
 /**
  * Our customized map fragment
@@ -340,15 +341,15 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     override def icon: Option[BitmapDescriptor] = {
       if (isHome) { // Show a house for home
-        if (isCurrent)
-          Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_red))
-        else
-          Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
+        //if (isCurrent)
+        // Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_red))
+        //else
+        Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
       } else wp.msg.current match {
         case 0 =>
-          Some(BitmapDescriptorFactory.fromResource(R.drawable.blue))
+          Some(WaypointMarker.toDrawable(wp.msg.command))
         case 1 =>
-          Some(BitmapDescriptorFactory.fromResource(R.drawable.red))
+          Some(WaypointMarker.toDrawable(wp.msg.command))
         case 2 => // Guided
           Some(BitmapDescriptorFactory.fromResource(R.drawable.flag))
         case _ =>
@@ -368,6 +369,25 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       myVehicle.foreach(_ ! SendWaypoints)
       handleWaypoints() // Update GUI
     }
+  }
+
+  object WaypointMarker {
+    private val wpToBitmap = Map(MAV_CMD.MAV_CMD_NAV_TAKEOFF -> R.drawable.waypoint_takeoff,
+      MAV_CMD.MAV_CMD_NAV_WAYPOINT -> R.drawable.waypoint_dot,
+      MAV_CMD.MAV_CMD_NAV_LAND -> R.drawable.waypoint_land,
+      MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> R.drawable.waypoint_forever,
+      MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> R.drawable.waypoint_number,
+      MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> R.drawable.waypoint_timed,
+      MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> R.drawable.waypoint_rtl,
+      MAV_CMD.MAV_CMD_NAV_LAND -> R.drawable.waypoint_land,
+      MAV_CMD.MAV_CMD_DO_JUMP -> R.drawable.yellow).map {
+        case (k, v) =>
+          k -> BitmapDescriptorFactory.fromResource(v)
+      }
+
+    private val defaultWp = BitmapDescriptorFactory.fromResource(R.drawable.blue)
+
+    def toDrawable(cmd: Int) = wpToBitmap.getOrElse(cmd, defaultWp)
   }
 
   class GuidedWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
