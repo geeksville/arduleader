@@ -17,10 +17,17 @@ import com.geeksville.akka.PoisonPill
 /**
  * Talks mavlink out a serial port
  */
-class MavlinkStream(val out: OutputStream, val instream: InputStream) extends InstrumentedActor with MavlinkReceiver {
+class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends InstrumentedActor with MavlinkReceiver {
 
   log.debug("MavlinkStream starting")
   MavlinkStream.isIgnoreReceive = false
+
+  /**
+   * We use generators to init these variables, because android doesn't allow network access from the
+   * 'main' thread
+   */
+  private lazy val out = outgen
+  private lazy val instream = ingen
 
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 

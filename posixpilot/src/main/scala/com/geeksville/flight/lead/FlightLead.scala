@@ -28,16 +28,10 @@ object Main extends Logging {
    */
   val systemId: Int = 2
 
-  def createSerial() {
+  def createMavlinkClient(stream: MavlinkStream) {
     try {
-      val telemPort = "/dev/ttyUSB0"
-      val serDriver = if ((new File(telemPort)).exists)
-        MavlinkPosix.openFtdi(telemPort, 57600)
-      else
-        MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
-
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = MockAkka.actorOf(serDriver, "serrx")
+      val mavSerial = MockAkka.actorOf(stream, "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -53,6 +47,23 @@ object Main extends Logging {
     }
   }
 
+  def createSerial() {
+    try {
+      val telemPort = "/dev/ttyUSB0"
+      val serDriver = if ((new File(telemPort)).exists)
+        MavlinkPosix.openFtdi(telemPort, 57600)
+      else
+        MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
+
+      createMavlinkClient(serDriver)
+    } catch {
+      case ex: NoSuchPortException =>
+        logger.error("No serial port found, disabling...")
+    }
+  }
+
+  def createSITLClient() = createMavlinkClient(MavlinkTCP.connect("localhost", 5760))
+
   def main(args: Array[String]) {
     logger.info("FlightLead running...")
     logger.debug("CWD is " + System.getProperty("user.dir"))
@@ -62,17 +73,23 @@ object Main extends Logging {
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
-    val startUDP = true
-    val startSerial = true
+    // FIXME - select these options based on cmd line flags
+    val startOutgoingUDP = false
+    val startIncomingUDP = true
+    val startSerial = false
+    val startSITL = false // FIXME - doesn't yet work
     val startFlightLead = false
     val startWingman = false
-    val startMonitor = false
+    val startMonitor = true
     val dumpSerialRx = false
-    val logToConsole = false
+    val logToConsole = true
     val logToFile = true
 
     if (startSerial)
       createSerial()
+
+    if (startSITL)
+      createSITLClient()
 
     if (startFlightLead) {
       // Create flightlead actors
@@ -89,9 +106,15 @@ object Main extends Logging {
     // Wire up our subscribers
     //
 
-    if (startUDP) {
+    if (startOutgoingUDP || startIncomingUDP) {
       // FIXME create this somewhere else
-      val mavUDP = MockAkka.actorOf(new MavlinkUDP(destHostName = Some("192.168.0.39"), destPortNumber = Some(MavlinkUDP.portNumber)), "mavudp")
+      logger.info("Opening UDP link")
+      val udp = if (startOutgoingUDP)
+        new MavlinkUDP(destHostName = Some("192.168.0.39"), destPortNumber = Some(MavlinkUDP.portNumber))
+      else
+        new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))
+
+      val mavUDP = MockAkka.actorOf(udp, "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(mavUDP, arduPilotId)
