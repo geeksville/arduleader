@@ -1,0 +1,3 @@
+../../arduplane-sitl/ArduPlane.elf 
+
+

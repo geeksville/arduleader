@@ -49,7 +49,7 @@ trait InstrumentedActor extends Actor with Logging {
   def act() {
     log.info("Actor running: " + this)
     loop {
-      if (mailboxSize >= 10)
+      if (mailboxSize >= 64)
         log.warn("getting behind %s (%d messages)".format(this, mailboxSize))
 
       try {

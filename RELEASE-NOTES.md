@@ -1,13 +1,18 @@
+# 0.1.37
+* Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
+* Support direct TCP connections
+* FIXME - waypoints
+
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!
 * Add help menu contributed by Peter Meister.  Thanks Peter!
 * 'Follow-me' mode added to menu-bar (change settings for 'Lead distance' if you prefer lead-it mode)
-* 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
 * Internal code cleanup
 * Fix heartbeat vehicle type
 * Show vehicle alts as AGL (currently just relative to the home position)
 * Speak "Heartbeat lost" if we lose vehicle comms
 * Show mode as "unknown" if we don't have comms
+* NOT YET READY FOR TESTING: 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
      
 # 0.1.35
 * Add settings option to control # of meter change needed for voice announcement (actually this was in 0.34)
