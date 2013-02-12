@@ -277,7 +277,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     override def doAdd() {
       for { map <- mapOpt; v <- myVehicle } yield {
-        val wp = v.missionItem(v.waypoints.size, loc)
+        val wp = v.missionItem(v.waypointsForMap.size, loc)
 
         // FIXME - we shouldn't be touching this
         v.waypoints = v.waypoints :+ Waypoint(wp)
@@ -595,9 +595,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         invalidateContextMenu()
       }
 
-    case MsgWaypointsDownloaded(wp) =>
-      handler.post(handleWaypoints _)
-
     case MsgWaypointsChanged =>
       handler.post(handleWaypoints _)
   }
@@ -684,7 +681,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
    */
   def handleWaypoints() {
     myVehicle.foreach { v =>
-      val wpts = v.waypoints
+      val wpts = v.waypointsForMap
 
       scene.foreach { scene =>
 

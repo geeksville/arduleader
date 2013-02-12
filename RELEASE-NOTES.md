@@ -1,7 +1,8 @@
 # 0.1.37
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
-* Support direct TCP connections
-* FIXME - waypoints
+* Support direct TCP connections (useful for connecting to the SITL simulator)
+* Add understanding for JUMP waypoints
+* Don't show bogus waypoints if x & y are not set
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!

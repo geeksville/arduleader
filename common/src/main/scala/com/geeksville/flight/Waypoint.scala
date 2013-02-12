@@ -9,6 +9,7 @@ import org.mavlink.messages.MAV_FRAME
  */
 case class Waypoint(val msg: msg_mission_item) {
   private val commandCodes = Map(
+    MAV_CMD.MAV_CMD_DO_JUMP -> "Jump",
     MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
     MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
     MAV_CMD.MAV_CMD_NAV_LAND -> "Land", // LAND to Waypoint
@@ -35,6 +36,17 @@ case class Waypoint(val msg: msg_mission_item) {
   def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
 
   def altitude = msg.z
+
+  /**
+   * Should we show this waypoint on the map?
+   */
+  def isForMap = msg.x != 0 || msg.y != 0 && !isJump
+
+  //
+  // Accessors for particlar waypoint types
+  //
+  def isJump = msg.command != MAV_CMD.MAV_CMD_DO_JUMP
+  def jumpSequence = msg.param1.toInt
 
   /**
    * A short description of this waypoint

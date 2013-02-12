@@ -22,7 +22,6 @@ import com.geeksville.util.ThrottledActor
 //
 // Messages we publish on our event bus when something happens
 //
-case class MsgWaypointsDownloaded(wp: Seq[Waypoint])
 case object MsgWaypointsChanged
 
 // Commands we accept in our actor queue
@@ -49,8 +48,8 @@ trait WaypointModel extends VehicleClient {
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
 
-  protected def onWaypointsDownloaded() { eventStream.publish(MsgWaypointsDownloaded(waypoints)) }
   private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
+  protected def onWaypointsDownloaded() { onWaypointsChanged() }
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
@@ -184,7 +183,38 @@ trait WaypointModel extends VehicleClient {
       numWaypointsRemaining -= 1
       sendWithRetry(missionRequest(nextWaypointToFetch), classOf[msg_mission_item])
     } else {
-      onWaypointsDownloaded()
+      onWaypointsChanged()
+    }
+  }
+
+  /**
+   * An expanded version of waypoints (i.e. resolving jumps), but removing any waypoints that don't have position
+   */
+  def waypointsForMap = {
+    var index = 0
+    val inspected = Array.fill(waypoints.size)(false)
+
+    // No matter what we never want to emit more waypoints than we started with
+    (0 to waypoints.size).flatMap { loopNum =>
+      if (!inspected(index)) {
+        val wp = waypoints(index)
+        inspected(index) = true
+
+        if (wp.isJump) {
+          index = wp.jumpSequence
+          None
+        } else {
+          index += 1
+          if (!wp.isForMap)
+            None
+          else
+            Some(wp)
+        }
+      } else {
+        // Already seen it
+        index += 1
+        None
+      }
     }
   }
 }

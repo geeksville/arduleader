@@ -20,8 +20,6 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
   }
 
   override def onVehicleReceive = {
-    case MsgWaypointsDownloaded(wp) =>
-      handler.post(handleWaypoints _)
 
     case MsgWaypointsChanged =>
       handler.post(handleWaypoints _)
