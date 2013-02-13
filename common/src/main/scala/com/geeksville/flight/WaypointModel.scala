@@ -64,6 +64,7 @@ trait WaypointModel extends VehicleClient {
     // Messages for uploading waypoints
     //
     case SendWaypoints =>
+      log.info("Sending " + waypoints.size + " waypoints")
       sendWithRetry(missionCount(waypoints.size), classOf[msg_mission_request])
 
     case msg: msg_mission_request =>

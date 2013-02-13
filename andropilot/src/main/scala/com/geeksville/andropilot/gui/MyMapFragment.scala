@@ -644,7 +644,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       map.getUiSettings.setTiltGesturesEnabled(false)
       map.getUiSettings.setRotateGesturesEnabled(false)
       map.getUiSettings.setCompassEnabled(true)
-      map.getUiSettings.setScrollGesturesEnabled(false)
+      //map.getUiSettings.setScrollGesturesEnabled(false)
       map.setOnMapLongClickListener(new OnMapLongClickListener {
 
         // On click set guided to there

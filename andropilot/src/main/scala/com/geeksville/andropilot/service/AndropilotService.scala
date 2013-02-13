@@ -100,7 +100,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       "USB Link"
     else
       udp.map { u =>
-        udpMode + NetTools.localIPAddresses.mkString(",")
+        udpMode + " " + NetTools.localIPAddresses.mkString(",")
       }.getOrElse("No Link")
 
     val logmsg = if (loggingEnabled)
