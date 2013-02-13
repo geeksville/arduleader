@@ -195,7 +195,7 @@ trait WaypointModel extends VehicleClient {
     val inspected = Array.fill(waypoints.size)(false)
 
     // No matter what we never want to emit more waypoints than we started with
-    (0 to waypoints.size).flatMap { loopNum =>
+    (0 until waypoints.size).flatMap { loopNum =>
       if (!inspected(index)) {
         val wp = waypoints(index)
         inspected(index) = true

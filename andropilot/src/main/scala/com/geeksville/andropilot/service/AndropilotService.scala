@@ -30,6 +30,7 @@ import com.geeksville.andropilot.R
 import com.geeksville.andropilot.gui.MainActivity
 import com.geeksville.andropilot.FlurryService
 import com.geeksville.andropilot.AndropilotPrefs
+import com.geeksville.util.NetTools
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -87,13 +88,28 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def isSerialConnected = serial.isDefined
   def isFollowMe = follower.isDefined
 
+  // Are we talking to a device at all?
+  def isConnected = isSerialConnected || (udp.isDefined && inboundUdpEnabled)
+
   /**
    * A human readable description of our logging state
    */
-  def logmsg = if (loggingEnabled)
-    logfile.map { f => "Logging to " + f }.getOrElse("No sdcard, logging suppressed...")
-  else
-    "Logging disabled"
+  def serviceStatus = {
+    val linkMsg = if (isSerialConnected)
+      "USB Link"
+    else
+      udp.map(u => "UDP " + NetTools.localIPAddresses.mkString(",")).getOrElse("No Link")
+
+    val logmsg = if (loggingEnabled)
+      logfile.map { f => "Logging" }.getOrElse("No SD card")
+    else
+      "No logging"
+
+    if (!isConnected)
+      linkMsg
+    else
+      linkMsg + " " + logmsg
+  }
 
   def inboundUdpEnabled = udpMode == UDPMode.Downlink
   def outboundUdpEnabled = udpMode == UDPMode.Uplink

@@ -162,7 +162,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onServiceConnected(s: AndropilotService) {
-    toast(s.logmsg)
+    toast(s.serviceStatus)
 
     // If we already had a serial port open start watching it
     registerSerialReceiver()
