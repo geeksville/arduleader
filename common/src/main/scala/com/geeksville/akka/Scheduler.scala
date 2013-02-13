@@ -32,13 +32,15 @@ class Scheduler extends Logging {
 
     val msecs = d.toMillis
 
-    def cb() {
-      // logger.info("handle once")
-      dest ! msg
+    def cb = new Runnable {
+      def run() {
+        // logger.info("handle once")
+        dest ! msg
+      }
     }
-    //logger.info("scheduling once")
-    val r = jscheduler.schedule(cb _, d.toMillis, TimeUnit.MILLISECONDS)
-    //Thread.dumpStack()
+    //logger.debug("scheduling once " + msecs + " msg " + msg)
+    val r = jscheduler.schedule(cb, msecs, TimeUnit.MILLISECONDS)
+    //logger.debug("Measured delay: " + r.getDelay(TimeUnit.MILLISECONDS))
 
     Cancellable(r)
   }

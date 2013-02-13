@@ -95,7 +95,7 @@ trait ParametersModel extends VehicleClient {
 
   protected def startParameterDownload() {
     retryingParameters = false
-    log.debug("Requesting vehicle parameters")
+    log.info("Requesting vehicle parameters")
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
     MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)
   }

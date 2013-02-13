@@ -141,6 +141,7 @@ trait WaypointModel extends VehicleClient {
   }
 
   private def startWaypointDownload() {
+    log.info("Downloading waypoints")
     sendWithRetry(missionRequestList(), classOf[msg_mission_count])
   }
 
@@ -183,7 +184,8 @@ trait WaypointModel extends VehicleClient {
       numWaypointsRemaining -= 1
       sendWithRetry(missionRequest(nextWaypointToFetch), classOf[msg_mission_item])
     } else {
-      onWaypointsChanged()
+      log.debug("All waypoints downloaded")
+      onWaypointsDownloaded() // Success
     }
   }
 

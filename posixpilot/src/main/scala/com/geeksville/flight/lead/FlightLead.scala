@@ -77,7 +77,7 @@ object Main extends Logging {
     val startOutgoingUDP = false
     val startIncomingUDP = false
     val startSerial = false
-    val startSITL = true // FIXME - doesn't yet work
+    val startSITL = true
     val startFlightLead = false
     val startWingman = false
     val startMonitor = true

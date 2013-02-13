@@ -17,11 +17,13 @@
         <item>Disabled</item>
         <item>Uplink (send UDP to another host)</item>
         <item>Downlink (receive UDP from another host)</item>
+        <item>TCP to another host (for development)</item>
     </string-array>
     <string-array name="udp_mode_values">
         <item>Disabled</item>
         <item>Uplink</item>
         <item>Downlink</item>
+        <item>TCPUplink</item>
     </string-array>
 
 </resources>

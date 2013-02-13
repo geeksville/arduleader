@@ -20,7 +20,9 @@ import com.geeksville.akka.InstrumentedActor
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-class MavlinkUDP(destHostName: Option[String] = None, val destPortNumber: Option[Int] = None, val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
+class MavlinkUDP(destHostName: Option[String] = None,
+  val destPortNumber: Option[Int] = None,
+  val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
 
   // These must be lazy - to ensure we don't do networking in the main thread (an android restriction)
   lazy val serverHost = InetAddress.getByName(destHostName.get)

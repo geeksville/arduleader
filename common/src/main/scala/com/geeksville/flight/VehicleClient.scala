@@ -60,13 +60,13 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator {
   case class RetryContext(val retryPacket: MAVLinkMessage, val expectedResponse: Class[_]) {
     val numRetries = 5
     var retriesLeft = numRetries
-    val retryInterval = 3000
+    val retryInterval = 5000
     var retryTimer: Option[Cancellable] = None
 
-    doRetry()
+    sendPacket()
 
     def close() {
-      //log.debug("Closing a retry")
+      //log.debug("Closing " + this)
       retryTimer.foreach(_.cancel())
       retries.remove(this)
     }
@@ -77,18 +77,23 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator {
     def handleRetryReply[T <: MAVLinkMessage](reply: T) = {
       if (reply.getClass == expectedResponse) {
         // Success!
+        log.debug("Success for " + this)
         close()
         true
       } else
         false
     }
 
+    private def sendPacket() {
+      retriesLeft -= 1
+      sendMavlink(retryPacket)
+      retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleClient.this, RetryExpired(this)))
+    }
+
     def doRetry() {
       if (retriesLeft > 0) {
-        log.debug("Retry expired on " + retryPacket + " trying again...")
-        retriesLeft -= 1
-        sendMavlink(retryPacket)
-        retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleClient.this, RetryExpired(this)))
+        log.debug(System.currentTimeMillis + " Retry expired on " + this + " trying again...")
+        sendPacket()
       } else {
         log.error("No more retries, giving up: " + retryPacket)
         close()

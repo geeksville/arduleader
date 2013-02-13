@@ -4,6 +4,8 @@
 * Add understanding for JUMP waypoints
 * Don't show bogus waypoints if x & y are not set
 * Use new waypoint icons contributed by Scott Berfield
+* Don't enable scroll gestures for maps (conficts with page switch gesture)
+* Print better user info for UDP connections
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!

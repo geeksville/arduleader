@@ -13,7 +13,7 @@ import com.geeksville.mavlink.LogIncomingMavlink
 import com.geeksville.akka.MockAkka
 import java.io.File
 import com.geeksville.mavlink.LogBinaryMavlink
-import com.geeksville.mavlink.MavlinkStream
+import com.geeksville.mavlink._
 import com.geeksville.akka.PoisonPill
 import com.geeksville.flight.VehicleSimulator
 import android.content.BroadcastReceiver
@@ -31,6 +31,7 @@ import com.geeksville.andropilot.gui.MainActivity
 import com.geeksville.andropilot.FlurryService
 import com.geeksville.andropilot.AndropilotPrefs
 import com.geeksville.util.NetTools
+import com.geeksville.akka.InstrumentedActor
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -50,7 +51,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   var vehicle: Option[VehicleModel] = None
 
   private var serial: Option[MavlinkStream] = None
-  private var udp: Option[MavlinkUDP] = None
+  private var udp: Option[InstrumentedActor] = None
 
   private var follower: Option[FollowMe] = None
 
@@ -98,7 +99,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     val linkMsg = if (isSerialConnected)
       "USB Link"
     else
-      udp.map(u => "UDP " + NetTools.localIPAddresses.mkString(",")).getOrElse("No Link")
+      udp.map { u =>
+        udpMode + NetTools.localIPAddresses.mkString(",")
+      }.getOrElse("No Link")
 
     val logmsg = if (loggingEnabled)
       logfile.map { f => "Logging" }.getOrElse("No SD card")
@@ -113,6 +116,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   def inboundUdpEnabled = udpMode == UDPMode.Downlink
   def outboundUdpEnabled = udpMode == UDPMode.Uplink
+  def outboundTcpEnabled = udpMode == UDPMode.TCPUplink
 
   override def onCreate() {
     super.onCreate()
@@ -184,6 +188,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Let aircraft port
       info("Creating inbound UDP port")
       val a = MockAkka.actorOf(new MavlinkUDP(localPortNumber = Some(inboundPort)), "mavudp")
+
+      // Send our control packets to this UDP link
+      MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)
+
+      FlurryAgent.logEvent("udp_inbound")
+      Some(a)
+    } else if (outboundTcpEnabled) {
+      // Let aircraft port
+      info("Creating inbound UDP port")
+      val a = MockAkka.actorOf(MavlinkTCP.connect(outboundUdpHost, 5760), "mavtcp")
 
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)

@@ -27,6 +27,7 @@ trait AndropilotPrefs extends UsesPreferences {
     val Disabled = Value("Disabled")
     val Uplink = Value("Uplink")
     val Downlink = Value("Downlink")
+    val TCPUplink = Value("TCPUplink")
   }
 
   def udpMode = {

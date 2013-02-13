@@ -14,9 +14,9 @@ object MavlinkTCP {
   def connect(destHostName: String, destPortNumber: Int) = {
 
     // These must be lazy - to ensure we don't do networking in the main thread (an android restriction)
-    val socket = new Socket(destHostName, destPortNumber)
-    val in = new BufferedInputStream(socket.getInputStream, 16)
-    val out = new BufferedOutputStream(socket.getOutputStream, 512)
+    lazy val socket = new Socket(destHostName, destPortNumber)
+    lazy val in = new BufferedInputStream(socket.getInputStream, 16)
+    lazy val out = new BufferedOutputStream(socket.getOutputStream, 512)
 
     new MavlinkStream(out, in)
   }
