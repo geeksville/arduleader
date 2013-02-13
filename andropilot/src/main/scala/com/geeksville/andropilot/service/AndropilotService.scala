@@ -328,6 +328,41 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     startForeground(ONGOING_NOTIFICATION, notification)
   }
+
+  private def initBluetooth() {
+    /*
+    Log.v("Communication Service", "Defaulting to Bluetooth");
+    module = new BluetoothModule();
+    // -------------------------------------
+    // Ensure that when the service starts we allow the client to reconnect
+    // After a first request, don't bother the user.
+    module.setFirstTimeEnableDevice(true);
+    module.setFirstTimeListDevices(true);
+    * 
+    * 			case MSG_CONNECT_DEVICE:
+				if (msg.getData().containsKey(module.getDeviceAddressString())) {
+					String address = msg.getData().getString(
+							module.getDeviceAddressString());
+					if (address.length() != 0) {
+						connect(address);
+
+					}
+
+				}
+
+				break;
+				* 
+				* then in connect()
+				* 
+					module.connect(device);
+
+					// Start a receive thread.
+					receive = new ReceiveThread();
+					receive.start();
+
+					notifyDeviceConnected();
+    */
+  }
 }
 
 object AndropilotService {
