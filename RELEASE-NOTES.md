@@ -3,6 +3,7 @@
 * Support direct TCP connections (useful for connecting to the SITL simulator)
 * Add understanding for JUMP waypoints
 * Don't show bogus waypoints if x & y are not set
+* Use new waypoint icons contributed by Scott Berfield
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!
