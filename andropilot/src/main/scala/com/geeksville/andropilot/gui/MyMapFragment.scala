@@ -36,6 +36,7 @@ import com.geeksville.andropilot.service._
 import com.geeksville.flight.DoGotoGuided
 import com.geeksville.andropilot.AndropilotPrefs
 import org.mavlink.messages.MAV_CMD
+import com.geeksville.flight.DoAddWaypoint
 
 /**
  * Our customized map fragment
@@ -281,7 +282,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
         // FIXME - we shouldn't be touching this
-        v.waypoints = v.waypoints :+ Waypoint(wp)
+        v ! DoAddWaypoint(Waypoint(wp))
 
         v ! SendWaypoints
         handleWaypoints() // Update GUI

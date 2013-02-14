@@ -28,6 +28,7 @@ case object MsgWaypointsChanged
 case class DoGotoGuided(m: msg_mission_item)
 case class DoSetMode(s: String)
 case class DoSetCurrent(n: Int)
+case class DoAddWaypoint(w: Waypoint)
 
 /**
  * Start sending waypoints TO the vehicle
@@ -60,12 +61,19 @@ trait WaypointModel extends VehicleClient {
     case DoSetCurrent(n) =>
       setCurrent(n)
 
+    case DoAddWaypoint(w) =>
+      // Always add at the end
+      if (w.msg.seq == 0)
+        w.msg.seq = waypoints.size
+      waypoints = waypoints :+ w
+
     //
     // Messages for uploading waypoints
     //
     case SendWaypoints =>
       log.info("Sending " + waypoints.size + " waypoints")
       sendWithRetry(missionCount(waypoints.size), classOf[msg_mission_request])
+      onWaypointsChanged() // Tell any local observers about our new waypoints
 
     case msg: msg_mission_request =>
       if (msg.target_system == systemId) {
