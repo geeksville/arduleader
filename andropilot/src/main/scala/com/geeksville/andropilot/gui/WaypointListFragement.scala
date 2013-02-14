@@ -44,7 +44,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
      * The menu has just changed our item
      */
     private def changed() {
-
+      myVehicle.foreach(_ ! SendWaypoints)
     }
 
     override def isAllowGoto = true
@@ -57,9 +57,24 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     /**
      * Have vehicle go to this waypoint
      */
-    override def doGoto() { throw new Exception("Not yet implemented") }
+    override def doGoto() {
+      for { v <- myVehicle; s <- selected } yield {
+        v ! DoSetCurrent(s.msg.seq)
+        v ! DoSetMode("AUTO")
+      }
+    }
+
     override def doAdd() { throw new Exception("Not yet implemented") }
-    override def doDelete() { throw new Exception("Not yet implemented") }
+
+    override def doDelete() {
+      for { v <- myVehicle; s <- selected } yield {
+        // FIXME - we shouldn't be touching this
+        v ! DoDeleteWaypoint(s.msg.seq)
+
+        changed()
+      }
+    }
+
     override def doChangeType() { throw new Exception("Not yet implemented") }
   }
 
@@ -114,6 +129,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     myVehicle.foreach { v =>
       if (position < v.waypoints.size) {
         l.setSelection(position)
+        // FIXME - set selection on map also?
         selected = Some(v.waypoints(position))
 
         // Start up action menu if necessary
