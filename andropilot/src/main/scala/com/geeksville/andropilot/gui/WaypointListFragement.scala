@@ -10,8 +10,70 @@ import com.geeksville.andropilot.R
 import com.geeksville.andropilot.service._
 import android.os.Bundle
 import android.widget.AbsListView
+import android.view.ActionMode
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
+
+  private var selected: Option[Waypoint] = None
+
+  private var actionMode: Option[ActionMode] = None
+
+  private val menuAdapter = new WaypointMenuItem {
+    /**
+     * Can the user see/change auto continue
+     */
+    override def isAllowAutocontinue = isEditable
+    override def isAutocontinue = selected.map(_.msg.autocontinue != 0).getOrElse(false)
+    override def isAutocontinue_=(b: Boolean) {
+      selected.foreach { s =>
+        s.msg.autocontinue = if (b) 1 else 0
+        changed()
+      }
+    }
+
+    override def isAltitudeEditable = isEditable
+    override def altitude = selected.map(_.altitude).getOrElse(0.0f).toDouble
+    override def altitude_=(n: Double) {
+      selected.foreach { s =>
+        s.msg.z = n.toFloat
+        changed()
+      }
+    }
+
+    /**
+     * The menu has just changed our item
+     */
+    private def changed() {
+
+    }
+
+    override def isAllowGoto = true
+    override def isAllowAdd = true
+    override def isAllowChangeType = isEditable
+    override def isAllowDelete = isEditable
+
+    private def isEditable = selected.map(!_.isHome).getOrElse(false)
+
+    /**
+     * Have vehicle go to this waypoint
+     */
+    override def doGoto() { throw new Exception("Not yet implemented") }
+    override def doAdd() { throw new Exception("Not yet implemented") }
+    override def doDelete() { throw new Exception("Not yet implemented") }
+    override def doChangeType() { throw new Exception("Not yet implemented") }
+  }
+
+  private val contextMenuCallback = new WaypointActionMode {
+
+    override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
+
+    // Called when the user exits the action mode
+    override def onDestroyActionMode(mode: ActionMode) {
+      super.onDestroyActionMode(mode)
+
+      actionMode = None
+    }
+  }
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
@@ -33,6 +95,11 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
       handler.post(handleWaypoints _)
   }
 
+  /// menu choices might have changed)
+  def invalidateContextMenu() {
+    actionMode.foreach(_.invalidate())
+  }
+
   private def handleWaypoints() {
     // Don't expand the view until we have _something_ to display
     if (getView != null) {
@@ -47,6 +114,15 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     myVehicle.foreach { v =>
       if (position < v.waypoints.size) {
         l.setSelection(position)
+        selected = Some(v.waypoints(position))
+
+        // Start up action menu if necessary
+        actionMode match {
+          case Some(am) =>
+            invalidateContextMenu() // menu choices might have changed
+          case None =>
+            actionMode = Some(getActivity.startActionMode(contextMenuCallback))
+        }
       }
     }
   }

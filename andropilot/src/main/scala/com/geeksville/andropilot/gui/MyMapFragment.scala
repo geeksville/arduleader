@@ -493,7 +493,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   private def selectMarker(m: MyMarker) {
     contextMenuCallback.selectedMarker = Some(m)
 
-    // Stare up action menu if necessary
+    // Start up action menu if necessary
     actionMode match {
       case Some(am) =>
         invalidateContextMenu() // menu choices might have changed
