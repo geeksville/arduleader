@@ -252,7 +252,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     }
 
     override def doDelete() {
-      for { map <- mapOpt; v <- myVehicle } yield {
+      for { v <- myVehicle } yield {
         // FIXME - we shouldn't be touching this
         v ! DoDeleteWaypoint(wp.seq)
 

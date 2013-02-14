@@ -35,6 +35,8 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
 
+  def isCommandValid = commandCodes.contains(msg.command)
+
   def altitude = msg.z
 
   /**

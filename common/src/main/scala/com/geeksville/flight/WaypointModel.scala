@@ -69,15 +69,7 @@ trait WaypointModel extends VehicleClient {
       waypoints = waypoints :+ w
 
     case DoDeleteWaypoint(seqnum) =>
-      waypoints = waypoints.filter { w =>
-        val keepme = w.seq != seqnum
-
-        // For items after the msg we are deleting, we need to fixup their sequence numbers
-        if (w.seq > seqnum)
-          w.msg.seq -= 1
-
-        keepme
-      }
+      deleteWaypoint(seqnum)
 
     //
     // Messages for uploading waypoints
@@ -167,6 +159,39 @@ trait WaypointModel extends VehicleClient {
   }
 
   /**
+   * @return number of nodes deleted
+   */
+  private def deleteByFilter(keepmefn: Waypoint => Boolean) = {
+    var numdeleted = 0
+    waypoints = waypoints.filter { w =>
+      val keepme = keepmefn(w)
+
+      // For items after the msg we are deleting, we need to fixup their sequence numbers
+      if (!keepme)
+        numdeleted += 1
+      else
+        w.msg.seq -= numdeleted
+
+      keepme
+    }
+
+    numdeleted
+  }
+
+  private def deleteWaypoint(seqnum: Int) = deleteByFilter { w => w.seq != seqnum }
+
+  /**
+   * During development sometimes bogus waypoints get downloaded to target.  Clean up that rubbish here
+   */
+  private def deleteInvalidWaypoints() = {
+    val numdel = deleteByFilter { w => w.isCommandValid }
+    if (numdel > 0) {
+      log.error(numdel + " bogus waypoints found and deleted")
+      self ! SendWaypoints
+    }
+  }
+
+  /**
    * Convert the specified altitude into an AGL altitude
    * FIXME - currently we just use the home location - eventually we should use local terrain alt
    */
@@ -206,6 +231,7 @@ trait WaypointModel extends VehicleClient {
       sendWithRetry(missionRequest(nextWaypointToFetch), classOf[msg_mission_item])
     } else {
       log.debug("All waypoints downloaded")
+      deleteInvalidWaypoints()
       onWaypointsDownloaded() // Success
     }
   }
