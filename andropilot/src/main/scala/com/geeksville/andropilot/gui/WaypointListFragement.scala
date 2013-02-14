@@ -8,6 +8,8 @@ import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
 import com.geeksville.andropilot.R
 import com.geeksville.andropilot.service._
+import android.os.Bundle
+import android.widget.AbsListView
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
@@ -17,6 +19,12 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     // Don't expand the view until we have _something_ to display
     debug("parameter list service connected")
     handleWaypoints()
+  }
+
+  override def onViewCreated(view: View, bundle: Bundle) {
+    super.onViewCreated(view, bundle)
+
+    getListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE)
   }
 
   override def onVehicleReceive = {
@@ -38,7 +46,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
     myVehicle.foreach { v =>
       if (position < v.waypoints.size) {
-        // FIXME
+        l.setSelection(position)
       }
     }
   }

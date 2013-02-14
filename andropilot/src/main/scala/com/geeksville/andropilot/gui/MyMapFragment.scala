@@ -58,186 +58,25 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   var planeMarker: Option[VehicleMarker] = None
 
   private var actionMode: Option[ActionMode] = None
-  private var selectedMarker: Option[MyMarker] = None
 
-  private val contextMenuCallback = new ActionMode.Callback {
+  private val contextMenuCallback = new WaypointActionMode {
 
-    private var oldSelected: Option[MyMarker] = None
-
-    // Called when the action mode is created; startActionMode() was called
-    override def onCreateActionMode(mode: ActionMode, menu: Menu) = {
-      // Inflate a menu resource providing context menu items
-      val inflater = mode.getMenuInflater()
-      inflater.inflate(R.menu.context_menu, menu)
-
-      val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
-      editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
-
-      // Apparently IME_ACTION_DONE fires when the user leaves the edit text
-      editAlt.setOnEditorActionListener(new TextView.OnEditorActionListener {
-        override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
-          if (actionId == EditorInfo.IME_ACTION_DONE) {
-            val str = v.getText.toString
-            debug("Editing completed: " + str)
-            try {
-              selectedMarker.foreach(_.altitude = str.toDouble)
-            } catch {
-              case ex: Exception =>
-                error("Error parsing user alt: " + ex)
-            }
-            selectedMarker.foreach { m => v.setText(m.altitude.toString) }
-
-            // Force the keyboard to go away
-            val imm = getActivity.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-            imm.hideSoftInputFromWindow(v.getWindowToken, 0)
-
-            // We handled the event
-            true
-          } else
-            false
-        }
-      })
-
-      true // Did create a menu
-    }
-
-    // Called each time the action mode is shown. Always called after onCreateActionMode, but
-    // may be called multiple times if the mode is invalidated.
-    override def onPrepareActionMode(mode: ActionMode, menu: Menu) = {
-      val changed = oldSelected != selectedMarker
-      if (changed) {
-        val goto = menu.findItem(R.id.menu_goto)
-        val add = menu.findItem(R.id.menu_add)
-        val delete = menu.findItem(R.id.menu_delete)
-        val setalt = menu.findItem(R.id.menu_setalt)
-        val changetype = menu.findItem(R.id.menu_changetype)
-        val autocontinue = menu.findItem(R.id.menu_autocontinue)
-
-        // Default to nothing
-        Seq(goto, add, delete, setalt, changetype, autocontinue).foreach(_.setVisible(false))
-
-        // We only enable options if we are talking to a real vehicle
-        if (myVehicle.map(_.hasHeartbeat).getOrElse(false)) {
-          selectedMarker match {
-            case None =>
-              // Nothing selected - exit context mode 
-              mode.finish()
-
-            case Some(marker) =>
-              if (marker.isAllowAutocontinue) {
-                autocontinue.setVisible(true)
-                autocontinue.setChecked(marker.isAutocontinue)
-              }
-
-              if (marker.isAltitudeEditable) {
-                setalt.setVisible(true)
-                val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
-                editAlt.setText(marker.altitude.toString)
-              }
-
-              if (marker.isAllowGoto)
-                goto.setVisible(true)
-
-              marker match {
-                case x: GuidedWaypointMarker =>
-                  // No context menu yet for guided waypoints
-                  mode.finish()
-
-                case x: ProvisionalMarker =>
-                  Seq(add, setalt).foreach(_.setVisible(true))
-                case x: WaypointMarker =>
-                  if (x.draggable) {
-                    // Don't allow delete of the current waypoint (for now)
-                    if (!x.isCurrent)
-                      Seq(delete).foreach(_.setVisible(true))
-                    Seq(changetype, setalt).foreach(_.setVisible(true))
-                  }
-                case _ =>
-                  // For other marker types - exit context menu mode
-                  mode.finish()
-              }
-          }
-          oldSelected = selectedMarker
-        }
-      }
-      changed // Return false if nothing is done
-    }
-
-    // Called when the user selects a contextual menu item
-    override def onActionItemClicked(mode: ActionMode, item: MenuItem) =
-      selectedMarker.map { marker =>
-        item.getItemId match {
-          case R.id.menu_autocontinue =>
-            debug("Toggle continue, oldmode " + item.isChecked)
-            item.setChecked(!item.isChecked)
-            marker.isAutocontinue = item.isChecked
-            true
-
-          case R.id.menu_goto =>
-            marker.doGoto()
-            mode.finish() // Action picked, so close the CAB
-            true
-
-          case R.id.menu_add =>
-            marker.doAdd()
-            mode.finish() // Action picked, so close the CAB
-            true
-
-          case R.id.menu_delete =>
-            marker.doDelete()
-            mode.finish() // Action picked, so close the CAB
-            true
-
-          /* Handled all in the edittext box now... 
-            case R.id.menu_setalt =>
-            marker.doSetAlt()
-            mode.finish() // Action picked, so close the CAB
-            true
-           */
-
-          case R.id.menu_changetype =>
-            marker.doChangeType()
-            mode.finish() // Action picked, so close the CAB
-            true
-
-          case _ =>
-            false
-        }
-      }.getOrElse(false)
+    override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
 
     // Called when the user exits the action mode
     override def onDestroyActionMode(mode: ActionMode) {
+      super.onDestroyActionMode(mode)
+
       provisionalMarker.foreach(_.remove()) // User didn't activate our provisional waypoint - remove it from the map
       actionMode = None
     }
   }
 
-  abstract class MyMarker extends SmartMarker {
+  abstract class MyMarker extends SmartMarker with WaypointMenuItem {
     override def onClick() = {
       selectMarker(this)
       super.onClick() // Default will show the info window
     }
-
-    /**
-     * Can the user see/change auto continue
-     */
-    def isAllowAutocontinue = false
-    def isAutocontinue = false
-    def isAutocontinue_=(b: Boolean) { throw new Exception("Not implemented") }
-
-    def isAltitudeEditable = false
-    def altitude = 0.0
-    def altitude_=(n: Double) { throw new Exception("Not implemented") }
-
-    def isAllowGoto = false
-
-    /**
-     * Have vehicle go to this waypoint
-     */
-    def doGoto() { toast("FIXME Goto waypoint not yet implemented") }
-    def doAdd() { toast("FIXME Add WP not yet implemented") }
-    def doDelete() { toast("FIXME Delete WP not yet implemented") }
-    def doChangeType() { toast("FIXME Add change type not yet implemented") }
   }
 
   /**
@@ -258,6 +97,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       }
     }
 
+    override def isAllowAdd = true
     override def isAllowGoto = true
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
@@ -281,9 +121,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       for { map <- mapOpt; v <- myVehicle } yield {
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
-        // FIXME - we shouldn't be touching this
         v ! DoAddWaypoint(Waypoint(wp))
-
         v ! SendWaypoints
         handleWaypoints() // Update GUI
         toast("Waypoint added")
@@ -297,6 +135,8 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     def lon = wp.msg.y
 
     override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
+    override def isAllowChangeType = !isHome
+    override def isAllowDelete = !isHome && !isCurrent
 
     override def isAltitudeEditable = !isHome
     override def altitude = wp.msg.z
@@ -368,7 +208,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     protected def sendWaypointsAndUpdate() {
       myVehicle.foreach(_ ! SendWaypoints)
-      handleWaypoints() // Update GUI
     }
   }
 
@@ -392,6 +231,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   }
 
   class GuidedWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
+    override def isAllowContextMenu = false
   }
 
   /**
@@ -414,15 +254,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def doDelete() {
       for { map <- mapOpt; v <- myVehicle } yield {
         // FIXME - we shouldn't be touching this
-        v.waypoints = v.waypoints.filter { w =>
-          val keepme = w.seq != wp.seq
-
-          // For items after the msg we are deleting, we need to fixup their sequence numbers
-          if (w.seq > wp.seq)
-            w.msg.seq -= 1
-
-          keepme
-        }
+        v ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
         toast("Waypoint deleted")
@@ -441,6 +273,8 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   class VehicleMarker extends MyMarker with AndroidLogger {
 
     private var oldWarning = false
+
+    override def isAllowContextMenu = false
 
     def lat = (for { v <- myVehicle; loc <- v.location } yield { loc.lat }).getOrElse(curLatitude)
     def lon = (for { v <- myVehicle; loc <- v.location } yield { loc.lon }).getOrElse(curLongitude)
@@ -657,7 +491,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   }
 
   private def selectMarker(m: MyMarker) {
-    selectedMarker = Some(m)
+    contextMenuCallback.selectedMarker = Some(m)
 
     // Stare up action menu if necessary
     actionMode match {

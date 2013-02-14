@@ -28,14 +28,14 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Inst
    * 'main' thread
    */
   private lazy val out = outgen
-  private lazy val instream = ingen
+  private lazy val instream = ingen // new DebugInputStream(ingen)
 
   /// This skanky hack is to make sure that we only touch the inputstream if it has already been created
   private var isInstreamValid = false
 
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 
-  // rxThread.setPriority(Thread.MAX_PRIORITY)
+  //rxThread.setPriority(Thread.MAX_PRIORITY)
   rxThread.start()
 
   // Mission control does this, seems to be necessary to keep device from hanging up on us
@@ -99,7 +99,7 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Inst
 
               if (reader.getBadSequence > badSeq) {
                 badSeq = reader.getBadSequence
-                // log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
+                //log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
               }
 
               messageThrottle { dt =>

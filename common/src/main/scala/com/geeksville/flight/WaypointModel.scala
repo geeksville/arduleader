@@ -29,6 +29,7 @@ case class DoGotoGuided(m: msg_mission_item)
 case class DoSetMode(s: String)
 case class DoSetCurrent(n: Int)
 case class DoAddWaypoint(w: Waypoint)
+case class DoDeleteWaypoint(seqnum: Int)
 
 /**
  * Start sending waypoints TO the vehicle
@@ -66,6 +67,17 @@ trait WaypointModel extends VehicleClient {
       if (w.msg.seq == 0)
         w.msg.seq = waypoints.size
       waypoints = waypoints :+ w
+
+    case DoDeleteWaypoint(seqnum) =>
+      waypoints = waypoints.filter { w =>
+        val keepme = w.seq != seqnum
+
+        // For items after the msg we are deleting, we need to fixup their sequence numbers
+        if (w.seq > seqnum)
+          w.msg.seq -= 1
+
+        keepme
+      }
 
     //
     // Messages for uploading waypoints
