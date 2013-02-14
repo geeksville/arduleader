@@ -1,4 +1,7 @@
 # 0.1.37
+FIXME - WAYPOINTS BUSTED!  COMMAND is zero!!!
+FIXME - wapoint editing - move contextMenuCallback
+
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
 * Support direct TCP connections (useful for connecting to the SITL simulator)
 * Add understanding for JUMP waypoints
@@ -6,6 +9,7 @@
 * Use new waypoint icons contributed by Scott Berfield
 * Don't enable scroll gestures for maps (conficts with page switch gesture)
 * Print better user info for UDP connections
+* Add a TCP uplink option (for development use)
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!

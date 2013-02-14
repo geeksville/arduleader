@@ -11,6 +11,8 @@ import com.geeksville.andropilot.service._
 import android.os.Bundle
 import android.widget.AbsListView
 import android.view.ActionMode
+import android.graphics.Color
+import android.view.ViewGroup
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
@@ -153,6 +155,17 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
       }.asJava
       val fromKeys = Array("n", "name")
       val toFields = Array(R.id.waypoint_number, R.id.waypoint_name)
-      new SimpleAdapter(getActivity, asMap, R.layout.waypoint_row, fromKeys, toFields)
+      new SimpleAdapter(getActivity, asMap, R.layout.waypoint_row, fromKeys, toFields) {
+
+        // Show selected item in a color
+        override def getView(position: Int, convertView: View, parent: ViewGroup) = {
+          val itemView = super.getView(position, convertView, parent)
+          if (selected.map(_.msg.seq).getOrElse(-1) == position)
+            itemView.setBackgroundColor(0xA0FF8000) // orange
+          else
+            itemView.setBackgroundColor(Color.TRANSPARENT)
+          itemView
+        }
+      }
     }
 }
