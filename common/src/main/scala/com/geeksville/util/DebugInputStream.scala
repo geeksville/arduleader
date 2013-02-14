@@ -12,4 +12,11 @@ class DebugInputStream(s: InputStream) extends FilterInputStream(s) {
     printf("Rx %02x\n", b)
     b
   }
+
+  override def read(b: Array[Byte], off: Int, len: Int) = {
+    val r = super.read(b, off, len)
+    if (r >= 0)
+      printf("Rx " + b.drop(off).take(len).map { n => "%02x".format(n) }.mkString(",") + "\n")
+    r
+  }
 }
