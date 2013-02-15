@@ -37,12 +37,12 @@ case class Waypoint(val msg: msg_mission_item) {
   /**
    * Should we show this waypoint on the map?
    */
-  def isForMap = msg.x != 0 || msg.y != 0 && !isJump
+  def isForMap = (msg.x != 0 || msg.y != 0) && !isJump
 
   //
   // Accessors for particlar waypoint types
   //
-  def isJump = msg.command != MAV_CMD.MAV_CMD_DO_JUMP
+  def isJump = msg.command == MAV_CMD.MAV_CMD_DO_JUMP
   def jumpSequence = msg.param1.toInt
   def loiterTime = msg.param1
   def loiterTurns = msg.param1
