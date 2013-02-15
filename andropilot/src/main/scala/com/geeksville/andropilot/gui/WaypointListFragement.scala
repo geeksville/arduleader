@@ -77,7 +77,11 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
       }
     }
 
-    override def doChangeType() { throw new Exception("Not yet implemented") }
+    override def typStr = selected.map(_.commandStr).getOrElse("unknown")
+    override def typStr_=(s: String) {
+      selected.foreach(_.commandStr = s)
+      changed()
+    }
   }
 
   private val contextMenuCallback = new WaypointActionMode {

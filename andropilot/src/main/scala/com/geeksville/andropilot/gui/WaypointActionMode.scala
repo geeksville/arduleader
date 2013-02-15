@@ -37,16 +37,45 @@ import com.geeksville.flight.DoGotoGuided
 import com.geeksville.andropilot.AndropilotPrefs
 import org.mavlink.messages.MAV_CMD
 import com.geeksville.flight.DoAddWaypoint
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import com.geeksville.flight.Waypoint
+import android.app.Activity
+import android.view.View
+import com.ridemission.scandroid.AndroidUtil._
 
 class WaypointActionMode(implicit val context: Context) extends ActionMode.Callback with AndroidLogger {
 
   var selectedMarker: Option[WaypointMenuItem] = None
+
+  private def setTypeOptions(s: Spinner) {
+    val spinnerAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, Waypoint.commandNames)
+
+    s.setAdapter(spinnerAdapter) // set the adapter
+  }
+
+  private def setTypeSpinner(s: Spinner, typStr: String) {
+    // Crufty way of finding which element of spinner needs selecting
+    def findIndex(str: String) = {
+      val adapter = s.getAdapter
+
+      (0 until adapter.getCount).find { i =>
+        val is = adapter.getItem(i).toString
+        is == str
+      }
+    }
+    findIndex(typStr).foreach { n => s.setSelection(n) }
+  }
 
   // Called when the action mode is created; startActionMode() was called
   override def onCreateActionMode(mode: ActionMode, menu: Menu) = {
     // Inflate a menu resource providing context menu items
     val inflater = mode.getMenuInflater()
     inflater.inflate(R.menu.context_menu, menu)
+
+    // Setup our type spinner
+    val s = menu.findItem(R.id.menu_changetype).getActionView.asInstanceOf[Spinner] // find the spinner
+    setTypeOptions(s)
 
     val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
     editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
@@ -125,8 +154,19 @@ class WaypointActionMode(implicit val context: Context) extends ActionMode.Callb
             if (marker.isAllowDelete)
               delete.setVisible(true)
 
-            if (marker.isAllowChangeType)
+            if (marker.isAllowChangeType) {
+              val s = changetype.getActionView.asInstanceOf[Spinner]
+              setTypeSpinner(s, marker.typStr)
+
+              def spinnerListener(parent: Spinner, selected: View, pos: Int, id: Long) {
+                val newtyp = s.getAdapter.getItem(pos).toString
+                debug("Type selected: " + newtyp)
+                marker.typStr = newtyp
+              }
+              s.onItemSelected(spinnerListener)
+
               changetype.setVisible(true)
+            }
           }
       }
     }
@@ -155,11 +195,6 @@ class WaypointActionMode(implicit val context: Context) extends ActionMode.Callb
 
         case R.id.menu_delete =>
           marker.doDelete()
-          mode.finish() // Action picked, so close the CAB
-          true
-
-        case R.id.menu_changetype =>
-          marker.doChangeType()
           mode.finish() // Action picked, so close the CAB
           true
 

@@ -248,7 +248,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       super.onDragEnd()
       debug("Drag ended on " + this)
 
-      myVehicle.foreach { v => v ! SendWaypoints }
+      changed()
     }
 
     override def doDelete() {
@@ -261,12 +261,22 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       }
     }
 
+    private def changed() {
+      myVehicle.foreach { v => v ! SendWaypoints }
+    }
+
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
         v ! DoSetCurrent(wp.seq)
         v ! DoSetMode("AUTO")
         //toast("Goto " + title)
       }
+    }
+
+    override def typStr = wp.commandStr
+    override def typStr_=(s: String) {
+      wp.commandStr = s
+      changed()
     }
   }
 
