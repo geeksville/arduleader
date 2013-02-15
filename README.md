@@ -34,6 +34,7 @@ First make sure we have the android tools and libraries.
 ~$ mkdir development
 ~$ cd development/
 ~$ export ANDROID_SDK_HOME=/home/kevinh/Packages/android-sdk-linux/ ( or wherever you installed it)
+~$ export PATH=$PATH:$ANDROID_SDK_HOME/tools (to make the next line work,tools has to be on the path)
 ~$ android ( should launch the android manager application, make sure that you have the android and google version 17 libraries installed )
 ```
 
