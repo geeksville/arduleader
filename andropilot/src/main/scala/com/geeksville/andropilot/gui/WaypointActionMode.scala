@@ -65,6 +65,8 @@ class WaypointActionMode(val context: Context) extends ActionMode.Callback with 
       }
     }
     findIndex(typStr).foreach { n => s.setSelection(n) }
+
+    // FIXME - if showing a more advanced type, also show the edit box to set # of turns or what have you...
   }
 
   // Called when the action mode is created; startActionMode() was called
