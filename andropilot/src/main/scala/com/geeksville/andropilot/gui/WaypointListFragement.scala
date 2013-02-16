@@ -84,7 +84,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     }
   }
 
-  private val contextMenuCallback = new WaypointActionMode {
+  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) {
 
     override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
 

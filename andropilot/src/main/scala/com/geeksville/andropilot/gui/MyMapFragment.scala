@@ -59,7 +59,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
   private var actionMode: Option[ActionMode] = None
 
-  private val contextMenuCallback = new WaypointActionMode {
+  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) {
 
     override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
 
