@@ -123,7 +123,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
         v ! DoAddWaypoint(Waypoint(wp))
         v ! SendWaypoints
-        handleWaypoints() // Update GUI
         toast("Waypoint added")
       }
     }
@@ -207,7 +206,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def toString = title.get
 
     protected def sendWaypointsAndUpdate() {
-      myVehicle.foreach(_ ! SendWaypoints)
+      myVehicle.foreach(_ ! SendWaypoints) // Will implicitly cause an update
     }
   }
 
@@ -242,21 +241,16 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       super.onDragEnd()
       debug("Drag ended on " + this)
 
-      changed()
+      sendWaypointsAndUpdate()
     }
 
     override def doDelete() {
       for { v <- myVehicle } yield {
-        // FIXME - we shouldn't be touching this
         v ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
         toast("Waypoint deleted")
       }
-    }
-
-    private def changed() {
-      myVehicle.foreach { v => v ! SendWaypoints }
     }
 
     override def doGoto() {
@@ -270,7 +264,8 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def typStr = wp.commandStr
     override def typStr_=(s: String) {
       wp.commandStr = s
-      changed()
+
+      sendWaypointsAndUpdate()
     }
   }
 
@@ -548,19 +543,20 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         def createWaypointSegments() {
           // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
           val pairs = waypointMarkers.zip(waypointMarkers.tail)
-          scene.segments ++= pairs.map { p =>
+          scene.segments.appendAll(pairs.map { p =>
             val color = if (p._1.isAutocontinue)
               Color.GREEN
             else
               Color.GRAY
 
             Segment(p, color)
-          }
+          })
         }
 
         val isAuto = v.currentMode == "AUTO"
         var destMarker: Option[MyMarker] = None
 
+        debug("Handling new waypoints")
         waypointMarkers.foreach(_.remove())
 
         scene.clearSegments() // FIXME - shouldn't touch this
@@ -602,7 +598,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
         // Create a segment for the path we expect the plane to take
         for { dm <- destMarker; pm <- planeMarker } yield {
-          scene.segments += Segment(pm -> dm, Color.RED)
+          scene.segments.append(Segment(pm -> dm, Color.RED))
         }
 
         scene.render()

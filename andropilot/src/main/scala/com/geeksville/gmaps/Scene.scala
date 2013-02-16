@@ -96,6 +96,7 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
   def clearSegments() {
     segments.foreach { m =>
       m.polyline.foreach(_.remove())
+      m.polyline = None
     }
     segments.clear()
   }

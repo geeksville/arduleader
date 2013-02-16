@@ -1,8 +1,10 @@
 # 0.2.00
 FIXME - altitude offset is crap
 FIXME - fix selection highlightig on waypoint list
-FIXME - delete waypoint screws up segments
-* FIXME: add waypoint change type (via menu dropdown)
+FIXME - delete waypoint screws up segments (are we not publishing update notification?)
+FIXME - handle editing of some of the more exotic waypoint types
+FIXME - make center on plane optional
+* Can now change waypoint type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
 * Support direct TCP connections (useful for connecting to the SITL simulator)
 * Add understanding for JUMP waypoints - all waypoint types should now be understood
@@ -17,8 +19,7 @@ FIXME - delete waypoint screws up segments
 
 For next release:
 * Save waypints to device only upon user command
-* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* FIXME: make a website
+* FIXME: move to 3dr github
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
 * Show docs on parameter names (if possible)
 * FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
