@@ -2,6 +2,7 @@
 
 	<item android:id="@+id/menu_mode" android:actionViewClass="android.widget.Spinner"
 		android:showAsAction="ifRoom" android:title="Mode" />
+		
 	<item android:id="@+id/menu_speech" android:checkable="true"
 		android:title="Speech" />
 

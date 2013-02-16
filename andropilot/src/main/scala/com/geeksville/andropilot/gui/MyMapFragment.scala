@@ -188,9 +188,9 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         Some(BitmapDescriptorFactory.fromResource(R.drawable.lz_blue))
       } else wp.msg.current match {
         case 0 =>
-          Some(WaypointMarker.toDrawable(wp.msg.command))
+          Some(WaypointMarker.toBitmap(wp.msg.command))
         case 1 =>
-          Some(WaypointMarker.toDrawable(wp.msg.command))
+          Some(WaypointMarker.toBitmap(wp.msg.command))
         case 2 => // Guided
           Some(BitmapDescriptorFactory.fromResource(R.drawable.flag))
         case _ =>
@@ -212,22 +212,16 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
   }
 
   object WaypointMarker {
-    private val wpToBitmap = Map(MAV_CMD.MAV_CMD_NAV_TAKEOFF -> R.drawable.waypoint_takeoff,
-      MAV_CMD.MAV_CMD_NAV_WAYPOINT -> R.drawable.waypoint_dot,
-      MAV_CMD.MAV_CMD_NAV_LAND -> R.drawable.waypoint_land,
-      MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> R.drawable.waypoint_forever,
-      MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> R.drawable.waypoint_number,
-      MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> R.drawable.waypoint_timed,
-      MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> R.drawable.waypoint_rtl,
-      MAV_CMD.MAV_CMD_NAV_LAND -> R.drawable.waypoint_land,
-      MAV_CMD.MAV_CMD_DO_JUMP -> R.drawable.yellow).map {
-        case (k, v) =>
-          k -> BitmapDescriptorFactory.fromResource(v)
-      }
 
-    private val defaultWp = BitmapDescriptorFactory.fromResource(R.drawable.blue)
+    private val wpToBitmap = WaypointUtil.wpToDrawable.map {
+      case (k, v) =>
+        k -> BitmapDescriptorFactory.fromResource(v)
+    }
 
-    def toDrawable(cmd: Int) = wpToBitmap.getOrElse(cmd, defaultWp)
+    private val defaultBitmap = BitmapDescriptorFactory.fromResource(WaypointUtil.defaultDrawable)
+
+    /// Get a bitmap suitable for use by gmaps
+    def toBitmap(cmd: Int) = wpToBitmap.getOrElse(cmd, defaultBitmap)
   }
 
   class GuidedWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
@@ -248,7 +242,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       super.onDragEnd()
       debug("Drag ended on " + this)
 
-      myVehicle.foreach { v => v ! SendWaypoints }
+      changed()
     }
 
     override def doDelete() {
@@ -261,12 +255,22 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       }
     }
 
+    private def changed() {
+      myVehicle.foreach { v => v ! SendWaypoints }
+    }
+
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
         v ! DoSetCurrent(wp.seq)
         v ! DoSetMode("AUTO")
         //toast("Goto " + title)
       }
+    }
+
+    override def typStr = wp.commandStr
+    override def typStr_=(s: String) {
+      wp.commandStr = s
+      changed()
     }
   }
 

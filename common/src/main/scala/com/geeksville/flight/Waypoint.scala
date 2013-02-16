@@ -8,22 +8,17 @@ import org.mavlink.messages.MAV_FRAME
  * A wrapper for waypoints - to provide a higher level API
  */
 case class Waypoint(val msg: msg_mission_item) {
-  private val commandCodes = Map(
-    MAV_CMD.MAV_CMD_DO_JUMP -> "Jump",
-    MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
-    MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
-    MAV_CMD.MAV_CMD_NAV_LAND -> "Land", // LAND to Waypoint
-    MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> "Loiter", // Loiter indefinitely
-    MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> "LoiterN", // Loiter N Times
-    MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
-    MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
 
   private val frameCodes = Map(
     MAV_FRAME.MAV_FRAME_GLOBAL -> "MSL",
     MAV_FRAME.MAV_FRAME_GLOBAL_RELATIVE_ALT -> "AGL")
 
-  def commandStr = commandCodes.get(msg.command).getOrElse("cmd=" + msg.command)
+  def commandStr = Waypoint.commandCodes.get(msg.command).getOrElse("cmd=" + msg.command)
   def frameStr = frameCodes.get(msg.frame).getOrElse("frame=" + msg.frame)
+
+  def commandStr_=(s: String) {
+    msg.command = Waypoint.commandToCodes(s)
+  }
 
   def seq = msg.seq
 
@@ -35,19 +30,19 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
 
-  def isCommandValid = commandCodes.contains(msg.command)
+  def isCommandValid = Waypoint.commandCodes.contains(msg.command)
 
   def altitude = msg.z
 
   /**
    * Should we show this waypoint on the map?
    */
-  def isForMap = msg.x != 0 || msg.y != 0 && !isJump
+  def isForMap = (msg.x != 0 || msg.y != 0) && !isJump
 
   //
   // Accessors for particlar waypoint types
   //
-  def isJump = msg.command != MAV_CMD.MAV_CMD_DO_JUMP
+  def isJump = msg.command == MAV_CMD.MAV_CMD_DO_JUMP
   def jumpSequence = msg.param1.toInt
   def loiterTime = msg.param1
   def loiterTurns = msg.param1
@@ -88,4 +83,20 @@ case class Waypoint(val msg: msg_mission_item) {
 
     shortString + ": " + r
   }
+}
+
+object Waypoint {
+  val commandCodes = Map(
+    MAV_CMD.MAV_CMD_DO_JUMP -> "Jump",
+    MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
+    MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
+    MAV_CMD.MAV_CMD_NAV_LAND -> "Land", // LAND to Waypoint
+    MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> "Loiter", // Loiter indefinitely
+    MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> "LoiterN", // Loiter N Times
+    MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
+    MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
+
+  val commandToCodes = commandCodes.map { case (k, v) => (v, k) }
+
+  val commandNames = commandCodes.values.toArray
 }

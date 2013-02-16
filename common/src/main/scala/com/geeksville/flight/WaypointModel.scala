@@ -232,6 +232,8 @@ trait WaypointModel extends VehicleClient {
     } else {
       log.debug("All waypoints downloaded")
       deleteInvalidWaypoints()
+      log.debug("All waypoints: " + waypoints.mkString(", "))
+      log.debug("Map waypoints: " + waypointsForMap.mkString(", "))
       onWaypointsDownloaded() // Success
     }
   }

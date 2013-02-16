@@ -20,6 +20,10 @@ trait WaypointMenuItem {
   def isAllowChangeType = false
   def isAllowDelete = false
 
+  /// Waypoint type
+  def typStr = "unknown"
+  def typStr_=(s: String) { throw new Exception("Not implemented") }
+
   def isAllowContextMenu = true
 
   /**
@@ -28,5 +32,4 @@ trait WaypointMenuItem {
   def doGoto() { throw new Exception("Not yet implemented") }
   def doAdd() { throw new Exception("Not yet implemented") }
   def doDelete() { throw new Exception("Not yet implemented") }
-  def doChangeType() { throw new Exception("Not yet implemented") }
 }
