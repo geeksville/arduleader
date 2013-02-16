@@ -40,7 +40,7 @@ case class Waypoint(val msg: msg_mission_item) {
   def isForMap = (msg.x != 0 || msg.y != 0) && !isJump
 
   //
-  // Accessors for particlar waypoint types
+  // Accessors for particular waypoint types
   //
   def isJump = msg.command == MAV_CMD.MAV_CMD_DO_JUMP
   def jumpSequence = msg.param1.toInt
