@@ -1,15 +1,27 @@
-# 0.1.37
+# 0.2.00
 FIXME - WAYPOINTS BUSTED!  COMMAND is zero!!!
 FIXME - wapoint editing - move contextMenuCallback
-
+* FIXME: add waypoint change type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
 * Support direct TCP connections (useful for connecting to the SITL simulator)
-* Add understanding for JUMP waypoints
+* Add understanding for JUMP waypoints - all waypoint types should now be understood
 * Don't show bogus waypoints if x & y are not set
 * Use new waypoint icons contributed by Scott Berfield
 * Don't enable scroll gestures for maps (conficts with page switch gesture)
 * Print better user info for UDP connections
 * Add a TCP uplink option (for development use)
+* Setup SITL testing framework (see https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b)
+* HUD now burns lots less CPU 
+
+For next release:
+* Save waypints to device only upon user command
+* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
+* FIXME: make a website
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+* Show docs on parameter names (if possible)
+* FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
+* FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
+* Change parameter editing over to the new spiffy action bar style of the waypoint editor
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!
@@ -28,20 +40,6 @@ FIXME - wapoint editing - move contextMenuCallback
 * Make usb host mode optional (so folks can use UDP on non host mode devices)
 * Fix overview layout so it will look good on more devices 
 * Add preferences option to automatically back-up parameters to the SD card
-
-For next release:
-* FIXME: write developer docs, including how to embed http server
-* Save waypints to device only upon user command
-* Do something to allow waypoint list selection with action bar ( http://stackoverflow.com/questions/3111354/android-listview-stay-selected )
-* FIXME: add waypoint change type (via menu dropdown)
-* FIXME: make a website
-* Change waypoint icons as appropriate...
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-* Show docs on parameter names (if possible)
-* Handle the 'unusual' waypoint representations - look at mavproxy code for clues
-* Use the following tip for sw testing: https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b
-* FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
-* FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
 
 # 0.1.34
 * Add back nasty USB hack if urb.position is always zero (should fix at least android 4.0, probably 3.1)
