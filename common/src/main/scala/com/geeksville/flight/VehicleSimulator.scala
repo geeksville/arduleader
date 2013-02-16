@@ -200,7 +200,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.current = current // Use 2 for guided mode, 3 means alt change only
     msg.target_system = targetSystem
     msg.target_component = targetComponent
-    msg.autocontinue = 0 // FIXME
+    msg.autocontinue = 1 // Default to true
     msg
   }
 

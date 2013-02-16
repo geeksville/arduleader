@@ -13,6 +13,7 @@ import android.widget.AbsListView
 import android.view.ActionMode
 import android.graphics.Color
 import android.view.ViewGroup
+import android.view.LayoutInflater
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
@@ -86,6 +87,8 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
   private lazy val contextMenuCallback = new WaypointActionMode(getActivity) {
 
+    selectedMarker = Some(menuAdapter)
+
     override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
 
     // Called when the user exits the action mode
@@ -130,11 +133,12 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
-    info("Item clicked: " + id)
+    info("Item clicked: " + id + "/" + position)
 
     myVehicle.foreach { v =>
       if (position < v.waypoints.size) {
         l.setSelection(position)
+
         // FIXME - set selection on map also?
         selected = Some(v.waypoints(position))
 
@@ -155,18 +159,20 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
       val asMap = v.waypoints.zipWithIndex.map {
         case (p, i) =>
-          Map("n" -> i, "name" -> p.longString).asJava
+          Map("num" -> i, "name" -> p.longString, "icon" -> WaypointUtil.toDrawable(p.msg.command)).asJava
       }.asJava
-      val fromKeys = Array("n", "name")
-      val toFields = Array(R.id.waypoint_number, R.id.waypoint_name)
+      val fromKeys = Array("num", "name", "icon")
+      val toFields = Array(R.id.waypoint_number, R.id.waypoint_name, R.id.waypoint_iconcol)
       new SimpleAdapter(getActivity, asMap, R.layout.waypoint_row, fromKeys, toFields) {
 
         // Show selected item in a color
         override def getView(position: Int, convertView: View, parent: ViewGroup) = {
           val itemView = super.getView(position, convertView, parent)
-          if (selected.map(_.msg.seq).getOrElse(-1) == position)
+          debug("in getView " + position)
+          if (selected.map(_.msg.seq).getOrElse(-1) == position) {
+            debug("Selecting " + itemView)
             itemView.setBackgroundColor(0xA0FF8000) // orange
-          else
+          } else
             itemView.setBackgroundColor(Color.TRANSPARENT)
           itemView
         }

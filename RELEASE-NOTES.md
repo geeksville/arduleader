@@ -1,6 +1,7 @@
 # 0.2.00
-FIXME - WAYPOINTS BUSTED!  COMMAND is zero!!!
-FIXME - wapoint editing - move contextMenuCallback
+FIXME - altitude offset is crap
+FIXME - fix selection highlightig on waypoint list
+FIXME - delete waypoint screws up segments
 * FIXME: add waypoint change type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
 * Support direct TCP connections (useful for connecting to the SITL simulator)
@@ -12,6 +13,7 @@ FIXME - wapoint editing - move contextMenuCallback
 * Add a TCP uplink option (for development use)
 * Setup SITL testing framework (see https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b)
 * HUD now burns lots less CPU 
+* Default autocontinue to true for new waypoints
 
 For next release:
 * Save waypints to device only upon user command

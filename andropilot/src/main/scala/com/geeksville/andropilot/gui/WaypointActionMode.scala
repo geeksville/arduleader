@@ -82,6 +82,8 @@ class WaypointActionMode(val context: Context) extends ActionMode.Callback with 
     val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
     editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
 
+    debug("Creating actionMode")
+
     // Apparently IME_ACTION_DONE fires when the user leaves the edit text
     editAlt.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
@@ -124,6 +126,8 @@ class WaypointActionMode(val context: Context) extends ActionMode.Callback with 
 
     // Default to nothing
     Seq(goto, add, delete, setalt, changetype, autocontinue).foreach(_.setVisible(false))
+
+    debug("Prepare " + selectedMarker)
 
     // We only enable options if we are talking to a real vehicle
     if (shouldShowMenu) {
