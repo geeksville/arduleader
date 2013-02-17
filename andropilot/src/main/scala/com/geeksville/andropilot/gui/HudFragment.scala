@@ -30,7 +30,7 @@ class HudFragment extends Fragment with AndroServicePage {
       hud.newFlightData(msg.roll, msg.pitch, msg.yaw);
 
     case l: Location =>
-      //debug("Handling location: " + l)
+      //debug("Handling location: " + l) 
       handler.post { () =>
         if (getView != null) {
           val degSymbol = "\u00B0"

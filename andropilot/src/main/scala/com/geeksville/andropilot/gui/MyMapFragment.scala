@@ -518,13 +518,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     provisionalMarker = None
   }
 
-  override def onResume() {
-    super.onResume()
-
-    // Force the screen on if the user wants that (FIXME this only works if the _map_ is shown) - possibly worth doing somewhere better
-    Option(getView).foreach(_.setKeepScreenOn(isKeepScreenOn))
-  }
-
   /**
    * Generate our scene
    */

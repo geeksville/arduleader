@@ -28,10 +28,11 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
 
   private def updateParameters() {
     // Don't expand the view until we have _something_ to display
-    if (getActivity != null) {
-      debug("updating parameters")
-      makeAdapter.foreach(setListAdapter)
-    }
+    //if (getActivity != null) {
+    debug("updating parameters")
+    makeAdapter.foreach(setListAdapter)
+    Option(getListView).foreach(_.invalidate())
+    //}
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

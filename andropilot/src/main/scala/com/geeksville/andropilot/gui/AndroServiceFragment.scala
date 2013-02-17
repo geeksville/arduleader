@@ -8,11 +8,12 @@ import com.geeksville.util.ThreadTools._
 import android.support.v4.app.Fragment
 import com.geeksville.andropilot.service.AndroServiceClient
 import android.view.ActionMode
+import com.ridemission.scandroid.PagerPage
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
  */
-trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient {
+trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient with PagerPage {
 
   implicit def context = getActivity
 
@@ -39,10 +40,15 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
 
   override def onPause() {
     debug("androFragment onPause")
-    stopActionMode() // Don't show our menu on other pages
+
     serviceOnPause()
 
     super.onPause()
+  }
+
+  override def onPageHidden() {
+    stopActionMode() // Don't show our menu on other pages
+    super.onPageHidden()
   }
 
   //
@@ -72,7 +78,10 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
   }
 
   protected def stopActionMode() {
-    actionMode.foreach(_.finish())
+    actionMode.foreach { a =>
+      debug("Stopping action mode")
+      a.finish()
+    }
     actionMode = None
   }
 

@@ -1,10 +1,4 @@
 # 0.2.00
-FIXME - altitude offset is crap
-FIXME - fix selection highlightig on waypoint list
-FIXME - delete waypoint screws up segments (are we not publishing update notification?)
-FIXME - handle editing of some of the more exotic waypoint types
-FIXME - make center on plane default off
-
 * We now decode parameter values to show nice names for most parameters
 * Can now change waypoint type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
@@ -18,6 +12,8 @@ FIXME - make center on plane default off
 * Setup SITL testing framework (see https://github.com/diydrones/ardupilot/commit/deb825b57583a4dd0fb8452ad0afdad07ab34c5b)
 * HUD now burns lots less CPU 
 * Default autocontinue to true for new waypoints
+* Previously we only kept the screen on if the map was shown, we now do it if any screen is shown
+* Previously if you switched to the waypoints or parameters view too quickly they would never update - fixed
 
 For next release:
 * FIXME - use an expandable list view for parameters https://gist.github.com/mosabua/1316903
@@ -29,6 +25,8 @@ For next release:
 * FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
 * FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
 * Change parameter editing over to the new spiffy action bar style of the waypoint editor
+* FIXME - altitude offset should only be set once device has calibrated
+* FIXME - handle editing of some of the more exotic waypoint types
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!

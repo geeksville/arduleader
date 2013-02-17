@@ -243,11 +243,12 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
       int height) {
     this.width = width;
     this.height = height;
-
+    Log.d("HUD", "Surface changed");
   }
 
   @Override
   public void surfaceCreated(SurfaceHolder holder) {
+    Log.d("HUD", "Surface created");
     renderer = new ScopeThread(getHolder(), this);
     if (!renderer.isRunning()) {
       renderer.setRunning(true);
@@ -263,6 +264,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
   @Override
   public void surfaceDestroyed(SurfaceHolder holder) {
     boolean retry = true;
+    Log.d("HUD", "Surface destroyed");
     renderer.setRunning(false);
     while (retry) {
       try {
@@ -292,8 +294,8 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void setRunning(boolean run) {
-      setDirty();
       running = run;
+      setDirty();
     }
 
     /** We may need to redraw */

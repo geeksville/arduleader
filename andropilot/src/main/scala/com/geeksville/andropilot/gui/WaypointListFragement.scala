@@ -52,7 +52,11 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
     override def isAllowGoto = true
     override def isAllowAdd = true
-    override def isAllowChangeType = isEditable
+    override def isAllowChangeType = {
+      debug("allow change type=" + isEditable)
+      isEditable
+    }
+
     override def isAllowDelete = isEditable
 
     private def isEditable = selected.map(!_.isHome).getOrElse(false)
@@ -78,7 +82,12 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
       }
     }
 
-    override def typStr = selected.map(_.commandStr).getOrElse("unknown")
+    override def typStr = {
+      val r = selected.map(_.commandStr).getOrElse("unknown")
+      debug("Returning typStr=" + r)
+      r
+    }
+
     override def typStr_=(s: String) {
       selected.foreach(_.commandStr = s)
       changed()
@@ -121,10 +130,10 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
   private def handleWaypoints() {
     // Don't expand the view until we have _something_ to display
-    if (getView != null) {
-      debug("updating parameters")
-      makeAdapter.foreach(setListAdapter)
-    }
+    //if (getView != null) {
+    debug("updating waypoints")
+    makeAdapter.foreach(setListAdapter)
+    Option(getListView).foreach(_.invalidate())
   }
 
   private def listView = Option(getListView)

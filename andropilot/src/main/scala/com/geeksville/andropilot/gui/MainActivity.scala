@@ -202,13 +202,14 @@ class MainActivity extends FragmentActivity with TypedActivity
       v.setAdapter(sectionsPagerAdapter)
 
       // We want to suppress drag gestures when on the map view
+      /* doesn't work
       v.setOnTouchListener(new View.OnTouchListener {
         override def onTouch(v2: View, event: MotionEvent) = {
           val disableSwipe = !isWide && v.getCurrentItem == 0
 
           disableSwipe
         }
-      })
+      }) */
     }
 
     val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
@@ -276,6 +277,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onResume()
 
     serviceOnResume()
+
+    // Force the screen on if the user wants that 
+    viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
   }
 
   override def onPause() {
@@ -396,23 +400,11 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   /**
-   * This really useful method is not on ICS, alas...
-   */
-  private def getThemedContext = {
-    try {
-      getActionBar.getThemedContext
-    } catch {
-      case ex: NoSuchMethodError =>
-        this
-    }
-  }
-
-  /**
    * Update the set of options in the mode menu (called when vehicle type changes)
    */
   private def setModeOptions() {
     for { s <- modeSpinner; v <- myVehicle } yield {
-      val spinnerAdapter = new ArrayAdapter(getThemedContext, android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
+      val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this), android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
       // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
       s.setAdapter(spinnerAdapter); // set the adapter
     }
@@ -517,4 +509,18 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
 
+}
+
+object MainActivity {
+  /**
+   * This really useful method is not on ICS, alas...
+   */
+  def getThemedContext(c: FragmentActivity) = {
+    try {
+      c.getActionBar.getThemedContext
+    } catch {
+      case ex: NoSuchMethodError =>
+        c
+    }
+  }
 }

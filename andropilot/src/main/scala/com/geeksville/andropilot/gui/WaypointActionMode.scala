@@ -43,13 +43,14 @@ import com.geeksville.flight.Waypoint
 import android.app.Activity
 import android.view.View
 import com.ridemission.scandroid.AndroidUtil._
+import android.support.v4.app.FragmentActivity
 
-abstract class WaypointActionMode(val context: Context) extends ActionMode.Callback with AndroidLogger {
+abstract class WaypointActionMode(val context: FragmentActivity) extends ActionMode.Callback with AndroidLogger {
 
   var selectedMarker: Option[WaypointMenuItem] = None
 
   private def setTypeOptions(s: Spinner) {
-    val spinnerAdapter = new ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, Waypoint.commandNames)
+    val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(context), android.R.layout.simple_spinner_dropdown_item, Waypoint.commandNames)
 
     s.setAdapter(spinnerAdapter) // set the adapter
   }
@@ -59,10 +60,13 @@ abstract class WaypointActionMode(val context: Context) extends ActionMode.Callb
     def findIndex(str: String) = {
       val adapter = s.getAdapter
 
-      (0 until adapter.getCount).find { i =>
+      val r = (0 until adapter.getCount).find { i =>
         val is = adapter.getItem(i).toString
         is == str
       }
+
+      debug("Typespinner index=" + r)
+      r
     }
     findIndex(typStr).foreach { n => s.setSelection(n) }
 
