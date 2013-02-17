@@ -14,8 +14,9 @@ import android.widget.ArrayAdapter
 import com.geeksville.flight._
 import java.util.LinkedList
 import com.geeksville.andropilot.R
+import android.view.View
 
-class OverviewFragment extends Fragment with AndroServiceFragment {
+class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with AndroServiceFragment {
 
   private lazy val statusItems = {
     val r = new ArrayAdapter(getActivity, R.layout.simple_list_item_1_small, new LinkedList[String]())
@@ -31,14 +32,10 @@ class OverviewFragment extends Fragment with AndroServiceFragment {
   private def batteryView = getView.findView(TR.battery_volt)
   private def listView = getView.findView(TR.status_list)
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    // Inflate the layout for this fragment
-    val v = inflater.inflate(R.layout.vehicle_overview, container, false)
-
+  override def onViewCreated(v: View) = {
     val list = v.findView(TR.status_list)
     list.setAdapter(statusItems)
     list.setItemsCanFocus(false)
-    v
   }
 
   override def onVehicleReceive = {

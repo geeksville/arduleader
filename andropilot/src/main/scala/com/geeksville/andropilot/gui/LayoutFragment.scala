@@ -1,0 +1,32 @@
+package com.geeksville.andropilot.gui
+
+import android.os.Bundle
+import android.widget.ArrayAdapter
+import scala.collection.JavaConverters._
+import com.geeksville.util.ThreadTools._
+import android.support.v4.app.Fragment
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import com.ridemission.scandroid.AndroidUtil._
+import com.geeksville.andropilot.TypedResource._
+import com.geeksville.andropilot.TR
+import android.widget.ArrayAdapter
+import com.geeksville.flight._
+import java.util.LinkedList
+import com.geeksville.andropilot.R
+import android.view.View
+
+/**
+ * A simple fragment that just pulls its layout from a resource
+ */
+class LayoutFragment(layoutId: Int) extends Fragment {
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
+    // Inflate the layout for this fragment
+    val v = inflater.inflate(layoutId, container, false)
+    onViewCreated(v)
+    v
+  }
+
+  protected def onViewCreated(v: View) {}
+}

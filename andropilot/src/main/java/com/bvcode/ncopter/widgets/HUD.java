@@ -280,7 +280,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
   private class ScopeThread extends Thread {
     private SurfaceHolder _surfaceHolder;
     private HUD scope;
-    private boolean running = false;
+    private volatile boolean running = false;
     private Object dirty = new Object();
 
     public ScopeThread(SurfaceHolder surfaceHolder, HUD panel) {
