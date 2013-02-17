@@ -74,13 +74,13 @@ object Main extends Logging {
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
     // FIXME - select these options based on cmd line flags
-    val startOutgoingUDP = false
+    val startOutgoingUDP = true
     val startIncomingUDP = false
-    val startSerial = false
-    val startSITL = true
+    val startSerial = true
+    val startSITL = false
     val startFlightLead = false
     val startWingman = false
-    val startMonitor = true
+    val startMonitor = false
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = true

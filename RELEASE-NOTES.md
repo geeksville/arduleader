@@ -3,7 +3,8 @@ FIXME - altitude offset is crap
 FIXME - fix selection highlightig on waypoint list
 FIXME - delete waypoint screws up segments (are we not publishing update notification?)
 FIXME - handle editing of some of the more exotic waypoint types
-FIXME - make center on plane optional
+FIXME - make center on plane default off
+
 * We now decode parameter values to show nice names for most parameters
 * Can now change waypoint type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
@@ -19,6 +20,8 @@ FIXME - make center on plane optional
 * Default autocontinue to true for new waypoints
 
 For next release:
+* FIXME - use an expandable list view for parameters https://gist.github.com/mosabua/1316903
+* NOT YET READY FOR TESTING: 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
 * Save waypints to device only upon user command
 * FIXME: move to 3dr github
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints

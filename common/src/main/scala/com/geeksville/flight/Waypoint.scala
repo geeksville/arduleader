@@ -48,40 +48,70 @@ case class Waypoint(val msg: msg_mission_item) {
   def loiterTurns = msg.param1
 
   /**
+   * Just the type of the waypoint (RTL, LoiterN, etc...) or Home (as a special case)
+   */
+  def typeString = {
+    if (isHome)
+      "Home"
+    else
+      commandStr
+  }
+
+  /**
    * A short description of this waypoint
    */
   def shortString = {
-    val r = if (isHome)
-      "Home"
-    else {
-      msg.command match {
-        case MAV_CMD.MAV_CMD_DO_JUMP => "Jump to WP #%d".format(jumpSequence)
-        case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => "Loiter (forever)"
-        case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => "Loiter (%.1f turns)".format(loiterTurns)
-        case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => "Loiter (%.1f seconds)".format(loiterTime)
+    msg.command match {
+      case MAV_CMD.MAV_CMD_DO_JUMP => "Jump to WP #%d".format(jumpSequence)
+      case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => "Loiter (forever)"
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => "Loiter (%.1f turns)".format(loiterTurns)
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => "Loiter (%.1f seconds)".format(loiterTime)
 
-        // FIXME - parse takeoff/land
-        case _ =>
-          commandStr
-      }
+      // FIXME - parse takeoff/land
+      case _ =>
+        typeString
     }
+  }
 
-    r
+  /**
+   * Try to decode arguments into something understandable by a human
+   */
+  private def decodedArguments = {
+    msg.command match {
+      case MAV_CMD.MAV_CMD_DO_JUMP => Some("Jump to WP #%d".format(jumpSequence))
+      case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => Some("forever")
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => Some("%.1f turns".format(loiterTurns))
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => Some("%.1f seconds".format(loiterTime))
+
+      // FIXME - parse takeoff/land
+      case _ =>
+        None
+    }
   }
 
   /**
    * Longer descriptiong (with arguments)
    */
-  def longString = {
-    import msg._
-    val params = Seq(param1, param2, param3, param4)
-    val hasParams = params.find(_ != 0.0f).isDefined
-    val r = if (hasParams)
-      "Alt=%sm %s params=%s".format(z, frameStr, params.mkString(","))
-    else
-      "Altitude %sm %s".format(z, frameStr)
+  def longString = shortString + ": " + argumentsString
 
-    shortString + ": " + r
+  /**
+   * The arguments as a humang readable string
+   */
+  def argumentsString = {
+    import msg._
+
+    val altStr = "Altitude %sm (%s)".format(z, frameStr)
+
+    val paramsStr = decodedArguments.map(", " + _).getOrElse {
+      val params = Seq(param1, param2, param3, param4)
+      val hasParams = params.find(_ != 0.0f).isDefined
+      if (hasParams)
+        ", params=%s".format(params.mkString(","))
+      else
+        ""
+    }
+
+    altStr + paramsStr
   }
 }
 

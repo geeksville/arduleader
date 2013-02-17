@@ -14,12 +14,12 @@ import android.view.ActionMode
 import android.graphics.Color
 import android.view.ViewGroup
 import android.view.LayoutInflater
+import com.geeksville.andropilot.TypedResource._
+import com.geeksville.andropilot.TR
 
 class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
   private var selected: Option[Waypoint] = None
-
-  private var actionMode: Option[ActionMode] = None
 
   private val menuAdapter = new WaypointMenuItem {
     /**
@@ -85,7 +85,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     }
   }
 
-  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) {
+  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) with ActionModeCallback {
 
     selectedMarker = Some(menuAdapter)
 
@@ -95,7 +95,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     override def onDestroyActionMode(mode: ActionMode) {
       super.onDestroyActionMode(mode)
 
-      actionMode = None
+      setSelection(None)
     }
   }
 
@@ -119,11 +119,6 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
       handler.post(handleWaypoints _)
   }
 
-  /// menu choices might have changed)
-  def invalidateContextMenu() {
-    actionMode.foreach(_.invalidate())
-  }
-
   private def handleWaypoints() {
     // Don't expand the view until we have _something_ to display
     if (getView != null) {
@@ -132,23 +127,37 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     }
   }
 
+  private def listView = Option(getListView)
+
+  /**
+   * Select a particular waypoint (or None) and update our action bar
+   */
+  private def setSelection(s: Option[Waypoint]) {
+    for { v <- myVehicle; l <- listView } yield {
+      // FIXME - set selection on map also?
+      selected = s
+
+      selected.map { sel =>
+        // Handle the new selection
+        l.setSelection(sel.msg.seq)
+
+        // Start up action menu if necessary
+        startActionMode(contextMenuCallback)
+      }.getOrElse {
+        // Nothing selected, end the action mode
+        stopActionMode()
+      }
+
+      l.invalidateViews()
+    }
+  }
+
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {
     info("Item clicked: " + id + "/" + position)
 
     myVehicle.foreach { v =>
       if (position < v.waypoints.size) {
-        l.setSelection(position)
-
-        // FIXME - set selection on map also?
-        selected = Some(v.waypoints(position))
-
-        // Start up action menu if necessary
-        actionMode match {
-          case Some(am) =>
-            invalidateContextMenu() // menu choices might have changed
-          case None =>
-            actionMode = Some(getActivity.startActionMode(contextMenuCallback))
-        }
+        setSelection(Some(v.waypoints(position)))
       }
     }
   }
@@ -159,10 +168,10 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
 
       val asMap = v.waypoints.zipWithIndex.map {
         case (p, i) =>
-          Map("num" -> i, "name" -> p.longString, "icon" -> WaypointUtil.toDrawable(p.msg.command)).asJava
+          Map("num" -> i, "type" -> p.typeString, "args" -> p.argumentsString, "icon" -> WaypointUtil.toDrawable(p.msg.command)).asJava
       }.asJava
-      val fromKeys = Array("num", "name", "icon")
-      val toFields = Array(R.id.waypoint_number, R.id.waypoint_name, R.id.waypoint_iconcol)
+      val fromKeys = Array("num", "type", "args", "icon")
+      val toFields = Array(R.id.waypoint_number, R.id.waypoint_type, R.id.waypoint_args, R.id.waypoint_iconcol)
       new SimpleAdapter(getActivity, asMap, R.layout.waypoint_row, fromKeys, toFields) {
 
         // Show selected item in a color

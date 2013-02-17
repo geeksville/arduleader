@@ -14,7 +14,7 @@ trait AndropilotPrefs extends UsesPreferences {
   def minRssi = intPreference("min_rssi", 100)
   def minNumSats = intPreference("min_numsats", 5)
   def isKeepScreenOn = boolPreference("force_screenon", false)
-  def followPlane = boolPreference("follow_plane", true)
+  def followPlane = boolPreference("follow_plane", false)
   def guideAlt = intPreference("guide_alt", 50)
 
   def loggingEnabled = boolPreference("log_to_file", false)

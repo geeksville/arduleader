@@ -59,7 +59,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
   private var actionMode: Option[ActionMode] = None
 
-  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) {
+  private lazy val contextMenuCallback = new WaypointActionMode(getActivity) with ActionModeCallback {
 
     override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)
 
@@ -68,7 +68,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       super.onDestroyActionMode(mode)
 
       provisionalMarker.foreach(_.remove()) // User didn't activate our provisional waypoint - remove it from the map
-      actionMode = None
     }
   }
 
@@ -457,11 +456,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     markerOpt.foreach(_.redraw())
   }
 
-  /// menu choices might have changed)
-  def invalidateContextMenu() {
-    actionMode.foreach(_.invalidate())
-  }
-
   override def onActivityCreated(bundle: Bundle) {
     super.onActivityCreated(bundle)
 
@@ -499,7 +493,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       case None =>
         // FIXME - temp hack to not raise menu for clicks on plane
         if (!m.isInstanceOf[VehicleMarker]) {
-          actionMode = Some(getActivity.startActionMode(contextMenuCallback))
+          startActionMode(contextMenuCallback)
           getView.setSelected(true)
         }
     }

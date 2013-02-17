@@ -44,7 +44,7 @@ import android.app.Activity
 import android.view.View
 import com.ridemission.scandroid.AndroidUtil._
 
-class WaypointActionMode(val context: Context) extends ActionMode.Callback with AndroidLogger {
+abstract class WaypointActionMode(val context: Context) extends ActionMode.Callback with AndroidLogger {
 
   var selectedMarker: Option[WaypointMenuItem] = None
 
@@ -208,7 +208,5 @@ class WaypointActionMode(val context: Context) extends ActionMode.Callback with 
           false
       }
     }.getOrElse(false)
-
-  def onDestroyActionMode(mode: ActionMode) {}
 }
 

@@ -50,6 +50,7 @@ import com.geeksville.util.ThrottleByBucket
 import com.geeksville.andropilot.service._
 import com.geeksville.andropilot._
 import android.net.Uri
+import android.view.MotionEvent
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -197,8 +198,17 @@ class MainActivity extends FragmentActivity with TypedActivity
     viewPager.foreach { v =>
       val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
 
-      warn("Need to set pager adapter")
+      // warn("Need to set pager adapter")
       v.setAdapter(sectionsPagerAdapter)
+
+      // We want to suppress drag gestures when on the map view
+      v.setOnTouchListener(new View.OnTouchListener {
+        override def onTouch(v2: View, event: MotionEvent) = {
+          val disableSwipe = !isWide && v.getCurrentItem == 0
+
+          disableSwipe
+        }
+      })
     }
 
     val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
@@ -247,8 +257,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  def isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
+
   private def pages = {
-    val isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
     val r = if (isWide) stdPages else phonePages
     debug("Using wide view=" + isWide + " pages=" + r.mkString(","))
     r

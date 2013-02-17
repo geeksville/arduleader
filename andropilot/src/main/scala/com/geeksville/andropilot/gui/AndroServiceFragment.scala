@@ -7,6 +7,7 @@ import android.os.Handler
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.Fragment
 import com.geeksville.andropilot.service.AndroServiceClient
+import android.view.ActionMode
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
@@ -19,6 +20,8 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
    * Does work in the GUIs thread
    */
   protected final var handler: Handler = null
+
+  private var actionMode: Option[ActionMode] = None
 
   override def onCreate(saved: Bundle) {
     super.onCreate(saved)
@@ -36,9 +39,41 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
 
   override def onPause() {
     debug("androFragment onPause")
+    stopActionMode() // Don't show our menu on other pages
     serviceOnPause()
 
     super.onPause()
+  }
+
+  //
+  // Operations for action modes
+  //
+
+  trait ActionModeCallback extends ActionMode.Callback {
+    // Called when the user exits the action mode
+    override def onDestroyActionMode(mode: ActionMode) {
+      actionMode = None
+    }
+  }
+
+  /// menu choices might have changed)
+  protected def invalidateContextMenu() {
+    actionMode.foreach(_.invalidate())
+  }
+
+  protected def startActionMode(cb: ActionModeCallback) {
+    // Reuse existing action mode if possible
+    actionMode match {
+      case Some(am) =>
+        invalidateContextMenu() // menu choices might have changed
+      case None =>
+        actionMode = Some(getActivity.startActionMode(cb))
+    }
+  }
+
+  protected def stopActionMode() {
+    actionMode.foreach(_.finish())
+    actionMode = None
   }
 
   // protected def isVisible = (getActivity != null) && (getView != null)
