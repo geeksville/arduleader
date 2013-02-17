@@ -53,7 +53,7 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
       debug("Setting parameter list to " + v.parameters.size + " items")
 
       val asMap = v.parameters.toSeq.map { p =>
-        Map("n" -> p.getId.getOrElse("?"), "v" -> p.getValue.getOrElse("?").toString).asJava
+        Map("n" -> p.getId.getOrElse("?"), "v" -> p.asString.getOrElse("?")).asJava
       }.asJava
       val fromKeys = Array("n", "v")
       val toFields = Array(R.id.param_name, R.id.param_value)

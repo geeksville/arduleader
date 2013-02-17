@@ -14,6 +14,18 @@ case class ParamDoc(val humanName: String, val name: String, val documentation: 
     case NamePattern(namespace, shortname) => shortname
     case x @ _ => x
   }
+
+  /**
+   * Try to decode a raw value into the best symbolic representation we can find
+   */
+  def decodeValue(f: Float) = {
+    for {
+      vals <- valueMap;
+      strname <- vals.get(f.toInt)
+    } yield {
+      strname
+    }
+  }
 }
 
 object ParamDoc {
@@ -62,12 +74,15 @@ class ParameterDocFile {
   /**
    * Return the set of parameter docs that are appropriate for this vehicle type.
    * i.e. all libraries and one particular vehicle
+   *
+   * @return a map from param name to ParamDoc
    */
   def forVehicle(vehicle: String) = {
     val vparams = findParameters(xml \ "vehicles", vehicle) \ "param"
     val lparams = xml \ "libraries" \ "parameters" \ "param"
 
-    (vparams ++ lparams) map toParamDoc
+    val alldocs = (vparams ++ lparams) map toParamDoc
+    Map(alldocs.map { d => d.shortName -> d }: _*)
   }
 }
 

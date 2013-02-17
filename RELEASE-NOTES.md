@@ -4,6 +4,7 @@ FIXME - fix selection highlightig on waypoint list
 FIXME - delete waypoint screws up segments (are we not publishing update notification?)
 FIXME - handle editing of some of the more exotic waypoint types
 FIXME - make center on plane optional
+* We now decode parameter values to show nice names for most parameters
 * Can now change waypoint type (via menu dropdown)
 * Wrote a developers guide: https://github.com/geeksville/arduleader/wiki/Developers-Guide
 * Support direct TCP connections (useful for connecting to the SITL simulator)

@@ -34,11 +34,16 @@ trait ParametersModel extends VehicleClient {
   var parameters = new Array[ParamValue](0)
   private var retryingParameters = false
 
+  lazy val paramDocs = (new ParameterDocFile).forVehicle(vehicleTypeName)
+
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
   class ParamValue {
     private[ParametersModel] var raw: Option[msg_param_value] = None
+
+    /// The docs for this parameter (if we can find them)
+    def docs = for { id <- getId; d <- paramDocs.get(id) } yield { d }
 
     def getId = raw.map(_.getParam_id)
 
@@ -51,6 +56,19 @@ trait ParametersModel extends VehicleClient {
       }
     }
 
+    /**
+     * @return a nice human readable version of this value (decoding based on documentation if possible)
+     */
+    def asString = {
+      (for {
+        v <- raw
+        doc <- docs
+        asstr <- doc.decodeValue(v.param_value)
+      } yield {
+        Some(asstr)
+      }).getOrElse(getValue.map(_.toString))
+    }
+
     def setValue(v: Float) {
       val p = raw.getOrElse(throw new Exception("Can not set uninited param"))
 
@@ -61,6 +79,9 @@ trait ParametersModel extends VehicleClient {
 
     override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
   }
+
+  /// Either ArduCopter or ArduPlane etc... used to find appropriate parameter docs
+  def vehicleTypeName: String
 
   private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 

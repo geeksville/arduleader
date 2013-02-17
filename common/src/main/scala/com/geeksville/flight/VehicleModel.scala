@@ -84,6 +84,9 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
     (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
   }.getOrElse(true)
 
+  // FIXME handle other vehicle types
+  override def vehicleTypeName = if (isCopter) "ArduCopter" else "ArduPlane"
+
   private def codeToModeMap = if (isPlane)
     planeCodeToModeMap
   else if (isCopter)
