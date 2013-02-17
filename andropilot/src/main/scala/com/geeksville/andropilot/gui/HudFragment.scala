@@ -37,7 +37,7 @@ class HudFragment extends Fragment with AndroServicePage {
           //latView.setText(l.lat.toString + degSymbol)
           //lonView.setText(l.lon.toString + degSymbol)
           //altView.setText(l.alt + "m")
-          hud.setAltitude(l.alt + "m")
+          l.alt.foreach { a => hud.setAltitude(a + "m") }
           // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
         }
       }
