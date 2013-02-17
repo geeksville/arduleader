@@ -56,8 +56,8 @@ class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger 
     private var accelData: Option[Array[Float]] = None
     private var magData: Option[Array[Float]] = None
 
-    magSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL) }
-    accelSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL) }
+    magSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_UI) }
+    accelSensor.foreach { s => sensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_UI) }
 
     override def onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
 
@@ -92,6 +92,17 @@ class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger 
     compassListener.close()
   }
 
+  private var declinationDeg: Option[Float] = None
+
+  def getDeclination = {
+    if (!declinationDeg.isDefined)
+      declinationDeg = userGpsLoc.map { loc =>
+        val field = new GeomagneticField(loc.getLatitude.toFloat, loc.getLongitude.toFloat, loc.getAltitude.toFloat, loc.getTime)
+        field.getDeclination
+      }
+    declinationDeg.getOrElse(0.0f)
+  }
+
   /**
    * Update our goal position
    */
@@ -99,16 +110,16 @@ class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger 
     throttle { () =>
       for (loc <- userGpsLoc) yield {
 
-        val bearing = orientation(0).toInt
-        val pitch = orientation(1)
-        val roll = orientation(2)
+        val bearing = MathTools.toDeg(orientation(0)) - getDeclination
+        val pitch = MathTools.toDeg(-orientation(1))
+        val roll = MathTools.toDeg(orientation(2))
 
         val closePitch = 45
         val farPitch = 20
         val clampedPitch = math.max(math.min(closePitch, pitch), farPitch)
-        val distPercent = (clampedPitch - farPitch) / (closePitch - farPitch)
+        val distPercent = 1.0 - (clampedPitch - farPitch) / (closePitch - farPitch)
         val followDistance = distPercent * (maxDistance - minDistance) + minDistance
-        val (lat, lon) = MathTools.applyBearing(loc.getLatitude, loc.getLongitude, followDistance, bearing)
+        val (lat, lon) = MathTools.applyBearing(loc.getLatitude, loc.getLongitude, followDistance, bearing.toInt)
         debug("Follow distance %s (%s), bearing %s/%s/%s -> %s, %s".format(
           followDistance, distPercent, bearing, pitch, roll, lat, lon))
 
