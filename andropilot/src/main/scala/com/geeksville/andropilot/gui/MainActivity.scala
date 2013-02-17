@@ -76,7 +76,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private val stdPages = IndexedSeq(
     PageInfo("Overview", { () => new OverviewFragment }),
-    PageInfo("Parameters", { () => new ParameterListFragment }),
+    PageInfo("Parameters", { () => new LayoutFragment(R.layout.parameter_pane) }),
     PageInfo("Waypoints", { () => new WaypointListFragment }),
     PageInfo("HUD", { () => new HudFragment }),
     PageInfo("RC Channels", { () => new RcChannelsFragment }))
