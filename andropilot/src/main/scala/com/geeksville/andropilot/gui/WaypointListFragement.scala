@@ -189,7 +189,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
           debug("in getView " + position)
           if (selected.map(_.msg.seq).getOrElse(-1) == position) {
             debug("Selecting " + itemView)
-            itemView.setBackgroundColor(0xA0FF8000) // orange
+            itemView.setBackgroundColor(0xA0000090) // light blue
           } else
             itemView.setBackgroundColor(Color.TRANSPARENT)
           itemView
