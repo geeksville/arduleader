@@ -51,7 +51,7 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     }
 
     override def isAllowGoto = true
-    override def isAllowAdd = true
+    override def isAllowAdd = false // No good way to select location on this view.  For now just make them use map
     override def isAllowChangeType = {
       debug("allow change type=" + isEditable)
       isEditable
