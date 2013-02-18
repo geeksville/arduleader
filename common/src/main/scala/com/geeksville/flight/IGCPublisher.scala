@@ -16,7 +16,7 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
-  val destEventBus = context.system.eventStream
+  val destEventBus = acontext.system.eventStream
 
   private var scheduled: Seq[Cancellable] = Seq()
 
@@ -46,7 +46,7 @@ class IGCPublisher(stream: InputStream) extends InstrumentedActor {
 
       scheduled = points.map { l =>
         //log.debug("Schedule: " + l)
-        context.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
+        acontext.system.scheduler.scheduleOnce((l.time - startTime) milliseconds, self, l)
       }
       log.info("Done scheduling " + scheduled.size + " points")
     }

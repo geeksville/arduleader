@@ -51,7 +51,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   }
 
   // Send a heartbeat every few seconds 
-  val heartbeatSender = context.system.scheduler.schedule(1 seconds, 3 seconds) {
+  val heartbeatSender = acontext.system.scheduler.schedule(1 seconds, 3 seconds) {
     //self.log.debug("Sending heartbeat")
     sendMavlink(heartbeat)
   }

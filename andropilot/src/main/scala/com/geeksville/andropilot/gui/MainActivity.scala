@@ -428,8 +428,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       // If the user has customized min/max distances they are really going to be _leading_ instead
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
-      follow.setTitle(if (isLeading) "Lead it" else "Follow me")
-      follow.setChecked(svc.isFollowMe)
+      follow.setTitle(if (isLeading) "Start lead-it" else "Start follow-me")
     }
 
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
@@ -443,6 +442,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         if (modeName != "unknown" && modeName != v.currentMode) {
           // Give up to two seconds before we pay attention to mode msgs - so we don't get confused by stale msgs in our queue
           ignoreModeChangesTill = System.currentTimeMillis + 2000
+          service.foreach(_.setFollowMe(false)) // Immediately cancel any follow-me
           v ! DoSetMode(modeName.toString)
         }
       }
@@ -464,11 +464,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
-          val n = !item.isChecked
-          debug("Toggle followme, newmode " + n)
-          s.setFollowMe(n)
-
-          item.setChecked(n)
+          debug("Start followme")
+          s.setFollowMe(true)
         }
       case _ =>
     }

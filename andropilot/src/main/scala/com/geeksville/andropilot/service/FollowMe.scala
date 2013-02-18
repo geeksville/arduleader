@@ -12,16 +12,25 @@ import android.hardware._
 import com.geeksville.util.MathTools
 import com.ridemission.scandroid.UsesPreferences
 import com.geeksville.andropilot.AndropilotPrefs
+import com.geeksville.flight.MsgModeChanged
+import com.geeksville.akka.PoisonPill
+import com.geeksville.mavlink.MsgHeartbeatLost
 
 /**
  * Try to drive vehicle to stay near us
  */
-class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger with AndropilotPrefs {
+class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedActor with AndroidLogger with AndropilotPrefs {
 
-  private val throttle = new Throttled(2000)
+  private val throttle = new Throttled(500)
 
   private var userGpsLoc: Option[Location] = None
   private var orientation = Array(0.0f, 0.0f, 0.0f)
+
+  /**
+   * If we see the mode change by someone who isn't us we assume the user wants to exit follow me mode
+   */
+  private val subscription = v.eventStream.subscribe(this)
+  private val startTime = System.currentTimeMillis
 
   /**
    * Add an android location listener
@@ -87,9 +96,26 @@ class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger 
     }
   }
 
-  def close() {
+  override def postStop() {
     locListener.close()
     compassListener.close()
+    v.eventStream.removeSubscription(subscription)
+    super.postStop()
+  }
+
+  override def onReceive = {
+    case MsgHeartbeatLost(_) =>
+      error("Heartbeat lost - exit follow me")
+      self ! PoisonPill
+
+    case MsgModeChanged(m) =>
+      // Ignore stale changes when we are starting up
+      if ((System.currentTimeMillis - startTime) >= 2000) {
+        if (m != "GUIDED") {
+          error("Someone else changed modes - exit follow me")
+          self ! PoisonPill
+        }
+      }
   }
 
   private var declinationDeg: Option[Float] = None
@@ -128,7 +154,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends AndroidLogger 
         // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
         val msg = v.makeGuided(myloc)
         debug("Following " + myloc)
-        v ! DoGotoGuided(msg)
+        v ! DoGotoGuided(msg, false)
       }
     }
   }

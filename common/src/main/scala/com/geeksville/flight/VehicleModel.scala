@@ -25,7 +25,7 @@ import com.geeksville.util.ThrottledActor
 case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
-case class MsgModeChanged(m: Int)
+case class MsgModeChanged(m: String)
 
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
@@ -161,7 +161,7 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
 
   override def onModeChanged(m: Int) {
     super.onModeChanged(m)
-    eventStream.publish(MsgModeChanged(m))
+    eventStream.publish(MsgModeChanged(currentMode))
   }
 
   override def onHeartbeatFound() {

@@ -24,7 +24,8 @@ trait InstrumentedActor extends Actor with Logging {
   // Approximately the same
   def self = this
 
-  def context = Context
+  // Called context in Akka, but that word is heavily used in android so I call it acontext instead (for akka context)
+  def acontext = Context
 
   def isTerminated = isDead
 

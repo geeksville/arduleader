@@ -74,7 +74,7 @@ class HeartbeatMonitor extends InstrumentedActor {
     }
     cancelWatchdog()
 
-    timer = Some(context.system.scheduler.scheduleOnce(10 seconds, self, WatchdogExpired))
+    timer = Some(acontext.system.scheduler.scheduleOnce(10 seconds, self, WatchdogExpired))
   }
 
   private def cancelWatchdog() {

@@ -25,7 +25,7 @@ import com.geeksville.util.ThrottledActor
 case object MsgWaypointsChanged
 
 // Commands we accept in our actor queue
-case class DoGotoGuided(m: msg_mission_item)
+case class DoGotoGuided(m: msg_mission_item, withRetry: Boolean = true)
 case class DoSetMode(s: String)
 case class DoSetCurrent(n: Int)
 case class DoAddWaypoint(w: Waypoint)
@@ -56,8 +56,8 @@ trait WaypointModel extends VehicleClient {
   override def onReceive = mReceive.orElse(super.onReceive)
 
   private def mReceive: Receiver = {
-    case DoGotoGuided(m) =>
-      gotoGuided(m)
+    case DoGotoGuided(m, withRetry) =>
+      gotoGuided(m, withRetry)
 
     case DoSetCurrent(n) =>
       setCurrent(n)
@@ -211,8 +211,11 @@ trait WaypointModel extends VehicleClient {
   /**
    * FIXME - we currently assume dest has a relative altitude
    */
-  private def gotoGuided(m: msg_mission_item) {
-    sendWithRetry(m, classOf[msg_mission_ack])
+  private def gotoGuided(m: msg_mission_item, withRetry: Boolean) {
+    if (withRetry)
+      sendWithRetry(m, classOf[msg_mission_ack])
+    else
+      sendMavlink(m)
     guidedDest = Some(Waypoint(m))
     onWaypointsChanged()
   }
