@@ -1,3 +1,8 @@
+# 0.2.01
+* 'Lead-it' mode now ready for testing.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.  To use this mode, go to settings and set the min and max vehicle distance.  Then hold screen in portrait orientation and click the 'lead-it' menu item.
+* Add support for the new 2.69 arduplane 'training' mode
+* FIXME - make new param editing work
+
 # 0.2.00
 * We now decode parameter values to show nice names for most parameters
 * Can now change waypoint type (via menu dropdown)
@@ -17,7 +22,7 @@
 
 For next release:
 * FIXME - use an expandable list view for parameters https://gist.github.com/mosabua/1316903
-* NOT YET READY FOR TESTING: 'Lead-it' mode.  Like follow-me, but if you rotate the vehicle will stay in front (or behind you), if you tilt tablet fore and back it will move close or away.
+
 * Save waypints to device only upon user command
 * FIXME: move to 3dr github
 * FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints

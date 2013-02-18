@@ -48,6 +48,7 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
   var attitude: Option[msg_attitude] = None
 
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
+    3 -> "TRAINING",
     5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
     11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
