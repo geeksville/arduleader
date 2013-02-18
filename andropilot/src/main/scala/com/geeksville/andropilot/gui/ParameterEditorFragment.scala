@@ -16,17 +16,10 @@ import com.geeksville.andropilot.TR
 class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger {
   setCancelable(true)
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    // Inflate the layout for this fragment
-    val v = inflater.inflate(R.layout.param_edit, container, false)
-    v
-  }
-
   private def toast(str: String) {
     Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
   }
 
-  // FIXME - update this to work with the new layout
   override def onCreateDialog(savedInstanceState: Bundle) = {
     val builder = new AlertDialog.Builder(getActivity)
     // Get the layout inflater

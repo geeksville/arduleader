@@ -24,6 +24,9 @@ import com.geeksville.util.ThrottledActor
 //
 case object MsgParametersDownloaded
 
+// We just received a new parameter (after the initial download)
+case class MsgParameterReceived(index: Int)
+
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
@@ -75,6 +78,9 @@ trait ParametersModel extends VehicleClient {
       p.param_value = v
       log.debug("Telling device to set value: " + this)
       sendMavlink(paramSet(p.getParam_id, p.param_type, v))
+
+      // Readback to confirm the change happened
+      requestParameter(p.param_index)
     }
 
     override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
@@ -109,6 +115,8 @@ trait ParametersModel extends VehicleClient {
       parameters(index).raw = Some(msg)
       if (retryingParameters)
         readNextParameter()
+      else
+        eventStream.publish(MsgParameterReceived(index))
 
     case FinishParameters =>
       readNextParameter()
@@ -121,6 +129,10 @@ trait ParametersModel extends VehicleClient {
     MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)
   }
 
+  private def requestParameter(i: Int) {
+    sendWithRetry(paramRequestRead(i), classOf[msg_param_value])
+  }
+
   /**
    * If we are still missing parameters, try to read again
    */
@@ -129,7 +141,7 @@ trait ParametersModel extends VehicleClient {
       case (v, i) =>
         val hasData = v.raw.isDefined
         if (!hasData)
-          sendWithRetry(paramRequestRead(i), classOf[msg_param_value])
+          requestParameter(i)
 
         !hasData // Stop here?
     }.isDefined

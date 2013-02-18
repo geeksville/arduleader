@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+     android:id="@+id/parameter_pane_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
@@ -8,17 +8,16 @@
     <fragment
         android:id="@+id/parameter_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         class="com.geeksville.andropilot.gui.ParameterListFragment" />
 
-    <!--
+    
     <fragment
-        android:id="@+id/parameter_fragment"
-        android:name="com.geeksville.andropilot.ParameterListFragment"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="2" />
+        android:id="@+id/parameter_info_fragment"
+        android:name="com.geeksville.andropilot.gui.ParameterInfoFragment"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_weight="2"  />
 
- -->
 </LinearLayout>

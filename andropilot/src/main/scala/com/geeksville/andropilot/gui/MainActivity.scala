@@ -302,7 +302,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   private def toast(str: String) {
-    Toast.makeText(this, str, Toast.LENGTH_LONG).show()
+    Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
   }
 
   private def handleParameters() {
@@ -373,6 +373,7 @@ class MainActivity extends FragmentActivity with TypedActivity
    * Update our mode display
    */
   def setModeSpinner() {
+    debug("in setMode")
     if (System.currentTimeMillis > ignoreModeChangesTill)
       modeSpinner.foreach { s =>
         // Crufty way of finding which element of spinner needs selecting
@@ -387,9 +388,12 @@ class MainActivity extends FragmentActivity with TypedActivity
         myVehicle.foreach { v =>
           val modeName = if (v.hasHeartbeat) {
             speak(v.currentMode, true)
+            debug("Spinning to " + v.currentMode)
             v.currentMode
-          } else
+          } else {
+            debug("No heartbeat - claiming unknown")
             "unknown"
+          }
 
           val n = findIndex(modeName)
           //debug("Setting mode spinner to: " + n)

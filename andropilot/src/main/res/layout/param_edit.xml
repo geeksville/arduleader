@@ -2,8 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:background="@drawable/my_border"
+    android:orientation="vertical"
+    android:padding="8dip" >
 
+    <!--  
     <TextView
         android:id="@+id/param_name"
         android:layout_width="wrap_content"
@@ -11,21 +14,23 @@
         android:layout_gravity="center_horizontal"
         android:text="RC6_DIR"
         android:textAppearance="?android:attr/textAppearanceMedium" />
+-->
 
     <TextView
         android:id="@+id/param_humanname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:text="Some nice Param"
+        android:text=""
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/param_doc_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="This is some parameter that controls something.  You can change it and see things happen." />
+        android:text="" />
 
+    <!--
             <EditText
                 android:id="@+id/param_value"
                 android:layout_width="100dip"
@@ -34,7 +39,7 @@
                 android:inputType="numberDecimal"
                 android:singleLine="true"
                 android:text="432" >
-
 </EditText>
+    -->
 
 </LinearLayout>
