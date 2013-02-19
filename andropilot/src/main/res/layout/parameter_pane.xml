@@ -5,17 +5,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <fragment
+    <FrameLayout
         android:id="@+id/parameter_list_fragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        class="com.geeksville.andropilot.gui.ParameterListFragment" />
+        android:layout_weight="1" />
 
-    
-    <fragment
+    <FrameLayout
         android:id="@+id/parameter_info_fragment"
-        android:name="com.geeksville.andropilot.gui.ParameterInfoFragment"
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:layout_weight="2"  />

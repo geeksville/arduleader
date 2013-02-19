@@ -15,17 +15,33 @@ import com.geeksville.flight._
 import java.util.LinkedList
 import com.geeksville.andropilot.R
 import android.view.View
+import com.ridemission.scandroid.AndroidLogger
 
 /**
  * A simple fragment that just pulls its layout from a resource
  */
-class LayoutFragment(layoutId: Int) extends Fragment {
+class LayoutFragment(layoutId: Int) extends Fragment with AndroidLogger {
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     // Inflate the layout for this fragment
     val v = inflater.inflate(layoutId, container, false)
     onViewCreated(v)
     v
+  }
+
+  def recreateFragment(idToReplace: Int, tag: String, generator: => Fragment) {
+    val fragMgr = getFragmentManager();
+    val xact = fragMgr.beginTransaction();
+
+    Option(fragMgr.findFragmentByTag(tag)).foreach { f =>
+      debug("removing old" + f)
+      xact.remove(f)
+    }
+
+    debug("Creating " + tag)
+    xact.add(idToReplace, generator, tag)
+
+    xact.commit();
   }
 
   protected def onViewCreated(v: View) {}

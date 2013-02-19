@@ -17,6 +17,7 @@ import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.AdapterView
 import android.graphics.Color
 import com.geeksville.flight.MsgParameterReceived
+import android.support.v4.app.Fragment
 
 class ParameterListFragment extends ListFragment with AndroServiceFragment {
   private var selected = -1
@@ -94,7 +95,7 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
         l.invalidateViews()
 
         debug("Creating new edit pane")
-        var frag = manager.findFragmentById(R.id.parameter_info_fragment).asInstanceOf[ParameterInfoFragment]
+        var frag = manager.findFragmentByTag("paraminfo").asInstanceOf[ParameterInfoFragment]
         assert(frag != null)
         frag.setParam(Some(param))
       }

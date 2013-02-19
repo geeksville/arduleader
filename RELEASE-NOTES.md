@@ -1,3 +1,11 @@
+# 1.0.04
+* Okay - that was fast.  A clean fix is now in for the hack of a fix in 1.0.03.  Parameter display should be reliable again.
+
+# 1.0.03
+* Ouch - 0.2.01 introduced a nasty crash which would occur the _second_ time the parameters list was two screens away from the current screen.
+This release is a quick patch to fix that problem.  However, there is still a problem that sometimes the parameter screen can show up blank.
+Until I fix this more minor problem, just rotate the tablet and the parameters screen will be okay. 
+
 # 1.0.00
 * Make lead-it/follow-me more responsive
 * Auto turn-off follow-me if the mode is changed by someone else
