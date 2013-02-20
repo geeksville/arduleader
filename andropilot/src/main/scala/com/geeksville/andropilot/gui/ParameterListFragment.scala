@@ -30,10 +30,10 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
     updateParameters()
   }
 
-  override def onViewCreated(v: View, savedInstanceState: Bundle) {
+  override def onActivityCreated(savedInstanceState: Bundle) {
     debug("Creating parameter list view")
     // Inflate the layout for this fragment
-    super.onViewCreated(v, savedInstanceState)
+    super.onActivityCreated(savedInstanceState)
 
     // Fire up our editor dialog as needed
     getListView.setOnItemLongClickListener(new OnItemLongClickListener {
@@ -66,12 +66,24 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
       handler.post(updateParameters _) // { () => updateParameter(index) }
   }
 
+  /**
+   * If we call this too early the list view might not be ready
+   */
+  private def safeGetListView = {
+    try {
+      getListView
+    } catch {
+      case ex: IllegalStateException =>
+        null
+    }
+  }
+
   private def updateParameters() {
     // Don't expand the view until we have _something_ to display
     //if (getActivity != null) {
     debug("updating parameters")
     makeAdapter.foreach(setListAdapter)
-    Option(getListView).foreach(_.invalidate())
+    Option(safeGetListView).foreach(_.invalidate())
     //}
   }
 
