@@ -19,6 +19,14 @@ object ThreadTools {
     t
   }
 
+  /// Run a bit of code in a forground thread, it starts running immediately
+  def start(name: String)(block: () => Unit): Thread = {
+    val t = new Thread(block, name)
+
+    t.start
+    t
+  }
+
   /// Ignore exceptions (with a warning).  Usage: catchIgnore { some code }
   def catchIgnore[ResType](block: => ResType) =
     {
