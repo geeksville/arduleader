@@ -16,6 +16,7 @@ import com.geeksville.logback.Logging
 import com.geeksville.flight.FlightLead
 import com.geeksville.akka.MockAkka
 import java.io.File
+import com.geeksville.mavserve.MavServe
 
 object Main extends Logging {
 
@@ -74,13 +75,14 @@ object Main extends Logging {
     SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
 
     // FIXME - select these options based on cmd line flags
-    val startOutgoingUDP = true
+    val startOutgoingUDP = false
     val startIncomingUDP = false
     val startSerial = true
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
-    val startMonitor = false
+    val startMonitor = true
+    val startMavServe = true
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = true
@@ -126,7 +128,14 @@ object Main extends Logging {
 
     if (startMonitor) {
       // Keep a complete model of the arduplane state
-      val arduPlaneModel = MavlinkEventBus.subscribe(MockAkka.actorOf(new VehicleModel), arduPilotId)
+      val model = MockAkka.actorOf(new VehicleModel)
+
+      // That model wants to hear messages from id 1
+      MavlinkEventBus.subscribe(model, arduPilotId)
+
+      if (startMavServe) {
+        new MavServe(model)
+      }
     }
 
     // Anything from our sim lead, send it to the controller app (so it will hopefully show him)

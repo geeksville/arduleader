@@ -50,7 +50,7 @@ trait ParametersModel extends VehicleClient {
 
     def getId = raw.map(_.getParam_id)
 
-    def getValue = raw.map { v =>
+    def getValue: Option[AnyVal] = raw.map { v =>
       val asfloat = v.param_value
 
       raw.get.param_type match {

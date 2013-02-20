@@ -17,82 +17,15 @@ import com.geeksville.util._
 import com.geeksville.util.ThreadTools._
 import Using._
 
-object HttpConstants {
-  val utf = "; charset=utf-8"
-
-  val contentTypeText = "text/plain" + utf
-  val contentTypeHtml = "text/html" + utf
-  val contentTypeJson = "text/json" + utf
-  val contentTypeBinary = "application/octet-stream"
-
-  val extensionToMime = Map(
-    "html" -> contentTypeHtml,
-    "txt" -> contentTypeText,
-    "png" -> "image/png",
-    "js" -> ("application/javascript" + utf),
-    "ttf" -> "font/truetype",
-    "otf" -> "font/opentype",
-    "css" -> ("text/css" + utf),
-    "xml" -> ("application/xml" + utf),
-    "xpi" -> "application/x-xpinstall")
-}
-
 import HttpConstants._
 
-object Method extends Enumeration {
-  type Method = Value
-
-  val GET = Value("GET")
-  val POST = Value("POST")
-  val PUT = Value("PUT")
-}
 import Method._
-
-case class Request(connection: Socket, request: URI, matches: List[String],
-  method: Method, payloadStream: InputStream,
-  parameters: Map[String, String]) {
-
-  lazy val payload = new UnbufferedStreamSource(payloadStream)
-}
-
-/// All content for this web server is provided by subclasses of this class.
-/// Note: I considered using an Actor for this, but we actually want a number of simultaneously
-/// executing RESTHandlers - which is kinda the opposite of Actors
-abstract class RESTHandler(val pathRegex: Regex, val method: Method) {
-
-  /// @return true if this handler will match against the provided path
-  def canHandle(matches: List[String]) = true
-
-  def replyToRequest(req: Request) {
-    val response = handleRequest(req)
-    response.send(req.connection)
-  }
-
-  /// You must provide this method, given a request return a response
-  protected def handleRequest(req: Request): Response
-}
-
-/// A handler for GET requests
-abstract class GETHandler(pathRegex: Regex) extends RESTHandler(pathRegex, GET)
-
-/// Subclasses should implement handleRequest and read req.payload
-abstract class PUTHandler(pathRegex: Regex) extends RESTHandler(pathRegex, PUT)
-
-abstract class POSTHandler(pathRegex: Regex) extends RESTHandler(pathRegex, POST) {
-  protected def handlePost(req: Request, params: Map[String, String]): Response
-
-  override protected def handleRequest(req: Request): Response = {
-    val str = req.payload.mkString
-    val parms = MicroRESTServer.parseParams(str)
-    handlePost(req, parms)
-  }
-}
 
 /// A very small REST/web server.  Create and register handlers by calling addHandler
 class MicroRESTServer(portNum: Int) {
   val queueLen = 10
   private val serverSocket = new ServerSocket(portNum, queueLen)
-  private val listenerThread = ThreadTools.start("RESTServe")(readerFunct)
+  private val listenerThread = ThreadTools.createDaemon("RESTServe")(readerFunct)
   private val workers = Executors.newFixedThreadPool(8)
 
   private val handlers = new ListBuffer[RESTHandler]
@@ -102,15 +35,21 @@ class MicroRESTServer(portNum: Int) {
   // headers look like Foo-Blah: somevalue
   private val HeaderRegex = "(.+): (.+)".r
 
+  listenerThread.start()
+
   /// Add a handler which is responsible for a certain URL path (regex)
   /// Note: newer handlers are searched before older handlers
   def addHandler(handler: RESTHandler) {
+    assert(handler != null)
     handlers.prepend(handler)
   }
 
   /// Shut down this server
   def close() {
+    println("Shutting down the server")
     serverSocket.close() // Should cause the thread to die
+    workers.shutdown()
+    println("REST server exited")
   }
 
   /// Handle an incoming connection
@@ -132,12 +71,12 @@ class MicroRESTServer(portNum: Int) {
 
       val ReqRegex(methodStr, req, httpVer) = firstLine
       var reqURI = new URI(req)
-      val reqPath = reqURI.getPath
+      val reqPath = Option(reqURI.getPath).getOrElse("")
 
       // Loop until we find a handler and call it
-      val handler = handlers.find { handler =>
-        val matches = handler.pathRegex.unapplySeq(reqPath)
-        if (matches.isDefined && handler.canHandle(matches.get)) {
+      val handler = handlers.find { h =>
+        val matches = h.pathRegex.unapplySeq(reqPath)
+        if (matches.isDefined && h.canHandle(matches.get)) {
           val method = Method.withName(methodStr)
           val queryStr = reqURI.getQuery
           val params = MicroRESTServer.parseParams(queryStr)
@@ -149,7 +88,7 @@ class MicroRESTServer(portNum: Int) {
           else
             reqStream
           val req = Request(client, reqURI, matches.get, method, headStream, params)
-          handler.replyToRequest(req)
+          h.replyToRequest(req)
 
           true // We just handled things
         } else

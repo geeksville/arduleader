@@ -46,10 +46,12 @@ trait Response {
 }
 
 /// A non streaming response
-class SimpleResponse(val contentType: String, val response: String) extends Response {
+case class SimpleResponse(val contentType: String, response: String) extends Response {
+
   override def headers = super.headers :+ "Content-Length" -> response.length.toString
 
   def this(response: String) = this(contentTypeText, response)
+  def this(response: JValue) = this(contentTypeJson, response.asJSON)
 
   def send(connection: Socket) {
     using(connection) { connection =>

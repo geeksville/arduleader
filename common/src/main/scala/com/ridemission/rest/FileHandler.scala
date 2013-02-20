@@ -8,25 +8,37 @@ import scala.actors._
 import scala.util.matching._
 import scala.io._
 import scala.collection.mutable.ListBuffer
-
 import java.io._
 import java.net._
 import java.util.concurrent._
-
 import com.geeksville.util._
 import Using._
+import com.geeksville.logback.Logging
 
-/// Anything that can serve up 'files' to a file handler
+/**
+ * Anything that can serve up 'files' to a file handler
+ * For android we might want to use a different implementation.
+ */
 trait HttpFileSystem {
   def exists(name: String): Boolean
   def isDirectory(name: String): Boolean
   def open(name: String): Option[InputStream]
 }
 
-class JavaFileSystem(val rootDir: File) extends HttpFileSystem {
+/**
+ * Just reads files from a file system
+ */
+class JavaFileSystem(val rootDir: File) extends HttpFileSystem with Logging {
   private def makeFile(name: String) = new File(rootDir, name)
 
-  def exists(name: String) = makeFile(name).exists
+  def exists(name: String) = {
+    val f = makeFile(name)
+
+    logger.debug("Checking exists: " + f.getAbsolutePath)
+
+    f.exists
+  }
+
   def isDirectory(name: String) = makeFile(name).isDirectory
   def open(name: String) = {
     val f = makeFile(name)
@@ -37,6 +49,9 @@ class JavaFileSystem(val rootDir: File) extends HttpFileSystem {
   }
 }
 
+/**
+ * Serves up files rooted at a particular URL
+ */
 class FileHandler(val urlPath: String, fs: HttpFileSystem)
   extends GETHandler((urlPath + "(.*)").r) {
 
