@@ -1,3 +1,7 @@
+# 1.0.05
+* Fix an autoreported bug which apparently only occurs on android 4.1.1/4.1.2.  If you have _any_ crashes on the app now, please post in the group with
+your phone model, time of crash UTC and what you were doing.  Hopefully I can knock any last ones down.
+
 # 1.0.04
 * Okay - that was fast.  A clean fix is now in for the hack of a fix in 1.0.03.  Parameter display should be reliable again.
 
