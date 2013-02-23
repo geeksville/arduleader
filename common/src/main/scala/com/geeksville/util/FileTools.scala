@@ -16,6 +16,10 @@ object FileTools {
       Some(fs.substring(dot + 1))
   }
 
+  /// Extract all bytes from an inputstream
+  /// FIXME - probably not super efficient
+  def toByteArray(src: InputStream) = Stream.continually(src.read).takeWhile(-1 !=).map(_.toByte).toArray
+
   /// Copy from an inputStream to an OutputStream
   /// it is the caller's responsiblity to close streams
   def copy(src: InputStream, dest: OutputStream) {

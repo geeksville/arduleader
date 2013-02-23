@@ -1,3 +1,9 @@
+# 1.0.06
+* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
+* FIXME Also, I can add a "Debug" pane in the next version that includes "# of params download, # of messages sent, etc..." which could provide some really good clues.
+* FIXME don't fetch waypoints until we receive our first MISSION_CURRENT msg
+* FIXME if we timeout fetching waypoints, go ahead and try to fetch the params
+
 # 1.0.05
 * Fix an autoreported bug which apparently only occurs on android 4.1.1/4.1.2.  If you have _any_ crashes on the app now, please post in the group with
 your phone model, time of crash UTC and what you were doing.  Hopefully I can knock any last ones down.

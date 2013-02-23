@@ -7,14 +7,23 @@ package com.geeksville.util
 class Throttled(minIntervalMsec: Int) {
   private var lasttimeMsec = 0L
 
-  def apply(fn: () => Unit) {
+  /**
+   * A new event has occured, should it pass the throttle?
+   */
+  def isAllowed() = {
     val now = System.currentTimeMillis
 
     val span = now - lasttimeMsec
     if (span >= minIntervalMsec || span < 0) {
-      fn()
       lasttimeMsec = now
-    }
+      true
+    } else
+      false
+  }
+
+  def apply(fn: () => Unit) {
+    if (isAllowed)
+      fn()
   }
 
   /**

@@ -11,6 +11,7 @@ would like to use this code in your own project, the source is located in the ma
 * Copter-gcs provided the nice HUD display code
 * Wiki documentation mainly by Peter Meister
 * Most icons by Scott Berfield
+* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
 
 # License
 
