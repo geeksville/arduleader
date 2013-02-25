@@ -159,3 +159,13 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
     }
   }
 }
+
+object FollowMe {
+  /**
+   * Does this device have appropriate hardware
+   */
+  def isAvailable(context: Context) = {
+    val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
+    locManager.getProvider(LocationManager.GPS_PROVIDER) != null && locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+  }
+}

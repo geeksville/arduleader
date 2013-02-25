@@ -426,6 +426,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     service foreach { svc =>
       val follow = menu.findItem(R.id.menu_followme)
 
+      follow.setEnabled(FollowMe.isAvailable(this))
       // If the user has customized min/max distances they are really going to be _leading_ instead
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
       follow.setTitle(if (isLeading) "Start lead-it" else "Start follow-me")
