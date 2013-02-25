@@ -1,7 +1,19 @@
 # 1.0.06
-* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
+* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application (useful for a future extension...)
+* don't fetch waypoints until we receive our first MISSION_CURRENT msg (fixes http://diydrones.com/group/andropilot-users-group/forum/topics/new-release-1-0-05-should-hopefully-fix-problems-with-android-4-1?commentId=705844%3AComment%3A1140559&groupId=705844%3AGroup%3A1132500)
+* Fix an auto crash report for folks who try follow-me mode on a device that doesn't have a GPS
+
+For next release:
+* Save waypints to device only upon user command
+* FIXME: move to 3dr github
+* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
+* Show docs on parameter names (if possible)
+* FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
+* FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
+* Change parameter editing over to the new spiffy action bar style of the waypoint editor
+* FIXME - altitude offset should only be set once device has calibrated
+* FIXME - handle editing of some of the more exotic waypoint type
 * FIXME Also, I can add a "Debug" pane in the next version that includes "# of params download, # of messages sent, etc..." which could provide some really good clues.
-* FIXME don't fetch waypoints until we receive our first MISSION_CURRENT msg
 * FIXME if we timeout fetching waypoints, go ahead and try to fetch the params
 
 # 1.0.05
@@ -42,18 +54,6 @@ Until I fix this more minor problem, just rotate the tablet and the parameters s
 * Default autocontinue to true for new waypoints
 * Previously we only kept the screen on if the map was shown, we now do it if any screen is shown
 * Previously if you switched to the waypoints or parameters view too quickly they would never update - fixed
-
-For next release:
-* FIXME - Good point about 
-* Save waypints to device only upon user command
-* FIXME: move to 3dr github
-* FIXME: Use a state machine to ensure we don't get confused if someone moves a waypoint while we are busy uploading new waypoints
-* Show docs on parameter names (if possible)
-* FIXME: announce and display a failsafe condition (FIXME, look at arduplane)
-* FIXME: announce arming and disarming. (FIXME - pull down arduplane code)
-* Change parameter editing over to the new spiffy action bar style of the waypoint editor
-* FIXME - altitude offset should only be set once device has calibrated
-* FIXME - handle editing of some of the more exotic waypoint types
 
 # 0.1.36
 * Spiffy new Quad icons contributed by Scott Berfield.  Thanks Scott!

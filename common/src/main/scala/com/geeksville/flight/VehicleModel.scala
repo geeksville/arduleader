@@ -184,9 +184,6 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
     }
 
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
-
-    // First contact, download any waypoints from the vehicle and get params
-    MockAkka.scheduler.scheduleOnce(5 seconds, VehicleModel.this, StartWaypointDownload)
   }
 
   override def onWaypointsDownloaded() {

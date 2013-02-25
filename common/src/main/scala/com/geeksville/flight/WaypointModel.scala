@@ -143,6 +143,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     case msg: msg_mission_current =>
       // Update the current waypoint
       checkRetryReply(msg)
+      perhapsRequestWaypoints()
+
       if (waypoints.count { w =>
         val newval = if (w.seq == msg.seq) 1 else 0
         val changed = newval != w.msg.current
@@ -189,6 +191,13 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       log.error(numdel + " bogus waypoints found and deleted")
       self ! SendWaypoints
     }
+  }
+
+  private def perhapsRequestWaypoints() {
+
+    // First contact, download any waypoints from the vehicle and get params
+    if (waypoints.isEmpty)
+      self ! StartWaypointDownload
   }
 
   /**

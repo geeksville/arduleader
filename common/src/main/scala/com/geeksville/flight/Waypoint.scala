@@ -34,6 +34,8 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def altitude = msg.z
 
+  def location = Location(msg.x, msg.y, Some(msg.z))
+
   /**
    * Should we show this waypoint on the map?
    */
