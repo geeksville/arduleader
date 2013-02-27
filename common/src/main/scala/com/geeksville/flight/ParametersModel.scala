@@ -30,48 +30,17 @@ case class MsgParameterReceived(index: Int)
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
-trait ParametersModel extends VehicleClient {
+trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
   case object FinishParameters
 
   var parameters = new Array[ParamValue](0)
   private var retryingParameters = false
 
-  lazy val paramDocs = (new ParameterDocFile).forVehicle(vehicleTypeName)
-
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
-  class ParamValue {
-    private[ParametersModel] var raw: Option[msg_param_value] = None
-
-    /// The docs for this parameter (if we can find them)
-    def docs = for { id <- getId; d <- paramDocs.get(id) } yield { d }
-
-    def getId = raw.map(_.getParam_id)
-
-    def getValue: Option[AnyVal] = raw.map { v =>
-      val asfloat = v.param_value
-
-      raw.get.param_type match {
-        case MAVLINK_TYPE_FLOAT => asfloat: AnyVal
-        case _ => asfloat.toInt: AnyVal
-      }
-    }
-
-    /**
-     * @return a nice human readable version of this value (decoding based on documentation if possible)
-     */
-    def asString = {
-      (for {
-        v <- raw
-        doc <- docs
-        asstr <- doc.decodeValue(v.param_value)
-      } yield {
-        Some(asstr)
-      }).getOrElse(getValue.map(_.toString))
-    }
-
+  class ParamValue extends ROParamValue {
     def setValue(v: Float) {
       val p = raw.getOrElse(throw new Exception("Can not set uninited param"))
 
@@ -82,12 +51,7 @@ trait ParametersModel extends VehicleClient {
       // Readback to confirm the change happened
       requestParameter(p.param_index)
     }
-
-    override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
   }
-
-  /// Either ArduCopter or ArduPlane etc... used to find appropriate parameter docs
-  def vehicleTypeName: String
 
   private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
 

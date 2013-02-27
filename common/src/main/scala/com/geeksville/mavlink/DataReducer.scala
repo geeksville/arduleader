@@ -35,7 +35,14 @@ object DataReducer {
   /// Commands a user is likely to want to plot
   val plottableCommands = Set(
     // msg_gps_raw_int.MAVLINK_MSG_ID_GPS_RAW_INT,
-    msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT)
+    msg_global_position_int.MAVLINK_MSG_ID_GLOBAL_POSITION_INT,
+    msg_servo_output_raw.MAVLINK_MSG_ID_SERVO_OUTPUT_RAW,
+    msg_rc_channels_scaled.MAVLINK_MSG_ID_RC_CHANNELS_SCALED,
+    msg_attitude.MAVLINK_MSG_ID_ATTITUDE,
+    msg_heartbeat.MAVLINK_MSG_ID_HEARTBEAT,
+    msg_sys_status.MAVLINK_MSG_ID_SYS_STATUS,
+    msg_vfr_hud.MAVLINK_MSG_ID_VFR_HUD,
+    msg_set_mode.MAVLINK_MSG_ID_SET_MODE)
 
   /// Useful for currying
   def filterByIds(allowed: Set[Int])(m: MAVLinkMessage) = allowed.contains(m.messageType)
