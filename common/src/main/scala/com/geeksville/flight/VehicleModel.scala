@@ -47,29 +47,6 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
   var rcChannels: Option[msg_rc_channels_raw] = None
   var attitude: Option[msg_attitude] = None
 
-  private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
-    3 -> "TRAINING",
-    5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
-    11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
-
-  private val copterCodeToModeMap = Map(
-    0 -> "STABILIZE",
-    1 -> "ACRO",
-    2 -> "ALT_HOLD",
-    3 -> "AUTO",
-    4 -> "GUIDED",
-    5 -> "LOITER",
-    6 -> "RTL",
-    7 -> "CIRCLE",
-    8 -> "POSITION",
-    9 -> "LAND",
-    10 -> "OF_LOITER",
-    11 -> "TOY_A",
-    12 -> "TOY_B")
-
-  private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
-  private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
-
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
@@ -80,21 +57,7 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
     }
   }
 
-  private def codeToModeMap = if (isPlane)
-    planeCodeToModeMap
-  else if (isCopter)
-    copterCodeToModeMap
-  else
-    Map[Int, String]()
-
-  private def modeToCodeMap = if (isPlane)
-    planeModeToCodeMap
-  else if (isCopter)
-    copterModeToCodeMap
-  else
-    Map[String, Int]()
-
-  def currentMode = codeToModeMap.getOrElse(customMode.getOrElse(-1), "unknown")
+  def currentMode = modeToString(customMode.getOrElse(-1))
 
   /**
    * The mode names we understand

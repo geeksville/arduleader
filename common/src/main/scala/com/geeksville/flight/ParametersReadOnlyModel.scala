@@ -11,6 +11,29 @@ import com.geeksville.mavlink.MavlinkConstants
 trait ParametersReadOnlyModel extends MavlinkConstants {
   lazy val paramDocs = (new ParameterDocFile).forVehicle(vehicleTypeName)
 
+  private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
+    3 -> "TRAINING",
+    5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
+    11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
+
+  private val copterCodeToModeMap = Map(
+    0 -> "STABILIZE",
+    1 -> "ACRO",
+    2 -> "ALT_HOLD",
+    3 -> "AUTO",
+    4 -> "GUIDED",
+    5 -> "LOITER",
+    6 -> "RTL",
+    7 -> "CIRCLE",
+    8 -> "POSITION",
+    9 -> "LAND",
+    10 -> "OF_LOITER",
+    11 -> "TOY_A",
+    12 -> "TOY_B")
+
+  private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
+  private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
+
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
@@ -58,4 +81,21 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
 
   /// A MAV_TYPE vehicle code
   def vehicleType: Option[Int]
+
+  protected def codeToModeMap = if (isPlane)
+    planeCodeToModeMap
+  else if (isCopter)
+    copterCodeToModeMap
+  else
+    Map[Int, String]()
+
+  protected def modeToCodeMap = if (isPlane)
+    planeModeToCodeMap
+  else if (isCopter)
+    copterModeToCodeMap
+  else
+    Map[String, Int]()
+
+  /// Convert a custom mode int into a human readable string
+  def modeToString(modeCode: Int) = codeToModeMap.getOrElse(modeCode, "unknown")
 }

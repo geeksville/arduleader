@@ -8,6 +8,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import com.geeksville.akka.Cancellable
 import com.geeksville.akka.EventStream
+import org.mavlink.messages.MAV_TYPE
 
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
@@ -33,15 +34,19 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   def onReceive = {
     case msg: msg_heartbeat =>
-      val oldVal = customMode
-      val newVal = msg.custom_mode.toInt
-      customMode = Some(newVal)
+      // We don't care about the heartbeats from a GCS
+      val typ = msg.`type`
+      if (typ != MAV_TYPE.MAV_TYPE_GCS) {
+        val oldVal = customMode
+        val newVal = msg.custom_mode.toInt
+        customMode = Some(newVal)
 
-      val oldVehicle = vehicleType
-      vehicleType = Some(msg.`type`)
-      if (oldVal != customMode || oldVehicle != vehicleType)
-        onModeChanged(newVal)
-      resetWatchdog(msg.sysId)
+        val oldVehicle = vehicleType
+        vehicleType = Some(typ)
+        if (oldVal != customMode || oldVehicle != vehicleType)
+          onModeChanged(newVal)
+        resetWatchdog(msg.sysId)
+      }
 
     case WatchdogExpired =>
       mySysId.foreach { id => eventStream.publish(MsgHeartbeatLost(id)) }
