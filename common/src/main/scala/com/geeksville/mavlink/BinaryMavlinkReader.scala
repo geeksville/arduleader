@@ -7,6 +7,8 @@ import java.io.DataInputStream
 import org.mavlink.messages.MAVLinkMessage
 import java.util.Date
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
+import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuilder
 
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
@@ -51,7 +53,14 @@ class BinaryMavlinkReader(is: InputStream) {
   }
 
   // FIXME - currently we preread everything
-  val records = iterator.toSeq
+  val records = {
+    val builder = ArrayBuilder.make[TimestampedMessage]
+    builder.sizeHint(20000)
+    builder ++= iterator
+    val r = builder.result
+    println("Read " + r.size + " messages")
+    r
+  }
 
   stream.close()
 }
