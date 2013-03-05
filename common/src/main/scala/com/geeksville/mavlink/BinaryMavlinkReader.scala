@@ -9,6 +9,7 @@ import java.util.Date
 import org.mavlink.messages.ardupilotmega.msg_global_position_int
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayBuilder
+import java.io.ByteArrayInputStream
 
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
@@ -19,23 +20,26 @@ case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
  *
  * Reads tlog files
  */
-class BinaryMavlinkReader(is: InputStream) {
-  private val stream = new DataInputStream(is)
+class BinaryMavlinkReader(bytes: Array[Byte]) extends Iterable[TimestampedMessage] {
 
-  private val reader = new MAVLinkReader(stream, IMAVLinkMessage.MAVPROT_PACKET_START_V10)
-
-  /// Try to read the next message return Option(time -> msg)
-  private def readNext() = {
-    val time = stream.readLong
-    val msg = Option(reader.getNextMessage())
-
-    msg.map { raw =>
-      TimestampedMessage(time, raw)
-    }
-  }
-
-  private val iterator = new Iterator[TimestampedMessage] {
+  /**
+   * Start reading from scratch every time someone accesses the records iterator
+   */
+  def iterator = new Iterator[TimestampedMessage] {
     private var n: Option[TimestampedMessage] = None
+    private val stream = new DataInputStream(new ByteArrayInputStream(bytes))
+
+    private val reader = new MAVLinkReader(stream, IMAVLinkMessage.MAVPROT_PACKET_START_V10)
+
+    /// Try to read the next message return Option(time -> msg)
+    private def readNext() = {
+      val time = stream.readLong
+      val msg = Option(reader.getNextMessage())
+
+      msg.map { raw =>
+        TimestampedMessage(time, raw)
+      }
+    }
 
     def hasNext = {
       // Prefetch the next valid record
@@ -52,6 +56,7 @@ class BinaryMavlinkReader(is: InputStream) {
     }
   }
 
+  /*
   // FIXME - currently we preread everything
   val records = {
     val builder = ArrayBuilder.make[TimestampedMessage]
@@ -61,6 +66,5 @@ class BinaryMavlinkReader(is: InputStream) {
     println("Read " + r.size + " messages")
     r
   }
-
-  stream.close()
+  */
 }
