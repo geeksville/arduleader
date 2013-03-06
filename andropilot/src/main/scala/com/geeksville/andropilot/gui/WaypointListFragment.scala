@@ -133,7 +133,9 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     //if (getView != null) {
     debug("updating waypoints")
     makeAdapter.foreach(setListAdapter)
-    Option(getListView).foreach(_.invalidate())
+    if (getView != null) {
+      Option(getListView).foreach(_.invalidate())
+    }
   }
 
   private def listView = Option(getListView)
