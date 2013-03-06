@@ -1,3 +1,6 @@
+# 1.0.07
+* Fix a minor auto reported bug: https://github.com/geeksville/arduleader/issues/49
+
 # 1.0.06
 * Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application (useful for a future extension...)
 * don't fetch waypoints until we receive our first MISSION_CURRENT msg (fixes http://diydrones.com/group/andropilot-users-group/forum/topics/new-release-1-0-05-should-hopefully-fix-problems-with-android-4-1?commentId=705844%3AComment%3A1140559&groupId=705844%3AGroup%3A1132500)
