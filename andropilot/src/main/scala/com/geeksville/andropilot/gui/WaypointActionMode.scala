@@ -11,7 +11,6 @@ import com.geeksville.mavlink._
 import com.ridemission.scandroid.AndroidLogger
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.geeksville.util.ThreadTools._
-import com.google.android.gms.common.GooglePlayServicesUtil
 import android.os.Bundle
 import com.ridemission.scandroid.UsesPreferences
 import android.widget.Toast
