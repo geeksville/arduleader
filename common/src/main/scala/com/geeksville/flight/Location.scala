@@ -6,6 +6,9 @@ import scala.io.Source
 import com.geeksville.util.MathTools
 import com.geeksville.logback.Logging
 
+/**
+ * @param alt is in meters
+ */
 case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Option[Double] = None, time: Long = 0,
   dir: Option[Double] = None, vx: Option[Double] = None, vy: Option[Double] = None, quality: Int = 0) {
   def fixed = quality > 0

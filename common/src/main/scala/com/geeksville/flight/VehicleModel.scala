@@ -46,16 +46,26 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
   var numSats: Option[Int] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
   var attitude: Option[msg_attitude] = None
+  var vfrHud: Option[msg_vfr_hud] = None
+  var globalPos: Option[msg_global_position_int] = None
 
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
 
   private def onLocationChanged(l: Location) {
+    location = Some(l)
+
     locationThrottle { () =>
       eventStream.publish(l)
     }
   }
+
+  /**
+   * Return the best user visible description of altitude that we have (hopefully from a barometer)
+   * In AGL
+   */
+  def bestAltitude = globalPos.map(_.relative_alt / 1000.0f).getOrElse(location.map(toAGL).getOrElse(-999f))
 
   def currentMode = modeToString(customMode.getOrElse(-1))
 
@@ -102,16 +112,17 @@ class VehicleModel extends VehicleClient with WaypointModel with ParametersModel
         //log.debug("Received location: " + loc)
         if (msg.satellites_visible != 255)
           numSats = Some(msg.satellites_visible)
-        location = Some(loc)
         onLocationChanged(loc)
       }
 
     case msg: msg_global_position_int ⇒
+      globalPos = Some(msg)
       val loc = VehicleSimulator.decodePosition(msg)
       //log.debug("Received location: " + loc)
-      location = Some(loc)
       onLocationChanged(loc)
 
+    case msg: msg_vfr_hud =>
+      vfrHud = Some(msg)
   }
 
   override def onModeChanged(m: Int) {
