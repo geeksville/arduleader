@@ -1,10 +1,18 @@
-# 1.0.07
-* Fix a minor auto reported bug: https://github.com/geeksville/arduleader/issues/49
+# 1.0.10
+* Replace DOA builds 7 through 9
+* We now show baro based altitude (rather than GPS based) whenever possible
 
-# 1.0.06
-* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application (useful for a future extension...)
-* don't fetch waypoints until we receive our first MISSION_CURRENT msg (fixes http://diydrones.com/group/andropilot-users-group/forum/topics/new-release-1-0-05-should-hopefully-fix-problems-with-android-4-1?commentId=705844%3AComment%3A1140559&groupId=705844%3AGroup%3A1132500)
-* Fix an auto crash report for folks who try follow-me mode on a device that doesn't have a GPS
+* arm/disarm menu option
+* set home menu option
+* investigate guillame's params
+* For next release: Show % throttle and use _baro_ for altitude display
+* add an option to set home
+* droneshare upload (from spooldir on disk)
+* save/load wpt files
+* include fence in wpt file
+* param file save and load
+* have nestor parse text log files
+* Display armed/not armed per MP:  (hb.base_mode & (byte)MAVLink.MAV_MODE_FLAG.SAFETY_ARMED) == (byte)MAVLink.MAV_MODE_FLAG.SAFETY_ARMED
 
 For next release:
 * Save waypints to device only upon user command
@@ -18,6 +26,14 @@ For next release:
 * FIXME - handle editing of some of the more exotic waypoint type
 * FIXME Also, I can add a "Debug" pane in the next version that includes "# of params download, # of messages sent, etc..." which could provide some really good clues.
 * FIXME if we timeout fetching waypoints, go ahead and try to fetch the params
+
+# 1.0.07
+* Fix a minor auto reported bug: https://github.com/geeksville/arduleader/issues/49
+
+# 1.0.06
+* Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application (useful for a future extension...)
+* don't fetch waypoints until we receive our first MISSION_CURRENT msg (fixes http://diydrones.com/group/andropilot-users-group/forum/topics/new-release-1-0-05-should-hopefully-fix-problems-with-android-4-1?commentId=705844%3AComment%3A1140559&groupId=705844%3AGroup%3A1132500)
+* Fix an auto crash report for folks who try follow-me mode on a device that doesn't have a GPS
 
 # 1.0.05
 * Fix an autoreported bug which apparently only occurs on android 4.1.1/4.1.2.  If you have _any_ crashes on the app now, please post in the group with
