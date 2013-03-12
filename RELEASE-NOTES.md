@@ -1,3 +1,6 @@
+# 1.0.12
+* Test build to see if I can fix the ? param problem for VRBrain+XBee
+
 # 1.0.11
 * Geofence is now shown on the map (if set)
 * Parameter list update code now much more efficient

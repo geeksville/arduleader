@@ -123,5 +123,32 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
     } else
       None
   }
+
+  /**
+   * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
+   */
+  protected def setStreamEnable(enabled: Boolean) {
+    val defaultFreq = 1
+    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 10, // faster AHRS display use a bigger #
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultFreq)
+
+    interestingStreams.foreach {
+      case (id, freqHz) =>
+        val f = if (VehicleClient.isUsbBusted) 1 else freqHz
+        sendMavlink(requestDataStream(id, f, enabled))
+        sendMavlink(requestDataStream(id, f, enabled))
+    }
+  }
 }
 
+object VehicleClient {
+  /**
+   * Some android clients don't have working USB and therefore have very limited bandwidth.  This nasty global allows the android builds to change 'common' behavior.
+   */
+  var isUsbBusted = false
+}

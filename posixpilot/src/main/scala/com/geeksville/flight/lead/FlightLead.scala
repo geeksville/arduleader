@@ -81,13 +81,13 @@ object Main extends Logging {
     System.setProperty("jna.nosys", "true")
 
     // FIXME - select these options based on cmd line flags
-    val startOutgoingUDP = false
+    val startOutgoingUDP = true
     val startIncomingUDP = false
     val startSerial = true
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
-    val startMonitor = true
+    val startMonitor = false
     val startMavServe = true
     val dumpSerialRx = false
     val logToConsole = false
@@ -118,7 +118,7 @@ object Main extends Logging {
       // FIXME create this somewhere else
       logger.info("Opening UDP link")
       val udp = if (startOutgoingUDP)
-        new MavlinkUDP(destHostName = Some("192.168.0.39"), destPortNumber = Some(MavlinkUDP.portNumber))
+        new MavlinkUDP(destHostName = Some("192.168.0.101"), destPortNumber = Some(MavlinkUDP.portNumber))
       else
         new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))
 

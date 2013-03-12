@@ -56,6 +56,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   }
 
   protected def onParametersDownloaded() {
+    setStreamEnable(true) // Turn streaming back on
+
     log.info("Downloaded " + parameters.size + " parameters!")
     parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
 
@@ -101,6 +103,10 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
   protected def startParameterDownload() {
     retryingParameters = false
+
+    // Turn off streaming because those crummy XBee adapters seem to drop critical parameter responses
+    setStreamEnable(false)
+
     log.info("Requesting vehicle parameters")
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
     MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)

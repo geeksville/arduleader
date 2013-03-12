@@ -133,22 +133,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
 
-    val defaultFreq = 1
-    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 10, // faster AHRS display use a bigger #
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultFreq)
-
-    interestingStreams.foreach {
-      case (id, freqHz) =>
-        val f = if (VehicleModel.isUsbBusted) 1 else freqHz
-        sendMavlink(requestDataStream(id, f))
-        sendMavlink(requestDataStream(id, f))
-    }
-
+    setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
   }
 
@@ -167,9 +152,3 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   }
 }
 
-object VehicleModel {
-  /**
-   * Some android clients don't have working USB and therefore have very limited bandwidth.  This nasty global allows the android builds to change 'common' behavior.
-   */
-  var isUsbBusted = false
-}

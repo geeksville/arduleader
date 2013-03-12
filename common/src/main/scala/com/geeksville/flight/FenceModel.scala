@@ -11,8 +11,6 @@ import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
 import com.geeksville.akka.Cancellable
-import org.mavlink.messages.MAV_DATA_STREAM
-import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus

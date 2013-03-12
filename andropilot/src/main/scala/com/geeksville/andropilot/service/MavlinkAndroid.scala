@@ -5,6 +5,7 @@ import java.io._
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.flight.VehicleModel
 import com.geeksville.aserial.AsyncSerial
+import com.geeksville.flight.VehicleClient
 
 object MavlinkAndroid {
   def create(baudRate: Int)(implicit context: Context) = {
@@ -18,7 +19,7 @@ object MavlinkAndroid {
     //val instream = new BufferedInputStream(port.in, 64)
     val instream = port.in
 
-    VehicleModel.isUsbBusted = AsyncSerial.isUsbBusted
+    VehicleClient.isUsbBusted = AsyncSerial.isUsbBusted
 
     new MavlinkStream(out, instream)
   }
