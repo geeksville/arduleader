@@ -1,5 +1,6 @@
 # 1.0.11
 * Geofence is now shown on the map (if set)
+* Parameter list update code now much more efficient
 
 # 1.0.10
 * Replace DOA builds 7 through 9
