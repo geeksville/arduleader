@@ -72,7 +72,10 @@ object Main extends Logging {
     // Needed for rxtx native code
     //val libprop = "java.library.path"
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
-    SystemTools.addDir("libsrc") // FIXME - skanky hack to find rxtx dll
+
+    val arch = System.getProperty("os.arch")
+    logger.info("arch: " + arch)
+    SystemTools.addDir("libsrc/" + arch) // FIXME - skanky hack to find rxtx dll
 
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false

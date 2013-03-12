@@ -11,6 +11,15 @@ autogenerate the project files.
 Note: This is still a work in progress. Unless you are working on it with me, you probably don't want to bother
 playing with it yet. ;-)
 
+## Running Posixpilot
+
+If you encounter the following error:
+
+18:49:35.960 [main] INFO  com.geeksville.mavlink.MavlinkPosix$ - Opening ftdi
+com.geeksville.ftdi.FtdiException: LibFTDI error inappropriate permissions on device!
+
+You probably need to do "sudo rmmod ftdi_sio".  A cleaner fix will come eventually...
+
 ## Method
 This is my current thinking, feel free to edit...
 
