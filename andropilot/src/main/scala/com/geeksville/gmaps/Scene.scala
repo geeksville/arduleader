@@ -15,7 +15,7 @@ import scala.collection.mutable.HashSet
  * A collection of SmartMarkers and the segments that connect them
  */
 class Scene(val map: GoogleMap) extends AndroidLogger {
-  val segments = ListBuffer[Segment]()
+  val segments = ListBuffer[LineFactory]()
   private val markers = HashSet[SmartMarker]()
 
   /**
@@ -75,12 +75,7 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
    * Move any segments as we are dragged
    */
   private def handleMarkerDrag(sm: SmartMarker) {
-    segments.foreach { s =>
-      if (s.endpoints._1 == sm || s.endpoints._2 == sm) {
-        val points = List(s.endpoints._1, s.endpoints._2).map(_.latLng)
-        s.polyline.foreach(_.setPoints(points.asJava))
-      }
-    }
+    segments.foreach(_.handleMarkerDrag(sm))
   }
 
   /**

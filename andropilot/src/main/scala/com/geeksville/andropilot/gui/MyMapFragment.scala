@@ -37,6 +37,7 @@ import com.geeksville.flight.DoGotoGuided
 import com.geeksville.andropilot.AndropilotPrefs
 import org.mavlink.messages.MAV_CMD
 import com.geeksville.flight.DoAddWaypoint
+import com.geeksville.gmaps.PolylineFactory
 
 /**
  * Our customized map fragment
@@ -54,6 +55,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
    */
   private var guidedMarker: Option[WaypointMarker] = None
   private var provisionalMarker: Option[ProvisionalMarker] = None
+  private var fenceMarker: Option[MyMarker] = None
 
   var planeMarker: Option[VehicleMarker] = None
 
@@ -76,6 +78,16 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       selectMarker(this)
       super.onClick() // Default will show the info window
     }
+  }
+
+  /**
+   * FIXME, support dragging to change fence return position
+   */
+  class FenceReturnMarker(l: Location) extends MyMarker {
+    def lat = l.lat
+    def lon = l.lon
+
+    override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
   }
 
   /**
@@ -450,6 +462,9 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     case MsgWaypointsChanged =>
       handler.post(handleWaypoints _)
+
+    case MsgFenceChanged =>
+      handler.post(handleWaypoints _)
   }
 
   private def redrawMarker() {
@@ -540,6 +555,14 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
           })
         }
 
+        def createFenceSegments() = {
+          val points = v.fenceBoundary.map { p =>
+            new LatLng(p.lat, p.lon)
+          }
+          val line = PolylineFactory(points, Color.YELLOW)
+          scene.segments.append(line)
+        }
+
         val isAuto = v.currentMode == "AUTO"
         var destMarker: Option[MyMarker] = None
 
@@ -562,13 +585,20 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
           createWaypointSegments()
         }
 
+        createFenceSegments()
+        fenceMarker.foreach(_.remove())
+        fenceMarker = v.fenceReturnPoint.map { p =>
+          val m = new FenceReturnMarker(p)
+          scene.addMarker(m)
+          m
+        }
+
         // Update any guided marker we might have
         guidedMarker.foreach(_.remove())
-        guidedMarker = None
-        v.guidedDest.foreach { gwp =>
+        guidedMarker = v.guidedDest.map { gwp =>
           val marker = new GuidedWaypointMarker(gwp)
           scene.addMarker(marker)
-          guidedMarker = Some(marker)
+          marker
         }
 
         // Set 'special' destinations

@@ -54,6 +54,8 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
       }
     }
 
+    def getInt = raw.map { v => v.param_value.toInt }
+
     /**
      * @return a nice human readable version of this value (decoding based on documentation if possible)
      */

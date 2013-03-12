@@ -35,6 +35,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   case object FinishParameters
 
   var parameters = new Array[ParamValue](0)
+  var parametersById = Map[String, ParamValue]()
+
   private var retryingParameters = false
 
   /**
@@ -53,7 +55,15 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     }
   }
 
-  private def onParametersDownloaded() { eventStream.publish(MsgParametersDownloaded) }
+  protected def onParametersDownloaded() {
+    // We only index params with valid ids
+    val known = parameters.flatMap { p =>
+      p.getId.map { id => id -> p }
+    }
+    parametersById = Map(known: _*)
+
+    eventStream.publish(MsgParametersDownloaded)
+  }
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
