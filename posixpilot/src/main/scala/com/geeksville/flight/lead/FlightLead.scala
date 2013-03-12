@@ -77,6 +77,9 @@ object Main extends Logging {
     logger.info("arch: " + arch)
     SystemTools.addDir("libsrc/" + arch) // FIXME - skanky hack to find rxtx dll
 
+    // We don't want anyone else's native libraries
+    System.setProperty("jna.nosys", "true")
+
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false
     val startIncomingUDP = false
