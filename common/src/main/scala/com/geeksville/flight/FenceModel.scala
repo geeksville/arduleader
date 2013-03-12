@@ -44,7 +44,7 @@ trait FenceModel extends ParametersModel {
 
     case msg: msg_fence_point =>
       // If it is the point we are waiting for, add it
-      // We check for msg.target_system == 0 as a workaround for an ardupilot bug
+      // We check for msg.target_system == 0 as a workaround for an ardupilot bug: https://github.com/diydrones/ardupilot/issues/152
       if ((msg.target_system == systemId || msg.target_system == 0) && msg.idx == fencePoints.size) {
         checkRetryReply(msg) // Cancel any retries that were waiting for this message
 
