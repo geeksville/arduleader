@@ -73,6 +73,11 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
         false
     }
 
+    /**
+     * Subclasses can do something more elaborate if they want
+     */
+    protected def handleFailure() {}
+
     private def sendPacket() {
       retriesLeft -= 1
       sendMavlink(retryPacket)
@@ -85,6 +90,7 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
         sendPacket()
       } else {
         log.error("No more retries, giving up: " + retryPacket)
+        handleFailure()
         close()
       }
     }
@@ -95,6 +101,16 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
    */
   protected def sendWithRetry(msg: MAVLinkMessage, expected: Class[_]) {
     retries.add(RetryContext(msg, expected))
+  }
+
+  /**
+   * Send a packet that expects a certain packet type in response, if the response doesn't arrive, then retry
+   */
+  protected def sendWithRetry(msg: MAVLinkMessage, expected: Class[_], onFailure: () => Unit) {
+    val c = new RetryContext(msg, expected) {
+      override def handleFailure() { onFailure() }
+    }
+    retries.add(c)
   }
 
   /**

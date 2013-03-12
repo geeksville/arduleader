@@ -56,6 +56,9 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   }
 
   protected def onParametersDownloaded() {
+    log.info("Downloaded " + parameters.size + " parameters!")
+    parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
+
     // We only index params with valid ids
     val known = parameters.flatMap { p =>
       p.getId.map { id => id -> p }
@@ -104,7 +107,10 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   }
 
   private def requestParameter(i: Int) {
-    sendWithRetry(paramRequestRead(i), classOf[msg_param_value])
+    sendWithRetry(paramRequestRead(i), classOf[msg_param_value], { () =>
+      // We failed, just tell everyone we are done
+      onParametersDownloaded()
+    })
   }
 
   /**
@@ -122,11 +128,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
     retryingParameters = wasMissing
     if (!wasMissing) {
-      log.info("Downloaded " + parameters.size + " parameters!")
-      parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
       onParametersDownloaded() // Yay - we have everything!
     }
   }
-
 }
 

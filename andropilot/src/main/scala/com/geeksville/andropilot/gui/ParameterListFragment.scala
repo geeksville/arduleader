@@ -62,8 +62,11 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
     case MsgParametersDownloaded =>
       handler.post(updateParameters _)
 
-    case MsgParameterReceived(index) =>
+    /* Too chatty- wait for all the parameters 
+     case MsgParameterReceived(index) =>
       handler.post(updateParameters _) // { () => updateParameter(index) }
+      * 
+      */
   }
 
   /**
@@ -81,10 +84,19 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
   private def updateParameters() {
     // Don't expand the view until we have _something_ to display
     //if (getActivity != null) {
-    debug("updating parameters")
+
+    // If we already have a view then update it
+    Option(safeGetListView).foreach { v =>
+      makeAdapter.foreach(setListAdapter)
+
+      v.invalidate()
+    }
+  }
+
+  override def onViewCreated(v: View, b: Bundle) {
+    super.onViewCreated(v, b)
+
     makeAdapter.foreach(setListAdapter)
-    Option(safeGetListView).foreach(_.invalidate())
-    //}
   }
 
   // FIXME - this can't work, because of the dumb/heavyweight way we are building the adapter
