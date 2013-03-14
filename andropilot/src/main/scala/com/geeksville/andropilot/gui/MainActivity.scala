@@ -51,6 +51,9 @@ import com.geeksville.andropilot.service._
 import com.geeksville.andropilot._
 import android.net.Uri
 import android.view.MotionEvent
+import com.geeksville.android.AndroidJUtil
+import com.geeksville.util.Using._
+import com.geeksville.flight.FenceModel
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -125,6 +128,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         }
       }
 
+    case MsgFenceBreached =>
+      handler.post { () => speak("Fence Breached", urgent = true) }
+
     case MsgSysStatusChanged =>
       for { v <- myVehicle; pct <- v.batteryPercent } yield {
         throttleBattery((pct * 100).toInt) { pct =>
@@ -139,15 +145,18 @@ class MainActivity extends FragmentActivity with TypedActivity
       handler.post { () =>
         myVehicle.foreach { v =>
           if (oldVehicleType != v.vehicleType) {
+            usageEvent("vehicle_type", "type" -> v.vehicleType.toString)
             oldVehicleType = v.vehicleType
             setModeOptions()
           }
+          usageEvent("set_mode", "mode" -> v.currentMode)
           setModeSpinner() // FIXME, do this someplace better
         }
       }
 
     case MsgHeartbeatLost =>
       handler.post { () =>
+        usageEvent("heartbeat_lost")
         speak("Heartbeat lost", urgent = true)
         setModeSpinner()
       }
@@ -345,10 +354,34 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  private def handleFileOpen(uri: Uri) {
+    // FIXME - show a dialog asking for confirmation
+    val filename = uri.getLastPathSegment
+    using(AndroidJUtil.getFromURI(this, uri)) { s =>
+      myVehicle.foreach { v =>
+        if (filename.toLowerCase.endsWith(".fen")) {
+          if (!v.isFenceAvailable)
+            toast("Fence not yet available, try back later...")
+          else {
+            toast("Uploading fence: " + filename)
+            val pts = FenceModel.pointsFromStream(s)
+
+            v ! DoSetFence(pts, fenceMode)
+          }
+        }
+      }
+    }
+  }
+
   private def handleIntent(intent: Intent) {
     debug("Received intent: " + intent)
     service.map { s =>
       intent.getAction match {
+        case Intent.ACTION_VIEW =>
+          Option(intent.getData).foreach { uri =>
+            // User wants to open a file
+            handleFileOpen(uri)
+          }
         case Intent.ACTION_MAIN =>
           // Normal app start - just ask for access to any connected devices
           requestAccess()

@@ -43,14 +43,25 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
   class ParamValue extends ROParamValue {
-    def setValue(v: Float) {
+    def setValueNoAck(v: Float) = {
       val p = raw.getOrElse(throw new Exception("Can not set uninited param"))
 
       p.param_value = v
-      log.debug("Telling device to set value: " + this)
-      sendMavlink(paramSet(p.getParam_id, p.param_type, v))
+      val msg = paramSet(p.getParam_id, p.param_type, v)
+      log.debug("Setting param: " + msg + " myIndex=" + p.param_index)
+      sendMavlink(msg)
+      p
+    }
+
+    def setValue(v: Float) {
+      val p = setValueNoAck(v)
 
       // Readback to confirm the change happened
+      reread()
+    }
+
+    def reread() {
+      val p = raw.getOrElse(throw new Exception("Can not reread uninited param"))
       requestParameter(p.param_index)
     }
   }
@@ -86,10 +97,14 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
       var index = msg.param_index
       if (index == 65535) { // Apparently means unknown, find by name (kinda slow - FIXME)
+        val idstr = msg.getParam_id
         index = parameters.zipWithIndex.find {
           case (p, i) =>
-            p.getId.getOrElse("") == msg.getParam_id
+            p.getId.getOrElse("") == idstr
         }.get._2
+
+        // We now know where this param belongs
+        msg.param_index = index
       }
       parameters(index).raw = Some(msg)
       if (retryingParameters)

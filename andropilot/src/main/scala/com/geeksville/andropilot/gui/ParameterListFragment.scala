@@ -21,6 +21,7 @@ import android.support.v4.app.Fragment
 
 class ParameterListFragment extends ListFragment with AndroServiceFragment {
   private var selected = -1
+  private var haveInitialParams = false
 
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
@@ -60,13 +61,12 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
 
   override def onVehicleReceive = {
     case MsgParametersDownloaded =>
+      haveInitialParams = true
       handler.post(updateParameters _)
 
-    /* Too chatty- wait for all the parameters 
-     case MsgParameterReceived(index) =>
-      handler.post(updateParameters _) // { () => updateParameter(index) }
-      * 
-      */
+    case MsgParameterReceived(index) =>
+      if (haveInitialParams) // Don't bother with every little update when we haven't received our big squirt
+        handler.post(updateParameters _)
   }
 
   /**
@@ -140,7 +140,7 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
         // Show selected item in a color
         override def getView(position: Int, convertView: View, parent: ViewGroup) = {
           val itemView = super.getView(position, convertView, parent)
-          debug("in getView " + position)
+          //debug("in getView " + position) - FIXME - we call this way too much
           if (selected == position) {
             // debug("Selecting " + itemView)
             itemView.setBackgroundColor(Color.LTGRAY)

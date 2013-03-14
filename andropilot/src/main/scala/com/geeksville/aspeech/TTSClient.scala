@@ -7,11 +7,12 @@ import com.ridemission.scandroid.UsesPreferences
 import com.ridemission.scandroid.AndroidLogger
 import android.content.Context
 import java.util.Locale
+import com.geeksville.andropilot.FlurryContext
 
 /**
  * Speak using the Android TTS library
  */
-trait TTSClient extends Activity with UsesPreferences with AndroidLogger {
+trait TTSClient extends Activity with UsesPreferences with AndroidLogger with FlurryContext {
   private val MY_DATA_CHECK_CODE = 0x4403
 
   private var tts: Option[TextToSpeech] = None
@@ -53,8 +54,11 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger {
    * @param urgent if true then previously queued text will be abandoned
    */
   def speak(str: String, urgent: Boolean = false) {
-    if (isSpeechEnabled)
+    if (isSpeechEnabled) {
+      usageEvent("speech_on", "msg" -> str)
       tts.foreach(_.speak(str, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
+    } else
+      usageEvent("speech_off", "msg" -> str)
   }
 
   /**

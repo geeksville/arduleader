@@ -17,9 +17,13 @@ trait AndropilotPrefs extends UsesPreferences {
   def followPlane = boolPreference("follow_plane", false)
   def guideAlt = intPreference("guide_alt", 50)
 
-  def loggingEnabled = boolPreference("log_to_file", false)
+  def loggingEnabled = boolPreference("log_to_file", true)
   def baudWireless = intPreference("baud_wireless", 57600)
   def baudDirect = intPreference("baud_direct", 115200)
+
+  def fenceMinAlt = intPreference("fence_min", 30)
+  def fenceMaxAlt = intPreference("fence_max", 100)
+  def fenceMode = intPreference("fence_action", 1)
 
   def stayAwakeEnabled = boolPreference("stay_awake", true)
 

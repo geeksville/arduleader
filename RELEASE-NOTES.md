@@ -1,5 +1,11 @@
+# 1.0.14
+* We now register as a handler for .fen URLs/files - so you can easily click on those file types and auto create a geofence.
+* Announce geofence breach via speech
+* Default preferences to logging tlogs on
+* Fix a rare bug with setting parameters
+
 # 1.0.12
-* Test build to see if I can fix the ? param problem for VRBrain+XBee
+* Fix the ? param problem for VRBrain+XBee
 
 # 1.0.11
 * Geofence is now shown on the map (if set)
@@ -11,12 +17,9 @@
 
 * arm/disarm menu option
 * set home menu option
-* investigate guillame's params
-* For next release: Show % throttle and use _baro_ for altitude display
 * add an option to set home
 * droneshare upload (from spooldir on disk)
 * save/load wpt files
-* include fence in wpt file
 * param file save and load
 * have nestor parse text log files
 * Display armed/not armed per MP:  (hb.base_mode & (byte)MAVLink.MAV_MODE_FLAG.SAFETY_ARMED) == (byte)MAVLink.MAV_MODE_FLAG.SAFETY_ARMED

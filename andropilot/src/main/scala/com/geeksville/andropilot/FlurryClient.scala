@@ -16,7 +16,7 @@ trait FlurryClient {
   def flurryIsMale(isMale: Boolean) = FlurryAgent.setGender(if (isMale) Constants.MALE else Constants.FEMALE)
 
   /// Record a trackable event
-  def usageEvent(label: String, params: Seq[Pair[String, String]]) =
+  def usageEvent(label: String, params: Pair[String, String]*) =
     FlurryAgent.onEvent(label, Map(params: _*).asJava)
 
   /// Record some sort of unexpected exception

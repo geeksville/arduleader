@@ -145,6 +145,17 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
+  def fencePoint(pointNum: Int, count: Int, lat: Float, lng: Float, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_fence_point(systemId, componentId)
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg.idx = pointNum
+    msg.count = count
+    msg.lat = lat
+    msg.lng = lng
+    msg
+  }
+
   def missionRequestList(targetSystem: Int = 1, targetComponent: Int = 1) = {
     /* * MISSION_REQUEST_LIST {target_system : 1, target_component : 1}
 * MISSION_COUNT {target_system : 255, target_component : 190, count : 1}

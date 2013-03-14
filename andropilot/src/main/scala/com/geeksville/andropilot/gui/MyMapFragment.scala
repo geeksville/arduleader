@@ -38,6 +38,7 @@ import com.geeksville.andropilot.AndropilotPrefs
 import org.mavlink.messages.MAV_CMD
 import com.geeksville.flight.DoAddWaypoint
 import com.geeksville.gmaps.PolylineFactory
+import org.mavlink.messages.FENCE_ACTION
 
 /**
  * Our customized map fragment
@@ -559,7 +560,13 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
           val points = v.fenceBoundary.map { p =>
             new LatLng(p.lat, p.lon)
           }
-          val line = PolylineFactory(points, Color.YELLOW)
+
+          val color = if (v.fenceAction != FENCE_ACTION.FENCE_ACTION_NONE)
+            Color.YELLOW
+          else
+            Color.GRAY
+
+          val line = PolylineFactory(points, color)
           scene.segments.append(line)
         }
 
