@@ -321,6 +321,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       for { dir <- AndropilotService.paramDirectory; vm <- myVehicle } yield {
         val file = ParameterFile.getFilename(dir)
         try {
+          usageEvent("params_saved")
           ParameterFile.create(vm.parameters, file)
           toast("Parameters backed up to " + dir)
         } catch {
@@ -363,6 +364,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           if (!v.isFenceAvailable)
             toast("Fence not yet available, try back later...")
           else {
+            usageEvent("fence_uploaded", "url" -> uri.toString)
             toast("Uploading fence: " + filename)
             val pts = FenceModel.pointsFromStream(s)
 

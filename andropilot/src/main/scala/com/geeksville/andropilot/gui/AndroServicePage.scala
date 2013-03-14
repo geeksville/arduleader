@@ -8,13 +8,14 @@ import com.geeksville.util.ThreadTools._
 import android.support.v4.app.Fragment
 import com.ridemission.scandroid.PagerPage
 import com.geeksville.andropilot.service.AndroServiceClient
+import com.geeksville.andropilot.FlurryClient
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
  * This variant is careful to only start using the service when our page is shown (being careful to only start it once
  * and to only stop it when once
  */
-trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClient with PagerPage {
+trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClient with PagerPage with FlurryClient {
 
   implicit def context = getActivity
 
@@ -67,10 +68,12 @@ trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClie
 
   override def onPageShown() {
     super.onPageShown()
+    beginTimedEvent("show_" + getClass.getSimpleName)
     bind()
   }
 
   override def onPageHidden() {
+    endTimedEvent("show_" + getClass.getSimpleName)
     unbind()
 
     super.onPageHidden()

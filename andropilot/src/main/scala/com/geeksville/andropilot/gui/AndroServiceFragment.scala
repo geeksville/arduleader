@@ -9,11 +9,12 @@ import android.support.v4.app.Fragment
 import com.geeksville.andropilot.service.AndroServiceClient
 import android.view.ActionMode
 import com.ridemission.scandroid.PagerPage
+import com.geeksville.andropilot.FlurryClient
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
  */
-trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient with PagerPage {
+trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient with PagerPage with FlurryClient {
 
   implicit def context = getActivity
 
@@ -46,7 +47,13 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
     super.onPause()
   }
 
+  override def onPageShown() {
+    beginTimedEvent("show_" + getClass.getSimpleName)
+    super.onPageShown()
+  }
+
   override def onPageHidden() {
+    endTimedEvent("show_" + getClass.getSimpleName)
     stopActionMode() // Don't show our menu on other pages
     super.onPageHidden()
   }

@@ -12,8 +12,9 @@ import android.support.v4.app.DialogFragment
 import com.geeksville.andropilot.R
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
+import com.geeksville.andropilot.FlurryClient
 
-class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger {
+class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger with FlurryClient {
   setCancelable(true)
 
   private def toast(str: String) {
@@ -42,6 +43,7 @@ class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends Dialog
           info("User clicked ok")
           val str = valueView.getText.toString
           try {
+            usageEvent("param_edited", "name" -> param.getId.get, "value" -> str)
             param.setValue(str.toFloat)
           } catch {
             case ex: Exception =>

@@ -17,7 +17,14 @@ trait FlurryClient {
 
   /// Record a trackable event
   def usageEvent(label: String, params: Pair[String, String]*) =
-    FlurryAgent.onEvent(label, Map(params: _*).asJava)
+    FlurryAgent.logEvent(label, Map(params: _*).asJava)
+
+  def beginTimedEvent(label: String, params: Pair[String, String]*) =
+    FlurryAgent.logEvent(label, Map(params: _*).asJava, true)
+
+  def endTimedEvent(label: String) {
+    FlurryAgent.endTimedEvent(label)
+  }
 
   /// Record some sort of unexpected exception
   def usageException(label: String, ex: Throwable) =
