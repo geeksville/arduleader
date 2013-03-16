@@ -96,6 +96,10 @@
                 <data android:pathPattern=".*\\.PARAM" />
                 <data android:pathPattern=".*\\.fen" />
                 <data android:pathPattern=".*\\.FEN" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\.TXT" />
+                <data android:pathPattern=".*\\.wpt" />
+                <data android:pathPattern=".*\\.WPT" />
             </intent-filter>
             <!--
 				We're using separate intent-filters for download (http/s) and local files (file/content) as they require
@@ -114,6 +118,10 @@
                 <data android:pathPattern=".*\\.PARAM" />
                 <data android:pathPattern=".*\\.fen" />
                 <data android:pathPattern=".*\\.FEN" />
+                <data android:pathPattern=".*\\.txt" />
+                <data android:pathPattern=".*\\.TXT" />
+                <data android:pathPattern=".*\\.wpt" />
+                <data android:pathPattern=".*\\.WPT" />
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>

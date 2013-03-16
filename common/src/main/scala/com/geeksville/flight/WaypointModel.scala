@@ -18,6 +18,8 @@ import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
+import java.io.InputStream
+import scala.io.Source
 
 //
 // Messages we publish on our event bus when something happens
@@ -30,6 +32,11 @@ case class DoSetMode(s: String)
 case class DoSetCurrent(n: Int)
 case class DoAddWaypoint(w: Waypoint)
 case class DoDeleteWaypoint(seqnum: Int)
+
+/**
+ * Upload a sequence of waypoints to the vehicle (being careful to not replace home)
+ */
+case class DoLoadWaypoints(pts: Seq[Waypoint])
 
 /**
  * Start sending waypoints TO the vehicle
@@ -70,6 +77,9 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
     case DoDeleteWaypoint(seqnum) =>
       deleteWaypoint(seqnum)
+
+    case DoLoadWaypoints(wpts) =>
+      loadWaypoints(wpts)
 
     //
     // Messages for uploading waypoints
@@ -249,5 +259,62 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       onWaypointsDownloaded() // Success
     }
   }
+
+  /// Keep only home from the old waypoints, but replace everything else
+  private def loadWaypoints(wpts: Seq[Waypoint]) {
+    if (waypoints.size < 1)
+      log.error("Can't load waypoints - we don't yet have a home") // Silently fail - FIXME
+    else {
+      log.info("loading waypoints: " + wpts.size)
+      val home = waypoints.head
+      waypoints = IndexedSeq(home) ++ wpts.filter(!_.isHome)
+    }
+  }
+
+  /**
+   * It is callers responsibility to close the stream
+   *
+   * QGC WPL 110
+   * 0       1       0       16      0       0       0       0       37.521152       -122.308739     132.000000      1
+   * 1       0       3       22      15.000000       0.000000        0.000000        0.000000        0.000000        0.000000        10.000000
+   * 1
+   * 2       0       3       16      0.000000        0.000000        0.000000        0.000000        37.491919       -122.173355     50.000000
+   * 1
+   *
+   */
+  def pointsFromStream(is: InputStream) = {
+    val lines = Source.fromInputStream(is).getLines.toSeq
+
+    val header = lines.head
+    if (header != "QGC WPL 110")
+      throw new Exception("Unsupported waypoint file format")
+
+    val points = lines.tail
+    val Line = """(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)""".r
+    points.flatMap { l =>
+      l.trim match {
+        case Line(seq, current, frame, command, p1, p2, p3, p4, x, y, z, cont) =>
+          val msg = new msg_mission_item(systemId, componentId)
+          msg.seq = seq.toInt
+          msg.current = current.toInt
+          msg.frame = frame.toInt
+          msg.command = command.toInt
+          msg.param1 = p1.toFloat
+          msg.param2 = p2.toFloat
+          msg.param3 = p3.toFloat
+          msg.param4 = p4.toFloat
+          msg.x = x.toFloat
+          msg.y = y.toFloat
+          msg.z = z.toFloat
+          msg.autocontinue = cont.toInt
+          val wp = Waypoint(msg)
+          Some(wp)
+        case x @ _ =>
+          throw new Exception("Malformed waypoint: " + x)
+      }
+    }.toArray
+  }
 }
 
+object WaypointModel {
+}

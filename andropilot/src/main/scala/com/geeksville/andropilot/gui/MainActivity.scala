@@ -54,6 +54,7 @@ import android.view.MotionEvent
 import com.geeksville.android.AndroidJUtil
 import com.geeksville.util.Using._
 import com.geeksville.flight.FenceModel
+import com.geeksville.flight.DoLoadWaypoints
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -360,6 +361,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val filename = uri.getLastPathSegment
     using(AndroidJUtil.getFromURI(this, uri)) { s =>
       myVehicle.foreach { v =>
+
         if (filename.toLowerCase.endsWith(".fen")) {
           if (!v.isFenceAvailable)
             toast("Fence not yet available, try back later...")
@@ -369,6 +371,20 @@ class MainActivity extends FragmentActivity with TypedActivity
             val pts = FenceModel.pointsFromStream(s)
 
             v ! DoSetFence(pts, fenceMode)
+          }
+        }
+
+        if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
+          usageEvent("waypoint_uploaded", "url" -> uri.toString)
+
+          try {
+            val pts = v.pointsFromStream(s)
+            toast("Uploading waypoints: " + filename)
+            v ! DoLoadWaypoints(pts)
+            v ! SendWaypoints
+          } catch {
+            case ex: Exception =>
+              toast(ex.getMessage) // Error reading from file (probably not a waypoint file)
           }
         }
       }

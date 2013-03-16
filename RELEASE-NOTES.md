@@ -1,3 +1,6 @@
+# 1.1.01
+* We now register as a handler for .wpt/.txt files so users can click on those file types and upload waypoints to the vehicle
+
 # 1.1.0
 * We now register as a handler for .fen URLs/files - so you can easily click on those file types and auto create a geofence.
 * Announce geofence breach via speech
