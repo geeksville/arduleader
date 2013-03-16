@@ -12,6 +12,7 @@ import com.geeksville.util.Throttled
 import com.geeksville.logback.Logging
 import com.geeksville.akka.PoisonPill
 import java.net.ConnectException
+import scala.concurrent._
 
 // with SerialPortEventListener
 
@@ -47,8 +48,10 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Inst
 
       try {
         val bytes = msg.encode()
-        out.write(bytes)
-        out.flush()
+        blocking {
+          out.write(bytes)
+          out.flush()
+        }
       } catch {
         case ex: IOException =>
           log.error("Error sending packet: " + ex.getMessage)
