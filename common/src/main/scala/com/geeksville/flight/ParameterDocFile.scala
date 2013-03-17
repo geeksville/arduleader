@@ -1,6 +1,7 @@
 package com.geeksville.flight
 
 import scala.xml._
+import scala.collection.immutable.SortedMap
 
 /**
  * Documentation (for human and machine) of a particular parameter name
@@ -55,7 +56,7 @@ class ParameterDocFile {
             None
         }
       }
-      if (children.isEmpty) None else Some(Map(children: _*))
+      if (children.isEmpty) None else Some(SortedMap(children: _*))
     }
 
     val fieldMap = {

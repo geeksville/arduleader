@@ -13,6 +13,8 @@ import com.geeksville.andropilot.R
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
 import com.geeksville.andropilot.FlurryClient
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 
 class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger with FlurryClient {
   setCancelable(true)
@@ -32,6 +34,37 @@ class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends Dialog
 
     param.getId.foreach { id => v.findView(TR.param_label).setText(id) }
     param.getValue.foreach { pv => valueView.setText(pv.toString) }
+
+    // Does this parameter have specified value choices?  If so, then use a spinner instead of edittext
+    param.docs.flatMap(_.valueMap).foreach { valueMap =>
+
+      val optionNames = valueMap.values.toArray
+      val optionValues = valueMap.keys.toArray
+
+      // select correct item (if current value doesn't get found just leave the edit text field)
+      valueMap.get(param.getInt.get).foreach { curValStr =>
+        val spinner = v.findView(TR.param_spinner)
+
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        val adapter = new ArrayAdapter(getActivity, android.R.layout.simple_spinner_item, optionNames)
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter)
+
+        def listener(parent: Spinner, selected: View, pos: Int, id: Long) {
+          val newval = optionValues(pos)
+          valueView.setText(newval.toString)
+        }
+        spinner.onItemSelected(listener)
+
+        val curIndex = optionNames.indexOf(curValStr)
+        spinner.setSelection(curIndex)
+        // show the spinner 
+        spinner.setVisibility(View.VISIBLE)
+        // valueView.setVisibility(View.GONE)
+      }
+    }
 
     // Inflate and set the layout for the dialog
     // Pass null as the parent view because its going in the dialog layout

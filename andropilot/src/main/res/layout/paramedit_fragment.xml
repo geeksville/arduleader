@@ -29,6 +29,12 @@
 
             <requestFocus />
         </EditText>
+
+        <Spinner
+            android:id="@+id/param_spinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" 
+            android:visibility="gone" />
     </LinearLayout>
 
 </LinearLayout>

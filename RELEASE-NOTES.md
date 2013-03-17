@@ -4,6 +4,7 @@
 * Waypoint list updates are now much faster
 * I've double checked that setting waypoint type works - if you see a problem, please post in the group
 * Properly update the mode menu for vehicle type if app is already running when vehicle connects
+* We now show a dropdown menu to choose named parameter values
 
 # 1.1.0
 * We now register as a handler for .fen URLs/files - so you can easily click on those file types and auto create a geofence.
