@@ -17,7 +17,7 @@ import android.view.LayoutInflater
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
 
-class WaypointListFragment extends ListFragment with AndroServiceFragment {
+class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
 
   private var selected: Option[Waypoint] = None
 
@@ -132,10 +132,14 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     // Don't expand the view until we have _something_ to display
     //if (getView != null) {
     debug("updating waypoints")
-    makeAdapter.foreach(setListAdapter)
+    setAdapter()
+    /*
+     * I don't think this is necessary anymore
     if (getView != null) {
       Option(getListView).foreach(_.invalidate())
     }
+    * 
+    */
   }
 
   private def listView = Option(getListView)
@@ -173,29 +177,18 @@ class WaypointListFragment extends ListFragment with AndroServiceFragment {
     }
   }
 
-  private def makeAdapter() =
+  protected def makeRow(i: Int, p: Waypoint) = Map("num" -> i, "type" -> p.typeString, "args" -> p.argumentsString, "icon" -> WaypointUtil.toDrawable(p.msg.command))
+  protected def rowId = R.layout.waypoint_row
+
+  protected override def fromKeys = Array("num", "type", "args", "icon")
+  protected override val toFields = Array(R.id.waypoint_number, R.id.waypoint_type, R.id.waypoint_args, R.id.waypoint_iconcol)
+
+  override def isSelected(p: Int) = selected.map(_.msg.seq).getOrElse(-1) == p
+
+  private def setAdapter() {
     for (v <- myVehicle if !v.waypoints.isEmpty) yield {
       debug("Setting waypoint list to " + v.waypoints.size + " items")
-
-      val asMap = v.waypoints.zipWithIndex.map {
-        case (p, i) =>
-          Map("num" -> i, "type" -> p.typeString, "args" -> p.argumentsString, "icon" -> WaypointUtil.toDrawable(p.msg.command)).asJava
-      }.asJava
-      val fromKeys = Array("num", "type", "args", "icon")
-      val toFields = Array(R.id.waypoint_number, R.id.waypoint_type, R.id.waypoint_args, R.id.waypoint_iconcol)
-      new SimpleAdapter(getActivity, asMap, R.layout.waypoint_row, fromKeys, toFields) {
-
-        // Show selected item in a color
-        override def getView(position: Int, convertView: View, parent: ViewGroup) = {
-          val itemView = super.getView(position, convertView, parent)
-          debug("in getView " + position)
-          if (selected.map(_.msg.seq).getOrElse(-1) == position) {
-            debug("Selecting " + itemView)
-            itemView.setBackgroundColor(Color.LTGRAY)
-          } else
-            itemView.setBackgroundColor(Color.TRANSPARENT)
-          itemView
-        }
-      }
+      setAdapter(v.waypoints)
     }
+  }
 }

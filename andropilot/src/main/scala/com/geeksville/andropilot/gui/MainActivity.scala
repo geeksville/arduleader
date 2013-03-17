@@ -169,7 +169,10 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
 
     case MsgParametersDownloaded =>
-      handler.post(handleParameters _)
+      handler.post { () =>
+        setModeSpinner()
+        handleParameters()
+      }
   }
 
   override def onServiceConnected(s: AndropilotService) {

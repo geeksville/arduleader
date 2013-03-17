@@ -18,8 +18,9 @@ import android.widget.AdapterView
 import android.graphics.Color
 import com.geeksville.flight.MsgParameterReceived
 import android.support.v4.app.Fragment
+import com.geeksville.flight.ParametersModel
 
-class ParameterListFragment extends ListFragment with AndroServiceFragment {
+class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue] with AndroServiceFragment {
   private var selected = -1
   private var haveInitialParams = false
 
@@ -66,7 +67,7 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
 
     case MsgParameterReceived(index) =>
       if (haveInitialParams) // Don't bother with every little update when we haven't received our big squirt
-        handler.post(updateParameters _)
+        handler.post { () => updateParameter(index) }
   }
 
   /**
@@ -87,7 +88,7 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
 
     // If we already have a view then update it
     Option(safeGetListView).foreach { v =>
-      makeAdapter.foreach(setListAdapter)
+      makeAdapter()
 
       v.invalidate()
     }
@@ -96,14 +97,12 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
   override def onViewCreated(v: View, b: Bundle) {
     super.onViewCreated(v, b)
 
-    makeAdapter.foreach(setListAdapter)
+    makeAdapter()
   }
 
-  // FIXME - this can't work, because of the dumb/heavyweight way we are building the adapter
   private def updateParameter(i: Int) {
-    Option(getListView).foreach { l =>
-      debug("Invaliding due to update: " + i)
-      l.invalidateViews() // FIXME, is there a less heavyweight way to redraw our changed item
+    myVehicle.foreach { v =>
+      updateAdapter(v.parameters, i)
     }
   }
 
@@ -126,28 +125,19 @@ class ParameterListFragment extends ListFragment with AndroServiceFragment {
     }
   }
 
+  protected def rowId = R.layout.parameter_row
+
+  protected override def fromKeys = Array("n", "v")
+  protected override val toFields = Array(R.id.param_name, R.id.param_value)
+
+  override def isSelected(p: Int) = selected == p
+
+  override protected def makeRow(i: Int, p: ParametersModel#ParamValue) = Map("n" -> p.getId.getOrElse("?"), "v" -> p.asString.getOrElse("?"))
+
   private def makeAdapter() =
     for (v <- myVehicle if !v.parameters.isEmpty) yield {
       debug("Setting parameter list to " + v.parameters.size + " items")
 
-      val asMap = v.parameters.toSeq.map { p =>
-        Map("n" -> p.getId.getOrElse("?"), "v" -> p.asString.getOrElse("?")).asJava
-      }.asJava
-      val fromKeys = Array("n", "v")
-      val toFields = Array(R.id.param_name, R.id.param_value)
-      //new SimpleAdapter(getActivity, asMap, R.layout.parameter_row, fromKeys, toFields)
-      new SimpleAdapter(getActivity, asMap, R.layout.parameter_row, fromKeys, toFields) {
-        // Show selected item in a color
-        override def getView(position: Int, convertView: View, parent: ViewGroup) = {
-          val itemView = super.getView(position, convertView, parent)
-          //debug("in getView " + position) - FIXME - we call this way too much
-          if (selected == position) {
-            // debug("Selecting " + itemView)
-            itemView.setBackgroundColor(Color.LTGRAY)
-          } else
-            itemView.setBackgroundColor(Color.TRANSPARENT)
-          itemView
-        }
-      }
+      setAdapter(v.parameters)
     }
 }

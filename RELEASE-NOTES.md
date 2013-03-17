@@ -1,5 +1,9 @@
 # 1.1.01
 * We now register as a handler for .wpt/.txt files so users can click on those file types and upload waypoints to the vehicle
+* Parameter list updates are now much faster
+* Waypoint list updates are now much faster
+* I've double checked that setting waypoint type works - if you see a problem, please post in the group
+* Properly update the mode menu for vehicle type if app is already running when vehicle connects
 
 # 1.1.0
 * We now register as a handler for .fen URLs/files - so you can easily click on those file types and auto create a geofence.
@@ -18,6 +22,7 @@
 * Replace DOA builds 7 through 9
 * We now show baro based altitude (rather than GPS based) whenever possible
 
+* automatically start new log file once heartbeat timer restarts
 * arm/disarm menu option
 * set home menu option
 * add an option to set home
