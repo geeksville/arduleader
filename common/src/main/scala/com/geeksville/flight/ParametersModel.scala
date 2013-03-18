@@ -38,6 +38,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   var parametersById = Map[String, ParamValue]()
 
   private var retryingParameters = false
+  var unsortedParameters = new Array[ParamValue](0)
 
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
@@ -48,7 +49,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
       p.param_value = v
       val msg = paramSet(p.getParam_id, p.param_type, v)
-      log.debug("Setting param: " + msg + " myIndex=" + p.param_index)
+      log.debug("Setting param: " + msg + " from=" + p)
       sendMavlink(msg)
       p
     }
@@ -69,8 +70,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   protected def onParametersDownloaded() {
     setStreamEnable(true) // Turn streaming back on
 
-    log.info("Downloaded " + parameters.size + " parameters!")
-    parameters = parameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
+    log.info("Downloaded " + unsortedParameters.size + " parameters!")
+    parameters = unsortedParameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
 
     // We only index params with valid ids
     val known = parameters.flatMap { p =>
@@ -91,26 +92,36 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     case msg: msg_param_value =>
       // log.debug("Receive: " + msg)
       checkRetryReply(msg)
-      if (msg.param_count != parameters.size)
+      if (msg.param_count != unsortedParameters.size) {
         // Resize for new parameter count
-        parameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
+        unsortedParameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
+      }
+
+      log.debug("Received param: " + msg)
 
       var index = msg.param_index
-      if (index == 65535) { // Apparently means unknown, find by name (kinda slow - FIXME)
+      if (index == 65535) { // Apparently means unknown, we could find by name but it seems APM will send another record with the correct ID, so just ignore
         val idstr = msg.getParam_id
-        index = parameters.zipWithIndex.find {
-          case (p, i) =>
-            p.getId.getOrElse("") == idstr
-        }.get._2
+        index = unsortedParameters.find { p =>
+          p.getId.getOrElse("") == idstr
+        }.get.raw.get.param_index
 
         // We now know where this param belongs
         msg.param_index = index
+      } else {
+        unsortedParameters(index).raw = Some(msg)
+
+        // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
+        if (retryingParameters) {
+          readNextParameter()
+        } else {
+          // After we have a sorted param list, we will start publishing updates for individual parameters
+          val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
+          log.debug("publishing param " + paramNum)
+          if (paramNum != -1)
+            eventStream.publish(MsgParameterReceived(paramNum))
+        }
       }
-      parameters(index).raw = Some(msg)
-      if (retryingParameters)
-        readNextParameter()
-      else
-        eventStream.publish(MsgParameterReceived(index))
 
     case FinishParameters =>
       readNextParameter()
@@ -138,7 +149,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    * If we are still missing parameters, try to read again
    */
   private def readNextParameter() {
-    val wasMissing = parameters.zipWithIndex.find {
+    val wasMissing = unsortedParameters.zipWithIndex.find {
       case (v, i) =>
         val hasData = v.raw.isDefined
         if (!hasData)
