@@ -27,6 +27,7 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
   private def latView = getView.findView(TR.latitude)
   private def lonView = getView.findView(TR.longitude)
   private def altView = getView.findView(TR.altitude)
+  private def airspeedView = getView.findView(TR.airspeed)
   private def numSatView = getView.findView(TR.gps_numsats)
   private def rssiLocalView = getView.findView(TR.rssi_local)
   private def batteryView = getView.findView(TR.battery_volt)
@@ -47,7 +48,8 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
             val degSymbol = "\u00B0"
             latView.setText("%.4f".format(l.lat) + degSymbol)
             lonView.setText("%.4f".format(l.lon) + degSymbol)
-            altView.setText("%.1f".format(v.bestAltitude) + "m")
+            altView.setText("%.1f".format(v.bestAltitude) + " m")
+            v.vfrHud.foreach { hud => airspeedView.setText("%.1f".format(hud.airspeed) + " m/s") }
             v.numSats.foreach { n => numSatView.setText(n.toString) }
           }
         }
