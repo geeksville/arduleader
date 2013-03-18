@@ -1,3 +1,8 @@
+# 1.1.02
+* Show airspeed on overview screen
+* Speak warnings for battery levels, radio signal levels, lack of sats and lack of airspeed
+* Warn about airspeed
+
 # 1.1.01
 * We now register as a handler for .wpt/.txt files so users can click on those file types and upload waypoints to the vehicle
 * Parameter list updates are now much faster

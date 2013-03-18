@@ -55,6 +55,7 @@ import com.geeksville.android.AndroidJUtil
 import com.geeksville.util.Using._
 import com.geeksville.flight.FenceModel
 import com.geeksville.flight.DoLoadWaypoints
+import scala.concurrent.duration._
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -115,6 +116,24 @@ class MainActivity extends FragmentActivity with TypedActivity
       if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
         serialDetached()
     }
+  }
+
+  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) {
+    val warning = if (isLowVolt)
+      "Warn Volt"
+    else if (isLowBatPercent)
+      "Warn Battery"
+    else if (isLowRssi)
+      "Warn Radio"
+    else if (isLowNumSats)
+      "Warn GPS"
+    else
+      ""
+
+    if (!warning.isEmpty && handler != null)
+      handler.post { () =>
+        speak(warning)
+      }
   }
 
   override def onVehicleReceive = {
@@ -309,6 +328,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onDestroy() {
+    warningChecker.cancel()
     destroySpeech()
 
     super.onDestroy()

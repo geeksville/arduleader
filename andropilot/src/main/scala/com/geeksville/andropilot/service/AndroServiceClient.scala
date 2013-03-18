@@ -15,17 +15,26 @@ import com.geeksville.akka.PoisonPill
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink._
 import com.geeksville.flight._
+import com.geeksville.andropilot.AndropilotPrefs
 
 /**
  * Common client side goo for any GUI widget that binds to our service
  */
-trait AndroServiceClient extends AndroidLogger {
+trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
   def context: Context
 
   protected var myVehicle: Option[VehicleModel] = None
   private var myVListener: Option[MyVehicleListener] = None
   protected var service: Option[AndropilotService] = None
+
+  def isLowVolt = (for { v <- myVehicle; volt <- v.batteryVoltage } yield { volt < minVoltage }).getOrElse(false)
+
+  /// Apparently ardupane treats -1 for pct charge as 'no idea'
+  def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
+  def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield { r.rssi < minRssi || r.remrssi < minRssi }).getOrElse(false)
+  def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(true)
+  def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
   /**
    * Override if you need to do stuff once the connection is up
