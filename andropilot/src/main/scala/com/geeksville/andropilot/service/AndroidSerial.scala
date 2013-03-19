@@ -228,9 +228,10 @@ object AndroidSerial extends AndroidLogger {
     val filtered = devices.filter { dvr => isTelemetry(dvr) || isAPM(dvr) }
     if (filtered.size == 0)
       None
-    else if (filtered.size != 1)
-      throw new IOException("FIXME, multiple devices attached - not yet supported")
-    else
+    else if (filtered.size != 1) {
+      error("FIXME, multiple devices attached - not yet supported")
+      Some(filtered.head) // Just return the first one
+    } else
       Some(filtered.head)
   }
 
