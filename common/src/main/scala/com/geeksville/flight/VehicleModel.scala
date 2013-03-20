@@ -65,7 +65,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    * Return the best user visible description of altitude that we have (hopefully from a barometer)
    * In AGL
    */
-  def bestAltitude = globalPos.map(_.relative_alt / 1000.0f).getOrElse(location.map(toAGL).getOrElse(-999f))
+  def bestAltitude = globalPos.map(_.relative_alt / 1000.0f).getOrElse(location.map(toAGL(_).toFloat).getOrElse(-999f))
 
   def currentMode = modeToString(customMode.getOrElse(-1))
 

@@ -13,6 +13,7 @@ import com.geeksville.andropilot.R
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
 import android.support.v4.app.Fragment
+import android.text.method.ScrollingMovementMethod
 
 class ParameterInfoFragment extends Fragment with AndroidLogger {
 
@@ -39,6 +40,7 @@ class ParameterInfoFragment extends Fragment with AndroidLogger {
         p.docs.map { d =>
           humanNameView.setText(d.humanName)
           docsView.setText(d.documentation)
+          docsView.setMovementMethod(new ScrollingMovementMethod)
         }.getOrElse {
           humanNameView.setText("")
           docsView.setText("")

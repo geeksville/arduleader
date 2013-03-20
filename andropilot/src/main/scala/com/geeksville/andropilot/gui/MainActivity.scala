@@ -140,7 +140,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case l: Location =>
       myVehicle.foreach { v =>
-        throttleAlt(v.toAGL(l).toInt) { alt =>
+        throttleAlt(v.bestAltitude.toInt) { alt =>
           handler.post { () =>
             debug("Speak alt: " + alt)
             speak(alt + " meters")

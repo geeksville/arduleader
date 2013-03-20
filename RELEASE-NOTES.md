@@ -1,7 +1,10 @@
 # 1.1.02
 * Show airspeed on overview screen
-* Speak warnings for battery levels, radio signal levels, lack of sats and lack of airspeed
-* Warn about airspeed
+* Speak warnings for battery levels, radio signal levels, lack of sats
+* Fix an autobug report: cope with devices that have multiple serial ports
+* Use best source of altitude when making speech announcements
+* I somehow busted altitude editing on waypoints - fixed
+* Make the parameter documentation scrollable
 
 # 1.1.01
 * We now register as a handler for .wpt/.txt files so users can click on those file types and upload waypoints to the vehicle

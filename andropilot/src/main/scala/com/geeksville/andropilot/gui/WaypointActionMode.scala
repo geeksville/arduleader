@@ -84,6 +84,7 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
 
     val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
     editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
+    editAlt.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
     debug("Creating actionMode")
 
