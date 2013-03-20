@@ -1,3 +1,6 @@
+# 1.1.03
+* Default to speech on for new installs
+ 
 # 1.1.02
 * Show airspeed on overview screen
 * Speak warnings for battery levels, radio signal levels, lack of sats

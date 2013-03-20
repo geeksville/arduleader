@@ -43,7 +43,7 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger with Fl
     }
   }
 
-  def isSpeechEnabled = boolPreference("speech_enabled", false)
+  def isSpeechEnabled = boolPreference("speech_enabled", true)
   def isSpeechEnabled_=(b: Boolean) {
     preferences.edit.putBoolean("speech_enabled", b).commit()
   }
