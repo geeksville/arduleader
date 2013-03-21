@@ -30,7 +30,8 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
 
-  def isCommandValid = Waypoint.commandCodes.contains(msg.command)
+  // For virgin APMs with no GPS they will deliver a home WP with command of 255
+  def isCommandValid = Waypoint.commandCodes.contains(msg.command) || msg.command == 255
 
   def altitude = msg.z
 

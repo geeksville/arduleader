@@ -12,6 +12,7 @@ would like to use this code in your own project, the source is located in the ma
 * Wiki documentation mainly by Peter Meister
 * Most icons by Scott Berfield
 * Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
+* Pieter@Diydrones bought me a bluetooth serial adapter to test with
 
 # License
 

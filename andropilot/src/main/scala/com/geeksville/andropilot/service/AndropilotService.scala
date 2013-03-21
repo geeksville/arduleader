@@ -32,6 +32,8 @@ import com.geeksville.andropilot.FlurryService
 import com.geeksville.andropilot.AndropilotPrefs
 import com.geeksville.util.NetTools
 import com.geeksville.akka.InstrumentedActor
+import android.bluetooth.BluetoothSocket
+import java.io.BufferedOutputStream
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -53,11 +55,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   private var serial: Option[MavlinkStream] = None
   private var udp: Option[InstrumentedActor] = None
 
+  private var btStream: Option[MavlinkStream] = None
+  private var btSocket: Option[BluetoothSocket] = None
+
   private var follower: Option[FollowMe] = None
 
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
+
+  private val btConnection = new BluetoothConnection
 
   /**
    * Class for clients to access.  Because we know this service always
@@ -90,7 +97,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def isFollowMe = follower.isDefined
 
   // Are we talking to a device at all?
-  def isConnected = isSerialConnected || (udp.isDefined && inboundUdpEnabled)
+  def isConnected = isSerialConnected || (udp.isDefined && inboundUdpEnabled) || btStream.isDefined
 
   /**
    * A human readable description of our logging state
@@ -160,6 +167,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     setLogging()
     serialAttached()
     startUDP()
+    btConnection.connectToDevices(onBluetoothConnect)
 
     // If preferences change, automatically toggle logging as needed
     logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
@@ -248,6 +256,30 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     }
   }
 
+  private def onBluetoothConnect(socket: BluetoothSocket) {
+    info("Starting bluetooth")
+    val out = new BufferedOutputStream(socket.getOutputStream, 512)
+
+    val port = new MavlinkStream(out, socket.getInputStream)
+
+    // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
+    val mavSerial = MockAkka.actorOf(port, "btrx")
+    btStream = Some(mavSerial)
+    btSocket = Some(socket)
+
+    // Anything coming from the controller app, forward it to the serial port
+    MavlinkEventBus.subscribe(mavSerial, groundControlId)
+
+    // Also send anything from our active agent to the serial port
+    MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
+
+    // Watch for failures - not needed , we watch in the activity with MyVehicleModel
+    // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
+
+    FlurryAgent.logEvent("bt_attached")
+    startHighValue()
+  }
+
   def serialAttached() {
     AndroidSerial.getDevice.map { sdev =>
 
@@ -308,7 +340,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   }
 
   private def stopHighValue() {
-    if (!serial.isDefined && !udp.isDefined) {
+    if (!serial.isDefined && !udp.isDefined && !btStream.isDefined) {
       FlurryAgent.endTimedEvent("high_value")
 
       if (wakeLock.isHeld)
@@ -331,6 +363,16 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     }
   }
 
+  private def btDetached() {
+    btStream.foreach { a =>
+      a ! PoisonPill
+
+      btStream = None
+      btSocket.foreach(_.close())
+      stopHighValue()
+    }
+  }
+
   override def onDestroy() {
     warn("in onDestroy ******************************")
     setFollowMe(false)
@@ -339,6 +381,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     udp.foreach(_ ! PoisonPill)
     udp = None
     serialDetached()
+    btDetached()
     MockAkka.shutdown()
     super.onDestroy()
   }

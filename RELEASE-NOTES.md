@@ -1,4 +1,5 @@
 # 1.1.03
+* Add support for bluetooth serial links.  Thanks to Pieter@diydrones for donating a bluetooth adapter for me to develop with.
 * Default to speech on for new installs
  
 # 1.1.02
