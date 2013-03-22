@@ -1,4 +1,4 @@
-# 1.1.03
+# 1.2.00
 * Add support for bluetooth serial links.  Thanks to Pieter@diydrones for donating a bluetooth adapter for me to develop with.
 * Default to speech on for new installs
 * Cope with virgin APMs that don't have a GPS and therefore have no waypoints

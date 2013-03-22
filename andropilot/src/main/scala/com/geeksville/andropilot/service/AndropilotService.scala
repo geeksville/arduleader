@@ -34,12 +34,14 @@ import com.geeksville.util.NetTools
 import com.geeksville.akka.InstrumentedActor
 import android.bluetooth.BluetoothSocket
 import java.io.BufferedOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs {
+class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection {
   val groundControlId = 255
 
   /**
@@ -56,15 +58,12 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   private var udp: Option[InstrumentedActor] = None
 
   private var btStream: Option[MavlinkStream] = None
-  private var btSocket: Option[BluetoothSocket] = None
 
   private var follower: Option[FollowMe] = None
 
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
-
-  private val btConnection = new BluetoothConnection
 
   /**
    * Class for clients to access.  Because we know this service always
@@ -169,7 +168,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     setLogging()
     serialAttached()
     startUDP()
-    btConnection.connectToDevices(onBluetoothConnect)
+    connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
     logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
@@ -258,16 +257,15 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     }
   }
 
-  private def onBluetoothConnect(socket: BluetoothSocket) {
+  protected def onBluetoothConnect(in: InputStream, outs: OutputStream) {
     info("Starting bluetooth")
-    val out = new BufferedOutputStream(socket.getOutputStream, 512)
+    val out = new BufferedOutputStream(outs, 512)
 
-    val port = new MavlinkStream(out, socket.getInputStream)
+    val port = new MavlinkStream(out, in)
 
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
     val mavSerial = MockAkka.actorOf(port, "btrx")
     btStream = Some(mavSerial)
-    btSocket = Some(socket)
 
     // Anything coming from the controller app, forward it to the serial port
     MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -280,6 +278,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     FlurryAgent.logEvent("bt_attached")
     startHighValue()
+  }
+
+  protected def onBluetoothDisconnect() {
+    btDetached()
   }
 
   def serialAttached() {
@@ -370,7 +372,6 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       a ! PoisonPill
 
       btStream = None
-      btSocket.foreach(_.close())
       stopHighValue()
     }
   }
@@ -402,41 +403,6 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       .getNotification() // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
-  }
-
-  private def initBluetooth() {
-    /*
-    Log.v("Communication Service", "Defaulting to Bluetooth");
-    module = new BluetoothModule();
-    // -------------------------------------
-    // Ensure that when the service starts we allow the client to reconnect
-    // After a first request, don't bother the user.
-    module.setFirstTimeEnableDevice(true);
-    module.setFirstTimeListDevices(true);
-    * 
-    * 			case MSG_CONNECT_DEVICE:
-				if (msg.getData().containsKey(module.getDeviceAddressString())) {
-					String address = msg.getData().getString(
-							module.getDeviceAddressString());
-					if (address.length() != 0) {
-						connect(address);
-
-					}
-
-				}
-
-				break;
-				* 
-				* then in connect()
-				* 
-					module.connect(device);
-
-					// Start a receive thread.
-					receive = new ReceiveThread();
-					receive.start();
-
-					notifyDeviceConnected();
-    */
   }
 }
 

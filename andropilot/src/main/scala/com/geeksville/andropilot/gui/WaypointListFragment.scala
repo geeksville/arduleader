@@ -186,7 +186,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
   override def isSelected(p: Int) = selected.map(_.msg.seq).getOrElse(-1) == p
 
   private def setAdapter() {
-    for (v <- myVehicle if !v.waypoints.isEmpty) yield {
+    for (v <- myVehicle) yield {
       debug("Setting waypoint list to " + v.waypoints.size + " items")
       setAdapter(v.waypoints)
     }

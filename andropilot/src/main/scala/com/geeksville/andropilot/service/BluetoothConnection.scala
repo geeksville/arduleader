@@ -6,8 +6,11 @@ import scala.collection.JavaConverters._
 import java.util.UUID
 import com.ridemission.scandroid.AndroidLogger
 import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.io.FilterInputStream
 
-class BluetoothConnection(implicit val context: Context) extends AndroidLogger {
+trait BluetoothConnection extends Context with AndroidLogger {
   /// Well known ID for bt serial adapters from deal extreme
   val serialUUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
 
@@ -35,27 +38,45 @@ class BluetoothConnection(implicit val context: Context) extends AndroidLogger {
   }
 
   /**
-   * We will call onConnect when a suitable device is found.  The called routine is now responsible for closing the device.
+   *  The called routine is now responsible for closing the input stream (which will implicitly close the device)
    */
-  def connectToDevices(onConnect: BluetoothSocket => Unit) {
-    foundDevices.foreach { device =>
-      val remoteDev = adapter.getRemoteDevice(device.getAddress)
-      try {
-        val btSocket = remoteDev.createRfcommSocketToServiceRecord(serialUUID)
+  protected def onBluetoothConnect(in: InputStream, out: OutputStream)
 
-        // Block and connect in this thread
-        try {
-          btSocket.connect()
-          onConnect(btSocket)
-        } catch {
-          case ex: IOException =>
-            error("Socket connect failed: " + ex)
-            btSocket.close()
-        }
-      } catch {
-        case ex: IOException =>
-          error("Socket creation failed")
-      }
+  protected def onBluetoothDisconnect()
+
+  private class BTInputWrapper(val s: BluetoothSocket) extends FilterInputStream(s.getInputStream) {
+    override def close() {
+      warn("Closing bluetooth device")
+      super.close()
+      s.close()
+      onBluetoothDisconnect()
     }
   }
+
+  /**
+   * We will call onConnect when a suitable device is found.
+   */
+  def connectToDevices() {
+    if (isEnabled)
+      foundDevices.foreach { device =>
+        val remoteDev = adapter.getRemoteDevice(device.getAddress)
+        try {
+          val btSocket = remoteDev.createRfcommSocketToServiceRecord(serialUUID)
+
+          // Block and connect in this thread
+          try {
+            btSocket.connect()
+            onBluetoothConnect(new BTInputWrapper(btSocket), btSocket.getOutputStream)
+          } catch {
+            case ex: IOException =>
+              error("Socket connect failed: " + ex)
+              btSocket.close()
+          }
+        } catch {
+          case ex: IOException =>
+            error("Socket creation failed")
+        }
+      }
+  }
 }
+

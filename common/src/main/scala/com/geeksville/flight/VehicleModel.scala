@@ -140,7 +140,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   override def onWaypointsDownloaded() {
     super.onWaypointsDownloaded()
 
-    // FIXME - not quite ready?
     startParameterDownload()
   }
 
