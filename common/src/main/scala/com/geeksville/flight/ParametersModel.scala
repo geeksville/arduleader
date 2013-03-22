@@ -128,14 +128,18 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   }
 
   protected def startParameterDownload() {
-    retryingParameters = false
+    // We could be called multiple times, because we are called after every waypoint download.  If we already have parameters,
+    // don't start over
+    if (parametersById.isEmpty) {
+      retryingParameters = false
 
-    // Turn off streaming because those crummy XBee adapters seem to drop critical parameter responses
-    setStreamEnable(false)
+      // Turn off streaming because those crummy XBee adapters seem to drop critical parameter responses
+      setStreamEnable(false)
 
-    log.info("Requesting vehicle parameters")
-    sendWithRetry(paramRequestList(), classOf[msg_param_value])
-    MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)
+      log.info("Requesting vehicle parameters")
+      sendWithRetry(paramRequestList(), classOf[msg_param_value])
+      MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)
+    }
   }
 
   private def requestParameter(i: Int) {

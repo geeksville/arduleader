@@ -129,8 +129,10 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Inst
               self ! PoisonPill
 
             case ex: IOException =>
-              if (!self.isTerminated)
-                throw ex // Ignore errors while shutting down
+              if (!self.isTerminated) {
+                log.error("Killing mavlink stream due to: " + ex)
+                self ! PoisonPill
+              }
           }
         }
       }

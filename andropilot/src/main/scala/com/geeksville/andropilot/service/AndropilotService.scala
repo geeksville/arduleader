@@ -105,6 +105,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def serviceStatus = {
     val linkMsg = if (isSerialConnected)
       "USB Link"
+    else if (btStream.isDefined)
+      "Bluetooth Link"
     else
       udp.map { u =>
         udpMode + " " + NetTools.localIPAddresses.mkString(",")
