@@ -92,6 +92,17 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     r
   }
 
+  /**
+   * Do a manual levelling operation
+   */
+  def commandDoCalibrate(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val r = commandLong(MAV_CMD.MAV_CMD_PREFLIGHT_CALIBRATION, targetSystem, targetComponent)
+    r.param1 = 1 // Per Mission planner
+    r.param2 = 0
+    r.param3 = 1
+    r
+  }
+
   // The following variants aren't really needed, at least for Ardupilot you can just use SET_MODE
 
   def commandLoiter(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM, targetSystem, targetComponent)

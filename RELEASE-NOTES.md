@@ -2,6 +2,7 @@
 * Add support for another FTDI device type
 * Display groundspeed on the overview
 * Allow editing waypoint advanced parameters
+* Add menu option to manually level an Arduplane (useful at the field sometimes)
 
 # 1.2.00
 * Add support for bluetooth serial links.  Thanks to Pieter@diydrones for donating a bluetooth adapter for me to develop with.

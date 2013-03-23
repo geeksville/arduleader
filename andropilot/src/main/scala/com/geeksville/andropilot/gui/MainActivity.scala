@@ -542,6 +542,15 @@ class MainActivity extends FragmentActivity with TypedActivity
           debug("Start followme")
           s.setFollowMe(true)
         }
+
+      case R.id.menu_levelnow =>
+        myVehicle.foreach { v =>
+          if (v.vfrHud.map(_.groundspeed).getOrElse(0.0f) > 0.5f)
+            toast("Can't level vehicle while in motion")
+          else {
+            v.sendMavlink(v.commandDoCalibrate())
+          }
+        }
       case _ =>
     }
 
