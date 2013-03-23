@@ -215,7 +215,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
 object AndroidSerial extends AndroidLogger {
 
-  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && dvr.getProductId == 0x6001
+  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && (dvr.getProductId == 0x6001 || dvr.getProductId == 0x6015)
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
 
   def getDevice(implicit context: Context) = {

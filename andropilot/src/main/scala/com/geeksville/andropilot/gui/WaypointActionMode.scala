@@ -72,35 +72,23 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     // FIXME - if showing a more advanced type, also show the edit box to set # of turns or what have you...
   }
 
-  // Called when the action mode is created; startActionMode() was called
-  override def onCreateActionMode(mode: ActionMode, menu: Menu) = {
-    // Inflate a menu resource providing context menu items
-    val inflater = mode.getMenuInflater()
-    inflater.inflate(R.menu.context_menu, menu)
-
-    // Setup our type spinner
-    val s = menu.findItem(R.id.menu_changetype).getActionView.asInstanceOf[Spinner] // find the spinner
-    setTypeOptions(s)
-
-    val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
-    editAlt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
-    editAlt.setImeOptions(EditorInfo.IME_ACTION_DONE)
-
-    debug("Creating actionMode")
+  private def initEditText(tv: TextView, doGet: WaypointMenuItem => Float, onSet: (WaypointMenuItem, Float) => Unit) {
+    tv.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
+    tv.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
     // Apparently IME_ACTION_DONE fires when the user leaves the edit text
-    editAlt.setOnEditorActionListener(new TextView.OnEditorActionListener {
+    tv.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
         if (actionId == EditorInfo.IME_ACTION_DONE) {
           val str = v.getText.toString
           debug("Editing completed: " + str)
           try {
-            selectedMarker.foreach(_.altitude = str.toDouble)
+            selectedMarker.foreach(onSet(_, str.toFloat))
           } catch {
             case ex: Exception =>
-              error("Error parsing user alt: " + ex)
+              error("Error parsing user entry: " + ex)
           }
-          selectedMarker.foreach { m => v.setText(m.altitude.toString) }
+          selectedMarker.foreach { m => v.setText(doGet(m).toString) }
 
           // Force the keyboard to go away
           val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
@@ -112,6 +100,23 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
           false
       }
     })
+  }
+
+  // Called when the action mode is created; startActionMode() was called
+  override def onCreateActionMode(mode: ActionMode, menu: Menu) = {
+    // Inflate a menu resource providing context menu items
+    val inflater = mode.getMenuInflater()
+    inflater.inflate(R.menu.context_menu, menu)
+
+    // Setup our type spinner
+    val s = menu.findItem(R.id.menu_changetype).getActionView.asInstanceOf[Spinner] // find the spinner
+    setTypeOptions(s)
+
+    debug("Creating actionMode")
+
+    initEditText(menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView], { m => m.altitude.toFloat }, { (m, v) => m.altitude = v })
+    initEditText(menu.findItem(R.id.menu_param1).getActionView.asInstanceOf[TextView], { m => m.getParam(0) }, { (m, v) => m.setParam(0, v) })
+    initEditText(menu.findItem(R.id.menu_param2).getActionView.asInstanceOf[TextView], { m => m.getParam(1) }, { (m, v) => m.setParam(1, v) })
 
     true // Did create a menu
   }
@@ -125,11 +130,13 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     val add = menu.findItem(R.id.menu_add)
     val delete = menu.findItem(R.id.menu_delete)
     val setalt = menu.findItem(R.id.menu_setalt)
+    val param1 = menu.findItem(R.id.menu_param1)
+    val param2 = menu.findItem(R.id.menu_param2)
     val changetype = menu.findItem(R.id.menu_changetype)
     val autocontinue = menu.findItem(R.id.menu_autocontinue)
 
     // Default to nothing
-    Seq(goto, add, delete, setalt, changetype, autocontinue).foreach(_.setVisible(false))
+    Seq(goto, add, delete, setalt, param1, param2, changetype, autocontinue).foreach(_.setVisible(false))
 
     debug("Prepare " + selectedMarker)
 
@@ -151,8 +158,17 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
 
             if (marker.isAltitudeEditable) {
               setalt.setVisible(true)
-              val editAlt = menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView]
-              editAlt.setText(marker.altitude.toString)
+              setalt.getActionView.asInstanceOf[TextView].setText(marker.altitude.toString)
+            }
+
+            val numParams = marker.numParams
+            if (numParams >= 1) {
+              param1.setVisible(true)
+              param1.getActionView.asInstanceOf[TextView].setText(marker.getParam(0).toString)
+            }
+            if (numParams >= 2) {
+              param2.setVisible(true)
+              param2.getActionView.asInstanceOf[TextView].setText(marker.getParam(1).toString)
             }
 
             if (marker.isAllowGoto)

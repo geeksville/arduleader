@@ -30,6 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
@@ -49,6 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
@@ -68,9 +70,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
+        
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ground speed"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <TextView
+                android:id="@+id/groundspeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:gravity="right"
+                android:singleLine="true"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </TableRow>        
                 
         <TableRow
             android:layout_width="match_parent"
@@ -87,6 +110,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
@@ -106,6 +130,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
@@ -125,6 +150,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
@@ -144,6 +170,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>

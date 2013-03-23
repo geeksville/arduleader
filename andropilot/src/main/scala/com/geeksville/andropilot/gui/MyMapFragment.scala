@@ -158,6 +158,13 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         sendWaypointsAndUpdate()
       }
     }
+    override def numParams = wp.numParamsUsed
+    override def getParam(i: Int) = wp.getParam(i)
+    override def setParam(i: Int, n: Float) = {
+      wp.setParam(i, n)
+      setSnippet()
+      sendWaypointsAndUpdate()
+    }
 
     override def title = {
       val r = if (isHome)

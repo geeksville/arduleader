@@ -15,4 +15,7 @@
 
 	<item android:id="@+id/menu_help" android:showAsAction="never"
 		android:title="Help" />
+	
+	<!-- <item android:id="@+id/menu_sethome" android:showAsAction="never"
+		android:title="Set Home" />   -->
 </menu>

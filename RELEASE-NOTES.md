@@ -1,8 +1,13 @@
+# 1.2.02
+* Add support for another FTDI device type
+* Display groundspeed on the overview
+* Allow editing waypoint advanced parameters
+
 # 1.2.00
 * Add support for bluetooth serial links.  Thanks to Pieter@diydrones for donating a bluetooth adapter for me to develop with.
 * Default to speech on for new installs
 * Cope with virgin APMs that don't have a GPS and therefore have no waypoints
- 
+
 # 1.1.02
 * Show airspeed on overview screen
 * Speak warnings for battery levels, radio signal levels, lack of sats
