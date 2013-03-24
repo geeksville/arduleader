@@ -1,3 +1,6 @@
+# 1.2.03
+* Make bluetooth hw optional
+
 # 1.2.02
 * Add support for another FTDI device type
 * Display groundspeed on the overview
