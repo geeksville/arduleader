@@ -308,7 +308,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
-      val r = "Mode " + v.currentMode + (if (!s.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+      val r = "Mode " + v.currentMode + (if (!s.isConnected) " (No Link)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
       //debug("title: " + r)
       r
     }).getOrElse("No service"))
