@@ -205,13 +205,13 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       Some(a)
     } else if (outboundTcpEnabled) {
       // Let aircraft port
-      info("Creating inbound UDP port")
-      val a = MockAkka.actorOf(MavlinkTCP.connect(outboundUdpHost, 5760), "mavtcp")
+      info("Creating outbound TCP port")
+      val a = MockAkka.actorOf(MavlinkTCP.connect(outboundUdpHost, outboundPort), "mavtcp")
 
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, VehicleSimulator.andropilotId)
 
-      FlurryAgent.logEvent("udp_inbound")
+      FlurryAgent.logEvent("tcp_outbound")
       Some(a)
     } else {
       info("No UDP port enabled")

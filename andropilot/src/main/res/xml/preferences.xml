@@ -125,7 +125,7 @@
             android:entries="@array/udp_mode"
             android:entryValues="@array/udp_mode_values"
             android:key="udp_mode"
-            android:summary="Select type of UDP link"
+            android:summary="Select type of network link"
             android:title="UDP mode selection" />
 
         <EditTextPreference
