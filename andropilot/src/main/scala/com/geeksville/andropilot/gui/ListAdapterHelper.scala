@@ -23,8 +23,14 @@ abstract class ListAdapterHelper[T] extends ListFragment with AndroidLogger {
   private var adapterList: Option[java.util.List[java.util.Map[String, Any]]] = None
   private var oldSrc: Option[Seq[T]] = None
 
+  /**
+   * We keep this separately, because newsrc might be indentical to oldsrc therefore the size check won't
+   * succeed
+   */
+  private var oldSize: Int = -1
+
   protected def updateAdapter(newsrc: Seq[T], i: Int) {
-    if (!adapterList.isDefined || oldSrc.map(_.size).getOrElse(-1) != newsrc.size || newsrc != oldSrc.get) {
+    if (!adapterList.isDefined || oldSize != newsrc.size || newsrc != oldSrc.get) {
       debug("Size is wrong, must recreate")
       setAdapter(newsrc);
     } else {
@@ -37,6 +43,7 @@ abstract class ListAdapterHelper[T] extends ListFragment with AndroidLogger {
   protected def setAdapter(src: Seq[T]) {
     debug("Setting list to " + src.size + " items")
     oldSrc = Some(src)
+    oldSize = src.size
 
     val asMap = src.zipWithIndex.map {
       case (p, i) =>
