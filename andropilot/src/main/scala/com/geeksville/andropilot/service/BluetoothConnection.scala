@@ -12,7 +12,9 @@ import java.io.FilterInputStream
 
 trait BluetoothConnection extends Context with AndroidLogger {
   /// Well known ID for bt serial adapters from deal extreme
-  val serialUUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+  // val serialUUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+  // Supposedly all serial devices start with this UUID
+  val serialUUIDprefix = "00001101-"
 
   private val adapter = BluetoothAdapter.getDefaultAdapter
 
@@ -22,15 +24,20 @@ trait BluetoothConnection extends Context with AndroidLogger {
   //val enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
   //context.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 
+  private def getUUID(device: BluetoothDevice) = {
+    val uuids = device.getUuids.map(_.getUuid)
+    uuids.find { uuid => uuid.toString.startsWith(serialUUIDprefix) }
+  }
+
   def foundDevices = {
     val pairedDevices = adapter.getBondedDevices.asScala
     // If there are paired devices
     val r = pairedDevices.find { device =>
-      val uuids = device.getUuids.map(_.getUuid)
+      val uuids = device.getUuids.map(_.getUuid.toString)
       debug("BT dev: %s, addr=%s, class=%s, uuids=%s".format(device.getName, device.getAddress, device.getBluetoothClass, uuids.mkString(",")))
       // Add the name and address to an array adapter to show in a ListView
       //mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
-      uuids.contains(serialUUID)
+      getUUID(device).isDefined
     }
 
     debug("Found BT: " + r)
@@ -61,7 +68,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
       foundDevices.foreach { device =>
         val remoteDev = adapter.getRemoteDevice(device.getAddress)
         try {
-          val btSocket = remoteDev.createRfcommSocketToServiceRecord(serialUUID)
+          val btSocket = remoteDev.createRfcommSocketToServiceRecord(getUUID(device).get)
 
           // Block and connect in this thread
           try {
