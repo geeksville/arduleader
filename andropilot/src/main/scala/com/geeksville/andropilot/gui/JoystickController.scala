@@ -16,6 +16,7 @@ import com.geeksville.flight.DoSetMode
  * Button Y = RTL
  * Button L1 = toggle fence on/off
  * Button R1 = cycle through favorite modes
+ * Button START = return all axis controls to regular RC transmitter
  */
 trait JoystickController extends Activity with AndroidLogger with AndroServiceClient {
 
@@ -42,7 +43,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
         debug("Buttons: " + ev.getButtonState)
       }
 
-      // -1 is up and to the left
+      // -1 is up and to the left for the gamepad
       val throttle = ev.getAxisValue(MotionEvent.AXIS_Y)
       val rudder = ev.getAxisValue(MotionEvent.AXIS_X)
       val elevator = ev.getAxisValue(MotionEvent.AXIS_RZ)
@@ -67,6 +68,8 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
           doToggleFence()
         case KeyEvent.KEYCODE_BUTTON_R1 =>
           doNextMode()
+        case KeyEvent.KEYCODE_BUTTON_START =>
+          stopOverrides()
       }
       true
     } else
@@ -83,6 +86,10 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
   private def doNextMode() {
   }
 
+  private def stopOverrides() {
+    // FIXME
+  }
+
   /**
    * -1 for a channel means leave unchanged
    * 0 for a channel means do not override
@@ -91,6 +98,13 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
     for {
       v <- myVehicle;
       curRc <- v.rcChannels
-    } yield {}
+    } yield {
+      // FIXME - reverse joystick directions based on param reversal values (so we work like the main controller)
+      // FIXME - use the same min/max/trim values as the regular controller 
+      // FIXME - if min/max has not already been set by someone else, they may not have a regular controller - so just pick something
+      // FIXME - use throttle as a virtual throttle - bump the desired throttle up or down as user presses it
+      // FIXME - when we detect an axis has been pressed, claim that axis for control by us
+      // FIXME - whenever service is reconnected, stop all overrides
+    }
   }
 }
