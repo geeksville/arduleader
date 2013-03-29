@@ -138,6 +138,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
+  def rcChannelsOverride(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_rc_channels_override(systemId, componentId)
+
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
   def requestDataStream(id: Int, freqHz: Int, enabled: Boolean, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_request_data_stream(systemId, componentId)
     msg.target_system = targetSystem
@@ -200,6 +208,18 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def missionCount(count: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_mission_count(systemId, componentId)
     msg.count = count
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  /**
+   * DO NOT USE - not supported on Copters
+   */
+  def missionWritePartial(start: Int, end: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_mission_write_partial_list(systemId, componentId)
+    msg.start_index = start
+    msg.end_index = end
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg

@@ -1,26 +1,5 @@
 * For TCP connections, allow user to specify an outpound port #
 
-use     case MAVLINK_MSG_ID_MISSION_WRITE_PARTIAL_LIST:
-    {
-        // decode
-        mavlink_mission_write_partial_list_t packet;
-        mavlink_msg_mission_write_partial_list_decode(msg, &packet);
-        if (mavlink_check_target(packet.target_system,packet.target_component)) break;
-
-        // start waypoint receiving
-        if (packet.start_index > g.command_total ||
-            packet.end_index > g.command_total ||
-            packet.end_index < packet.start_index) {
-            send_text_P(SEVERITY_LOW,PSTR("flight plan update rejected"));
-            break;
-        }
-
-        waypoint_timelast_receive = millis();
-        waypoint_timelast_request = 0;
-        waypoint_receiving   = true;
-        waypoint_request_i   = packet.start_index;
-        waypoint_request_last= packet.end_index;
-
 # 1.2.04
 * Check for bluetooth by device class (should recognize all serial devices, rather than just the Deal Extreme one)
 

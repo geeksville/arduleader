@@ -56,10 +56,13 @@ import com.geeksville.util.Using._
 import com.geeksville.flight.FenceModel
 import com.geeksville.flight.DoLoadWaypoints
 import scala.concurrent.duration._
+import android.view.InputDevice
+import scala.collection.JavaConverters._
+import android.view.KeyEvent
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
-  with AndroServiceClient {
+  with AndroServiceClient with JoystickController {
 
   implicit def context = this
 
@@ -593,7 +596,6 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
-
 }
 
 object MainActivity {
