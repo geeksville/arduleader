@@ -8,6 +8,7 @@ import org.mavlink.messages._
 import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.mavlink.SendYoungest
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
@@ -59,6 +60,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def systemId: Int
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
+  def sendMavlink(m: SendYoungest) = MavlinkEventBus.publish(m)
 
   override def postStop() {
     log.debug("cancelling heartbeat sender")

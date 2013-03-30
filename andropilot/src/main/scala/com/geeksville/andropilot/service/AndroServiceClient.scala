@@ -39,7 +39,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
   /**
    * Override if you need to do stuff once the connection is up
    */
-  def onServiceConnected(s: AndropilotService) {
+  protected def onServiceConnected(s: AndropilotService) {
   }
 
   private val serviceConnection = new ServiceConnection() {

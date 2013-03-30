@@ -13,7 +13,8 @@ object MavlinkEventBus extends EventStream with Logging {
   def subscribe(a: InstrumentedActor, sysId: Int) = {
     def interested(ev: Any) = {
       val r = ev match {
-        case m: MAVLinkMessage => (m.sysId == sysId) || (sysId == -1)
+        case SendYoungest(m) if (m.sysId == sysId) || (sysId == -1) => true
+        case m: MAVLinkMessage if (m.sysId == sysId) || (sysId == -1) => true
         case _ => false
       }
 

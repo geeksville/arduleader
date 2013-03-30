@@ -10,7 +10,15 @@ import com.geeksville.flight.VehicleClient
 object MavlinkAndroid {
   def create(baudRate: Int)(implicit context: Context) = {
     val port = new AndroidSerial(baudRate)
-    val out = new BufferedOutputStream(port.out, 512) // we buffer so a single flush can be used to squirt out an entire packet
+
+    // Actually buffering output is bad and unneeded, because the only place we do a write is a single call in MavlinkStream and that call is careful to
+    // write all bytes in one go.
+
+    // It is better to leave the output buffer as shallow as possible so we have the option to wrap packets with SendOnce().  If a packet is wrapped inside
+    // a SendOnce instance we will scour the MavlinkStream actor incoming message queue for dups and send _only_ the freshest packet with that ID.
+    // This allows us to be sure things like joystick set rc-chanel events never get bunched up.
+
+    //val out = new BufferedOutputStream(port.out, 512) // we buffer so a single flush can be used to squirt out an entire packet
     // val out = port.out // For now no buffering
 
     // Buffer reads a little, so the dumb byte reads in MAVLinkReader don't kill us
@@ -21,6 +29,6 @@ object MavlinkAndroid {
 
     VehicleClient.isUsbBusted = AsyncSerial.isUsbBusted
 
-    new MavlinkStream(out, instream)
+    new MavlinkStream(port.out, instream)
   }
 }

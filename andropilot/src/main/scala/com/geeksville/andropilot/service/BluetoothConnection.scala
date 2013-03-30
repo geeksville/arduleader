@@ -35,6 +35,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
     val r = pairedDevices.find { device =>
       val uuids = device.getUuids.map(_.getUuid.toString)
       debug("BT dev: %s, addr=%s, class=%s, uuids=%s".format(device.getName, device.getAddress, device.getBluetoothClass, uuids.mkString(",")))
+
       // Add the name and address to an array adapter to show in a ListView
       //mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
       getUUID(device).isDefined

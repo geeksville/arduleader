@@ -5,7 +5,6 @@ import org.mavlink.messages.MAVLinkMessage
 /**
  * published on our eventbus when a new packet arrives from the outside world
  */
-// case class MavlinkReceived(message: MAVLinkMessage)
 
 /**
  * Common code for any gateway that receives mavlink messages into our actor system

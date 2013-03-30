@@ -19,7 +19,7 @@ import scala.concurrent._
 /**
  * Talks mavlink out a serial port
  */
-class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends InstrumentedActor with MavlinkReceiver {
+class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends MavlinkSender with MavlinkReceiver {
 
   log.debug("MavlinkStream starting")
   MavlinkStream.isIgnoreReceive = false
@@ -42,20 +42,18 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Inst
   // Mission control does this, seems to be necessary to keep device from hanging up on us
   //out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
 
-  def onReceive = {
-    case msg: MAVLinkMessage ⇒
-      //log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
+  protected def doSendMavlink(bytes: Array[Byte]) {
+    //log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
 
-      try {
-        val bytes = msg.encode()
-        blocking {
-          out.write(bytes)
-          out.flush()
-        }
-      } catch {
-        case ex: IOException =>
-          log.error("Error sending packet: " + ex.getMessage)
+    try {
+      blocking {
+        out.write(bytes)
+        out.flush()
       }
+    } catch {
+      case ex: IOException =>
+        log.error("Error sending packet: " + ex.getMessage)
+    }
   }
 
   override def postStop() {

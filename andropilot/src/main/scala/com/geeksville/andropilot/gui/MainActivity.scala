@@ -341,7 +341,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
   }
 
-  private def handleParameters() {
+  override protected def handleParameters() {
+    super.handleParameters()
+
     // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
 
     if (paramsToFile)
