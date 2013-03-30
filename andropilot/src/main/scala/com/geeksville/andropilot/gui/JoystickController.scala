@@ -179,7 +179,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
    * 0 for a channel means do not override
    */
   private def sendOverride() {
-    debug("sendOverride")
+    //debug("sendOverride")
     for {
       v <- myVehicle;
       curRc <- v.rcChannels

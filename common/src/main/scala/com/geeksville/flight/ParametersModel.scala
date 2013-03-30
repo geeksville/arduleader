@@ -149,7 +149,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
       log.info("Requesting vehicle parameters")
       sendWithRetry(paramRequestList(), classOf[msg_param_value])
-      finisher = Some(MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters))
+      finisher = Some(MockAkka.scheduler.scheduleOnce(40 seconds, ParametersModel.this, FinishParameters))
     }
   }
 

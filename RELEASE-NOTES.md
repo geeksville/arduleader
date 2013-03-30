@@ -1,4 +1,6 @@
 * For TCP connections, allow user to specify an outpound port #
+* Parameter download is much faster for most devices
+* Add a servos output tab that shows raw values driven to vehicle servos
 
 # 1.2.04
 * Check for bluetooth by device class (should recognize all serial devices, rather than just the Deal Extreme one)

@@ -87,7 +87,8 @@ class MainActivity extends FragmentActivity with TypedActivity
     PageInfo("Parameters", { () => new ParameterPane() }),
     PageInfo("Waypoints", { () => new WaypointListFragment }),
     PageInfo("HUD", { () => new HudFragment }),
-    PageInfo("RC Channels", { () => new RcChannelsFragment }))
+    PageInfo("RC Channels", { () => new RcChannelsFragment }),
+    PageInfo("Servos", { () => new ServoOutputFragment }))
 
   /**
    * If we don't have enough horizontal width - the layout will move the map into the only (pager) view.
