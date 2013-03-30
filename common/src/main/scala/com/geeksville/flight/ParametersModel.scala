@@ -40,6 +40,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   private var retryingParameters = false
   var unsortedParameters = new Array[ParamValue](0)
 
+  var finisher: Option[Cancellable] = None
+
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
@@ -115,11 +117,20 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
         if (retryingParameters) {
           readNextParameter()
         } else {
+
+          // Are we done with our initial download early?  If so, we can publish done right now
+          if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
+            finisher = None
+            self ! FinishParameters
+          }
+
           // After we have a sorted param list, we will start publishing updates for individual parameters
           val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
-          log.debug("publishing param " + paramNum)
-          if (paramNum != -1)
+
+          if (paramNum != -1) {
+            log.debug("publishing param " + paramNum)
             eventStream.publish(MsgParameterReceived(paramNum))
+          }
         }
       }
 
@@ -138,7 +149,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
       log.info("Requesting vehicle parameters")
       sendWithRetry(paramRequestList(), classOf[msg_param_value])
-      MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters)
+      finisher = Some(MockAkka.scheduler.scheduleOnce(20 seconds, ParametersModel.this, FinishParameters))
     }
   }
 
