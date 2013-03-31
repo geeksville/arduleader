@@ -174,7 +174,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
         throttleMoved = isMoved(MotionEvent.AXIS_Y)
         //debug("set throttle moved %s, because %s is outside %s".format(throttleMoved, getAxisValue(MotionEvent.AXIS_Y), dev.getMotionRange(MotionEvent.AXIS_Y, ev.getSource).getFlat))
 
-        if (!isOverriding && (throttleMoved || isMoved(MotionEvent.AXIS_X) || isMoved(MotionEvent.AXIS_RZ) || isMoved(MotionEvent.AXIS_Z)))
+        if (throttleMoved || isMoved(MotionEvent.AXIS_X) || isMoved(MotionEvent.AXIS_RZ) || isMoved(MotionEvent.AXIS_Z))
           startOverride()
       }
 
@@ -255,6 +255,8 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
       fenceOverridden = true
       fenceEnabled = !fenceEnabled
       debug("new fence state: " + fenceEnabled)
+      startOverride()
+      sendOverride()
     }
   }
 
@@ -274,16 +276,18 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
   }
 
   private def startOverride() {
-    // On first we need to read some calibration from the device
-    if (!sticksEnabled)
-      getParameters()
+    if (!isOverriding) {
+      // On first we need to read some calibration from the device
+      if (!sticksEnabled)
+        getParameters()
 
-    isOverriding = true
+      isOverriding = true
 
-    // Pull over current throttle setting
-    for (v <- myVehicle; rc <- v.rcChannels) yield {
-      val oldthrottle = rc.chan3_raw
-      throttle = axis(2).unscale(oldthrottle)
+      // Pull over current throttle setting
+      for (v <- myVehicle; rc <- v.rcChannels) yield {
+        val oldthrottle = rc.chan3_raw
+        throttle = axis(2).unscale(oldthrottle)
+      }
     }
   }
 
