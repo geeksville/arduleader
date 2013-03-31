@@ -40,6 +40,10 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
   private var aileron = 0f
   private var elevator = 0f
 
+  private val aileronScale = 0.8f
+  private val elevatorScale = 0.8f
+  private val rudderScale = 0.8f
+
   /// Are we driving the four primary axes?
   private var isOverriding = false
 
@@ -63,12 +67,12 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
    * @param reverse -1 or 1 depending on how vehicle is configured
    * @param stickBackwards if true then the android controller direction is swapped from how airplanes should fly
    */
-  case class AxisInfo(reverse: Int = 1, min: Int = 1000, max: Int = 2000, trim: Int = 1500, stickBackwards: Boolean = false) {
+  case class AxisInfo(reverse: Int = 1, min: Int = 1000, max: Int = 2000, trim: Int = 1500, scaleVal: Float = 1.0f, stickBackwards: Boolean = false) {
     /// reverse joystick directions based on param reversal values (so we work like the main controller)
     /// @return a correct RC channel value for the specified joystick input
     def scale(raw: Float) = {
       // Convert to a range from -1 to 1 with all proper reversals done
-      val stick = raw * reverse * (if (stickBackwards) -1 else 1)
+      val stick = raw * reverse * (if (stickBackwards) -1 else 1) * scaleVal
 
       // Scale linearly on either side but be careful to leave the trim position in the middle
       if (stick >= 0)
@@ -80,7 +84,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
     /// throttle scales differently, it ignores trim, rather 0 maps to min and 1 maps to max
     def scaleThrottle(raw: Float) = {
       // Convert to a range from 0 to 1 with all proper reversals done
-      val stick = raw * reverse * (if (stickBackwards) -1 else 1)
+      val stick = raw * reverse * (if (stickBackwards) -1 else 1) * scaleVal
 
       (stick * (max - min) + min).toInt
     }
@@ -89,7 +93,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
      * Given a servo usec value return a value between 0 and 1 (scaling and reversing)
      */
     def unscale(raw: Int) = {
-      val r = reverse * (raw.toFloat - min) / (max - min)
+      val r = (reverse * (raw.toFloat - min) / (max - min)) / scaleVal
 
       debug("Unscale " + raw + " to " + r)
 
@@ -114,20 +118,22 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
     myVehicle.foreach { v =>
       fenceChannel = v.fenceChannel
 
-      def makeInfo(ch: Int, backwards: Boolean, trimDefault: Int = 1500) = {
+      def makeInfo(ch: Int, backwards: Boolean, scaleVal: Float = 1.0f, trimDefault: Int = 1500) = {
         val r = AxisInfo(
           v.parametersById("RC" + ch + "_REV").getInt.getOrElse(1),
           v.parametersById("RC" + ch + "_MIN").getInt.getOrElse(1000),
           v.parametersById("RC" + ch + "_MAX").getInt.getOrElse(2000),
           v.parametersById("RC" + ch + "_TRIM").getInt.getOrElse(trimDefault),
+          scaleVal,
           backwards)
 
         debug("Got axis: " + r)
         r
       }
 
-      // Elevator is reversed vs standard android gamepad (forward should get larger)
-      axis = Array(makeInfo(1, false), makeInfo(2, true), makeInfo(3, false, trimDefault = 1000), makeInfo(4, false))
+      // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
+      axis = Array(makeInfo(1, false, scaleVal = aileronScale), makeInfo(2, false, scaleVal = elevatorScale), makeInfo(3, false, trimDefault = 1000),
+        makeInfo(4, false, scaleVal = rudderScale))
       sticksEnabled = true
 
       // Tell the vehicle we are controlling it - FIXME - do this someplace better

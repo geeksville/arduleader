@@ -1,3 +1,8 @@
+# 1.2.06
+* Scale down the gamepad inputs so they have more useful dynamic range
+* Fix gamepad elevator direction
+* Add support for multipane view on Note2 sized devices
+
 # 1.2.05
 * Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.  
 * Thanks to Robert W, Earl C, Jack O, Linux P, Anthony G, Robert L, Jeremy Z and Rana for donating so I could buy a gaming tablet.  Not yet purchased, but without their prodding I wouldn't have gotten around to
