@@ -156,5 +156,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private def setMode(mode: String) {
     sendMavlink(setMode(modeToCodeMap(mode)))
   }
+  
+  
 }
 

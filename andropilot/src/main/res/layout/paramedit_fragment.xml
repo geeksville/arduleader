@@ -27,7 +27,7 @@
             android:singleLine="true"
             android:text="432" >
 
-            <requestFocus />
+            <!-- Breaks keyboard <requestFocus /> -->
         </EditText>
 
         <Spinner

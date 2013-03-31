@@ -5,6 +5,8 @@
 * Add a servos output tab that shows raw values driven to vehicle servos
 * Fix problem where bluetooth connections would be torn down on screen rotation
 * Fix problem where sometimes the vehicle mode would be listed wrong on application start
+* Somehow I had disabled showing the keyboard for waypoint altitudes - fixed
+* Default to showing the keyboard if we edit a parameter or waypoint
 
 # 1.2.04
 * Check for bluetooth by device class (should recognize all serial devices, rather than just the Deal Extreme one)

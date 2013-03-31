@@ -76,6 +76,9 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     tv.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
     tv.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
+    imm.showSoftInput(tv, InputMethodManager.SHOW_IMPLICIT)
+
     // Apparently IME_ACTION_DONE fires when the user leaves the edit text
     tv.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
@@ -91,7 +94,6 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
           selectedMarker.foreach { m => v.setText(doGet(m).toString) }
 
           // Force the keyboard to go away
-          val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
           imm.hideSoftInputFromWindow(v.getWindowToken, 0)
 
           // We handled the event

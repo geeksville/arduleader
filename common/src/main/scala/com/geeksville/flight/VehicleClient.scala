@@ -47,9 +47,9 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
   }
 
   case class RetryContext(val retryPacket: MAVLinkMessage, val expectedResponse: Class[_]) {
-    val numRetries = 5
+    val numRetries = 10
     var retriesLeft = numRetries
-    val retryInterval = 5000
+    val retryInterval = 1000
     var retryTimer: Option[Cancellable] = None
 
     sendPacket()
