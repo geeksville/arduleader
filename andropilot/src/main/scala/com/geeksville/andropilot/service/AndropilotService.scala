@@ -36,6 +36,7 @@ import android.bluetooth.BluetoothSocket
 import java.io.BufferedOutputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.IOException
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -318,6 +319,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       } catch {
         case ex: NoAcquirePortException => // Some crummy android devices do not allow device to be acquired
           error("Can't acquire port")
+          usageEvent("serial_error", "message" -> ex.getMessage)
+        case ex: IOException =>
+          error("Error opening port: " + ex.getMessage)
+          usageEvent("serial_error", "message" -> ex.getMessage)
       }
     }.getOrElse {
       warn("No serial port found by service")
@@ -333,7 +338,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       warn("Manually starting service - need to stop it somewhere...")
       startService(new Intent(this, classOf[AndropilotService]))
 
-      FlurryAgent.logEvent("high_value", true)
+      beginTimedEvent("high_value")
 
       // We are doing something important now - please don't kill us
       requestForeground()
@@ -345,7 +350,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   private def stopHighValue() {
     if (!isConnected) {
-      FlurryAgent.endTimedEvent("high_value")
+      endTimedEvent("high_value")
 
       if (wakeLock.isHeld)
         wakeLock.release()
