@@ -25,7 +25,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
   //context.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
 
   private def getUUID(device: BluetoothDevice) = {
-    val uuids = device.getUuids.map(_.getUuid)
+    val uuids = Option(device.getUuids).getOrElse(Array()).map(_.getUuid)
     uuids.find { uuid => uuid.toString.startsWith(serialUUIDprefix) }
   }
 
@@ -33,7 +33,9 @@ trait BluetoothConnection extends Context with AndroidLogger {
     val pairedDevices = adapter.getBondedDevices.asScala
     // If there are paired devices
     val r = pairedDevices.find { device =>
-      val uuids = device.getUuids.map(_.getUuid.toString)
+
+      // Fix an auto bug, some devices out there seem able to return null for getUuids or getUUid
+      val uuids = Option(device.getUuids).getOrElse(Array()).map(_.getUuid.toString)
       debug("BT dev: %s, addr=%s, class=%s, uuids=%s".format(device.getName, device.getAddress, device.getBluetoothClass, uuids.mkString(",")))
 
       // Add the name and address to an array adapter to show in a ListView
