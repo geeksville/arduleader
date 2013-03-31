@@ -28,18 +28,20 @@ class Scheduler extends Logging {
     logger.error("Done shutting down scheduler numTasks=" + wasRunning.size)
   }
 
-  def scheduleOnce(d: Duration, dest: InstrumentedActor, msg: Any) = {
+  def scheduleOnce(d: Duration, dest: InstrumentedActor, msg: Any): Cancellable = {
 
-    val msecs = d.toMillis
-
-    def cb = new Runnable {
-      def run() {
-        // logger.info("handle once")
-        dest ! msg
-      }
+    def run() {
+      // logger.info("handle once")
+      dest ! msg
     }
+
+    scheduleOnce(d)(run)
+  }
+
+  def scheduleOnce(d: Duration)(cb: () => Unit): Cancellable = {
+
     //logger.debug("scheduling once " + msecs + " msg " + msg)
-    val r = jscheduler.schedule(cb, msecs, TimeUnit.MILLISECONDS)
+    val r = jscheduler.schedule(cb, d.toMillis, TimeUnit.MILLISECONDS)
     //logger.debug("Measured delay: " + r.getDelay(TimeUnit.MILLISECONDS))
 
     Cancellable(r)
