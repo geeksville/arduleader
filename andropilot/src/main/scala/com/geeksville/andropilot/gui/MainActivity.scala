@@ -167,10 +167,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case MsgModeChanged(_) =>
       handler.post { () =>
+        debug("modeChanged received")
         myVehicle.foreach { v =>
           if (oldVehicleType != v.vehicleType) {
             usageEvent("vehicle_type", "type" -> v.vehicleType.toString)
-            oldVehicleType = v.vehicleType
             setModeOptions()
           }
           usageEvent("set_mode", "mode" -> v.currentMode)
@@ -487,10 +487,14 @@ class MainActivity extends FragmentActivity with TypedActivity
    * Update the set of options in the mode menu (called when vehicle type changes)
    */
   private def setModeOptions() {
+    debug("Setting modeOptions")
     for { s <- modeSpinner; v <- myVehicle } yield {
       val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this), android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
       // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
       s.setAdapter(spinnerAdapter); // set the adapter
+
+      // We have now recorded our vehicle type
+      oldVehicleType = v.vehicleType
     }
   }
 
