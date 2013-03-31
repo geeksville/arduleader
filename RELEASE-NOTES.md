@@ -1,5 +1,7 @@
 # 1.2.05
-* Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.
+* Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.  
+* Thanks to Robert W, Earl C, Jack O, Linux P, Anthony G, Robert L, Jeremy Z and Rana for donating so I could buy a gaming tablet.  Not yet purchased, but without their prodding I wouldn't have gotten around to
+adding gamepad support for a while...
 * For TCP connections, allow user to specify an outpound port #
 * Parameter download is much faster for most devices
 * Add a servos output tab that shows raw values driven to vehicle servos
