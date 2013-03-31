@@ -59,6 +59,7 @@ import scala.concurrent.duration._
 import android.view.InputDevice
 import scala.collection.JavaConverters._
 import android.view.KeyEvent
+import android.content.pm.ActivityInfo
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -222,6 +223,11 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     debug("Main onCreate")
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
+
+    // If we are on a phone sized device disallow landscape mode (our panes become too small
+    if (getResources.getConfiguration.smallestScreenWidthDp < 480) {
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    }
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
     setContentView(mainView)
