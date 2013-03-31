@@ -1,8 +1,9 @@
-# 1.2.06
+# 1.2.07
 * Scale down the gamepad inputs so they have more useful dynamic range
 * Fix gamepad elevator direction
 * Add support for multipane view on Note2 sized devices
 * Disallow landscape view on phone sized devices (our info pane gets too small to be useful)
+* Don't ever use param read by index, because it is not supported on older AC builds
 
 # 1.2.05
 * Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.  

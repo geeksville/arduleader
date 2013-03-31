@@ -132,9 +132,18 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
-  def paramRequestRead(paramIndex: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+  def paramRequestReadByIndex(paramIndex: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_param_request_read(systemId, componentId)
     msg.param_index = paramIndex
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def paramRequestReadById(id: String, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_param_request_read(systemId, componentId)
+    msg.param_index = -1
+    msg.setParam_id(id)
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg

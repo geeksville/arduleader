@@ -128,6 +128,9 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkC
    * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
    */
   protected def setStreamEnable(enabled: Boolean) {
+
+    log.info("Setting stream enable: " + enabled)
+
     val defaultFreq = 1
     val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
       MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
