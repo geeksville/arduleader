@@ -15,6 +15,8 @@ import com.geeksville.andropilot.TR
 import com.geeksville.andropilot.FlurryClient
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.view.inputmethod.InputMethodManager
+import android.content.Context
 
 class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger with FlurryClient {
   setCancelable(true)
@@ -34,6 +36,10 @@ class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends Dialog
 
     param.getId.foreach { id => v.findView(TR.param_label).setText(id) }
     param.getValue.foreach { pv => valueView.setText(pv.toString) }
+
+    // Make sure the keyboard shows
+    val imm = getActivity.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
+    imm.showSoftInput(valueView, InputMethodManager.SHOW_IMPLICIT)
 
     // Does this parameter have specified value choices?  If so, then use a spinner instead of edittext
     param.docs.flatMap(_.valueMap).foreach { valueMap =>
