@@ -225,8 +225,12 @@ class MainActivity extends FragmentActivity with TypedActivity
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
     // If we are on a phone sized device disallow landscape mode (our panes become too small
-    if (getResources.getConfiguration.smallestScreenWidthDp < 480) {
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    try {
+      if (getResources.getConfiguration.smallestScreenWidthDp < 480)
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+    } catch {
+      case ex: NoSuchFieldError =>
+      // Must be on an old version of android - ignore
     }
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
