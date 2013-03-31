@@ -1,6 +1,10 @@
+# 1.2.05
+* Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.
 * For TCP connections, allow user to specify an outpound port #
 * Parameter download is much faster for most devices
 * Add a servos output tab that shows raw values driven to vehicle servos
+* Fix problem where bluetooth connections would be torn down on screen rotation
+* Fix problem where sometimes the vehicle mode would be listed wrong on application start
 
 # 1.2.04
 * Check for bluetooth by device class (should recognize all serial devices, rather than just the Deal Extreme one)

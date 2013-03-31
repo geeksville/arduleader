@@ -96,7 +96,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def isFollowMe = follower.isDefined
 
   // Are we talking to a device at all?
-  def isConnected = isSerialConnected || (udp.isDefined && inboundUdpEnabled) || btStream.isDefined
+  def isConnected = isSerialConnected || udp.isDefined || btStream.isDefined
 
   /**
    * A human readable description of our logging state
@@ -328,7 +328,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    * We are now doing something important - don't kill us just because the activity goes away
    */
   private def startHighValue() {
-    if (serial.isDefined || udp.isDefined) {
+    if (isConnected) {
       // The service will now want a way to override our service lifecycle
       warn("Manually starting service - need to stop it somewhere...")
       startService(new Intent(this, classOf[AndropilotService]))
@@ -344,7 +344,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   }
 
   private def stopHighValue() {
-    if (!serial.isDefined && !udp.isDefined && !btStream.isDefined) {
+    if (!isConnected) {
       FlurryAgent.endTimedEvent("high_value")
 
       if (wakeLock.isHeld)
