@@ -1,3 +1,6 @@
+# 1.2.12
+* Fix the damn Samsung Note
+
 # 1.2.07
 * Scale down the gamepad inputs so they have more useful dynamic range
 * Fix gamepad elevator direction

@@ -218,20 +218,34 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  private def screenWidthDp = try {
+    getResources.getConfiguration.smallestScreenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenIsLong = try {
+    (getResources.getConfiguration.screenLayout & Configuration.SCREENLAYOUT_LONG_MASK) == Configuration.SCREENLAYOUT_LONG_YES
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      false
+  }
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
     debug("Main onCreate")
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
-    // If we are on a phone sized device disallow landscape mode (our panes become too small
-    try {
-      if (getResources.getConfiguration.smallestScreenWidthDp < 480)
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-    } catch {
-      case ex: NoSuchFieldError =>
-      // Must be on an old version of android - ignore
-    }
+    // If we are on a phone sized device disallow landscape mode (our panes become too small)
+    // Check for a 'long' screen as a hack to turn off this code for samsung note
+    // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
+    // Height: My galaxy nexus is 567, so say <600 means a phone...
+    if (screenWidthDp <= 360 && !screenIsLong)
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
     setContentView(mainView)
@@ -326,6 +340,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     // Force the screen on if the user wants that 
     viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
+
+    //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
   }
 
   override def onPause() {
@@ -348,8 +364,8 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onDestroy()
   }
 
-  private def toast(str: String) {
-    Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
+  private def toast(str: String, isLong: Boolean = false) {
+    Toast.makeText(this, str, if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
   }
 
   override protected def handleParameters() {
