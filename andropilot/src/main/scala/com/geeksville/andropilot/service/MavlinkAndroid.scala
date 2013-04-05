@@ -9,7 +9,7 @@ import com.geeksville.flight.VehicleClient
 import com.ridemission.scandroid.AndroidLogger
 
 object MavlinkAndroid extends AndroidLogger {
-  val useNativeFtdi = false
+  val useNativeFtdi = true
 
   def create(baudRate: Int)(implicit context: Context) = {
     // Is the device ftdi based?  If so, we have the option of using their native library
@@ -43,7 +43,7 @@ object MavlinkAndroid extends AndroidLogger {
     //val instream = new BufferedInputStream(port.in, 64)
     val instream = port.in
 
-    VehicleClient.isUsbBusted = AsyncSerial.isUsbBusted
+    VehicleClient.isUsbBusted = !port.isInstanceOf[FTDISerial] && AsyncSerial.isUsbBusted
 
     new MavlinkStream(port.out, instream)
   }

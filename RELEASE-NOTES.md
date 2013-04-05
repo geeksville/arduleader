@@ -1,6 +1,8 @@
+# 1.2.15
+* Experiment with using the FTDI library
+
 # 1.2.13
 * Fix the damn Samsung Note
-FIXME - warn if tx direction is not properly wired
 
 # 1.2.07
 * Scale down the gamepad inputs so they have more useful dynamic range

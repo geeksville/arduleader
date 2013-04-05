@@ -38,7 +38,7 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
       assert(off == 0)
 
       val timeoutMsec = 1000
-      val r = devOpt.map(_.read(arr, off, timeoutMsec)).getOrElse(0)
+      val r = devOpt.map(_.read(arr, numrequested, timeoutMsec)).getOrElse(0)
       debug("Read returns " + r)
       r
     }
@@ -64,7 +64,9 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
       debug("Writing: " + b.take(len).mkString(","))
       // async.foreach(_.write(b, writeTimeout))
       assert(off == 0)
-      devOpt.foreach(_.write(b, len, false))
+
+      // We wait for writes to complete, so if we get backed up we can make a decision on handling on a packet by packet basis
+      devOpt.foreach(_.write(b, len, true))
     }
   }
 
@@ -88,7 +90,10 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
     dev.setDataCharacteristics(D2xxManager.FT_DATA_BITS_8,
       D2xxManager.FT_STOP_BITS_1, D2xxManager.FT_PARITY_NONE)
     dev.setFlowControl(D2xxManager.FT_FLOW_NONE, 0.toByte, 0.toByte)
-    dev.setLatencyTimer(16.toByte)
+
+    // Bunch up reads into 32msec buckets
+    dev.setLatencyTimer(32.toByte)
+
     dev.purge((D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX).toByte)
     devOpt = Some(dev)
     info("Done opening FTDI")
