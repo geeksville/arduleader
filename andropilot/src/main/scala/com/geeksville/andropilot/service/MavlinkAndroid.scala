@@ -6,10 +6,26 @@ import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.flight.VehicleModel
 import com.geeksville.aserial.AsyncSerial
 import com.geeksville.flight.VehicleClient
+import com.ridemission.scandroid.AndroidLogger
 
-object MavlinkAndroid {
+object MavlinkAndroid extends AndroidLogger {
+  val useNativeFtdi = false
+
   def create(baudRate: Int)(implicit context: Context) = {
-    val port = new AndroidSerial(baudRate)
+    // Is the device ftdi based?  If so, we have the option of using their native library
+    val isFtdiDevice = AndroidSerial.getDevice.map { d => AndroidSerial.isTelemetry(d) }.getOrElse(false)
+
+    val port = if (useNativeFtdi && isFtdiDevice)
+      try {
+        new FTDISerial(baudRate)
+      } catch {
+        case ex: Exception =>
+          error("FTDI failed: " + ex)
+          // Fall back to old version
+          new USBAndroidSerial(baudRate)
+      }
+    else
+      new USBAndroidSerial(baudRate)
 
     // Actually buffering output is bad and unneeded, because the only place we do a write is a single call in MavlinkStream and that call is careful to
     // write all bytes in one go.
