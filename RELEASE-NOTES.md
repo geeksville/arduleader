@@ -1,3 +1,6 @@
+# 1.2.17
+* Update to latest parameter docs (AC 2.91b/AP 2.71)
+
 # 1.2.16
 * Merge in a fix contributed by danpe: Make maps more reliable when internet connection is marginal
 * Allow entering negative numbers on the parameter and waypoint editors
