@@ -141,5 +141,8 @@ Done!  You should now have the app running on your USB debugging connected table
 ### Working with eclipse
 If you would like to use eclipse, then type "eclipse" at the sbt prompt to autogenerate the project files.  Then go into eclipse and import all of the project directories in this tree.
 
-
+### Making Google Maps work
+To enable Google Maps after compiling you'll need to generate a new key and replace that key in the manifest.
+Please follow [Installing The Google Maps Android V2 API](https://developers.google.com/maps/documentation/android/start#installing_the_google_maps_android_v2_api)
+The default location of the auto generated debug.keystore is at ```SDK_LOCATION/.android/debug.keystore```
 
