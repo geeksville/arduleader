@@ -11,6 +11,7 @@ would like to use this code in your own project, the source is located in the ma
 * Copter-gcs provided the nice HUD display code
 * Wiki documentation mainly by Peter Meister
 * Most icons by Scott Berfield
+* Danpe made [maps more reliable](https://github.com/geeksville/arduleader/pull/54)
 * Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
 * Pieter@Diydrones bought me a bluetooth serial adapter to test with
 * Thanks to Robert W, Earl C, Jack O, Linux P, Anthony G, Robert L, Jeremy Z and Rana for donating so I could buy a gaming tablet.  Not yet purchased, but without their prodding I wouldn't have gotten around to adding gamepad support for a while...
