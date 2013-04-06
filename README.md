@@ -11,6 +11,7 @@ would like to use this code in your own project, the source is located in the ma
 * Copter-gcs provided the nice HUD display code
 * Wiki documentation mainly by Peter Meister
 * Most icons by Scott Berfield
+* Danpe made [maps more reliable](https://github.com/geeksville/arduleader/pull/54)
 * Mission Motors Inc. kindly open source the tiny HTTP server we now embed into the application
 * Pieter@Diydrones bought me a bluetooth serial adapter to test with
 * Thanks to Robert W, Earl C, Jack O, Linux P, Anthony G, Robert L, Jeremy Z and Rana for donating so I could buy a gaming tablet.  Not yet purchased, but without their prodding I wouldn't have gotten around to adding gamepad support for a while...
@@ -141,5 +142,8 @@ Done!  You should now have the app running on your USB debugging connected table
 ### Working with eclipse
 If you would like to use eclipse, then type "eclipse" at the sbt prompt to autogenerate the project files.  Then go into eclipse and import all of the project directories in this tree.
 
-
+### Making Google Maps work
+To enable Google Maps after compiling you'll need to generate a new key and replace that key in the manifest.
+Please follow [Installing The Google Maps Android V2 API](https://developers.google.com/maps/documentation/android/start#installing_the_google_maps_android_v2_api)
+The default location of the auto generated debug.keystore is at ```SDK_LOCATION/.android/debug.keystore```
 
