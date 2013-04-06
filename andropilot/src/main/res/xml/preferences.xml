@@ -54,14 +54,14 @@
         <EditTextPreference
             android:defaultValue="0"
             android:dialogTitle="Minimum distance in lead-it mode"
-            android:inputType="number"
+            android:inputType="number|numberSigned"
             android:key="minfollow_distance"
             android:summary="If greater than zero, tilting tablet will move vehicle"
             android:title="Lead-it Minimum distance" />
         <EditTextPreference
             android:defaultValue="0"
             android:dialogTitle="Maximum distance in lead-it mode"
-            android:inputType="number"
+            android:inputType="number|numberSigned"
             android:key="maxfollow_distance"
             android:summary="If greater than zero, tilting tablet will move vehicle"
             android:title="Lead-it Maximum distance" />

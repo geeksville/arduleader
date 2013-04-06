@@ -1,3 +1,7 @@
+# 1.2.?
+* Merge in a fix contributed by danpe: Make maps more reliable when internet connection is marginal
+* Allow entering negative numbers on the parameter and waypoint editors
+
 # 1.2.15
 * Experiment with using the FTDI library
 

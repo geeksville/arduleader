@@ -73,7 +73,7 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
   }
 
   private def initEditText(tv: TextView, doGet: WaypointMenuItem => Float, onSet: (WaypointMenuItem, Float) => Unit) {
-    tv.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL)
+    tv.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED)
     tv.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
