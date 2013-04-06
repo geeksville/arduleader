@@ -24,11 +24,11 @@
             android:summary="If battery percent falls below this level, Andropilot will warn you"
             android:title="Percent charge warn level" />
         <EditTextPreference
-            android:defaultValue="100"
-            android:dialogTitle="Minimum Rssi"
+            android:defaultValue="2"
+            android:dialogTitle="Minimum Rssi Span"
             android:inputType="number"
-            android:key="min_rssi"
-            android:summary="Warn if the radio signal strength falls below this value"
+            android:key="min_rssi_span"
+            android:summary="Warn if the radio signal minus this value falls below the noise level"
             android:title="Rssi warn level" />
         <EditTextPreference
             android:defaultValue="5"
