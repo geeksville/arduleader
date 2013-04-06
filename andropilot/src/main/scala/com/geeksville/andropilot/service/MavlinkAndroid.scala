@@ -7,8 +7,9 @@ import com.geeksville.flight.VehicleModel
 import com.geeksville.aserial.AsyncSerial
 import com.geeksville.flight.VehicleClient
 import com.ridemission.scandroid.AndroidLogger
+import com.geeksville.andropilot.FlurryClient
 
-object MavlinkAndroid extends AndroidLogger {
+object MavlinkAndroid extends AndroidLogger with FlurryClient {
   val useNativeFtdi = true
 
   def create(baudRate: Int)(implicit context: Context) = {
@@ -21,6 +22,7 @@ object MavlinkAndroid extends AndroidLogger {
       } catch {
         case ex: Exception =>
           error("FTDI failed: " + ex)
+          usageEvent("ftdi_failed", "message" -> ex.getMessage)
           // Fall back to old version
           new USBAndroidSerial(baudRate)
       }
