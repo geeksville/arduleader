@@ -145,7 +145,12 @@ class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends Android
   private def open() {
 
     info("Acquiring")
-    val rawDevice = AndroidSerial.getDevice.get // We assume we already have access
+    val rawDeviceOpt = AndroidSerial.getDevice 
+
+    if(!rawDeviceOpt.isDefined) // If the user unplugs the USB device at just the right time, the device might have gone away
+      throw new IOException("Device not found")
+
+    val rawDevice = rawDeviceOpt.get
     val d = UsbSerialProber.acquire(manager, rawDevice)
 
     if (d == null)
