@@ -60,6 +60,7 @@ import android.view.InputDevice
 import scala.collection.JavaConverters._
 import android.view.KeyEvent
 import android.content.pm.ActivityInfo
+import android.os.Build
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -200,6 +201,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onServiceConnected(s: AndropilotService) {
+    super.onServiceConnected(s)
+
     toast(s.serviceStatus)
 
     // If we already had a serial port open start watching it
@@ -234,11 +237,32 @@ class MainActivity extends FragmentActivity with TypedActivity
       false
   }
 
+  protected def selectNextPage(toRight: Boolean) {
+    for { v <- viewPager } yield {
+      val numPages = {
+        val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+        adapter.map(_.getCount).getOrElse(0)
+      }
+
+      val c = v.getCurrentItem
+      if (toRight && c < numPages - 1)
+        v.setCurrentItem(c + 1)
+      else if (!toRight && c > 0)
+        v.setCurrentItem(c - 1)
+    }
+  }
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
     debug("Main onCreate")
+    warn("HW make " + Build.MANUFACTURER)
+    warn("HW model " + Build.MODEL)
+    warn("HW device " + Build.DEVICE)
+    warn("HW product " + Build.PRODUCT)
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
+
+    val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
 
     // If we are on a phone sized device disallow landscape mode (our panes become too small)
     // Check for a 'long' screen as a hack to turn off this code for samsung note
@@ -246,6 +270,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     // Height: My galaxy nexus is 567, so say <600 means a phone...
     if (screenWidthDp <= 360 && !screenIsLong)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
+    // The archos gamepad has joysticks on the side - it really only makes sense in landscape
+    if (isArchosGamepad)
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
     setContentView(mainView)
@@ -256,7 +284,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     // Set up the ViewPager with the sections adapter (if it is present on this layout)
     viewPager.foreach { v =>
-      val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+      //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
 
       // warn("Need to set pager adapter")
       v.setAdapter(sectionsPagerAdapter)

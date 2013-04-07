@@ -1,5 +1,7 @@
-# 1.2.17
+# 1.3.02
+* Add full support for the Archos Gamepad android device (see archos-notes.txt)
 * Update to latest parameter docs (AC 2.91b/AP 2.71)
+* Shut down FTDI more gracefully
 
 # 1.2.16
 * Merge in a fix contributed by danpe: Make maps more reliable when internet connection is marginal

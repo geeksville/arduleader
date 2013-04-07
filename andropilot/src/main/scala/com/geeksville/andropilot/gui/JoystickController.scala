@@ -14,17 +14,18 @@ import com.geeksville.akka.Cancellable
 import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
+import com.geeksville.aspeech.TTSClient
 
 /**
  * Provides joystick control either through hardware or a virtual screen joystick (not yet implemented)
  *
  * Implicitly set FBW when either of the sticks are moved (FIXME - not implemented)
- * Button Y = RTL
+ * Button R2 = RTL
  * Button L1 = toggle fence on/off
  * Button R1 = cycle through favorite modes
  * Button START = return all axis controls to regular RC transmitter
  */
-trait JoystickController extends Activity with AndroidLogger with AndroServiceClient {
+trait JoystickController extends Activity with AndroidLogger with AndroServiceClient with TTSClient {
 
   private val debugOutput = false
 
@@ -62,6 +63,9 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
 
   // We handle overrides of fence separately (so as to not change fence enable just because we switched to game pad)
   var fenceOverridden = false
+
+  /// For cycling through modes with the up/down arrow
+  private var favoriteModes = Seq[String]()
 
   /**
    * @param reverse -1 or 1 depending on how vehicle is configured
@@ -129,6 +133,11 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
 
         debug("Got axis: " + r)
         r
+      }
+
+      favoriteModes = (1 to 6).map { i =>
+        val modeInt = v.parametersById("FLTMODE" + i).getInt.getOrElse(0)
+        v.modeToString(modeInt)
       }
 
       // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
@@ -223,21 +232,54 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
       throttleTimer = None
   }
 
+  protected def selectNextPage(toRight: Boolean)
+
+  /**
+   * d-pad keys seem to only be available here
+   */
+  override def dispatchKeyEvent(ev: KeyEvent) = {
+    if (ev.getAction == KeyEvent.ACTION_DOWN) {
+      // debug("dispatch " + ev.getKeyCode)
+
+      ev.getKeyCode match {
+        case KeyEvent.KEYCODE_DPAD_LEFT =>
+          selectNextPage(false)
+          true
+        case KeyEvent.KEYCODE_DPAD_RIGHT =>
+          selectNextPage(true)
+          true
+        case KeyEvent.KEYCODE_DPAD_UP =>
+          doNextMode(false)
+          true
+        case KeyEvent.KEYCODE_DPAD_DOWN =>
+          doNextMode(true)
+          true
+        case _ =>
+          super.dispatchKeyEvent(ev)
+      }
+    } else
+      super.dispatchKeyEvent(ev)
+  }
+
   override def onKeyDown(code: Int, ev: KeyEvent) = {
-    debug("keydown " + code)
+    // debug("keydown " + code)
     if (KeyEvent.isGamepadButton(code)) {
-      debug("press " + code)
+      // debug("press " + code)
       code match {
-        case KeyEvent.KEYCODE_BUTTON_Y =>
+        case KeyEvent.KEYCODE_BUTTON_R2 =>
           doRTL()
+          true
         case KeyEvent.KEYCODE_BUTTON_L1 =>
           doToggleFence()
-        case KeyEvent.KEYCODE_BUTTON_R1 =>
-          doNextMode()
+          true
         case KeyEvent.KEYCODE_BUTTON_START =>
+          speak("Joystick off")
           stopOverrides()
+          true
+        case x @ _ =>
+          warn("Unknown key: " + x)
+          super.onKeyDown(code, ev)
       }
-      true
     } else
       super.onKeyDown(code, ev)
   }
@@ -266,7 +308,28 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
     }
   }
 
-  private def doNextMode() {
+  private def doNextMode(isNext: Boolean) {
+    if (!favoriteModes.isEmpty)
+      myVehicle.foreach { v =>
+
+        // If the current mode is not a 'favorite' we'll return -1 and just pick the first mode option
+        val curPos = favoriteModes.indexOf(v.currentMode)
+
+        // Wrap around if we fall off the table
+        val newMode = if (isNext) {
+          if (curPos < favoriteModes.size - 1)
+            favoriteModes(curPos + 1)
+          else
+            favoriteModes.head
+        } else {
+          if (curPos > 0)
+            favoriteModes(curPos - 1)
+          else
+            favoriteModes.last
+        }
+
+        v ! DoSetMode(newMode)
+      }
   }
 
   private def stopOverrides() {
@@ -287,6 +350,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
       if (!sticksEnabled)
         getParameters()
 
+      speak("Joystick on")
       isOverriding = true
 
       // Pull over current throttle setting

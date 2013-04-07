@@ -38,12 +38,6 @@
             android:summary="Warn if number of GPS satellites falls below this value"
             android:title="Satellite warn level" />
 
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="speech_enabled"
-            android:summary="Should Andropilot say critical messages"
-            android:title="Speech enable" />
-
         <EditTextPreference
             android:defaultValue="10"
             android:dialogTitle="If altitude changes by more than this, say something"

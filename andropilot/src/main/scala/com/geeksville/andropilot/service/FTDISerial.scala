@@ -11,7 +11,10 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
 
   private var devOpt: Option[FT_Device] = None
 
+  private var shuttingDown = false
   private def closed = !devOpt.isDefined
+
+  private val readLock = new AnyRef
 
   val in = new InputStream {
     debug("Opening FTDI input stream")
@@ -38,13 +41,25 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
       assert(off == 0)
 
       val timeoutMsec = 1000
-      val r = devOpt.map(_.read(arr, numrequested, timeoutMsec)).getOrElse(0)
+      val r = if (shuttingDown)
+        -1
+      else
+        readLock.synchronized {
+          try {
+            devOpt.map(_.read(arr, numrequested, timeoutMsec)).getOrElse(0)
+          } catch {
+            case ex: NullPointerException =>
+              error("Ignoring buggy FTDI driver")
+              close()
+              -1
+          }
+        }
       debug("Read returns " + r)
       r
     }
 
     override def close() {
-      if (!closed) {
+      if (!shuttingDown) {
         debug("Closing FTDI input stream")
         FTDISerial.this.close()
         super.close()
@@ -66,7 +81,8 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
       assert(off == 0)
 
       // We wait for writes to complete, so if we get backed up we can make a decision on handling on a packet by packet basis
-      devOpt.foreach(_.write(b, len, true))
+      if (!shuttingDown)
+        devOpt.foreach(_.write(b, len, true))
     }
   }
 
@@ -100,8 +116,13 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
   }
 
   def close() {
-    devOpt.foreach(_.close())
-    devOpt = None
+    shuttingDown = true
+
+    // Wait for the current read to finish
+    readLock.synchronized {
+      devOpt.foreach(_.close())
+      devOpt = None
+    }
   }
 }
 
