@@ -25,6 +25,7 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
   val numBuffers = 64
   val bufferSize = 64
 
+  assert(dev.mConnection != null)
   private val connection = dev.mConnection
 
   private lazy val readBuffers = ListBuffer.fill(numBuffers)(new Request(true))
@@ -104,10 +105,12 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
    * FIXME - have caller pass in a bytebuffer directly
    */
   def write(src: Array[Byte], timeoutMsec: Int) = {
-    val pkt = new Request(isRead = false, len = src.length)
-    pkt.buffer.put(src) // Copy the src array - because it may be going away
-    pkt.buffer.limit(pkt.buffer.position)
-    pkt.start()
+    if(src.size != 0) {
+      val pkt = new Request(isRead = false, len = src.length)
+      pkt.buffer.put(src) // Copy the src array - because it may be going away
+      pkt.buffer.limit(pkt.buffer.position)
+      pkt.start()
+    }
   }
 
   /**
