@@ -3,7 +3,7 @@
         <paramfile>
         <vehicles>
         <parameters name="ArduPlane">
-<param humanName="Telemetry Baud Rate" name="ArduPlane:SERIAL0_BAUD" documentation="The baud rate used on the main uart">
+<param humanName="USB Console Baud Rate" name="ArduPlane:SERIAL0_BAUD" documentation="The baud rate used on the main uart">
 <values>
 <value code="1">1200</value>
 <value code="2">2400</value>
@@ -56,10 +56,27 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Stick Mixing" name="ArduPlane:STICK_MIXING" documentation="When enabled, this adds user stick input to the control surfaces in auto modes, allowing the user to have some degree of flight control without changing modes">
+<param humanName="Stick Mixing" name="ArduPlane:STICK_MIXING" documentation='When enabled, this adds user stick input to the control surfaces in auto modes, allowing the user to have some degree of flight control without changing modes.  There are two types of stick mixing available. If you set STICK_MIXING to 1 then it will use "fly by wire" mixing, which controls the roll and pitch in the same way that the FBWA mode does. This is the safest option if you usually fly ArduPlane in FBWA or FBWB mode. If you set STICK_MIXING to 2 then it will enable direct mixing mode, which is what the STABILIZE mode uses. That will allow for much more extreme maneuvers while in AUTO mode.'>
 <values>
 <value code="0">Disabled</value>
-<value code="1">Enabled</value>
+<value code="1">FBWMixing</value>
+<value code="2">DirectMixing</value>
+</values>
+</param>
+<param humanName="Takeoff throttle min speed" name="ArduPlane:TKOFF_THR_MINSPD" documentation="Minimum GPS ground speed in m/s before un-suppressing throttle in auto-takeoff. This is meant to be used for catapult launches where you want the motor to engage only after the plane leaves the catapult. Note that the GPS velocity will lag the real velocity by about 0.5seconds.">
+<field name="Range">0 30</field>
+<field name="Increment">0.1</field>
+<field name="Units">m/s</field>
+</param>
+<param humanName="Takeoff throttle min acceleration" name="ArduPlane:TKOFF_THR_MINACC" documentation="Minimum forward acceleration in m/s/s before un-suppressing throttle in auto-takeoff. This is meant to be used for hand launches with a tractor style (front engine) plane. If this is set then the auto takeoff will only trigger if the pitch of the plane is between -30 and +45 degrees, and the roll is less than 30 degrees. This makes it less likely it will trigger due to carrying the plane with the nose down.">
+<field name="Range">0 30</field>
+<field name="Increment">0.1</field>
+<field name="Units">m/s/s</field>
+</param>
+<param humanName="Auto takeoff heading hold" name="ArduPlane:TKOFF_HEAD_HOLD" documentation="This controls whether APM tries to hold a constant heading during automatic takeoff. The default is 1, which means that it remembers the heading when auto takeoff is triggered, and tries to hold that heading until the target altitude is reached. This is the correct setting for wheeled takeoff. For a hand launch, it may be better to set this to 0, which will tell APM to hold the wings level, but not attempt to hold a particular heading. That can prevent the aircraft from rolling too much on takeoff, which can cause a stall.">
+<values>
+<value code="0">NoHeadingHold</value>
+<value code="1">HeadingHold</value>
 </values>
 </param>
 <param humanName="Rudder steering on takeoff and landing" name="ArduPlane:RUDDER_STEER" documentation="When enabled, only rudder will be used for steering during takeoff and landing, with the ailerons used to hold the plane level">
@@ -161,6 +178,10 @@
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
 </values>
+</param>
+<param humanName="Fly By Wire B altitude change rate" name="ArduPlane:FBWB_CLIMB_RATE" documentation="This sets the rate in m/s at which FBWB will change its target altitude for full elevator deflection. Note that the actual climb rate of the aircraft can be lower than this, depending on your airspeed and throttle control settings. If you have this parameter set to the default value of 2.0, then holding the elevator at maximum deflection for 10 seconds would change the target altitude by 20 meters.">
+<field name="Range">1-10</field>
+<field name="Increment">0.1</field>
 </param>
 <param humanName="Minimum Throttle" name="ArduPlane:THR_MIN" documentation="The minimum throttle setting to which the autopilot will apply.">
 <field name="Range">0 100</field>
@@ -333,7 +354,7 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Elevon mixing" name="ArduPlane:MIX_MODE" documentation="Enable elevon mixing">
+<param humanName="Elevon mixing" name="ArduPlane:ELEVON_MIXING" documentation="Enable elevon mixing  on both input and output">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
@@ -357,6 +378,15 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="VTail output" name="ArduPlane:VTAIL_OUTPUT" documentation="Enable VTail output in software. If enabled then the APM will provide software VTail mixing on the elevator and rudder channels. There are 4 different mixing modes available, which refer to the 4 ways the elevator can be mapped to the two VTail servos. Note that you must not use VTail output mixing with hardware pass-through of RC values, such as with channel 8 manual control on an APM1. So if you use an APM1 then set FLTMODE_CH to something other than 8 before you enable VTAIL_OUTPUT.">
+<values>
+<value code="0">Disabled</value>
+<value code="1">UpUp</value>
+<value code="2">UpDown</value>
+<value code="3">DownUp</value>
+<value code="4">DownDown</value>
+</values>
+</param>
 <param humanName="Num Resets" name="ArduPlane:SYS_NUM_RESETS" documentation="Number of APM board resets">
 </param>
 <param humanName="Log bitmask" name="ArduPlane:LOG_BITMASK" documentation="bitmap of log fields to enable">
@@ -378,6 +408,9 @@
 <field name="Units">centi-Degrees</field>
 </param>
 <param humanName="RTL altitude" name="ArduPlane:ALT_HOLD_RTL" documentation="Return to launch target altitude">
+<field name="Units">centimeters</field>
+</param>
+<param humanName="Minimum altitude for FBWB mode" name="ArduPlane:ALT_HOLD_FBWCM" documentation="This is the minimum altitude in centimeters that FBWB will allow. If you attempt to descend below this altitude then the plane will level off. A value of zero means no limit.">
 <field name="Units">centimeters</field>
 </param>
 <param humanName="Enable Compass" name="ArduPlane:MAG_ENABLE" documentation="Setting this to Enabled(1) will enable the compass. Setting this to Disabled(0) will disable the compass">
@@ -417,6 +450,25 @@
 <value code=" 0">A0</value>
 <value code=" 1">A1</value>
 <value code=" 13">A13</value>
+</values>
+</param>
+<param humanName="Inverted flight channel" name="ArduPlane:INVERTEDFLT_CH" documentation="A RC input channel number to enable inverted flight. If this is non-zero then the APM will monitor the correcponding RC input channel and will enable inverted flight when the channel goes above 1750.">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Channel1</value>
+<value code="2">Channel2</value>
+<value code="3">Channel3</value>
+<value code="4">Channel4</value>
+<value code="5">Channel5</value>
+<value code="6">Channel6</value>
+<value code="7">Channel7</value>
+<value code="8">Channel8</value>
+</values>
+</param>
+<param humanName="HIL Servos enable" name="ArduPlane:HIL_SERVOS" documentation="This controls whether real servo controls are used in HIL mode. If you enable this then the APM will control the real servos in HIL mode. If disabled it will report servo values, but will not output to the real servos. Be careful that your motor and propeller are not connected if you enable this option.">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
 </values>
 </param>
 </parameters>
@@ -479,11 +531,15 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="GPS Failsafe Enable" name="ArduCopter:FS_GPS_ENABLE" documentation="Controls whether failsafe will be invoked when gps signal is lost">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
 <param humanName="Voltage Divider" name="ArduCopter:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin voltage * INPUT_VOLTS/1024 * VOLT_DIVIDER)">
 </param>
 <param humanName="Current Amps per volt" name="ArduCopter:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )">
-</param>
-<param humanName="Max internal voltage of the battery voltage and current sensing pins" name="ArduCopter:INPUT_VOLTS" documentation="Used to convert the voltage read in on the voltage and current pins for battery monitoring.  Normally 5 meaning 5 volts.">
 </param>
 <param humanName="Battery Capacity" name="ArduCopter:BATT_CAPACITY" documentation="Battery capacity in milliamp-hours (mAh)">
 <field name="Units">mAh</field>
@@ -514,10 +570,6 @@
 <field name="Range">-1 1000</field>
 <field name="Increment">1</field>
 <field name="Units">Centimeters</field>
-</param>
-<param humanName="Auto Tilt Compensation" name="ArduCopter:TILT" documentation="This is a feed-forward compensation which helps the aircraft achieve target waypoint speed.">
-<field name="Range">0 100</field>
-<field name="Increment">1</field>
 </param>
 <param humanName="Battery Voltage sensing pin" name="ArduCopter:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13.">
 <values>
@@ -573,14 +625,6 @@
 <param humanName="Waypoint Max Speed Target" name="ArduCopter:WP_SPEED_MAX" documentation="Defines the speed which the aircraft will attempt to maintain during a WP mission.">
 <field name="Increment">100</field>
 <field name="Units">Centimeters/Second</field>
-</param>
-<param humanName="Cross-Track Gain" name="ArduCopter:XTRK_GAIN_SC" documentation="This controls the rate that the Auto Controller will attempt to return original track">
-<field name="Units">Dimensionless</field>
-</param>
-<param humanName="Crosstrack mininum distance" name="ArduCopter:XTRK_MIN_DIST" documentation="Minimum distance in meters between waypoints to do crosstrack correction.">
-<field name="Range">0 32767</field>
-<field name="Increment">1</field>
-<field name="Units">Meters</field>
 </param>
 <param humanName="RTL loiter time" name="ArduCopter:RTL_LOIT_TIME" documentation="Time (in milliseconds) to loiter above home before begining final descent">
 <field name="Range">0 60000</field>
@@ -725,7 +769,7 @@
 </values>
 </param>
 <param humanName="Auto Slew Rate" name="ArduCopter:AUTO_SLEW" documentation="This restricts the rate of change of the roll and pitch attitude commanded by the auto pilot">
-<field name="Range">1 45</field>
+<field name="Range">1 90</field>
 <field name="Increment">1</field>
 <field name="Units">Degrees/Second</field>
 </param>
@@ -849,7 +893,7 @@
 </param>
 <param humanName="MAVLink ground station ID" name="APMrover2:SYSID_MYGCS" documentation="ID used in MAVLink protocol to identify the controlling ground station">
 </param>
-<param humanName="Telemetry Baud Rate" name="APMrover2:SERIAL0_BAUD" documentation="The baud rate used on the first serial port">
+<param humanName="USB Console Baud Rate" name="APMrover2:SERIAL0_BAUD" documentation="The baud rate used on the first serial port">
 <values>
 <value code="1">1200</value>
 <value code="2">2400</value>
@@ -897,8 +941,6 @@
 </param>
 <param humanName="Current Amps per volt" name="APMrover2:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )">
 </param>
-<param humanName="Max internal voltage of the battery voltage and current sensing pins" name="APMrover2:INPUT_VOLTS" documentation="Used to convert the voltage read in on the voltage and current pins for battery monitoring.  Normally 5 meaning 5 volts.">
-</param>
 <param humanName="Battery Capacity" name="APMrover2:BATT_CAPACITY" documentation="Battery capacity in milliamp-hours (mAh)">
 <field name="Units">mAh</field>
 </param>
@@ -911,10 +953,31 @@
 <field name="Increment">1</field>
 <field name="Units">centi-Degrees</field>
 </param>
-<param humanName="Target speed in auto modes" name="APMrover2:CRUISE_SPEED" documentation="The target speed in auto missions.">
+<param humanName="Auto mode trigger pin" name="APMrover2:AUTO_TRIGGER_PIN" documentation="pin number to use to trigger start of auto mode. If set to -1 then don't use a trigger, otherwise this is a pin number which if held low in auto mode will start the motor.">
+<values>
+<value code="-1">Disabled</value>
+<value code="0-9">TiggerPin</value>
+</values>
+</param>
+<param humanName="Auto mode trigger kickstart acceleration" name="APMrover2:AUTO_KICKSTART" documentation="X acceleration in meters/second/second to use to trigger the motor start in auto mode. If set to zero then auto throttle starts immediately when the mode switch happens, otherwise the rover waits for the X acceleration to go above this value before it will start the motor">
+<field name="Range">0 20</field>
+<field name="Increment">0.1</field>
+<field name="Units">m/s/s</field>
+</param>
+<param humanName="Target cruise speed in auto modes" name="APMrover2:CRUISE_SPEED" documentation="The target speed in auto missions.">
 <field name="Range">0 100</field>
 <field name="Increment">0.1</field>
 <field name="Units">m/s</field>
+</param>
+<param humanName="Target speed reduction while turning" name="APMrover2:SPEED_TURN_GAIN" documentation="The percentage to reduce the throttle while turning. If this is 100% then the target speed is not reduced while turning. If this is 50% then the target speed is reduced in proportion to the turn rate, with a reduction of 50% when the steering is maximally deflected.">
+<field name="Range">0 100</field>
+<field name="Increment">1</field>
+<field name="Units">percent</field>
+</param>
+<param humanName="Distance to turn to start reducing speed" name="APMrover2:SPEED_TURN_DIST" documentation="The distance to the next turn at which the rover reduces its target speed by the SPEED_TURN_GAIN">
+<field name="Range">0 100</field>
+<field name="Increment">0.1</field>
+<field name="Units">meters</field>
 </param>
 <param humanName="Channel 7 option" name="APMrover2:CH7_OPTION" documentation="What to do use channel 7 for">
 <values>
@@ -927,12 +990,12 @@
 <field name="Increment">1</field>
 <field name="Units">Percent</field>
 </param>
-<param humanName="Maximum Throttle" name="APMrover2:THR_MAX" documentation="The maximum throttle setting to which the autopilot will apply.">
+<param humanName="Maximum Throttle" name="APMrover2:THR_MAX" documentation="The maximum throttle setting to which the autopilot will apply. This can be used to prevent overheating a ESC or motor on an electric rover.">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
 <field name="Units">Percent</field>
 </param>
-<param humanName="Base throttle percentage in auto" name="APMrover2:CRUISE_THROTTLE" documentation="The base throttle percentage to use in auto mode">
+<param humanName="Base throttle percentage in auto" name="APMrover2:CRUISE_THROTTLE" documentation="The base throttle percentage to use in auto mode. The CRUISE_SPEED parameter controls the target speed, but the rover starts with the CRUISE_THROTTLE setting as the initial estimate for how much throttle is needed to achieve that speed. It then adjusts the throttle based on how fast the rover is actually going.">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
 <field name="Units">Percent</field>
@@ -942,17 +1005,29 @@
 <field name="Increment">1</field>
 <field name="Units">Percent</field>
 </param>
+<param humanName="Skid steering output" name="APMrover2:SKID_STEER_OUT" documentation="Set this to 1 for skid steering controlled rovers (tank track style). When enabled, servo1 is used for the left track control, servo3 is used for right track control">
+<values>
+<value code="0">Disabled</value>
+<value code=" 1">SkidSteeringOutput</value>
+</values>
+</param>
+<param humanName="Skid steering input" name="APMrover2:SKID_STEER_IN" documentation="Set this to 1 for skid steering input rovers (tank track style in RC controller). When enabled, servo1 is used for the left track control, servo3 is used for right track control">
+<values>
+<value code="0">Disabled</value>
+<value code=" 1">SkidSteeringInput</value>
+</values>
+</param>
 <param humanName="Failsafe Action" name="APMrover2:FS_ACTION" documentation="What to do on a failsafe event">
 <values>
 <value code="0">Nothing</value>
 <value code="1">RTL</value>
-<value code="2">STOP</value>
+<value code="2">HOLD</value>
 </values>
 </param>
 <param humanName="Failsafe timeout" name="APMrover2:FS_TIMEOUT" documentation="How long a failsafe event need to happen for before we trigger the failsafe action">
 <field name="Units">seconds</field>
 </param>
-<param humanName="Throttle Failsafe Enable" name="APMrover2:FS_THR_ENABLE" documentation="The throttle failsafe allows you to configure a software failsafe activated by a setting on the throttle input channel to a low value. This can be used to detect the RC transmitter going out of range.">
+<param humanName="Throttle Failsafe Enable" name="APMrover2:FS_THR_ENABLE" documentation="The throttle failsafe allows you to configure a software failsafe activated by a setting on the throttle input channel to a low value. This can be used to detect the RC transmitter going out of range. Failsafe will be triggered when the throttle channel goes below the FS_THR_VALUE for FS_TIMEOUT seconds.">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
@@ -960,17 +1035,30 @@
 </param>
 <param humanName="Throttle Failsafe Value" name="APMrover2:FS_THR_VALUE" documentation="The PWM level on channel 3 below which throttle sailsafe triggers.">
 </param>
-<param humanName="GCS failsafe enable" name="APMrover2:FS_GCS_ENABLE" documentation="Enable ground control station telemetry failsafe">
+<param humanName="GCS failsafe enable" name="APMrover2:FS_GCS_ENABLE" documentation="Enable ground control station telemetry failsafe. When enabled the Rover will execute the FS_ACTION when it fails to receive MAVLink heartbeat packets for FS_TIMEOUT seconds.">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Enable Sonar" name="APMrover2:SONAR_ENABLE" documentation="Setting this to Enabled(1) will enable the sonar. Setting this to Disabled(0) will disable the sonar">
-<values>
-<value code="0">Disabled</value>
-<value code="1">Enabled</value>
-</values>
+<param humanName="Sonar trigger distance" name="APMrover2:SONAR_TRIGGER_CM" documentation="The distance from an obstacle in centimeters at which the sonar triggers a turn to avoid the obstacle">
+<field name="Range">0 1000</field>
+<field name="Increment">1</field>
+<field name="Units">centimeters</field>
+</param>
+<param humanName="Sonar trigger angle" name="APMrover2:SONAR_TURN_ANGLE" documentation="The course deviation in degrees to apply while avoiding an obstacle detected with the sonar. A positive number means to turn right, and a negative angle means to turn left.">
+<field name="Range">-45 45</field>
+<field name="Increment">1</field>
+<field name="Units">centimeters</field>
+</param>
+<param humanName="Sonar turn time" name="APMrover2:SONAR_TURN_TIME" documentation="The amount of time in seconds to apply the SONAR_TURN_ANGLE after detecting an obstacle.">
+<field name="Range">0 100</field>
+<field name="Increment">0.1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="Sonar debounce count" name="APMrover2:SONAR_DEBOUNCE" documentation="The number of 50Hz sonar hits needed to trigger an obstacle avoidance event. If you get a lot of false sonar events then raise this number, but if you make it too large then it will cause lag in detecting obstacles, which could cause you go hit the obstacle.">
+<field name="Range">1 100</field>
+<field name="Increment">1</field>
 </param>
 <param humanName="Mode channel" name="APMrover2:MODE_CH" documentation="RC Channel to use for driving mode control">
 </param>
@@ -978,6 +1066,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -987,6 +1077,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -996,6 +1088,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -1005,6 +1099,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -1014,6 +1110,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -1023,6 +1121,8 @@
 <values>
 <value code="0">Manual</value>
 <value code="2">LEARNING</value>
+<value code="3">STEERING</value>
+<value code="4">HOLD</value>
 <value code="10">Auto</value>
 <value code="11">RTL</value>
 <value code="15">Guided</value>
@@ -1532,6 +1632,18 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="Motor interference compensation type" name="COMPASS_MOTCT" documentation="Set motor interference compensation type to disabled, throttle or current">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Use Throttle</value>
+<value code="2">Use Current</value>
+</values>
+<field name="Increment">1</field>
+</param>
+<param humanName="Motor interference compensation for body frame Z axis" name="COMPASS_MOT_X" documentation="Multiplied by the current throttle and added to the compass's z-axis values to compensate for motor interference">
+<field name="Range">-1000 1000</field>
+<field name="Increment">1</field>
+</param>
 </parameters>
 <parameters name="INS_">
 <param humanName="IMU Product ID" name="INS_PRODUCT_ID" documentation="Which type of IMU is installed (read-only)">
@@ -1728,8 +1840,8 @@
 <field name="Increment">1</field>
 <field name="Units">Centi-Degrees</field>
 </param>
-<param humanName="mount joystick speed" name="MNT_JSTICK_SPD" documentation="0 for position control, small for low speeds, 10 for max speed">
-<field name="Range">0 10</field>
+<param humanName="mount joystick speed" name="MNT_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second.">
+<field name="Range">0 100</field>
 <field name="Increment">1</field>
 </param>
 </parameters>
@@ -1827,8 +1939,8 @@
 <field name="Increment">1</field>
 <field name="Units">Centi-Degrees</field>
 </param>
-<param humanName="mount joystick speed" name="MNT2_JSTICK_SPD" documentation="0 for position control, small for low speeds, 10 for max speed">
-<field name="Range">0 10</field>
+<param humanName="mount joystick speed" name="MNT2_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second.">
+<field name="Range">0 100</field>
 <field name="Increment">1</field>
 </param>
 </parameters>
@@ -2280,6 +2392,18 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="Motor interference compensation type" name="COMPASS_MOTCT" documentation="Set motor interference compensation type to disabled, throttle or current">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Use Throttle</value>
+<value code="2">Use Current</value>
+</values>
+<field name="Increment">1</field>
+</param>
+<param humanName="Motor interference compensation for body frame Z axis" name="COMPASS_MOT_X" documentation="Multiplied by the current throttle and added to the compass's z-axis values to compensate for motor interference">
+<field name="Range">-1000 1000</field>
+<field name="Increment">1</field>
+</param>
 </parameters>
 <parameters name="INAV_">
 <param humanName="Horizontal Time Constant" name="INAV_TC_XY" documentation="Time constant for GPS and accel mixing. Higher TC decreases GPS impact on position estimate">
@@ -2464,8 +2588,8 @@
 <field name="Increment">1</field>
 <field name="Units">Centi-Degrees</field>
 </param>
-<param humanName="mount joystick speed" name="MNT_JSTICK_SPD" documentation="0 for position control, small for low speeds, 10 for max speed">
-<field name="Range">0 10</field>
+<param humanName="mount joystick speed" name="MNT_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second.">
+<field name="Range">0 100</field>
 <field name="Increment">1</field>
 </param>
 </parameters>
@@ -2563,8 +2687,8 @@
 <field name="Increment">1</field>
 <field name="Units">Centi-Degrees</field>
 </param>
-<param humanName="mount joystick speed" name="MNT2_JSTICK_SPD" documentation="0 for position control, small for low speeds, 10 for max speed">
-<field name="Range">0 10</field>
+<param humanName="mount joystick speed" name="MNT2_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second.">
+<field name="Range">0 100</field>
 <field name="Increment">1</field>
 </param>
 </parameters>
@@ -2772,6 +2896,39 @@
 </param>
 <param humanName="Thrust Curve max thrust percentage" name="MOT_TCRV_MAXPCT" documentation="Set to the lowest pwm position that produces the maximum thrust of the motors.  Most motors produce maximum thrust below the maximum pwm value that they accept.">
 <field name="Range">20 80</field>
+</param>
+</parameters>
+<parameters name="SONAR_">
+<param humanName="Sonar pin" name="SONAR_PIN" documentation="Analog pin that sonar is connected to. Use pin number 127 for an APM1 Oilpan">
+</param>
+<param humanName="Sonar scaling" name="SONAR_SCALING" documentation="Scaling factor between sonar reading and distance. For the linear and inverted functions this is in meters per volt. For the hyperbolic function the units are meterVolts.">
+<field name="Units">meters/Volt</field>
+<field name="Increment">0.001</field>
+</param>
+<param humanName="Sonar offset" name="SONAR_OFFSET" documentation="Offset in volts for zero distance">
+<field name="Units">Volts</field>
+<field name="Increment">0.001</field>
+</param>
+<param humanName="Sonar function" name="SONAR_FUNCTION" documentation="Control over what function is used to calculate distance. For a linear function, the distance is (voltage-offset)*scaling. For a inverted function the distance is (offset-voltage)*scaling. For a hyperbolic function the distance is scaling/(voltage-offset). The functions return the distance in meters.">
+<values>
+<value code="0">Linear</value>
+<value code="1">Inverted</value>
+<value code="2">Hyperbolic</value>
+</values>
+</param>
+<param humanName="Sonar minimum distance" name="SONAR_MIN_CM" documentation="minimum distance in centimeters that sonar can reliably read">
+<field name="Units">centimeters</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Sonar maximum distance" name="SONAR_MAX_CM" documentation="maximum distance in centimeters that sonar can reliably read">
+<field name="Units">centimeters</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Sonar enabled" name="SONAR_ENABLE" documentation="set to 1 to enable this sonar">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
 </param>
 </parameters>
 <parameters name="INS_">

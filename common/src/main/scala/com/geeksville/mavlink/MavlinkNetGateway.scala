@@ -20,7 +20,7 @@ import com.geeksville.akka.InstrumentedActor
  *
  * FIXME - make sure we don't overrun the rate packets can be read
  */
-trait MavlinkNetGateway extends InstrumentedActor with MavlinkReceiver {
+trait MavlinkNetGateway extends MavlinkSender with MavlinkReceiver {
   private val thread = ThreadTools.createDaemon("netgw")(worker _)
 
   thread.start()
@@ -30,12 +30,8 @@ trait MavlinkNetGateway extends InstrumentedActor with MavlinkReceiver {
   protected def sendPacket(b: Array[Byte]): Unit
   protected def receivePacket(): Option[MAVLinkMessage]
 
-  final def onReceive = {
-    case msg: MAVLinkMessage ⇒
-      //log.debug("UDPSend: " + msg)
-      val bytes = msg.encode()
-
-      sendPacket(bytes)
+  protected def doSendMavlink(bytes: Array[Byte]) {
+    sendPacket(bytes)
   }
 
   override def postStop() {

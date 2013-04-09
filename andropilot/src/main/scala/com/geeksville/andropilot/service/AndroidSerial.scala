@@ -14,7 +14,12 @@ import com.geeksville.andropilot.AccessGrantedReceiver
 
 class NoAcquirePortException extends Exception
 
-class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLogger {
+trait AndroidSerial {
+  def out: OutputStream
+  def in: InputStream
+}
+
+class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidSerial with AndroidLogger {
   //Get UsbManager from Android.
   info("Looking for USB service")
   val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]
@@ -29,32 +34,6 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
     val toSkip = if (d.isInstanceOf[FtdiSerialDriver]) 2 else 0
     new AsyncSerial(d, toSkip)
   } // Give enough time for the port to open at startup
-
-  /*
-  val disconnectReceiver = new BroadcastReceiver {
-    def register() {
-      // We now want to close our device if it ever gets removed
-      val filter = new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED)
-      context.registerReceiver(this, filter)
-    }
-
-    def unregister() {
-      context.unregisterReceiver(this)
-    }
-
-    override def onReceive(context: Context, intent: Intent) {
-      val action = intent.getAction()
-      error("USB device disconnected")
-
-      if (UsbManager.ACTION_USB_DEVICE_DETACHED == action) {
-        val device = Option(intent.getParcelableExtra(UsbManager.EXTRA_DEVICE).asInstanceOf[UsbDevice])
-        error("Closing port due to disconnection")
-        out.close()
-        in.close() // This should force readers to barf
-      }
-    }
-  }
- */
 
   open()
 
@@ -143,7 +122,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
       if (!closed) {
         debug("Closing serial input stream")
         closed = true
-        AndroidSerial.this.close()
+        USBAndroidSerial.this.close()
         super.close()
         debug("Done closing serial input stream")
       }
@@ -166,7 +145,12 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
   private def open() {
 
     info("Acquiring")
-    val rawDevice = AndroidSerial.getDevice.get // We assume we already have access
+    val rawDeviceOpt = AndroidSerial.getDevice 
+
+    if(!rawDeviceOpt.isDefined) // If the user unplugs the USB device at just the right time, the device might have gone away
+      throw new IOException("Device not found")
+
+    val rawDevice = rawDeviceOpt.get
     val d = UsbSerialProber.acquire(manager, rawDevice)
 
     if (d == null)
@@ -215,7 +199,7 @@ class AndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidLog
 
 object AndroidSerial extends AndroidLogger {
 
-  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && dvr.getProductId == 0x6001
+  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && (dvr.getProductId == 0x6001 || dvr.getProductId == 0x6015)
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
 
   def getDevice(implicit context: Context) = {

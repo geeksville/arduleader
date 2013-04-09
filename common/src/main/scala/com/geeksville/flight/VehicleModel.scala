@@ -25,6 +25,7 @@ import com.geeksville.util.ThrottledActor
 case class MsgStatusChanged(s: String)
 case object MsgSysStatusChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
+case class MsgServoOutputChanged(m: msg_servo_output_raw)
 case class MsgModeChanged(m: String)
 
 /**
@@ -35,6 +36,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
   private val rcChannelsThrottle = new Throttled(500)
+  private val servoOutputThrottle = new Throttled(500)
   private val sysStatusThrottle = new Throttled(5000)
   private val attitudeThrottle = new Throttled(100)
 
@@ -45,6 +47,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
+  var servoOutputRaw: Option[msg_servo_output_raw] = None
   var attitude: Option[msg_attitude] = None
   var vfrHud: Option[msg_vfr_hud] = None
   var globalPos: Option[msg_global_position_int] = None
@@ -91,6 +94,10 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     case m: msg_rc_channels_raw =>
       rcChannels = Some(m)
       rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged(m)) }
+
+    case m: msg_servo_output_raw =>
+      servoOutputRaw = Some(m)
+      servoOutputThrottle { () => eventStream.publish(MsgServoOutputChanged(m)) }
 
     case m: msg_radio =>
       //log.info("Received radio from " + m.sysId + ": " + m)
@@ -140,7 +147,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   override def onWaypointsDownloaded() {
     super.onWaypointsDownloaded()
 
-    // FIXME - not quite ready?
     startParameterDownload()
   }
 
@@ -150,5 +156,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private def setMode(mode: String) {
     sendMavlink(setMode(modeToCodeMap(mode)))
   }
+  
+  
 }
 

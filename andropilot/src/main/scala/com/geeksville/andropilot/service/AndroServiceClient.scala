@@ -32,14 +32,18 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
   /// Apparently ardupane treats -1 for pct charge as 'no idea'
   def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
-  def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield { r.rssi < minRssi || r.remrssi < minRssi }).getOrElse(false)
+  def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield {
+    val span = minRssiSpan
+
+    r.rssi - span < r.noise || r.remrssi - span < r.remnoise
+  }).getOrElse(false)
   def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(true)
   def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
   /**
    * Override if you need to do stuff once the connection is up
    */
-  def onServiceConnected(s: AndropilotService) {
+  protected def onServiceConnected(s: AndropilotService) {
   }
 
   private val serviceConnection = new ServiceConnection() {

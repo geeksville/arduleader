@@ -1,6 +1,61 @@
-# 1.1.03
+# 1.3.03
+* Fix a few autobugs
+
+# 1.3.02
+* Add full support for the Archos Gamepad android device (see archos-notes.txt)
+* Update to latest parameter docs (AC 2.91b/AP 2.71)
+* Shut down FTDI more gracefully
+
+# 1.2.16
+* Merge in a fix contributed by danpe: Make maps more reliable when internet connection is marginal
+* Allow entering negative numbers on the parameter and waypoint editors
+* Rssi speech warning thresholds are now set automatically
+
+FIXME: prompt and do basic droneshare upload
+FIXME: at end of upload offer to show kml locally or share via facebook
+
+# 1.2.15
+* Experiment with using the FTDI library
+
+# 1.2.13
+* Fix the damn Samsung Note
+
+# 1.2.07
+* Scale down the gamepad inputs so they have more useful dynamic range
+* Fix gamepad elevator direction
+* Add support for multipane view on Note2 sized devices
+* Disallow landscape view on phone sized devices (our info pane gets too small to be useful)
+* Don't ever use param read by index, because it is not supported on older AC builds
+
+# 1.2.05
+* Gamepad support ready for alpha testing.  Press Y to do RTL, press L1 to toggle fence mode, use the two joysticks like a RC controller, press start to return control to RC transmitter.  
+* Thanks to Robert W, Earl C, Jack O, Linux P, Anthony G, Robert L, Jeremy Z and Rana for donating so I could buy a gaming tablet.  Not yet purchased, but without their prodding I wouldn't have gotten around to
+adding gamepad support for a while...
+* For TCP connections, allow user to specify an outpound port #
+* Parameter download is much faster for most devices
+* Add a servos output tab that shows raw values driven to vehicle servos
+* Fix problem where bluetooth connections would be torn down on screen rotation
+* Fix problem where sometimes the vehicle mode would be listed wrong on application start
+* Somehow I had disabled showing the keyboard for waypoint altitudes - fixed
+* Default to showing the keyboard if we edit a parameter or waypoint
+
+# 1.2.04
+* Check for bluetooth by device class (should recognize all serial devices, rather than just the Deal Extreme one)
+
+# 1.2.03
+* Make bluetooth hw optional
+
+# 1.2.02
+* Add support for another FTDI device type
+* Display groundspeed on the overview
+* Allow editing waypoint advanced parameters
+* Add menu option to manually level an Arduplane (useful at the field sometimes)
+
+# 1.2.00
+* Add support for bluetooth serial links.  Thanks to Pieter@diydrones for donating a bluetooth adapter for me to develop with.
 * Default to speech on for new installs
- 
+* Cope with virgin APMs that don't have a GPS and therefore have no waypoints
+
 # 1.1.02
 * Show airspeed on overview screen
 * Speak warnings for battery levels, radio signal levels, lack of sats

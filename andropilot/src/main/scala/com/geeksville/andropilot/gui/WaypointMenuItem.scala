@@ -15,6 +15,10 @@ trait WaypointMenuItem {
   def altitude = 0.0
   def altitude_=(n: Double) { throw new Exception("Not implemented") }
 
+  def numParams = 0
+  def getParam(i: Int) = 0.0f
+  def setParam(i: Int, n: Float) { throw new Exception("Not implemented") }
+
   def isAllowGoto = false
   def isAllowAdd = false
   def isAllowChangeType = false

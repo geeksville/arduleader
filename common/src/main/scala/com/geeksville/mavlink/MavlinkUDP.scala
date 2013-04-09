@@ -22,7 +22,7 @@ import com.geeksville.akka.InstrumentedActor
  */
 class MavlinkUDP(destHostName: Option[String] = None,
   val destPortNumber: Option[Int] = None,
-  val localPortNumber: Option[Int] = None) extends InstrumentedActor with MavlinkReceiver {
+  val localPortNumber: Option[Int] = None) extends MavlinkSender with MavlinkReceiver {
 
   // These must be lazy - to ensure we don't do networking in the main thread (an android restriction)
   lazy val serverHost = InetAddress.getByName(destHostName.get)
@@ -37,25 +37,23 @@ class MavlinkUDP(destHostName: Option[String] = None,
 
   thread.start()
 
-  def onReceive = {
-    case msg: MAVLinkMessage ⇒
-      //log.debug("UDPSend: " + msg)
-      val bytes = msg.encode()
+  protected def doSendMavlink(bytes: Array[Byte]) {
+    //log.debug("UDPSend: " + msg)
 
-      // Do we know a remote port?
-      destPortNumber.map { destPort =>
-        val packet = new DatagramPacket(bytes, bytes.length, serverHost, destPort)
+    // Do we know a remote port?
+    destPortNumber.map { destPort =>
+      val packet = new DatagramPacket(bytes, bytes.length, serverHost, destPort)
+      socket.send(packet)
+    }.getOrElse {
+      // Has anyone called into us?
+
+      remote.map { r =>
+        val packet = new DatagramPacket(bytes, bytes.length, r)
         socket.send(packet)
       }.getOrElse {
-        // Has anyone called into us?
-
-        remote.map { r =>
-          val packet = new DatagramPacket(bytes, bytes.length, r)
-          socket.send(packet)
-        }.getOrElse {
-          log.debug("Can't send message, we haven't heard from a peer")
-        }
+        log.debug("Can't send message, we haven't heard from a peer")
       }
+    }
   }
 
   override def postStop() {

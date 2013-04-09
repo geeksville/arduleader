@@ -23,11 +23,11 @@
             android:layout_gravity="center_vertical|right"
             android:layout_weight="1"
             android:gravity="right"
-            android:inputType="numberDecimal"
+            android:inputType="numberDecimal|numberSigned"
             android:singleLine="true"
             android:text="432" >
 
-            <requestFocus />
+            <!-- Breaks keyboard <requestFocus /> -->
         </EditText>
 
         <Spinner

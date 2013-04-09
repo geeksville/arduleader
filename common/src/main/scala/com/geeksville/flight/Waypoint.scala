@@ -30,7 +30,8 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def isMSL = msg.frame == MAV_FRAME.MAV_FRAME_GLOBAL
 
-  def isCommandValid = Waypoint.commandCodes.contains(msg.command)
+  // For virgin APMs with no GPS they will deliver a home WP with command of 255
+  def isCommandValid = Waypoint.commandCodes.contains(msg.command) || msg.command == 255
 
   def altitude = msg.z
 
@@ -48,6 +49,30 @@ case class Waypoint(val msg: msg_mission_item) {
   def jumpSequence = msg.param1.toInt
   def loiterTime = msg.param1
   def loiterTurns = msg.param1
+
+  /**
+   * Allows access to params using a civilized index
+   */
+  def getParam(i: Int) = {
+    i match {
+      case 0 => msg.param1
+      case 1 => msg.param2
+      case 2 => msg.param3
+      case 3 => msg.param4
+    }
+  }
+
+  /**
+   * Allows access to params using a civilized index
+   */
+  def setParam(i: Int, f: Float) {
+    i match {
+      case 0 => msg.param1 = f
+      case 1 => msg.param2 = f
+      case 2 => msg.param3 = f
+      case 3 => msg.param4 = f
+    }
+  }
 
   /**
    * Just the type of the waypoint (RTL, LoiterN, etc...) or Home (as a special case)
@@ -68,6 +93,7 @@ case class Waypoint(val msg: msg_mission_item) {
       case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => "Loiter (forever)"
       case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => "Loiter (%.1f turns)".format(loiterTurns)
       case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => "Loiter (%.1f seconds)".format(loiterTime)
+      case MAV_CMD.MAV_CMD_NAV_TAKEOFF => Some("Take-off (MinPitch %.1f)".format(msg.param1))
 
       // FIXME - parse takeoff/land
       case _ =>
@@ -84,10 +110,23 @@ case class Waypoint(val msg: msg_mission_item) {
       case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => Some("forever")
       case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => Some("%.1f turns".format(loiterTurns))
       case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => Some("%.1f seconds".format(loiterTime))
+      case MAV_CMD.MAV_CMD_NAV_TAKEOFF => Some("MinPitch %.1f".format(msg.param1))
 
-      // FIXME - parse takeoff/land
       case _ =>
         None
+    }
+  }
+
+  def numParamsUsed = {
+    msg.command match {
+      case MAV_CMD.MAV_CMD_DO_JUMP => 2
+      case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => 1
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => 1
+      case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => 1
+      case MAV_CMD.MAV_CMD_NAV_TAKEOFF => 1
+      case MAV_CMD.MAV_CMD_DO_SET_HOME => 1
+      case _ =>
+        0
     }
   }
 

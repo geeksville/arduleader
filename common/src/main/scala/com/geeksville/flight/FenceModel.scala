@@ -127,6 +127,11 @@ trait FenceModel extends ParametersModel {
 
   def isFenceAvailable = parametersById.get("FENCE_ACTION").isDefined
 
+  /**
+   * Channel #, or 0 for disabled
+   */
+  def fenceChannel = parametersById.get("FENCE_CHANNEL").map(_.getInt.get).getOrElse(0)
+
   private def fenceAction_=(n: Int) {
     parametersById.get("FENCE_ACTION").get.setValueNoAck(n)
   }

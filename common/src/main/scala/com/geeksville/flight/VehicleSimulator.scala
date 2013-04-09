@@ -8,6 +8,7 @@ import org.mavlink.messages._
 import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.mavlink.SendYoungest
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
@@ -59,6 +60,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def systemId: Int
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
+  def sendMavlink(m: SendYoungest) = MavlinkEventBus.publish(m)
 
   override def postStop() {
     log.debug("cancelling heartbeat sender")
@@ -92,6 +94,17 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     r
   }
 
+  /**
+   * Do a manual levelling operation
+   */
+  def commandDoCalibrate(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val r = commandLong(MAV_CMD.MAV_CMD_PREFLIGHT_CALIBRATION, targetSystem, targetComponent)
+    r.param1 = 1 // Per Mission planner
+    r.param2 = 0
+    r.param3 = 1
+    r
+  }
+
   // The following variants aren't really needed, at least for Ardupilot you can just use SET_MODE
 
   def commandLoiter(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM, targetSystem, targetComponent)
@@ -119,9 +132,26 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
-  def paramRequestRead(paramIndex: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+  def paramRequestReadByIndex(paramIndex: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_param_request_read(systemId, componentId)
     msg.param_index = paramIndex
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def paramRequestReadById(id: String, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_param_request_read(systemId, componentId)
+    msg.param_index = -1
+    msg.setParam_id(id)
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  def rcChannelsOverride(targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_rc_channels_override(systemId, componentId)
+
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg
@@ -189,6 +219,18 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   def missionCount(count: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
     val msg = new msg_mission_count(systemId, componentId)
     msg.count = count
+    msg.target_system = targetSystem
+    msg.target_component = targetComponent
+    msg
+  }
+
+  /**
+   * DO NOT USE - not supported on Copters
+   */
+  def missionWritePartial(start: Int, end: Int, targetSystem: Int = 1, targetComponent: Int = 1) = {
+    val msg = new msg_mission_write_partial_list(systemId, componentId)
+    msg.start_index = start
+    msg.end_index = end
     msg.target_system = targetSystem
     msg.target_component = targetComponent
     msg

@@ -54,6 +54,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   var waypoints = IndexedSeq[Waypoint]()
 
+  var hasRequestedWaypoints = false
+
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
 
@@ -206,8 +208,10 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   private def perhapsRequestWaypoints() {
 
     // First contact, download any waypoints from the vehicle and get params
-    if (waypoints.isEmpty)
+    if (!hasRequestedWaypoints) {
+      hasRequestedWaypoints = true
       self ! StartWaypointDownload
+    }
   }
 
   /**

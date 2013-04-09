@@ -158,6 +158,13 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         sendWaypointsAndUpdate()
       }
     }
+    override def numParams = wp.numParamsUsed
+    override def getParam(i: Int) = wp.getParam(i)
+    override def setParam(i: Int, n: Float) = {
+      wp.setParam(i, n)
+      setSnippet()
+      sendWaypointsAndUpdate()
+    }
 
     override def title = {
       val r = if (isHome)
@@ -301,7 +308,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
-      val r = "Mode " + v.currentMode + (if (!s.isSerialConnected) " (No USB)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+      val r = "Mode " + v.currentMode + (if (!s.isConnected) " (No Link)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
       //debug("title: " + r)
       r
     }).getOrElse("No service"))

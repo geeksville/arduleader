@@ -56,10 +56,15 @@ import com.geeksville.util.Using._
 import com.geeksville.flight.FenceModel
 import com.geeksville.flight.DoLoadWaypoints
 import scala.concurrent.duration._
+import android.view.InputDevice
+import scala.collection.JavaConverters._
+import android.view.KeyEvent
+import android.content.pm.ActivityInfo
+import android.os.Build
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
-  with AndroServiceClient {
+  with AndroServiceClient with JoystickController {
 
   implicit def context = this
 
@@ -84,7 +89,8 @@ class MainActivity extends FragmentActivity with TypedActivity
     PageInfo("Parameters", { () => new ParameterPane() }),
     PageInfo("Waypoints", { () => new WaypointListFragment }),
     PageInfo("HUD", { () => new HudFragment }),
-    PageInfo("RC Channels", { () => new RcChannelsFragment }))
+    PageInfo("RC Channels", { () => new RcChannelsFragment }),
+    PageInfo("Servos", { () => new ServoOutputFragment }))
 
   /**
    * If we don't have enough horizontal width - the layout will move the map into the only (pager) view.
@@ -163,10 +169,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case MsgModeChanged(_) =>
       handler.post { () =>
+        debug("modeChanged received")
         myVehicle.foreach { v =>
           if (oldVehicleType != v.vehicleType) {
             usageEvent("vehicle_type", "type" -> v.vehicleType.toString)
-            oldVehicleType = v.vehicleType
             setModeOptions()
           }
           usageEvent("set_mode", "mode" -> v.currentMode)
@@ -195,6 +201,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   override def onServiceConnected(s: AndropilotService) {
+    super.onServiceConnected(s)
+
     toast(s.serviceStatus)
 
     // If we already had a serial port open start watching it
@@ -213,11 +221,59 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  private def screenWidthDp = try {
+    getResources.getConfiguration.smallestScreenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenIsLong = try {
+    (getResources.getConfiguration.screenLayout & Configuration.SCREENLAYOUT_LONG_MASK) == Configuration.SCREENLAYOUT_LONG_YES
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      false
+  }
+
+  protected def selectNextPage(toRight: Boolean) {
+    for { v <- viewPager } yield {
+      val numPages = {
+        val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+        adapter.map(_.getCount).getOrElse(0)
+      }
+
+      val c = v.getCurrentItem
+      if (toRight && c < numPages - 1)
+        v.setCurrentItem(c + 1)
+      else if (!toRight && c > 0)
+        v.setCurrentItem(c - 1)
+    }
+  }
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
     debug("Main onCreate")
+    warn("HW make " + Build.MANUFACTURER)
+    warn("HW model " + Build.MODEL)
+    warn("HW device " + Build.DEVICE)
+    warn("HW product " + Build.PRODUCT)
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
+
+    val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
+
+    // If we are on a phone sized device disallow landscape mode (our panes become too small)
+    // Check for a 'long' screen as a hack to turn off this code for samsung note
+    // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
+    // Height: My galaxy nexus is 567, so say <600 means a phone...
+    if (screenWidthDp <= 360 && !screenIsLong)
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
+    // The archos gamepad has joysticks on the side - it really only makes sense in landscape
+    if (isArchosGamepad)
+      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
     mainView = getLayoutInflater.inflate(R.layout.main, null)
     setContentView(mainView)
@@ -228,7 +284,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     // Set up the ViewPager with the sections adapter (if it is present on this layout)
     viewPager.foreach { v =>
-      val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+      //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
 
       // warn("Need to set pager adapter")
       v.setAdapter(sectionsPagerAdapter)
@@ -312,6 +368,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     // Force the screen on if the user wants that 
     viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
+
+    //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
   }
 
   override def onPause() {
@@ -334,11 +392,13 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onDestroy()
   }
 
-  private def toast(str: String) {
-    Toast.makeText(this, str, Toast.LENGTH_SHORT).show()
+  private def toast(str: String, isLong: Boolean = false) {
+    Toast.makeText(this, str, if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
   }
 
-  private def handleParameters() {
+  override protected def handleParameters() {
+    super.handleParameters()
+
     // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
 
     if (paramsToFile)
@@ -481,10 +541,14 @@ class MainActivity extends FragmentActivity with TypedActivity
    * Update the set of options in the mode menu (called when vehicle type changes)
    */
   private def setModeOptions() {
+    debug("Setting modeOptions")
     for { s <- modeSpinner; v <- myVehicle } yield {
       val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this), android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
       // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
       s.setAdapter(spinnerAdapter); // set the adapter
+
+      // We have now recorded our vehicle type
+      oldVehicleType = v.vehicleType
     }
   }
 
@@ -542,6 +606,15 @@ class MainActivity extends FragmentActivity with TypedActivity
           debug("Start followme")
           s.setFollowMe(true)
         }
+
+      case R.id.menu_levelnow =>
+        myVehicle.foreach { v =>
+          if (v.vfrHud.map(_.groundspeed).getOrElse(0.0f) > 0.5f)
+            toast("Can't level vehicle while in motion")
+          else {
+            v.sendMavlink(v.commandDoCalibrate())
+          }
+        }
       case _ =>
     }
 
@@ -584,7 +657,6 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
-
 }
 
 object MainActivity {

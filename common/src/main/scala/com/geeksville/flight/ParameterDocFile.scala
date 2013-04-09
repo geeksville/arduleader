@@ -37,7 +37,7 @@ object ParamDoc {
  * Reads parameter documentation for a particular vehicle type
  */
 class ParameterDocFile {
-  val xml = XML.load(getClass.getResourceAsStream("arduplane.pdef.xml"))
+  val xml = XML.load(getClass.getResourceAsStream("apm.pdef.xml"))
 
   private def findParameters(root: NodeSeq, vehicle: String) =
     (root \ "parameters") filter { node => (node \ "@name").text == vehicle }

@@ -24,11 +24,11 @@
             android:summary="If battery percent falls below this level, Andropilot will warn you"
             android:title="Percent charge warn level" />
         <EditTextPreference
-            android:defaultValue="100"
-            android:dialogTitle="Minimum Rssi"
+            android:defaultValue="2"
+            android:dialogTitle="Minimum Rssi Span"
             android:inputType="number"
-            android:key="min_rssi"
-            android:summary="Warn if the radio signal strength falls below this value"
+            android:key="min_rssi_span"
+            android:summary="Warn if the radio signal minus this value falls below the noise level"
             android:title="Rssi warn level" />
         <EditTextPreference
             android:defaultValue="5"
@@ -37,12 +37,6 @@
             android:key="min_numsats"
             android:summary="Warn if number of GPS satellites falls below this value"
             android:title="Satellite warn level" />
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="speech_enabled"
-            android:summary="Should Andropilot say critical messages"
-            android:title="Speech enable" />
 
         <EditTextPreference
             android:defaultValue="10"
@@ -54,14 +48,14 @@
         <EditTextPreference
             android:defaultValue="0"
             android:dialogTitle="Minimum distance in lead-it mode"
-            android:inputType="number"
+            android:inputType="number|numberSigned"
             android:key="minfollow_distance"
             android:summary="If greater than zero, tilting tablet will move vehicle"
             android:title="Lead-it Minimum distance" />
         <EditTextPreference
             android:defaultValue="0"
             android:dialogTitle="Maximum distance in lead-it mode"
-            android:inputType="number"
+            android:inputType="number|numberSigned"
             android:key="maxfollow_distance"
             android:summary="If greater than zero, tilting tablet will move vehicle"
             android:title="Lead-it Maximum distance" />
@@ -125,7 +119,7 @@
             android:entries="@array/udp_mode"
             android:entryValues="@array/udp_mode_values"
             android:key="udp_mode"
-            android:summary="Select type of UDP link"
+            android:summary="Select type of network link"
             android:title="UDP mode selection" />
 
         <EditTextPreference

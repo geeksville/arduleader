@@ -61,6 +61,13 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
 
     private def isEditable = selected.map(!_.isHome).getOrElse(false)
 
+    override def numParams = selected.map(_.numParamsUsed).getOrElse(0)
+    override def getParam(i: Int) = selected.map(_.getParam(i)).getOrElse(0)
+    override def setParam(i: Int, n: Float) = selected.foreach { s =>
+      s.setParam(i, n)
+      changed()
+    }
+
     /**
      * Have vehicle go to this waypoint
      */
@@ -186,7 +193,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
   override def isSelected(p: Int) = selected.map(_.msg.seq).getOrElse(-1) == p
 
   private def setAdapter() {
-    for (v <- myVehicle if !v.waypoints.isEmpty) yield {
+    for (v <- myVehicle) yield {
       debug("Setting waypoint list to " + v.waypoints.size + " items")
       setAdapter(v.waypoints)
     }
