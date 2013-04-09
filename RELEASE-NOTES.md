@@ -1,3 +1,8 @@
+FIXME: fix eq? https://groups.google.com/forum/?fromgroups=#!searchin/scala-on-android/reflection/scala-on-android/Q0E_OMYqE0A/KoQLxajQSccJ
+FIXME: prompt and do basic droneshare upload
+FIXME: at end of upload offer to show kml locally or share via facebook
+internationalize strings
+
 # 1.3.03
 * Fix a few autobugs
 
@@ -10,9 +15,6 @@
 * Merge in a fix contributed by danpe: Make maps more reliable when internet connection is marginal
 * Allow entering negative numbers on the parameter and waypoint editors
 * Rssi speech warning thresholds are now set automatically
-
-FIXME: prompt and do basic droneshare upload
-FIXME: at end of upload offer to show kml locally or share via facebook
 
 # 1.2.15
 * Experiment with using the FTDI library
