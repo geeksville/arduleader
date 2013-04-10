@@ -11,10 +11,7 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.BasicResponseHandler
 import org.apache.http.client.HttpResponseException
 
-class DroneShareUpload(srcFile: File, val key: String = DroneShareUpload.createKey()) extends S3Upload("s3-droneshare", "uploads/" + key, srcFile) {
-
-  val userId = "userFIXME"
-  val userPass = "passFIXME"
+class DroneShareUpload(srcFile: File, val userId: String, val userPass: String, val key: String = DroneShareUpload.createKey()) extends S3Upload("s3-droneshare", "uploads/" + key, srcFile) {
 
   private val baseUrl = "http://www.droneshare.com"
   private val webAppUploadUrl = baseUrl + "/api/upload/froms3.json"

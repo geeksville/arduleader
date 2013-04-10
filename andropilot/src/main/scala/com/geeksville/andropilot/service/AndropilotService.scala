@@ -37,6 +37,7 @@ import java.io.BufferedOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.IOException
+import android.support.v4.app.NotificationCompat
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -400,7 +401,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     val notificationIntent = new Intent(this, classOf[MainActivity])
     val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-    val notification = new Notification.Builder(this)
+    val notification = new NotificationCompat.Builder(this)
       .setContentTitle("Andropilot")
       .setContentText("Receiving Mavlink")
       .setSmallIcon(R.drawable.icon)
@@ -430,5 +431,6 @@ object AndropilotService {
   }
 
   def logDirectory = sdDirectory.map { sd => new File(sd, "logs") }
+  def uploadedDirectory = sdDirectory.map { sd => new File(sd, "uploaded") }
   def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
 }

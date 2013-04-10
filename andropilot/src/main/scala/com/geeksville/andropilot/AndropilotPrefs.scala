@@ -25,6 +25,11 @@ trait AndropilotPrefs extends UsesPreferences {
   def fenceMaxAlt = intPreference("fence_max", 100)
   def fenceMode = intPreference("fence_action", 1)
 
+  def dshareUpload = boolPreference("dshare_upload", true)
+  def dshareDeleteSent = boolPreference("dshare_deletesent", false)
+  def dshareUsername = stringPreference("dshare_username", "")
+  def dsharePassword = stringPreference("dshare_password", "")
+
   def stayAwakeEnabled = boolPreference("stay_awake", true)
 
   object UDPMode extends Enumeration {

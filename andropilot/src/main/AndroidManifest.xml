@@ -2,7 +2,7 @@
     package="com.geeksville.andropilot" >
 
     <uses-sdk
-        android:minSdkVersion="12"
+        android:minSdkVersion="14"
         android:targetSdkVersion="17" />
 
     <supports-screens

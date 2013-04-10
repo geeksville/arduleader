@@ -20,11 +20,15 @@ import com.geeksville.util.Throttled
  *
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
-class LogBinaryMavlink(out: OutputStream) extends InstrumentedActor {
+class LogBinaryMavlink(val file: File) extends InstrumentedActor {
+
+  private val out = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
 
   val messageThrottle = new Throttled(60 * 1000)
   var oldNumPacket = 0L
   var numPacket = 0L
+
+  logger.info("Logging to " + file.getAbsolutePath)
 
   private val buf = ByteBuffer.allocate(8)
   buf.order(ByteOrder.BIG_ENDIAN)
@@ -76,8 +80,6 @@ object LogBinaryMavlink extends Logging {
 
   // Create a new log file 
   def create(file: File = getFilename()) = {
-    logger.info("Logging to " + file.getAbsolutePath)
-    val out = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
-    new LogBinaryMavlink(out)
+    new LogBinaryMavlink(file)
   }
 }
