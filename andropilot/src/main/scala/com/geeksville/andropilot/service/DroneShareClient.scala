@@ -91,6 +91,6 @@ object DroneShareUpload {
   private val rand = new Random(System.currentTimeMillis)
 
   def createKey() = {
-    "xuploads/" + math.abs(rand.nextLong).toString + ".tlog"
+    "uploads/" + math.abs(rand.nextLong).toString + ".tlog"
   }
 }

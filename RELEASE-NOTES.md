@@ -4,7 +4,8 @@ FIXME: show prefs screen if no droneshare username
 FIXME: properly handle partial tlogs
 FIXME: only upload interesting files
 FIXME: restart after failed uploads...
-FIXME: at end of upload offer to show kml locally or share via facebook
+put size limits on uploads
+improve nestor to list all uploads by a user (newest first)
 FIXME: move droneshare client stuff to common
 internationalize strings
 
