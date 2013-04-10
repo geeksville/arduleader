@@ -27,8 +27,8 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def dshareUpload = boolPreference("dshare_upload", true)
   def dshareDeleteSent = boolPreference("dshare_deletesent", false)
-  def dshareUsername = stringPreference("dshare_username", "")
-  def dsharePassword = stringPreference("dshare_password", "")
+  def dshareUsername = stringPreference("dshare_username", "").trim
+  def dsharePassword = stringPreference("dshare_password", "").trim
 
   def stayAwakeEnabled = boolPreference("stay_awake", true)
 

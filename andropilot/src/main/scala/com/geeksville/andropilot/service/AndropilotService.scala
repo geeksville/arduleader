@@ -63,6 +63,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   private var follower: Option[FollowMe] = None
 
+  private var uploader: Option[AndroidDirUpload] = None
+
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
@@ -132,6 +134,13 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     super.onCreate()
 
     info("Creating service")
+
+    // If we can access log directories try to upload from them
+    for (ldir <- AndropilotService.newLogDirectory; udir <- AndropilotService.uploadedDirectory) yield {
+      val u = new AndroidDirUpload(this, ldir, udir)
+      uploader = Some(u)
+      //u.send() // Prime the pump
+    }
 
     val startFlightLead = false
     if (startFlightLead) {
@@ -431,6 +440,9 @@ object AndropilotService {
   }
 
   def logDirectory = sdDirectory.map { sd => new File(sd, "logs") }
+
+  // temp hack for testing droneshare
+  def newLogDirectory = sdDirectory.map { sd => new File(sd, "newlogs") }
   def uploadedDirectory = sdDirectory.map { sd => new File(sd, "uploaded") }
   def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
 }

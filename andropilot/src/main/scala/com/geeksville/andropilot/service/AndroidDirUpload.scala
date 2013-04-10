@@ -18,24 +18,20 @@ import com.geeksville.andropilot.AndropilotPrefs
  */
 class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File) extends AndroidLogger with AndropilotPrefs {
 
-  private var srcFiles = List[File]()
-
   private var curUpload: Option[AndroidUpload] = None
 
-  rescan() // Prime the pump
-
-  def rescan() {
-    srcFiles = srcDir.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).toList
-    if (!isUploading)
-      sendNext()
-  }
-
   def isUploading = curUpload.isDefined
+
+  // FIXME - check for data connection and permission for background data
   def canUpload = !dshareUsername.isEmpty && !dsharePassword.isEmpty && dshareUpload
 
-  private def sendNext() {
-    srcFiles.headOption.foreach { n =>
-      curUpload = Some(new AndroidUpload(n))
+  def send() {
+    if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
+      val toSend = srcDir.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption
+
+      toSend.foreach { n =>
+        curUpload = Some(new AndroidUpload(n))
+      }
     }
   }
 
@@ -46,6 +42,8 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
     val src = curUpload.get.srcFile
 
     if (!dshareDeleteSent) {
+      destDir.mkdirs() // Make sure the dir exists
+
       val newName = new File(destDir, src.getName)
       warn("Moving to " + newName)
       src.renameTo(newName)
@@ -55,9 +53,7 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
     }
 
     curUpload = None
-    srcFiles = srcFiles.tail
-
-    sendNext()
+    send()
   }
 
   /**

@@ -1,35 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <PreferenceScreen android:title="Droneshare Preferences" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="dshare_upload"
-            android:summary="If a username and password is provided"
-            android:title="Upload flight logs to droneshare.com" />
-
-        <EditTextPreference
-            android:defaultValue=""
-            android:dialogTitle="Droneshare username"
-            android:inputType="text"
-            android:key="dshare_username"
-            android:summary="If that user does not exist, it will be created"
-            android:title="Username" />
-        <EditTextPreference
-            android:defaultValue=""
-            android:dialogTitle="Droneshare password"
-            android:inputType="text"
-            android:key="dshare_password"
-            android:summary="Just pick a password"
-            android:title="Password" />
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="dshare_deletesent"
-            android:summary="We recommend leaving this off for now"
-            android:title="After sharing logs, delete local copies" />
-    </PreferenceScreen>
-
     <PreferenceCategory android:title="Flight Preferences" >
         <EditTextPreference
             android:defaultValue="50"
@@ -188,4 +159,32 @@
             android:title="APM baud rate" />
     </PreferenceCategory>
 
+    <PreferenceScreen android:title="Droneshare Preferences" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="dshare_upload"
+            android:summary="If a username and password is provided"
+            android:title="Upload flight logs to droneshare.com" />
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogTitle="Droneshare username"
+            android:inputType="textEmailAddress"
+            android:key="dshare_username"
+            android:summary="If that user does not exist, it will be created"
+            android:title="Username" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogTitle="Droneshare password"
+            android:inputType="textVisiblePassword"
+            android:key="dshare_password"
+            android:summary="Just pick a password"
+            android:title="Password" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="dshare_deletesent"
+            android:summary="We recommend leaving this off for now"
+            android:title="After sharing logs, delete local copies" />
+    </PreferenceScreen>    
 </PreferenceScreen>

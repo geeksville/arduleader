@@ -10,18 +10,22 @@ import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.BasicResponseHandler
 import org.apache.http.client.HttpResponseException
+import scala.util.Random
 
-class DroneShareUpload(srcFile: File, val userId: String, val userPass: String, val key: String = DroneShareUpload.createKey()) extends S3Upload("s3-droneshare", "uploads/" + key, srcFile) {
+class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
+  extends S3Upload("s3-droneshare", DroneShareUpload.createKey(), srcFile) {
 
   private val baseUrl = "http://www.droneshare.com"
   private val webAppUploadUrl = baseUrl + "/api/upload/froms3.json"
 
+  var tlogId = "FIXME" // Need to use the server response
+
   /**
    * URL to see the webpage for this tlog
    */
-  def viewURL = baseUrl + "/view/" + key
+  def viewURL = baseUrl + "/view/" + tlogId
 
-  def kmzURL = baseUrl + "/api/tlog/" + key + ".kmz"
+  def kmzURL = baseUrl + "/api/tlog/" + tlogId + ".kmz"
 
   private def jsonToWebApp = """
 	|{
@@ -29,14 +33,15 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String, 
     |  userId: '%s',
     |  userPass: '%s'
 	|}
-  	""".stripMargin.format(key, userId, userPass)
+  	""".stripMargin.format(keyName, userId, userPass)
 
   /**
    * Now tell our webapp
    */
   override protected def handleUploadCompleted() {
     try {
-      tellWebApp()
+      val resp = tellWebApp()
+      println("WebApp responds: " + resp)
 
       handleWebAppCompleted()
     } catch {
@@ -55,6 +60,8 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String, 
 
     //url with the post data
     val httpost = new HttpPost(webAppUploadUrl)
+
+    println("Sending JSON: " + jsonToWebApp)
 
     //passes the results to a string builder/entity
     val se = new StringEntity(jsonToWebApp)
@@ -75,7 +82,9 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String, 
 object DroneShareUpload {
   val httpclient = new DefaultHttpClient()
 
+  private val rand = new Random(System.currentTimeMillis)
+
   def createKey() = {
-    "FIXME"
+    "uploads/" + math.abs(rand.nextLong).toString + ".tlog"
   }
 }

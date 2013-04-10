@@ -1,10 +1,11 @@
 FIXME: fix eq? https://groups.google.com/forum/?fromgroups=#!searchin/scala-on-android/reflection/scala-on-android/Q0E_OMYqE0A/KoQLxajQSccJ
 FIXME: prompt and do basic droneshare upload
-FIXME: add prefs screen
+FIXME: show prefs screen if no droneshare username
 FIXME: properly handle partial tlogs
 FIXME: only upload interesting files
 FIXME: restart after failed uploads...
 FIXME: at end of upload offer to show kml locally or share via facebook
+FIXME: move droneshare client stuff to common
 internationalize strings
 
 # 1.3.03
