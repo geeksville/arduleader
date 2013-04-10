@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.transfer.TransferManager
 import com.amazonaws.services.s3.model.ProgressListener
 import java.io.File
 import com.amazonaws.services.s3.model.ProgressEvent
+import java.io.IOException
 
 class S3Upload(val bucketName: String, val keyName: String, val srcFile: File) extends ProgressListener {
 
@@ -27,13 +28,15 @@ class S3Upload(val bucketName: String, val keyName: String, val srcFile: File) e
   protected def handleUploadCompleted() {}
 
   override def progressChanged(ev: ProgressEvent) {
+    println("S3 progress: " + ev.getEventCode)
+
     ev.getEventCode match {
       case ProgressEvent.PART_COMPLETED_EVENT_CODE =>
         handleProgress(ev.getBytesTransfered)
       case ProgressEvent.FAILED_EVENT_CODE =>
         onCompletion()
-        val ex = Option(upload.waitForException())
-        handleUploadFailed(ex)
+        // val ex = Option(upload.waitForException()) // can't call this inside a handler
+        handleUploadFailed(Some(new IOException("File upload failed")))
       case ProgressEvent.COMPLETED_EVENT_CODE =>
         onCompletion()
         handleUploadCompleted()

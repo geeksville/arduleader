@@ -53,7 +53,9 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
     }
 
     curUpload = None
-    send()
+
+    error("FIXME, suppressing next send")
+    //send()
   }
 
   /**

@@ -29,9 +29,9 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
 
   private def jsonToWebApp = """
 	|{
-    |  key: '%s',
-    |  userId: '%s',
-    |  userPass: '%s'
+    |  "key": "%s",
+    |  "userId": "%s",
+    |  "userPass": "%s"
 	|}
   	""".stripMargin.format(keyName, userId, userPass)
 
@@ -40,12 +40,12 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
    */
   override protected def handleUploadCompleted() {
     try {
-      val resp = tellWebApp()
-      println("WebApp responds: " + resp)
+      tlogId = tellWebApp()
+      println("WebApp responds: " + tlogId)
 
       handleWebAppCompleted()
     } catch {
-      case ex: HttpResponseException =>
+      case ex: Exception =>
         handleUploadFailed(Some(ex))
     }
   }
@@ -75,7 +75,13 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
 
     //Handles what is returned from the page 
     val responseHandler = new BasicResponseHandler()
-    DroneShareUpload.httpclient.execute(httpost, responseHandler)
+    val resp = DroneShareUpload.httpclient.execute(httpost, responseHandler)
+
+    // Skanky way to decode a json string
+    if (resp.startsWith("\"") && resp.endsWith("\""))
+      resp.substring(1, resp.length - 1)
+    else
+      throw new Exception("Malformed response")
   }
 }
 
@@ -85,6 +91,6 @@ object DroneShareUpload {
   private val rand = new Random(System.currentTimeMillis)
 
   def createKey() = {
-    "uploads/" + math.abs(rand.nextLong).toString + ".tlog"
+    "xuploads/" + math.abs(rand.nextLong).toString + ".tlog"
   }
 }
