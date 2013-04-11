@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <EditTextPreference
+        android:defaultValue="50"
+        android:dialogTitle="Guided flight altitude (meters AGL)"
+        android:inputType="number"
+        android:key="guide_alt"
+        android:summary="Altitude above ground level in meters"
+        android:title="Guided flight altitude" />
+    <EditTextPreference
+        android:defaultValue="9.5"
+        android:dialogTitle="Minimum battery voltage"
+        android:inputType="numberDecimal"
+        android:key="min_volt"
+        android:summary="If voltage falls below this level, Andropilot will warn you"
+        android:title="Voltage warn level" />
+    <EditTextPreference
+        android:defaultValue="25"
+        android:dialogTitle="Minimum battery percentage"
+        android:inputType="number"
+        android:key="min_batpct"
+        android:summary="If battery percent falls below this level, Andropilot will warn you"
+        android:title="Percent charge warn level" />
+    <EditTextPreference
+        android:defaultValue="2"
+        android:dialogTitle="Minimum Rssi Span"
+        android:inputType="number"
+        android:key="min_rssi_span"
+        android:summary="Warn if the radio signal minus this value falls below the noise level"
+        android:title="Rssi warn level" />
+    <EditTextPreference
+        android:defaultValue="5"
+        android:dialogTitle="Minimum number of satellites"
+        android:inputType="number"
+        android:key="min_numsats"
+        android:summary="Warn if number of GPS satellites falls below this value"
+        android:title="Satellite warn level" />
+    <EditTextPreference
+        android:defaultValue="10"
+        android:dialogTitle="If altitude changes by more than this, say something"
+        android:inputType="number"
+        android:key="speech_altbucket"
+        android:summary="Speak if altitude changes by more than this (meters)"
+        android:title="Announce altitude threshold" />
+    <EditTextPreference
+        android:defaultValue="0"
+        android:dialogTitle="Minimum distance in lead-it mode"
+        android:inputType="number|numberSigned"
+        android:key="minfollow_distance"
+        android:summary="If greater than zero, tilting tablet will move vehicle"
+        android:title="Lead-it Minimum distance" />
+    <EditTextPreference
+        android:defaultValue="0"
+        android:dialogTitle="Maximum distance in lead-it mode"
+        android:inputType="number|numberSigned"
+        android:key="maxfollow_distance"
+        android:summary="If greater than zero, tilting tablet will move vehicle"
+        android:title="Lead-it Maximum distance" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="follow_plane"
+        android:summary="Try to keep vehicle centered in map"
+        android:title="Center on map" />
+
+</PreferenceScreen>

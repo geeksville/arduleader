@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="log_to_file"
+        android:summary="Log packets to /sdcard/andropilot"
+        android:title="Log to file" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="log_keep_boring"
+        android:summary="If not selected, motionless files will be discarded"
+        android:title="Keep all log files" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="params_to_file"
+        android:summary="Backup parameters to /sdcard/andropilot"
+        android:title="Backup parameters" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="force_screenon"
+        android:summary="Don&apos;t let the screen dim when map is shown"
+        android:title="Keep screen on" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="stay_awake"
+        android:summary="Keeps CPU from sleeping when device is connected"
+        android:title="Stay awake when connected" />
+
+</PreferenceScreen>

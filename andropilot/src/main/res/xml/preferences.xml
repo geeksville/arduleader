@@ -1,71 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<preference-headers xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <PreferenceCategory android:title="Flight Preferences" >
-        <EditTextPreference
-            android:defaultValue="50"
-            android:dialogTitle="Guided flight altitude (meters AGL)"
-            android:inputType="number"
-            android:key="guide_alt"
-            android:summary="Altitude above ground level in meters"
-            android:title="Guided flight altitude" />
-        <EditTextPreference
-            android:defaultValue="9.5"
-            android:dialogTitle="Minimum battery voltage"
-            android:inputType="numberDecimal"
-            android:key="min_volt"
-            android:summary="If voltage falls below this level, Andropilot will warn you"
-            android:title="Voltage warn level" />
-        <EditTextPreference
-            android:defaultValue="25"
-            android:dialogTitle="Minimum battery percentage"
-            android:inputType="number"
-            android:key="min_batpct"
-            android:summary="If battery percent falls below this level, Andropilot will warn you"
-            android:title="Percent charge warn level" />
-        <EditTextPreference
-            android:defaultValue="2"
-            android:dialogTitle="Minimum Rssi Span"
-            android:inputType="number"
-            android:key="min_rssi_span"
-            android:summary="Warn if the radio signal minus this value falls below the noise level"
-            android:title="Rssi warn level" />
-        <EditTextPreference
-            android:defaultValue="5"
-            android:dialogTitle="Minimum number of satellites"
-            android:inputType="number"
-            android:key="min_numsats"
-            android:summary="Warn if number of GPS satellites falls below this value"
-            android:title="Satellite warn level" />
-        <EditTextPreference
-            android:defaultValue="10"
-            android:dialogTitle="If altitude changes by more than this, say something"
-            android:inputType="number"
-            android:key="speech_altbucket"
-            android:summary="Speak if altitude changes by more than this (meters)"
-            android:title="Announce altitude threshold" />
-        <EditTextPreference
-            android:defaultValue="0"
-            android:dialogTitle="Minimum distance in lead-it mode"
-            android:inputType="number|numberSigned"
-            android:key="minfollow_distance"
-            android:summary="If greater than zero, tilting tablet will move vehicle"
-            android:title="Lead-it Minimum distance" />
-        <EditTextPreference
-            android:defaultValue="0"
-            android:dialogTitle="Maximum distance in lead-it mode"
-            android:inputType="number|numberSigned"
-            android:key="maxfollow_distance"
-            android:summary="If greater than zero, tilting tablet will move vehicle"
-            android:title="Lead-it Maximum distance" />
+    <header
+        android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
+        android:summary="Warning thresholds, altitudes, etc."
+        android:title="Vehicle" >
+        <extra
+            android:name="settings"
+            android:value="flight" />
+    </header>
+    <header
+        android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
+        android:summary="Flight logging, device sleep, etc."
+        android:title="Logging" >
+        <extra
+            android:name="settings"
+            android:value="mavlink" />
+    </header>
+    <header
+        android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
+        android:summary="Share flights via droneshare, G+, email"
+        android:title="Sharing" >
+        <extra
+            android:name="settings"
+            android:value="share" />
+    </header>
+    <header
+        android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
+        android:summary="Serial port settings (advanced)"
+        android:title="Device" >
+        <extra
+            android:name="settings"
+            android:value="serial" />
+    </header>
+    <header
+        android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
+        android:summary="UDP/TCP settings (advanced)"
+        android:title="Networking" >
+        <extra
+            android:name="settings"
+            android:value="network" />
+    </header>
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="follow_plane"
-            android:summary="Try to keep vehicle centered in map"
-            android:title="Center on map" />
-    </PreferenceCategory>
-    <!--
+</preference-headers>
+
+<!--
     <PreferenceCategory android:title="Geofence Preferences" >
         <EditTextPreference
             android:defaultValue="1"
@@ -89,107 +68,4 @@
             android:summary="FENCE_ACTION (Advanced parameter)"
             android:title="Action on fence breach" />
     </PreferenceCategory>
-    -->
-    <PreferenceCategory android:title="Mavlink Preferences" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="log_to_file"
-            android:summary="Log packets to /sdcard/andropilot"
-            android:title="Log to file" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="log_keep_boring"
-            android:summary="If not selected, motionless files will be discarded"
-            android:title="Keep all log files" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="params_to_file"
-            android:summary="Backup parameters to /sdcard/andropilot"
-            android:title="Backup parameters" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="force_screenon"
-            android:summary="Don&apos;t let the screen dim when map is shown"
-            android:title="Keep screen on" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="stay_awake"
-            android:summary="Keeps CPU from sleeping when device is connected"
-            android:title="Stay awake when connected" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Networking Preferences" >
-        <ListPreference
-            android:defaultValue="Disabled"
-            android:entries="@array/udp_mode"
-            android:entryValues="@array/udp_mode_values"
-            android:key="udp_mode"
-            android:summary="Select type of network link"
-            android:title="UDP mode selection" />
-
-        <EditTextPreference
-            android:defaultValue="14550"
-            android:dialogTitle="Port number for listening to UDP packets"
-            android:inputType="number"
-            android:key="inbound_port"
-            android:summary="Port number to send to on destination machine"
-            android:title="Inbound port number" />
-        <EditTextPreference
-            android:defaultValue="192.168.0.4"
-            android:dialogTitle="Hostname/IP address for any outbound packets"
-            android:key="outbound_udp_host"
-            android:summary="Hostname/IP address for any outbound packets"
-            android:title="Outbound host" />
-        <EditTextPreference
-            android:defaultValue="14550"
-            android:dialogTitle="Port number to send to on destination machine"
-            android:inputType="number"
-            android:key="outbound_port"
-            android:summary="Port number to send to on destination machine"
-            android:title="Outbound port number" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Serial Preferences" >
-        <EditTextPreference
-            android:defaultValue="57600"
-            android:dialogTitle="Baud rate to use for wireless link"
-            android:inputType="number"
-            android:key="baud_wireless"
-            android:summary="Baud rate for wireless link (normally 57600)"
-            android:title="Wireless baud rate" />
-        <EditTextPreference
-            android:defaultValue="115200"
-            android:dialogTitle="Baud rate for direct APM connection"
-            android:inputType="number"
-            android:key="baud_direct"
-            android:summary="Baud rate direct APM connection (normally 115200)"
-            android:title="APM baud rate" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Droneshare Preferences" >
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="dshare_upload"
-            android:summary="If a username and password is provided"
-            android:title="Upload flight logs to droneshare.com" />
-
-        <EditTextPreference
-            android:defaultValue=""
-            android:dialogTitle="Droneshare username"
-            android:inputType="textEmailAddress"
-            android:key="dshare_username"
-            android:summary="If that user does not exist, it will be created"
-            android:title="Username" />
-        <EditTextPreference
-            android:defaultValue=""
-            android:dialogTitle="Droneshare password"
-            android:inputType="textVisiblePassword"
-            android:key="dshare_password"
-            android:summary="Just pick a password"
-            android:title="Password" />
-
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="dshare_deletesent"
-            android:summary="We recommend leaving this off for now"
-            android:title="After sharing logs, delete local copies" />
-    </PreferenceCategory>
-
-</PreferenceScreen>
+-->

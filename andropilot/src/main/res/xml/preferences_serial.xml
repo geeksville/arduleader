@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <EditTextPreference
+        android:defaultValue="57600"
+        android:dialogTitle="Baud rate to use for wireless link"
+        android:inputType="number"
+        android:key="baud_wireless"
+        android:summary="Baud rate for wireless link (normally 57600)"
+        android:title="Wireless baud rate" />
+    <EditTextPreference
+        android:defaultValue="115200"
+        android:dialogTitle="Baud rate for direct APM connection"
+        android:inputType="number"
+        android:key="baud_direct"
+        android:summary="Baud rate direct APM connection (normally 115200)"
+        android:title="APM baud rate" />
+
+</PreferenceScreen>

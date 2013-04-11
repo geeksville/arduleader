@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <ListPreference
+        android:defaultValue="Disabled"
+        android:entries="@array/udp_mode"
+        android:entryValues="@array/udp_mode_values"
+        android:key="udp_mode"
+        android:summary="Select type of network link"
+        android:title="UDP mode selection" />
+
+    <EditTextPreference
+        android:defaultValue="14550"
+        android:dialogTitle="Port number for listening to UDP packets"
+        android:inputType="number"
+        android:key="inbound_port"
+        android:summary="Port number to send to on destination machine"
+        android:title="Inbound port number" />
+    <EditTextPreference
+        android:defaultValue="192.168.0.4"
+        android:dialogTitle="Hostname/IP address for any outbound packets"
+        android:key="outbound_udp_host"
+        android:summary="Hostname/IP address for any outbound packets"
+        android:title="Outbound host" />
+    <EditTextPreference
+        android:defaultValue="14550"
+        android:dialogTitle="Port number to send to on destination machine"
+        android:inputType="number"
+        android:key="outbound_port"
+        android:summary="Port number to send to on destination machine"
+        android:title="Outbound port number" />
+
+</PreferenceScreen>
