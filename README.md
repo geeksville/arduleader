@@ -20,10 +20,6 @@ would like to use this code in your own project, the source is located in the ma
 
 This project is GPL v3.0 licensed.  Copyright 2012 Kevin Hester.  See LICENSE.md for details.
 
-## Glyphicons license
-
-GLYPHICONS FREE are released under the Creative Commons Attribution 3.0 Unported (CC BY 3.0). The Glyphicons FREE can be used both commercially and for personal use, but you must always add a link to www.glyphicons.com in a prominent place (e.g. the footer of a website), include the CC-BY license and the reference to www.glyphicons.com on every page using Glyphicons.
-
 # How to build
 
 ## Stuff you need to install
