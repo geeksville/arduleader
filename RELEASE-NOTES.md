@@ -1,13 +1,15 @@
 FIXME: fix eq? https://groups.google.com/forum/?fromgroups=#!searchin/scala-on-android/reflection/scala-on-android/Q0E_OMYqE0A/KoQLxajQSccJ
 FIXME: prompt and do basic droneshare upload
 FIXME: show prefs screen if no droneshare username
-FIXME: properly handle partial tlogs
 FIXME: only upload interesting files
 FIXME: restart after failed uploads...
-put size limits on uploads
-improve nestor to list all uploads by a user (newest first)
+
 FIXME: move droneshare client stuff to common
 internationalize strings
+s3 use reduced redundancy
+s3 figure out why uploads not getting flushed after right time limit
+put size limits on uploads
+improve nestor to list all uploads by a user (newest first)
 
 # 1.3.03
 * Fix a few autobugs

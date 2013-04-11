@@ -159,7 +159,7 @@
             android:title="APM baud rate" />
     </PreferenceCategory>
 
-    <PreferenceScreen android:title="Droneshare Preferences" >
+    <PreferenceCategory android:title="Droneshare Preferences" >
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="dshare_upload"
@@ -185,6 +185,6 @@
             android:defaultValue="false"
             android:key="dshare_deletesent"
             android:summary="We recommend leaving this off for now"
-            android:title="After sharing logs, delete local copies" />
-    </PreferenceScreen>    
+            android:title="After sharing logs, delete local copies" />  
+    </PreferenceCategory>
 </PreferenceScreen>

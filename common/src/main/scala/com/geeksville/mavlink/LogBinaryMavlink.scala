@@ -20,13 +20,19 @@ import com.geeksville.util.Throttled
  *
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
-class LogBinaryMavlink(val file: File) extends InstrumentedActor {
+class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends InstrumentedActor {
 
-  private val out = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
+  private val tempFile = new File(file.getCanonicalPath() + ".tmp")
+  private val out = new BufferedOutputStream(new FileOutputStream(tempFile, true), 8192)
 
   val messageThrottle = new Throttled(60 * 1000)
   var oldNumPacket = 0L
   var numPacket = 0L
+
+  /**
+   * If false we think we've seen enough interesting action to keep this file around
+   */
+  var isBoring = true
 
   logger.info("Logging to " + file.getAbsolutePath)
 
@@ -36,6 +42,14 @@ class LogBinaryMavlink(val file: File) extends InstrumentedActor {
   override def postStop() {
     log.info("Closing log file...")
     out.close()
+    if (deleteIfBoring && isBoring) {
+      log.error("Deleting boring file " + file)
+      tempFile.delete()
+    } else {
+      log.info("Renaming to " + file)
+      tempFile.renameTo(file)
+    }
+
     super.postStop()
   }
 
@@ -79,7 +93,7 @@ object LogBinaryMavlink extends Logging {
   }
 
   // Create a new log file 
-  def create(file: File = getFilename()) = {
-    new LogBinaryMavlink(file)
+  def create(deleteIfBoring: Boolean, file: File = getFilename()) = {
+    new LogBinaryMavlink(file, deleteIfBoring)
   }
 }

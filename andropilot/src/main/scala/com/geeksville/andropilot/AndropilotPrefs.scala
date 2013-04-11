@@ -25,6 +25,8 @@ trait AndropilotPrefs extends UsesPreferences {
   def fenceMaxAlt = intPreference("fence_max", 100)
   def fenceMode = intPreference("fence_action", 1)
 
+  def loggingKeepBoring = boolPreference("log_keep_boring", false)
+
   def dshareUpload = boolPreference("dshare_upload", true)
   def dshareDeleteSent = boolPreference("dshare_deletesent", false)
   def dshareUsername = stringPreference("dshare_username", "").trim

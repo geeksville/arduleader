@@ -12,23 +12,34 @@ import android.net.Uri
 import android.app.PendingIntent
 import com.geeksville.andropilot.AndropilotPrefs
 import android.net.ConnectivityManager
+import android.app.IntentService
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
  * move to destdir
  */
-class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File) extends AndroidLogger with AndropilotPrefs {
+class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with AndropilotPrefs {
+
+  val srcDirOpt = AndropilotService.newLogDirectory
+  val destDirOpt = AndropilotService.uploadedDirectory
 
   private var curUpload: Option[AndroidUpload] = None
 
+  def context = this
   def isUploading = curUpload.isDefined
 
   // FIXME - check for data connection and permission for background data
-  def canUpload = !dshareUsername.isEmpty && !dsharePassword.isEmpty && dshareUpload && isNetworkAvailable
+  def canUpload = !dshareUsername.isEmpty && !dsharePassword.isEmpty && dshareUpload && isNetworkAvailable && srcDirOpt.isDefined && destDirOpt.isDefined
 
-  def send() {
+  /// Anytime anyone sends us an intent, we just scan the spool directory to
+  /// see if we have outbound files and send em all (if we have data connectivity)
+  override def onHandleIntent(intent: Intent) {
+    send()
+  }
+
+  private def send() {
     if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
-      val toSend = srcDir.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption
+      val toSend = srcDirOpt.flatMap(_.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption)
 
       toSend.foreach { n =>
         curUpload = Some(new AndroidUpload(n))
@@ -43,11 +54,13 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
     val src = curUpload.get.srcFile
 
     if (!dshareDeleteSent) {
-      destDir.mkdirs() // Make sure the dir exists
+      destDirOpt.foreach { d =>
+        d.mkdirs() // Make sure the dir exists
 
-      val newName = new File(destDir, src.getName)
-      warn("Moving to " + newName)
-      src.renameTo(newName)
+        val newName = new File(d, src.getName)
+        warn("Moving to " + newName)
+        src.renameTo(newName)
+      }
     } else {
       warn("FIXME - not Deleting " + src)
       // src.delete()
@@ -83,18 +96,26 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
       .setPriority(NotificationCompat.PRIORITY_LOW)
 
     // Generate initial notification
-    updateNotification()
+    updateNotification(true)
 
     debug("Started upload " + srcFile)
 
-    private def updateNotification() { notifyManager.notify(notifyId, nBuilder.build) }
+    private def updateNotification(isForeground: Boolean) {
+      val n = nBuilder.build
+      if (isForeground)
+        startForeground(notifyId, n)
+      else {
+        notifyManager.notify(notifyId, n)
+        stopForeground(false)
+      }
+    }
 
     private def removeProgress() { nBuilder.setProgress(0, 0, false) }
 
     override protected def handleProgress(bytesTransferred: Int) {
       debug("Upload progress " + bytesTransferred)
       nBuilder.setProgress(fileSize, bytesTransferred, false)
-      updateNotification()
+      updateNotification(true)
 
       super.handleProgress(bytesTransferred)
     }
@@ -103,7 +124,7 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
       error("Upload failed: " + ex)
       removeProgress()
       nBuilder.setContentText("Failed" + ex.map(": " + _.getMessage).getOrElse(""))
-      updateNotification()
+      updateNotification(false)
 
       super.handleUploadFailed(ex)
     }
@@ -111,7 +132,7 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
     override protected def handleUploadCompleted() {
       debug("Upload completed")
       removeProgress()
-      updateNotification()
+      updateNotification(true)
 
       super.handleUploadCompleted
     }
@@ -142,7 +163,7 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
 
       // FIXME, include action buttons for sharing
 
-      updateNotification()
+      updateNotification(false)
 
       // Send the next file
       handleSuccess()
@@ -160,4 +181,10 @@ class AndroidDirUpload(val context: Context, val srcDir: File, val destDir: File
       r
     }
   }
+}
+
+object AndroidDirUpload {
+
+  /// Create an Intent that will start this service
+  def createIntent(context: Context) = new Intent(context, classOf[AndroidDirUpload])
 }

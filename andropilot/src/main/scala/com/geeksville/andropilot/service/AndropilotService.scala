@@ -135,12 +135,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     info("Creating service")
 
-    // If we can access log directories try to upload from them
-    for (ldir <- AndropilotService.newLogDirectory; udir <- AndropilotService.uploadedDirectory) yield {
-      val u = new AndroidDirUpload(this, ldir, udir)
-      uploader = Some(u)
-      //u.send() // Prime the pump
-    }
+    // Send any previously spooled files
+    startService(AndroidDirUpload.createIntent(this))
 
     val startFlightLead = false
     if (startFlightLead) {
@@ -242,7 +238,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       if (!logger.isDefined)
         AndropilotService.logDirectory.foreach { d =>
           logfile = Some(LogBinaryMavlink.getFilename(d))
-          val l = MockAkka.actorOf(LogBinaryMavlink.create(logfile.get), "gclog")
+          val l = MockAkka.actorOf(LogBinaryMavlink.create(loggingKeepBoring, logfile.get), "gclog")
           MavlinkEventBus.subscribe(l, -1)
           logger = Some(l)
         }
