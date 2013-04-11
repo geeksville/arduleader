@@ -55,35 +55,39 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
     super.postStop()
   }
 
+  private def handleMessage(msg: MAVLinkMessage) {
+    // def str = "Rcv" + msg.sysId + ": " + msg
+    //log.debug("Binary write: " + msg)
+    numPacket += 1
+
+    messageThrottle { dt =>
+      val numSec = dt / 1000.0
+
+      val mPerSec = (numPacket - oldNumPacket) / numSec
+      oldNumPacket = numPacket
+
+      log.info("msg write per sec %s".format(mPerSec))
+    }
+
+    // Time in usecs
+    val time = System.currentTimeMillis * 1000
+    buf.clear()
+    buf.putLong(time)
+    out.write(buf.array)
+
+    // Payload
+    out.write(msg.encode)
+  }
+
   def onReceive = {
-    case msg: MAVLinkMessage ⇒
-      // def str = "Rcv" + msg.sysId + ": " + msg
-      //log.debug("Binary write: " + msg)
-      numPacket += 1
-
+    case vfr: msg_vfr_hud =>
       // Crude check for motion
-      val vfr = msg.asInstanceOf[msg_vfr_hud]
-      if (vfr != null) // Don't use option+map for speed
-        if (vfr.groundspeed > 3)
-          numMovingPoints += 1
+      if (vfr.groundspeed > 3)
+        numMovingPoints += 1
+      handleMessage(vfr)
 
-      messageThrottle { dt =>
-        val numSec = dt / 1000.0
-
-        val mPerSec = (numPacket - oldNumPacket) / numSec
-        oldNumPacket = numPacket
-
-        log.info("msg write per sec %s".format(mPerSec))
-      }
-
-      // Time in usecs
-      val time = System.currentTimeMillis * 1000
-      buf.clear()
-      buf.putLong(time)
-      out.write(buf.array)
-
-      // Payload
-      out.write(msg.encode)
+    case msg: MAVLinkMessage ⇒
+      handleMessage(msg)
   }
 }
 
