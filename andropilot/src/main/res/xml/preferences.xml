@@ -97,6 +97,11 @@
             android:summary="Log packets to /sdcard/andropilot"
             android:title="Log to file" />
         <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="log_keep_boring"
+            android:summary="If not selected, motionless files will be discarded"
+            android:title="Keep all log files" />
+        <CheckBoxPreference
             android:defaultValue="true"
             android:key="params_to_file"
             android:summary="Backup parameters to /sdcard/andropilot"
@@ -158,7 +163,6 @@
             android:summary="Baud rate direct APM connection (normally 115200)"
             android:title="APM baud rate" />
     </PreferenceCategory>
-
     <PreferenceCategory android:title="Droneshare Preferences" >
         <CheckBoxPreference
             android:defaultValue="true"
@@ -185,6 +189,7 @@
             android:defaultValue="false"
             android:key="dshare_deletesent"
             android:summary="We recommend leaving this off for now"
-            android:title="After sharing logs, delete local copies" />  
+            android:title="After sharing logs, delete local copies" />
     </PreferenceCategory>
+
 </PreferenceScreen>

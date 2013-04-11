@@ -130,13 +130,17 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   def outboundUdpEnabled = udpMode == UDPMode.Uplink
   def outboundTcpEnabled = udpMode == UDPMode.TCPUplink
 
+  private def perhapsUpload() {
+    startService(AndroidDirUpload.createIntent(this))
+  }
+
   override def onCreate() {
     super.onCreate()
 
     info("Creating service")
 
     // Send any previously spooled files
-    startService(AndroidDirUpload.createIntent(this))
+    perhapsUpload()
 
     val startFlightLead = false
     if (startFlightLead) {
@@ -246,6 +250,12 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // Shut down any existing loggers
       logger.foreach { l =>
         l ! PoisonPill
+
+        // Crufty way to upload any generated files
+        while (!l.isTerminated)
+          Thread.sleep(1000)
+        perhapsUpload()
+
         logger = None
         logfile = None
       }

@@ -29,10 +29,12 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
   var oldNumPacket = 0L
   var numPacket = 0L
 
+  private var numMovingPoints = 0
+
   /**
    * If false we think we've seen enough interesting action to keep this file around
    */
-  var isBoring = true
+  def isBoring = numMovingPoints < 20
 
   logger.info("Logging to " + file.getAbsolutePath)
 
@@ -58,6 +60,12 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
       // def str = "Rcv" + msg.sysId + ": " + msg
       //log.debug("Binary write: " + msg)
       numPacket += 1
+
+      // Crude check for motion
+      val vfr = msg.asInstanceOf[msg_vfr_hud]
+      if (vfr != null) // Don't use option+map for speed
+        if (vfr.groundspeed > 3)
+          numMovingPoints += 1
 
       messageThrottle { dt =>
         val numSec = dt / 1000.0
