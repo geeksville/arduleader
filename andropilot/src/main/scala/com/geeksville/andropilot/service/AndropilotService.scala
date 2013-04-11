@@ -421,6 +421,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       .setContentText("Receiving Mavlink")
       .setSmallIcon(R.drawable.icon)
       .setContentIntent(pendingIntent)
+      .setPriority(NotificationCompat.PRIORITY_LOW)
       .getNotification() // Don't use .build, it isn't in rev12
 
     startForeground(ONGOING_NOTIFICATION, notification)
@@ -445,10 +446,7 @@ object AndropilotService {
     }
   }
 
-  def logDirectory = sdDirectory.map { sd => new File(sd, "logs") }
-
-  // temp hack for testing droneshare
-  def newLogDirectory = sdDirectory.map { sd => new File(sd, "newlogs") }
+  def logDirectory = sdDirectory.map { sd => new File(sd, "newlogs") }
   def uploadedDirectory = sdDirectory.map { sd => new File(sd, "uploaded") }
   def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
 }

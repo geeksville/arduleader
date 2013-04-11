@@ -20,7 +20,7 @@ import android.app.IntentService
  */
 class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with AndropilotPrefs {
 
-  val srcDirOpt = AndropilotService.newLogDirectory
+  val srcDirOpt = AndropilotService.logDirectory
   val destDirOpt = AndropilotService.uploadedDirectory
 
   private var curUpload: Option[AndroidUpload] = None
@@ -34,6 +34,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
   /// Anytime anyone sends us an intent, we just scan the spool directory to
   /// see if we have outbound files and send em all (if we have data connectivity)
   override def onHandleIntent(intent: Intent) {
+
     send()
   }
 
@@ -62,14 +63,14 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
         src.renameTo(newName)
       }
     } else {
-      warn("FIXME - not Deleting " + src)
-      // src.delete()
+      warn("Deleting " + src)
+      src.delete()
     }
 
     curUpload = None
 
-    error("FIXME, suppressing next send")
-    //send()
+    // error("FIXME, suppressing next send")
+    send()
   }
 
   def isNetworkAvailable = {
@@ -89,7 +90,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
     private val notifyManager = context.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
     private val nBuilder = new NotificationCompat.Builder(context)
-    nBuilder.setContentTitle("DroneShare Upload")
+    nBuilder.setContentTitle("Droneshare upload")
       .setContentText("Uploading tlog")
       .setSmallIcon(R.drawable.icon)
       .setProgress(fileSize, 0, false)

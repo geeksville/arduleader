@@ -1,11 +1,12 @@
-FIXME: fix eq? https://groups.google.com/forum/?fromgroups=#!searchin/scala-on-android/reflection/scala-on-android/Q0E_OMYqE0A/KoQLxajQSccJ
-FIXME: prompt and do basic droneshare upload
-FIXME: show prefs screen if no droneshare username
-FIXME: restart after failed uploads...
-scan correct directory
-don't suppress delete or next send
+# 1.4.00
+* Alpha test feature: Optional sharing tlogs with G+, gmail, google earth & web...
+* We automatically delete 'boring' tlogs (no vehicle motion) - controllable from settings
+* Use the new android 4.0 style preferences UI
 
+TODO:
+deploy new nestor
 FIXME: move droneshare client stuff to common
+FIXME: restart after failed uploads...
 internationalize strings
 s3 use reduced redundancy
 s3 figure out why uploads not getting flushed after right time limit

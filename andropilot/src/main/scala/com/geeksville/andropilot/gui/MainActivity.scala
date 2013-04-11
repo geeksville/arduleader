@@ -370,6 +370,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
 
     //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
+
+    if (shouldNagUser)
+      toast("Sharing disabled: Please set username in settings (in alpha test)")
   }
 
   override def onPause() {
@@ -391,6 +394,9 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     super.onDestroy()
   }
+
+  /// If we are configured to upload, but have no username/psw tell user why we are ignoring them
+  def shouldNagUser = dshareUpload && (dshareUsername.isEmpty || dsharePassword.isEmpty)
 
   private def toast(str: String, isLong: Boolean = false) {
     Toast.makeText(this, str, if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
