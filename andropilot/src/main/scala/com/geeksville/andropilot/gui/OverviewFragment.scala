@@ -64,7 +64,10 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
         if (getView != null) {
           myVehicle.foreach { v =>
             v.radio.foreach { n =>
-              rssiLocalView.setText(n.rssi.toString + "/" + n.remrssi.toString)
+              val local = n.rssi - n.noise
+              val rem = n.remrssi - n.remnoise
+
+              rssiLocalView.setText(local.toString + "/" + rem.toString)
             }
             v.batteryVoltage.foreach { n =>
               val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")

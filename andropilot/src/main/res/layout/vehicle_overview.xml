@@ -162,7 +162,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rssi (Local/Remote)"
+                android:text="Rssi margins"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView

@@ -1,5 +1,6 @@
 # 1.4.02
 * Automatically resume droneshare uploads when network connection is attached
+* Report Rssi as the difference between Rssi and noise (which is really what matters)
 * Fix an autobug for phones that don't have the market app
 * Fix an autobug accessing waypoints served up from the network
 
