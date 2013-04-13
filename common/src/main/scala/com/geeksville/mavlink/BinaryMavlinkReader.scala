@@ -10,6 +10,7 @@ import org.mavlink.messages.ardupilotmega.msg_global_position_int
 import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayBuilder
 import java.io.ByteArrayInputStream
+import java.io.IOException
 
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
@@ -33,11 +34,17 @@ class BinaryMavlinkReader(bytes: Array[Byte]) extends Iterable[TimestampedMessag
 
     /// Try to read the next message return Option(time -> msg)
     private def readNext() = {
-      val time = stream.readLong
-      val msg = Option(reader.getNextMessage())
+      try {
+        val time = stream.readLong
+        val msg = Option(reader.getNextMessage())
 
-      msg.map { raw =>
-        TimestampedMessage(time, raw)
+        msg.map { raw =>
+          TimestampedMessage(time, raw)
+        }
+      } catch {
+        case ex: IOException =>
+          println("Error reading mavlink file: " + ex)
+          None
       }
     }
 
