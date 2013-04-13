@@ -61,6 +61,7 @@ import scala.collection.JavaConverters._
 import android.view.KeyEvent
 import android.content.pm.ActivityInfo
 import android.os.Build
+import com.geeksville.android.PlayTools
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -300,18 +301,19 @@ class MainActivity extends FragmentActivity with TypedActivity
       }) */
     }
 
-    val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
-    if (probe == ConnectionResult.SUCCESS) {
+    val hasPlay = PlayTools.checkForServices(this)
+    if (hasPlay) {
       // Did the user just plug something in?
       Option(getIntent).foreach(handleIntent)
     } else {
       Option(findView(TR.maps_error)).map { v =>
+        val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
         val msg = if (probe == ConnectionResult.SERVICE_INVALID)
           """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they made a mistake repackaging the service)""".stripMargin
         else
-          """|Google Maps is not installed (code=%d) - you will not be able to run this application... 
+          """|Google Maps V2 is not installed (code=%d) - you will not be able to run this application... 
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they forgot to include a working version of 'Google
              |Play Services')""".stripMargin.format(probe)
