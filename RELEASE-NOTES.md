@@ -1,3 +1,7 @@
+# 1.4.02
+* Fix an autobug for phones that don't have the market app
+* Fix an autobug accessing waypoints served up from the network
+
 # 1.4.01
 * Beta test feature: Optional sharing tlogs with G+, gmail, facebook, google earth & web...
 * We automatically delete 'boring' tlogs (no vehicle motion) - controllable from settings
@@ -6,6 +10,8 @@
 TODO:
 FIXME: move droneshare client stuff to common
 FIXME: restart after failed uploads...
+Ensure only one upload at a time
+report upload exceptions via google
 internationalize strings
 s3 use reduced redundancy
 put size limits on uploads

@@ -62,6 +62,8 @@ import android.view.KeyEvent
 import android.content.pm.ActivityInfo
 import android.os.Build
 import com.geeksville.android.PlayTools
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -450,32 +452,35 @@ class MainActivity extends FragmentActivity with TypedActivity
   private def handleFileOpen(uri: Uri) {
     // FIXME - show a dialog asking for confirmation
     val filename = uri.getLastPathSegment
-    using(AndroidJUtil.getFromURI(this, uri)) { s =>
-      myVehicle.foreach { v =>
+    future { // Don't do this in the main thread - because it might try to touch network
+      debug("Handling fileOpen (in background thread)")
 
-        if (filename.toLowerCase.endsWith(".fen")) {
-          if (!v.isFenceAvailable)
-            toast("Fence not yet available, try back later...")
-          else {
-            usageEvent("fence_uploaded", "url" -> uri.toString)
-            toast("Uploading fence: " + filename)
-            val pts = FenceModel.pointsFromStream(s)
+      using(AndroidJUtil.getFromURI(this, uri)) { s =>
+        myVehicle.foreach { v =>
+          if (filename.toLowerCase.endsWith(".fen")) {
+            if (!v.isFenceAvailable)
+              toast("Fence not yet available, try back later...")
+            else {
+              usageEvent("fence_uploaded", "url" -> uri.toString)
+              toast("Uploading fence: " + filename)
+              val pts = FenceModel.pointsFromStream(s)
 
-            v ! DoSetFence(pts, fenceMode)
+              v ! DoSetFence(pts, fenceMode)
+            }
           }
-        }
 
-        if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
-          usageEvent("waypoint_uploaded", "url" -> uri.toString)
+          if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
+            usageEvent("waypoint_uploaded", "url" -> uri.toString)
 
-          try {
-            val pts = v.pointsFromStream(s)
-            toast("Uploading waypoints: " + filename)
-            v ! DoLoadWaypoints(pts)
-            v ! SendWaypoints
-          } catch {
-            case ex: Exception =>
-              toast(ex.getMessage) // Error reading from file (probably not a waypoint file)
+            try {
+              val pts = v.pointsFromStream(s)
+              toast("Uploading waypoints: " + filename)
+              v ! DoLoadWaypoints(pts)
+              v ! SendWaypoints
+            } catch {
+              case ex: Exception =>
+                toast(ex.getMessage) // Error reading from file (probably not a waypoint file)
+            }
           }
         }
       }
