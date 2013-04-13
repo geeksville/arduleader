@@ -13,6 +13,7 @@ import android.app.PendingIntent
 import com.geeksville.andropilot.AndropilotPrefs
 import android.net.ConnectivityManager
 import android.app.IntentService
+import android.widget.Toast
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
@@ -34,18 +35,25 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
   /// Anytime anyone sends us an intent, we just scan the spool directory to
   /// see if we have outbound files and send em all (if we have data connectivity)
   override def onHandleIntent(intent: Intent) {
-
     send()
   }
 
   private def send() {
-    if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
-      val toSend = srcDirOpt.flatMap(_.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption)
+    val toSend = srcDirOpt.flatMap(_.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption)
 
-      toSend.foreach { n =>
-        curUpload = Some(new AndroidUpload(n))
-      }
+    toSend match {
+      case Some(n) =>
+        NetworkStateReceiver.register(this) // We now want to find out about network connectivity changes
+
+        // We have a candidate for uploading, is the network good and user prefs entered?
+        if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
+          Toast.makeText(this, "Starting droneshare upload", Toast.LENGTH_SHORT).show()
+          curUpload = Some(new AndroidUpload(n))
+        }
+      case None =>
+        NetworkStateReceiver.unregister(this)
     }
+
   }
 
   /**
@@ -69,8 +77,13 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
     curUpload = None
 
+    // Send next file
     // error("FIXME, suppressing next send")
     send()
+  }
+
+  private def handleFailure() {
+    curUpload = None
   }
 
   def isNetworkAvailable = {
@@ -103,10 +116,11 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
     private def updateNotification(isForeground: Boolean) {
       val n = nBuilder.build
+
+      notifyManager.notify(notifyId, n)
       if (isForeground)
         startForeground(notifyId, n)
       else {
-        notifyManager.notify(notifyId, n)
         stopForeground(false)
       }
     }
@@ -126,6 +140,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
       removeProgress()
       nBuilder.setContentText("Failed" + ex.map(": " + _.getMessage).getOrElse(""))
       updateNotification(false)
+      handleFailure()
 
       super.handleUploadFailed(ex)
     }

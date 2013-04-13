@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.widget.Toast;
 
 /**
  * Work around a rare autobug: Some devices have old versions of google play
@@ -30,9 +29,6 @@ public class PlayTools {
 
 		if (services) {
 			// Ok, do whatever.
-			Toast.makeText(context,
-					"Play Services are installed. Would start map now...",
-					Toast.LENGTH_LONG).show();
 			return true;
 		} else {
 			AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(

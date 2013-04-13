@@ -1,4 +1,5 @@
 # 1.4.02
+* Automatically resume droneshare uploads when network connection is attached
 * Fix an autobug for phones that don't have the market app
 * Fix an autobug accessing waypoints served up from the network
 
@@ -10,7 +11,6 @@
 TODO:
 FIXME: move droneshare client stuff to common
 FIXME: restart after failed uploads...
-Ensure only one upload at a time
 report upload exceptions via google
 internationalize strings
 s3 use reduced redundancy
