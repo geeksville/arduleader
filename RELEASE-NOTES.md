@@ -1,17 +1,15 @@
-# 1.4.00
-* Alpha test feature: Optional sharing tlogs with G+, gmail, google earth & web...
+# 1.4.01
+* Beta test feature: Optional sharing tlogs with G+, gmail, facebook, google earth & web...
 * We automatically delete 'boring' tlogs (no vehicle motion) - controllable from settings
 * Use the new android 4.0 style preferences UI
 
 TODO:
-deploy new nestor
 FIXME: move droneshare client stuff to common
 FIXME: restart after failed uploads...
 internationalize strings
 s3 use reduced redundancy
-s3 figure out why uploads not getting flushed after right time limit
 put size limits on uploads
-improve nestor to list all uploads by a user (newest first)
+check for uploads any time we get network connectivity
 
 # 1.3.03
 * Fix a few autobugs

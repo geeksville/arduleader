@@ -12,6 +12,8 @@ class S3Upload(val bucketName: String, val keyName: String, val srcFile: File) e
   // Transfer a file to an S3 bucket.
   val upload = S3Client.transfer.upload(bucketName, keyName, srcFile)
 
+  private var totalTransferred = 0
+
   upload.addProgressListener(this)
 
   private def onCompletion() {
@@ -30,9 +32,11 @@ class S3Upload(val bucketName: String, val keyName: String, val srcFile: File) e
   override def progressChanged(ev: ProgressEvent) {
     println("S3 progress: " + ev.getEventCode)
 
+    totalTransferred += ev.getBytesTransfered
+
     ev.getEventCode match {
-      case ProgressEvent.PART_COMPLETED_EVENT_CODE =>
-        handleProgress(ev.getBytesTransfered)
+      case 0 =>
+        handleProgress(totalTransferred)
       case ProgressEvent.FAILED_EVENT_CODE =>
         onCompletion()
         // val ex = Option(upload.waitForException()) // can't call this inside a handler

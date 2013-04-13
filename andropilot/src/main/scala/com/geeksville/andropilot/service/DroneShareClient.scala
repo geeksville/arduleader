@@ -16,6 +16,7 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
   extends S3Upload("s3-droneshare", DroneShareUpload.createKey(), srcFile) {
 
   private val baseUrl = "http://www.droneshare.com"
+  // private val baseUrl = "http://192.168.0.93:8080"
   private val webAppUploadUrl = baseUrl + "/api/upload/froms3.json"
 
   var tlogId = "FIXME" // Need to use the server response
