@@ -11,12 +11,10 @@
 
 TODO:
 FIXME: move droneshare client stuff to common
-FIXME: restart after failed uploads...
 report upload exceptions via google
 internationalize strings
 s3 use reduced redundancy
 put size limits on uploads
-check for uploads any time we get network connectivity
 
 # 1.3.03
 * Fix a few autobugs
