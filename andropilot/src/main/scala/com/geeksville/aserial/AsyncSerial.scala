@@ -105,7 +105,7 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
    * FIXME - have caller pass in a bytebuffer directly
    */
   def write(src: Array[Byte], timeoutMsec: Int) = {
-    if(src.size != 0) {
+    if (src.size != 0) {
       val pkt = new Request(isRead = false, len = src.length)
       pkt.buffer.put(src) // Copy the src array - because it may be going away
       pkt.buffer.limit(pkt.buffer.position)
@@ -121,7 +121,13 @@ class AsyncSerial(val dev: UsbSerialDriver, val bytesToSkip: Int = 0) extends An
     startReads()
 
     // FIXME - support timeouts
-    val pktOpt = Option(connection.requestWait().asInstanceOf[Request])
+    val pktOpt = try {
+      Option(connection.requestWait().asInstanceOf[Request])
+    } catch {
+      case ex: NullPointerException => // Some devices out there seem to have buggy USB code
+        error("Ignoring NPE in read!")
+        None
+    }
 
     pktOpt.map { pkt =>
       pkt.setCompletion()
