@@ -54,7 +54,7 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
               -1
           }
         }
-      debug("Read returns " + r)
+      //debug("Read returns " + r)
       r
     }
 
@@ -76,7 +76,7 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
     }
 
     override def write(b: Array[Byte], off: Int, len: Int) = {
-      debug("Writing: " + b.take(len).mkString(","))
+      //debug("Writing: " + b.take(len).mkString(","))
       // async.foreach(_.write(b, writeTimeout))
       assert(off == 0)
 
