@@ -6,6 +6,7 @@ import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.akka.PoisonPill
 
 /**
  * published on our eventbus when someone wants a packet sent to the outside world
@@ -94,6 +95,10 @@ class MavlinkUDP(destHostName: Option[String] = None,
         receivePacket.foreach(handlePacket)
       }
     } catch {
+      case ex: BindException =>
+        error("Unable to bind to port!")
+        self ! PoisonPill
+
       case ex: SocketException =>
         if (!self.isTerminated) // If we are shutting down, ignore socket exceptions
           throw ex
