@@ -51,8 +51,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    */
   var logfile: Option[File] = None
   private var logger: Option[LogBinaryMavlink] = None
-  private var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
-  private var udpPrefListener: Option[OnSharedPreferenceChangeListener] = None
+  private var prefListeners: Seq[OnSharedPreferenceChangeListener] = Seq()
 
   var vehicle: Option[VehicleModel] = None
 
@@ -182,8 +181,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
-    logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
-    udpPrefListener = Some(registerOnPreferenceChanged("udp_mode")(startUDP _))
+    val handlers = Seq("log_to_file" -> setLogging _,
+      "udp_mode" -> startUDP _, "outbound_udp_host" -> startUDP _, "inbound_port" -> startUDP _, "outbound_port" -> startUDP _)
+    prefListeners = prefListeners ++ handlers.map { p => registerOnPreferenceChanged(p._1)(p._2) }
 
     info("Done starting service")
   }
@@ -229,7 +229,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       None
     }
 
-    if (udp.isDefined)
+    // We don't consider outbound udp high value, if there is a serial port connected it will need to keep us awake
+    if (udp.isDefined && !outboundUdpEnabled)
       startHighValue()
     else if (wasOn)
       stopHighValue()
@@ -400,8 +401,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   override def onDestroy() {
     warn("in onDestroy ******************************")
     setFollowMe(false)
-    logPrefListener.foreach(unregisterOnPreferenceChanged)
-    udpPrefListener.foreach(unregisterOnPreferenceChanged)
+    prefListeners.foreach(unregisterOnPreferenceChanged)
+    prefListeners = Seq()
     udp.foreach(_ ! PoisonPill)
     udp = None
     serialDetached()
