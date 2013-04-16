@@ -1,3 +1,6 @@
+# 1.4.03
+* Fix a couple of autobugs with the new droneshare feature
+
 # 1.4.02
 * Automatically resume droneshare uploads when network connection is attached
 * Report Rssi as the difference between Rssi and noise (which is really what matters)
@@ -10,13 +13,15 @@
 * Use the new android 4.0 style preferences UI
 
 TODO:
+FIXME: wpt selection off by one sometimes!!!
+FIXME: report droneshare failures via google
+FIXME: release new upload url
+FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
 FIXME: move droneshare client stuff to common
-FIXME: restart after failed uploads...
 report upload exceptions via google
 internationalize strings
 s3 use reduced redundancy
 put size limits on uploads
-check for uploads any time we get network connectivity
 
 # 1.3.03
 * Fix a few autobugs

@@ -39,7 +39,11 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
   }
 
   private def send() {
-    val toSend = srcDirOpt.flatMap(_.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") }).headOption)
+    val toSend = srcDirOpt.flatMap { dir =>
+      val files = dir.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") })
+
+      Option(files).flatMap(_.headOption)
+    }
 
     toSend match {
       case Some(n) =>

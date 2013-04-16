@@ -38,7 +38,7 @@ public class PlayTools {
 			alertDialogBuilder
 					.setTitle("Google Play Services")
 					.setMessage(
-							"The map requires Google Play Services to be installed.")
+							"This application requires Google Play Services to be installed.")
 					.setCancelable(true)
 					.setPositiveButton("Install",
 							new DialogInterface.OnClickListener() {
