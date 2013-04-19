@@ -82,6 +82,7 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     // Apparently IME_ACTION_DONE fires when the user leaves the edit text
     tv.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
+        warn("actionId: " + actionId)
         if (actionId == EditorInfo.IME_ACTION_DONE) {
           val str = v.getText.toString
           debug("Editing completed: " + str)

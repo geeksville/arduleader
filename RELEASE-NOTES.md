@@ -1,3 +1,7 @@
+Fix: https://github.com/geeksville/arduleader/issues/56
+Fix: Rana's bug with UDP uploading
+add nexus 10" support
+
 # 1.4.03
 * Fix a couple of autobugs with the new droneshare feature
 

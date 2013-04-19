@@ -87,10 +87,12 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
-  private val stdPages = IndexedSeq(
-    PageInfo("Overview", { () => new OverviewFragment }),
+  // These pages might be on the main view, so no need to include them in the pager
+  private val waypointPageInfo = PageInfo("Waypoints", { () => new WaypointListFragment })
+  private val overviewPageInfo = PageInfo("Overview", { () => new OverviewFragment })
+
+  private val stdPages = List(
     PageInfo("Parameters", { () => new ParameterPane() }),
-    PageInfo("Waypoints", { () => new WaypointListFragment }),
     PageInfo("HUD", { () => new HudFragment }),
     PageInfo("RC Channels", { () => new RcChannelsFragment }),
     PageInfo("Servos", { () => new ServoOutputFragment }))
@@ -99,12 +101,16 @@ class MainActivity extends FragmentActivity with TypedActivity
    * If we don't have enough horizontal width - the layout will move the map into the only (pager) view.
    * Make it the first/default page
    */
-  private val phonePages = PageInfo("Map", { () => new MyMapFragment }) +: stdPages
+  private val mapPageInfo = PageInfo("Map", { () => new MyMapFragment })
 
   // We don't cache these - so that if we get rotated we pull the correct one
   // Also - might not always be present, so we make it an option
   def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
   def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
+
+  // On some layouts we have dedicated versions of these views
+  def waypointFragment = Option(findViewById(R.id.waypoint_fragment))
+  def overviewFragment = Option(findViewById(R.id.overview_fragment))
 
   /**
    * Does work in the GUIs thread
@@ -353,9 +359,20 @@ class MainActivity extends FragmentActivity with TypedActivity
   def isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
 
   private def pages = {
-    val r = if (isWide) stdPages else phonePages
+    var r = stdPages
+
+    if (!waypointFragment.isDefined)
+      r = waypointPageInfo :: r
+
+    if (!overviewFragment.isDefined)
+      r = overviewPageInfo :: r
+
+    // If we need to add a map view add it first (FIXME, check for this need by looking for mapFragment in the layout)
+    if (!isWide)
+      r = mapPageInfo :: r
+
     debug("Using wide view=" + isWide + " pages=" + r.mkString(","))
-    r
+    r.toIndexedSeq
   }
 
   /**

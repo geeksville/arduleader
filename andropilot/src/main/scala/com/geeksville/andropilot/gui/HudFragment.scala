@@ -33,12 +33,14 @@ class HudFragment extends Fragment with AndroServicePage {
       //debug("Handling location: " + l) 
       handler.post { () =>
         if (getView != null) {
-          val degSymbol = "\u00B0"
-          //latView.setText(l.lat.toString + degSymbol)
-          //lonView.setText(l.lon.toString + degSymbol)
-          //altView.setText(l.alt + "m")
-          l.alt.foreach { a => hud.setAltitude(a + "m") }
-          // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
+          myVehicle.foreach { v =>
+            val degSymbol = "\u00B0"
+            //latView.setText(l.lat.toString + degSymbol)
+            //lonView.setText(l.lon.toString + degSymbol)
+            //altView.setText(l.alt + "m")
+            hud.setAltitude(v.bestAltitude + "m")
+            // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
+          }
         }
       }
 
