@@ -56,7 +56,9 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger with Fl
   def speak(str: String, urgent: Boolean = false) {
     if (isSpeechEnabled) {
       usageEvent("speech_on", "msg" -> str)
-      tts.foreach(_.speak(str, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
+
+      val cleaned = str.replace('_', ' ') // Don't say 'underscore'
+      tts.foreach(_.speak(cleaned, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
     } else
       usageEvent("speech_off", "msg" -> str)
   }

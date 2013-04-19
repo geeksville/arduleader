@@ -1,6 +1,19 @@
+* Use best possible altitude on hud view
+* Add an optimized view layout for 10" tablets (Such as the beautiful Nexus 10" - Thank you anonymous Googler for the gift!)
+* Don't say 'underscore' when reading out modes
+
+TODO:
 Fix: https://github.com/geeksville/arduleader/issues/56
 Fix: Rana's bug with UDP uploading
-add nexus 10" support
+FIXME: wpt selection off by one sometimes!!!
+FIXME: report droneshare failures via google
+FIXME: release new upload url
+FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
+FIXME: move droneshare client stuff to common
+report upload exceptions via google
+internationalize strings
+s3 use reduced redundancy
+put size limits on uploads
 
 # 1.4.03
 * Fix a couple of autobugs with the new droneshare feature
@@ -15,17 +28,6 @@ add nexus 10" support
 * Beta test feature: Optional sharing tlogs with G+, gmail, facebook, google earth & web...
 * We automatically delete 'boring' tlogs (no vehicle motion) - controllable from settings
 * Use the new android 4.0 style preferences UI
-
-TODO:
-FIXME: wpt selection off by one sometimes!!!
-FIXME: report droneshare failures via google
-FIXME: release new upload url
-FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
-FIXME: move droneshare client stuff to common
-report upload exceptions via google
-internationalize strings
-s3 use reduced redundancy
-put size limits on uploads
 
 # 1.3.03
 * Fix a few autobugs
