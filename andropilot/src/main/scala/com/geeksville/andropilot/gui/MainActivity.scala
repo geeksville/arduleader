@@ -88,20 +88,20 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   // These pages might be on the main view, so no need to include them in the pager
-  private val waypointPageInfo = PageInfo("Waypoints", { () => new WaypointListFragment })
-  private val overviewPageInfo = PageInfo("Overview", { () => new OverviewFragment })
+  private lazy val waypointPageInfo = PageInfo(S(R.string.waypoints), { () => new WaypointListFragment })
+  private lazy val overviewPageInfo = PageInfo(S(R.string.overview), { () => new OverviewFragment })
 
-  private val stdPages = List(
-    PageInfo("Parameters", { () => new ParameterPane() }),
-    PageInfo("HUD", { () => new HudFragment }),
-    PageInfo("RC Channels", { () => new RcChannelsFragment }),
-    PageInfo("Servos", { () => new ServoOutputFragment }))
+  private lazy val stdPages = List(
+    PageInfo(S(R.string.parameters), { () => new ParameterPane() }),
+    PageInfo(S(R.string.hud), { () => new HudFragment }),
+    PageInfo(S(R.string.rc_channels), { () => new RcChannelsFragment }),
+    PageInfo(S(R.string.servos), { () => new ServoOutputFragment }))
 
   /**
    * If we don't have enough horizontal width - the layout will move the map into the only (pager) view.
    * Make it the first/default page
    */
-  private val mapPageInfo = PageInfo("Map", { () => new MyMapFragment })
+  private lazy val mapPageInfo = PageInfo(S(R.string.map), { () => new MyMapFragment })
 
   // We don't cache these - so that if we get rotated we pull the correct one
   // Also - might not always be present, so we make it an option
@@ -135,19 +135,19 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) {
     val warning = if (isLowVolt)
-      "Warn Volt"
+      R.string.spk_warn_volt
     else if (isLowBatPercent)
-      "Warn Battery"
+      R.string.spk_warn_battery
     else if (isLowRssi)
-      "Warn Radio"
+      R.string.spk_warn_radio
     else if (isLowNumSats)
-      "Warn GPS"
+      R.string.spk_warn_gps
     else
-      ""
+      -1
 
-    if (!warning.isEmpty && handler != null)
+    if (warning != -1 && handler != null)
       handler.post { () =>
-        speak(warning)
+        speak(S(warning), true)
       }
   }
 
@@ -158,7 +158,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         throttleAlt(v.bestAltitude.toInt) { alt =>
           handler.post { () =>
             debug("Speak alt: " + alt)
-            speak(alt + " meters")
+            speak(S(R.string.spk_meter).format(alt))
           }
         }
       }
@@ -171,7 +171,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         throttleBattery((pct * 100).toInt) { pct =>
           handler.post { () =>
             debug("Speak battery: " + pct)
-            speak(pct + " percent")
+            speak(S(R.string.spk_percent).format("%s percent"))
           }
         }
       }
@@ -192,7 +192,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgHeartbeatLost =>
       handler.post { () =>
         usageEvent("heartbeat_lost")
-        speak("Heartbeat lost", urgent = true)
+        speak(S(R.string.spk_heartbeat_lost), urgent = true)
         setModeSpinner()
       }
 
@@ -393,7 +393,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
 
     if (shouldNagUser)
-      toast("Sharing disabled: Please set username in settings (in alpha test)")
+      toast(R.string.sharing_disabled, true)
   }
 
   override def onPause() {
@@ -442,7 +442,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     debug("Handling serial disconnect")
     unregisterSerialReceiver()
 
-    toast("3DR Telemetry disconnected...")
+    toast(R.string.telem_disconnected, false)
   }
 
   private def unregisterSerialReceiver() {
@@ -472,10 +472,10 @@ class MainActivity extends FragmentActivity with TypedActivity
         myVehicle.foreach { v =>
           if (filename.toLowerCase.endsWith(".fen")) {
             if (!v.isFenceAvailable)
-              toast("Fence not yet available, try back later...")
+              toast(R.string.fence_not_avail, true)
             else {
               usageEvent("fence_uploaded", "url" -> uri.toString)
-              toast("Uploading fence: " + filename)
+              toast(S(R.string.uploading_fence).format(filename))
               val pts = FenceModel.pointsFromStream(s)
 
               v ! DoSetFence(pts, fenceMode)
@@ -487,7 +487,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
             try {
               val pts = v.pointsFromStream(s)
-              toast("Uploading waypoints: " + filename)
+              toast(S(R.string.uploading_waypoint).format(filename))
               v ! DoLoadWaypoints(pts)
               v ! SendWaypoints
             } catch {
@@ -516,7 +516,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
           if (AndroidSerial.getDevice.isDefined) {
             // speak("Connected")
-            toast("3DR Telemetry connected...")
+            toast(R.string.telem_connected, false)
           } else
             warn("Ignoring attach for some other device")
 
@@ -593,7 +593,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setEnabled(FollowMe.isAvailable(this))
       // If the user has customized min/max distances they are really going to be _leading_ instead
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
-      follow.setTitle(if (isLeading) "Start lead-it" else "Start follow-me")
+      follow.setTitle(if (isLeading) R.string.start_lead_it else R.string.start_follow_me)
     }
 
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
@@ -636,7 +636,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       case R.id.menu_levelnow =>
         myVehicle.foreach { v =>
           if (v.vfrHud.map(_.groundspeed).getOrElse(0.0f) > 0.5f)
-            toast("Can't level vehicle while in motion")
+            toast(R.string.no_level, true)
           else {
             v.sendMavlink(v.commandDoCalibrate())
           }
@@ -660,7 +660,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           handler.post { () =>
             service.foreach { s =>
               if (!s.isSerialConnected) {
-                toast("Connecting link...")
+                toast(R.string.connecting_link, false)
                 s.serialAttached()
               }
             }
@@ -673,11 +673,11 @@ class MainActivity extends FragmentActivity with TypedActivity
           // If we are already talking to the serial device ignore this
 
           handler.post { () =>
-            toast("User denied access to USB device")
+            toast(R.string.usb_access_denied, true)
           }
         }))
       case None =>
-        toast("Please attach telemetry or APM")
+        toast(R.string.please_attach, true)
       // startService() // FIXME, remove this
     }
   }
