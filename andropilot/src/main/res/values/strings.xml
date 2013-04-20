@@ -54,10 +54,32 @@
 	<string name="google_earth">Earth</string> 
 	<string name="web">Web</string> 
 	<string name="share">Share</string> 
-		
+	<string name="usb_link">USB Link</string> 
+	<string name="bluetooth_link">Bluetooth Link</string> 
+	<string name="no_link">No Link</string> 
+	<string name="logging">Logging</string> 
+	<string name="no_sd_card">No SD card</string> 
+	<string name="no_logging">No logging</string> 
+	<string name="receiving_mavlink">Receiving Mavlink</string> 
+			
 	<!-- 
 
 
+
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 

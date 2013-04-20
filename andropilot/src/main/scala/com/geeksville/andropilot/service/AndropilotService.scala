@@ -5,7 +5,7 @@ import com.geeksville.flight.FlightLead
 import com.geeksville.flight.IGCPublisher
 import android.app._
 import android.content.Intent
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import com.geeksville.mavlink.MavlinkEventBus
 import android.os._
 import scala.io.Source
@@ -43,7 +43,8 @@ trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection {
+class AndropilotService extends Service with AndroidLogger with 
+FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
   val groundControlId = 255
 
   /**
@@ -106,18 +107,18 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    */
   def serviceStatus = {
     val linkMsg = if (isSerialConnected)
-      "USB Link"
+      S(R.string.usb_link)
     else if (btStream.isDefined)
-      "Bluetooth Link"
+      S(R.string.bluetooth_link)
     else
       udp.map { u =>
         udpMode + " " + NetTools.localIPAddresses.mkString(",")
-      }.getOrElse("No Link")
+      }.getOrElse(S(R.string.no_link))
 
     val logmsg = if (loggingEnabled)
-      logfile.map { f => "Logging" }.getOrElse("No SD card")
+      logfile.map { f => S(R.string.logging) }.getOrElse(S(R.string.no_sd_card))
     else
-      "No logging"
+      S(R.string.no_logging)
 
     if (!isConnected)
       linkMsg
@@ -418,8 +419,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
     val notification = new NotificationCompat.Builder(this)
-      .setContentTitle("Andropilot")
-      .setContentText("Receiving Mavlink")
+      .setContentTitle(S(R.string.app_name))
+      .setContentText(S(R.string.receiving_mavlink))
       .setSmallIcon(R.drawable.icon)
       .setContentIntent(pendingIntent)
       .setPriority(NotificationCompat.PRIORITY_LOW)
