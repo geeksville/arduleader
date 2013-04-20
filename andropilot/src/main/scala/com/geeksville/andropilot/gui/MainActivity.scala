@@ -67,7 +67,7 @@ import ExecutionContext.Implicits.global
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
-  with AndroServiceClient with JoystickController {
+  with AndroServiceClient with JoystickController with UsesResources {
 
   implicit def context = this
 
@@ -419,10 +419,6 @@ class MainActivity extends FragmentActivity with TypedActivity
   /// If we are configured to upload, but have no username/psw tell user why we are ignoring them
   def shouldNagUser = dshareUpload && (dshareUsername.isEmpty || dsharePassword.isEmpty)
 
-  private def toast(str: String, isLong: Boolean = false) {
-    Toast.makeText(this, str, if (isLong) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
-  }
-
   override protected def handleParameters() {
     super.handleParameters()
 
@@ -434,7 +430,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         try {
           usageEvent("params_saved")
           ParameterFile.create(vm.parameters, file)
-          toast("Parameters backed up to " + dir)
+          toast(S(R.string.parameters_backed_up).format(dir))
         } catch {
           case ex: Exception =>
             error("Can't write param file: " + ex.getMessage)

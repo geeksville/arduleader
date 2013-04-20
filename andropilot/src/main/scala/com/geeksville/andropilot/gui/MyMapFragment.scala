@@ -8,7 +8,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.geeksville.flight._
 import com.geeksville.akka._
 import com.geeksville.mavlink._
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.geeksville.util.ThreadTools._
 import com.google.android.gms.common.GooglePlayServicesUtil
@@ -43,7 +43,8 @@ import org.mavlink.messages.FENCE_ACTION
 /**
  * Our customized map fragment
  */
-class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroServiceFragment {
+class MyMapFragment extends SupportMapFragment
+with AndropilotPrefs with AndroServiceFragment with UsesResources {
 
   var scene: Option[Scene] = None
 
@@ -395,10 +396,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     }
 
     planeMarker
-  }
-
-  private def toast(str: String) {
-    Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
   }
 
   override def onVehicleReceive = {

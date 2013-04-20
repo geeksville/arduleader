@@ -1,6 +1,6 @@
 package com.geeksville.andropilot.gui
 
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import android.view._
 import android.os.Bundle
 import com.geeksville.flight.VehicleModel
@@ -18,12 +18,11 @@ import android.widget.Spinner
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
 
-class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger with FlurryClient {
+class ParameterEditorFragment(val param: VehicleModel#ParamValue) 
+extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
   setCancelable(true)
 
-  private def toast(str: String) {
-    Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
-  }
+    implicit def context: Context = getActivity
 
   override def onCreateDialog(savedInstanceState: Bundle) = {
     val builder = new AlertDialog.Builder(getActivity)

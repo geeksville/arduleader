@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Andropilot</string>
-    <string name="crash_toast_text">Ooops! I crashed, but a report has been sent to my developer to help fix the issue!  Thanks for testing this alpha release.</string>
+    <string name="crash_toast_text">I crashed, but a report has been sent to my developer to help fix the issue!  Thanks for testing this alpha release.</string>
+<string name="parameters_backed_up">Parameters backed up to %s</string>
 </resources>
