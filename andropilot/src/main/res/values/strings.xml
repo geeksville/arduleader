@@ -40,12 +40,15 @@
 	<string name="low_rssi">LowRssi!</string> 
 	<string name="low_sats">LowSats!"</string> 
 	<string name="no_service">No service</string> 
+    <string name="set_parameter">Set parameter</string> 
+	<string name="ok">Ok</string> 
+	<string name="cancel">Cancel</string> 
+	<string name="can_not_set">Can not set value</string> 
+		
 	<!-- 
 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
+
+
 	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 

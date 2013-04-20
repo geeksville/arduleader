@@ -74,9 +74,9 @@ extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
     // Inflate and set the layout for the dialog
     // Pass null as the parent view because its going in the dialog layout
     builder.setView(v)
-      .setTitle("Set parameter")
+      .setTitle(R.string.set_parameter)
       // Add action buttons
-      .setPositiveButton("Ok", new DialogInterface.OnClickListener {
+      .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, id: Int) {
           info("User clicked ok")
           val str = valueView.getText.toString
@@ -85,12 +85,12 @@ extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
             param.setValue(str.toFloat)
           } catch {
             case ex: Exception =>
-              toast("Can't set value: " + ex.getMessage)
+              toast(S(R.string.can_not_set) + ": " + ex.getMessage)
           }
           getDialog.dismiss()
         }
       })
-      .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
+      .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, id: Int) {
           info("User clicked cancel")
           getDialog.cancel()
