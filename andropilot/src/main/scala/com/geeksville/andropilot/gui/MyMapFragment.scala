@@ -125,7 +125,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         val wp = myVehicle.get.makeGuided(loc)
         v ! DoGotoGuided(wp)
 
-        toast("Guided flight selected")
+        toast("Guided flight to " + loc.alt.get + " meters")
       }
     }
 

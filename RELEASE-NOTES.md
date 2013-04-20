@@ -1,5 +1,7 @@
+# 1.4.05
+* Apply altitude changes to markers immediately (so if the user clicks on GOTO etc... without clicking Done it will do the right thing)
 * Use best possible altitude on hud view
-* Add an optimized view layout for 10" tablets (Such as the beautiful Nexus 10" - Thank you anonymous Googler for the gift!)
+* Add an optimized view layout for 10" tablets in portrait mode (Such as the beautiful Nexus 10" - Thank you anonymous Googler for the gift!)
 * Don't say 'underscore' when reading out modes
 
 TODO:
@@ -7,7 +9,6 @@ Fix: https://github.com/geeksville/arduleader/issues/56
 Fix: Rana's bug with UDP uploading
 FIXME: wpt selection off by one sometimes!!!
 FIXME: report droneshare failures via google
-FIXME: release new upload url
 FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
 FIXME: move droneshare client stuff to common
 report upload exceptions via google

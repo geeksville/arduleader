@@ -43,6 +43,8 @@ import android.app.Activity
 import android.view.View
 import com.ridemission.scandroid.AndroidUtil._
 import android.support.v4.app.FragmentActivity
+import android.text.TextWatcher
+import android.text.Editable
 
 abstract class WaypointActionMode(val context: FragmentActivity) extends ActionMode.Callback with AndroidLogger {
 
@@ -79,19 +81,32 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
     imm.showSoftInput(tv, InputMethodManager.SHOW_IMPLICIT)
 
+    // Every time the user changes the value _immediately_ update the marker (in case they click "Goto" etc..)
+    tv.addTextChangedListener(new TextWatcher {
+      def afterTextChanged(e: Editable) {
+        try {
+          // FIXME - this will also get invoked every time _we_ change the value
+          val str = tv.getText.toString
+          selectedMarker.foreach(onSet(_, str.toFloat))
+        } catch {
+          case ex: Exception =>
+            error("Error parsing user entry: " + ex)
+        }
+      }
+
+      def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+      def onTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+    })
+
     // Apparently IME_ACTION_DONE fires when the user leaves the edit text
     tv.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent) = {
-        warn("actionId: " + actionId)
+        debug("actionId: " + actionId)
         if (actionId == EditorInfo.IME_ACTION_DONE) {
           val str = v.getText.toString
           debug("Editing completed: " + str)
-          try {
-            selectedMarker.foreach(onSet(_, str.toFloat))
-          } catch {
-            case ex: Exception =>
-              error("Error parsing user entry: " + ex)
-          }
+
+          // Read back the value from the marker, in case it could only approximate what the user wanted
           selectedMarker.foreach { m => v.setText(doGet(m).toString) }
 
           // Force the keyboard to go away
