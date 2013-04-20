@@ -12,12 +12,6 @@
 	<string name="start_lead_it">Start lead-it</string>
 	<string name="start_follow_me">Start follow-me</string>
 	<string name="please_attach">Please attach telemetry or APM</string>
-	<string name="spk_meter">%s meters</string>
-	<string name="spk_percent">%s percent</string>
-	<string name="spk_warn_volt">Warn Volt</string>
-	<string name="spk_warn_battery">Warn Battery</string>
-	<string name="spk_warn_radio">Warn Radio</string>
-	<string name="spk_warn_gps">Warn GPS</string>
 	<string name="empty"></string> <!-- Do not localize -->
 	<string name="parameters">Parameters</string>
 	<string name="hud">HUD</string>
@@ -26,7 +20,6 @@
 	<string name="map">Map</string>
 	<string name="waypoints">Waypoints</string>
 	<string name="overview">Overview</string>
-	<string name="spk_heartbeat_lost">Heartbeat lost</string>
 	<string name="sharing_disabled">Sharing disabled: Please set username in settings</string>
 	<string name="no_level">Can not level while in motion</string>
 	<string name="connecting_link">Connecting link...</string>

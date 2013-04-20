@@ -1,0 +1,31 @@
+<resources>
+	<string name="spk_meter">%s meters</string>
+	<string name="spk_percent">%s percent</string>
+	<string name="spk_warn_volt">Warn Volt</string>
+	<string name="spk_warn_battery">Warn Battery</string>
+	<string name="spk_warn_radio">Warn Radio</string>
+	<string name="spk_warn_gps">Warn GPS</string>
+	<string name="spk_heartbeat_lost">Heartbeat lost</string>
+	<string name="spk_joystick_off">Joystick off</string> 
+	<string name="spk_joystick_on">Joystick on</string> 
+		
+	<!-- 
+
+
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	-->
+</resources>

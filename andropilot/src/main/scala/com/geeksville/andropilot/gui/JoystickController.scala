@@ -2,7 +2,7 @@ package com.geeksville.andropilot.gui
 
 import android.view.MotionEvent
 import android.view.InputDevice
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import scala.collection.JavaConverters._
 import android.app.Activity
 import android.view.KeyEvent
@@ -15,6 +15,7 @@ import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.aspeech.TTSClient
+import com.geeksville.andropilot.R
 
 /**
  * Provides joystick control either through hardware or a virtual screen joystick (not yet implemented)
@@ -25,7 +26,8 @@ import com.geeksville.aspeech.TTSClient
  * Button R1 = cycle through favorite modes
  * Button START = return all axis controls to regular RC transmitter
  */
-trait JoystickController extends Activity with AndroidLogger with AndroServiceClient with TTSClient {
+trait JoystickController extends Activity 
+with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
 
   private val debugOutput = false
 
@@ -154,7 +156,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
 
   override def onGenericMotionEvent(ev: MotionEvent) = {
     val isJoystick = ((ev.getSource & InputDevice.SOURCE_JOYSTICK) != 0) || ((ev.getSource & InputDevice.SOURCE_GAMEPAD) != 0)
-    warn("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
+    debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
 
     val devId = ev.getDeviceId
     if (isJoystick && devId != 0 && hasParameters) {
@@ -273,7 +275,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
           doToggleFence()
           true
         case KeyEvent.KEYCODE_BUTTON_START =>
-          speak("Joystick off")
+          speak(S(R.string.spk_joystick_off), true)
           stopOverrides()
           true
         case x @ _ =>
@@ -350,7 +352,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
       if (!sticksEnabled)
         getParameters()
 
-      speak("Joystick on")
+      speak(S(R.string.spk_joystick_on))
       isOverriding = true
 
       // Pull over current throttle setting
