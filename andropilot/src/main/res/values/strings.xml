@@ -44,12 +44,13 @@
 	<string name="ok">Ok</string> 
 	<string name="cancel">Cancel</string> 
 	<string name="can_not_set">Can not set value</string> 
-		
+	<string name="channel">Channel %s</string> 
+			
 	<!-- 
 
 
 
-	<string name=""></string> 
+
 	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 
