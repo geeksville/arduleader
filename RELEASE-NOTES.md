@@ -5,6 +5,8 @@
 * Don't say 'underscore' when reading out modes
 
 TODO:
+Fix: localize resources
+Fix: test correct TTS lang name
 Fix: https://github.com/geeksville/arduleader/issues/56
 Fix: Rana's bug with UDP uploading
 FIXME: wpt selection off by one sometimes!!!
