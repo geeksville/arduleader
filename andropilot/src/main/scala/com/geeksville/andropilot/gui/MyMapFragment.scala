@@ -114,8 +114,8 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
     override def isAllowGoto = true
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
-    override def title = Some("Provisional waypoint")
-    override def snippet = Some("Altitude %sm".format(altitude))
+    override def title = Some(S(R.string.provisional_waypoint))
+    override def snippet = Some(S(R.string.altitude_m).format(altitude))
 
     /**
      * Go to our previously placed guide marker
@@ -126,7 +126,7 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
         val wp = myVehicle.get.makeGuided(loc)
         v ! DoGotoGuided(wp)
 
-        toast("Guided flight to " + loc.alt.get + " meters")
+        toast(S(R.string.guided_meters).format(loc.alt.get))
       }
     }
 
@@ -169,9 +169,9 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
 
     override def title = {
       val r = if (isHome)
-        "Home"
+        S(R.string.home)
       else
-        "Waypoint #" + wp.msg.seq + " (" + wp.commandStr + ")"
+        S(R.string.wp_num_label).format(wp.msg.seq,wp.commandStr)
 
       Some(r)
     }
@@ -181,9 +181,9 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
       val params = Seq(param1, param2, param3, param4)
       val hasParams = params.find(_ != 0.0f).isDefined
       val r = if (hasParams)
-        "Alt=%sm %s params=%s".format(z, wp.frameStr, params.mkString(","))
+        S(R.string.wp_parms).format(z, wp.frameStr, params.mkString(","))
       else
-        "Altitude %sm %s".format(z, wp.frameStr)
+        S(R.string.wp_alt).format(z, wp.frameStr)
       Some(r)
     }
 
@@ -269,7 +269,7 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
         v ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
-        toast("Waypoint deleted")
+        toast(R.string.waypoint_deleted, true)
       }
     }
 
@@ -309,7 +309,12 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
-      val r = "Mode " + v.currentMode + (if (!s.isConnected) " (No Link)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+      val r = S(R.string.mode) + " " + v.currentMode + (if (!s.isConnected) 
+        " (" + S(R.string.no_link) + ")" 
+        else (if (v.hasHeartbeat) 
+          "" 
+          else 
+            " (" + S(R.string.lost_comms) + ")"))
       //debug("title: " + r)
       r
     }).getOrElse("No service"))
@@ -322,15 +327,15 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
           "Altitude %.1fm".format(v.toAGL(l))
         }
 
-        val batStr = if (isLowVolt) Some("LowVolt!") else None
-        val pctStr = if (isLowBatPercent) Some("LowPct!") else None
-        val radioStr = if (isLowRssi) Some("LowRssi!") else None
-        val gpsStr = if (isLowNumSats) Some("LowSats!") else None
+        val batStr = if (isLowVolt) Some(S(R.string.low_volt)) else None
+        val pctStr = if (isLowBatPercent) Some(S(R.string.low_charge)) else None
+        val radioStr = if (isLowRssi) Some(S(R.string.low_rssi)) else None
+        val gpsStr = if (isLowNumSats) Some(S(R.string.low_sats)) else None
 
         val r = Seq(locStr, batStr, pctStr, radioStr, gpsStr).flatten.mkString(" ")
         //debug("snippet: " + r)
         r
-      }.getOrElse("No service"))
+      }.getOrElse(S(R.string.no_service)))
 
     override def toString = title.get
 

@@ -31,6 +31,40 @@
 	<string name="no_level">Can not level while in motion</string>
 	<string name="connecting_link">Connecting link...</string>
 	<string name="usb_access_denied">User denied access to USB device</string>
-	<!-- <string name=""></string> <string name=""></string> <string name=""></string> 
-		<string name=""></string> <string name=""></string> <string name=""></string> -->
+    <string name="provisional_waypoint">Provisional waypoint</string> 
+	<string name="altitude_m">Altitude %sm</string> 
+	<string name="guided_meters">Guided flight to %s meters</string> 
+	<string name="home">Home</string> 
+	<string name="wp_num_label">Waypoint #%1$s (%2$s)</string> 
+	<string name="wp_parms">Alt=%1$sm %2$s params=%3$s</string> 
+	<string name="wp_alt">Altitude %1$sm %2$s</string> 
+	<string name="waypoint_deleted">Waypoint deleted</string> 
+	<string name="mode">Mode</string> 
+	<string name="no_link">No Link</string> 
+	<string name="lost_comms">Lost Comms</string> 
+	<string name="low_volt">LowVolt!</string> 
+	<string name="low_charge">LowCharge!</string> 
+	<string name="low_rssi">LowRssi!</string> 
+	<string name="low_sats">LowSats!"</string> 
+	<string name="no_service">No service</string> 
+	<!-- 
+
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	-->
 </resources>
