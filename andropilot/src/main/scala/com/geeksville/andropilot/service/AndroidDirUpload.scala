@@ -3,7 +3,7 @@ package com.geeksville.andropilot.service
 import java.io.File
 import java.io.FilenameFilter
 import android.content.Context
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import android.support.v4.app.NotificationCompat
 import android.app.NotificationManager
 import com.geeksville.andropilot.R
@@ -13,13 +13,13 @@ import android.app.PendingIntent
 import com.geeksville.andropilot.AndropilotPrefs
 import android.net.ConnectivityManager
 import android.app.IntentService
-import android.widget.Toast
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
  * move to destdir
  */
-class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with AndropilotPrefs {
+class AndroidDirUpload extends IntentService("Uploader") 
+  with AndroidLogger with AndropilotPrefs with UsesResources {
 
   val srcDirOpt = AndropilotService.logDirectory
   val destDirOpt = AndropilotService.uploadedDirectory
@@ -51,7 +51,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
         // We have a candidate for uploading, is the network good and user prefs entered?
         if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
-          Toast.makeText(this, "Starting droneshare upload", Toast.LENGTH_SHORT).show()
+          toast(R.string.starting_upload, false)
           curUpload = Some(new AndroidUpload(n))
         }
       case None =>
@@ -107,8 +107,8 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
     private val notifyManager = context.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
     private val nBuilder = new NotificationCompat.Builder(context)
-    nBuilder.setContentTitle("Droneshare upload")
-      .setContentText("Uploading tlog")
+    nBuilder.setContentTitle(S(R.string.droneshare_upload))
+      .setContentText(S(R.string.uploading_tlog))
       .setSmallIcon(R.drawable.icon)
       .setProgress(fileSize, 0, false)
       .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -142,7 +142,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
     override protected def handleUploadFailed(ex: Option[Exception]) {
       error("Upload failed: " + ex)
       removeProgress()
-      nBuilder.setContentText("Failed" + ex.map(": " + _.getMessage).getOrElse(""))
+      nBuilder.setContentText(S(R.string.failed) + ex.map(": " + _.getMessage).getOrElse(""))
       updateNotification(false)
       handleFailure()
 
@@ -159,7 +159,7 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
     override protected def handleWebAppCompleted() {
       debug("Webapp upload completed")
-      nBuilder.setContentText("Completed, select to view...")
+      nBuilder.setContentText(S(R.string.completed_select))
 
       // Attach the view URL
       val pintent = PendingIntent.getActivity(context, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(viewURL)), 0)
@@ -167,17 +167,17 @@ class AndroidDirUpload extends IntentService("Uploader") with AndroidLogger with
 
       // Attach the google earth link
       val geintent = PendingIntent.getActivity(context, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(kmzURL)), 0)
-      nBuilder.addAction(android.R.drawable.ic_menu_mapmode, "Earth", geintent)
+      nBuilder.addAction(android.R.drawable.ic_menu_mapmode, S(R.string.google_earth), geintent)
 
       // Attach a web link
-      nBuilder.addAction(android.R.drawable.ic_menu_set_as, "Web", pintent)
+      nBuilder.addAction(android.R.drawable.ic_menu_set_as, S(R.string.web), pintent)
 
       // Add a share link
       val sendIntent = new Intent(Intent.ACTION_SEND)
       sendIntent.putExtra(Intent.EXTRA_TEXT, viewURL)
       sendIntent.setType("text/plain")
       //val chooser = Intent.createChooser(sendIntent, "Share log to...")
-      nBuilder.addAction(android.R.drawable.ic_menu_share, "Share",
+      nBuilder.addAction(android.R.drawable.ic_menu_share, S(R.string.share),
         PendingIntent.getActivity(context, 0, sendIntent, 0))
       nBuilder.setPriority(NotificationCompat.PRIORITY_HIGH) // The user probably wants to choose us now
 

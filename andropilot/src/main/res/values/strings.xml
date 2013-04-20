@@ -46,17 +46,18 @@
 	<string name="can_not_set">Can not set value</string> 
 	<string name="channel">Channel %s</string> 
 	<string name="servo">Servo %s</string> 
-				
+	<string name="starting_upload">Starting droneshare upload</string> 
+	<string name="droneshare_upload">Droneshare upload</string> 
+	<string name="uploading_tlog">Uploading tlog</string> 
+	<string name="failed">Failed</string> 
+	<string name="completed_select">Completed, select to view...</string> 
+	<string name="google_earth">Earth</string> 
+	<string name="web">Web</string> 
+	<string name="share">Share</string> 
+		
 	<!-- 
 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
-	<string name=""></string> 
+
 	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 
