@@ -5,6 +5,7 @@
 * Don't say 'underscore' when reading out modes
 
 TODO:
+install android tools
 Fix: localize resources
 Fix: test correct TTS lang name
 Fix: https://github.com/geeksville/arduleader/issues/56
@@ -14,7 +15,6 @@ FIXME: report droneshare failures via google
 FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
 FIXME: move droneshare client stuff to common
 report upload exceptions via google
-internationalize strings
 s3 use reduced redundancy
 put size limits on uploads
 

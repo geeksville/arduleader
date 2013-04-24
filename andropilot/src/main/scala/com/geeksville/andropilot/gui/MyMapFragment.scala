@@ -39,12 +39,13 @@ import org.mavlink.messages.MAV_CMD
 import com.geeksville.flight.DoAddWaypoint
 import com.geeksville.gmaps.PolylineFactory
 import org.mavlink.messages.FENCE_ACTION
+import com.geeksville.flight.MsgWaypointCurrentChanged
 
 /**
  * Our customized map fragment
  */
 class MyMapFragment extends SupportMapFragment
-with AndropilotPrefs with AndroServiceFragment with UsesResources {
+  with AndropilotPrefs with AndroServiceFragment with UsesResources {
 
   var scene: Option[Scene] = None
 
@@ -171,7 +172,7 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
       val r = if (isHome)
         S(R.string.home)
       else
-        S(R.string.wp_num_label).format(wp.msg.seq,wp.commandStr)
+        S(R.string.wp_num_label).format(wp.msg.seq, wp.commandStr)
 
       Some(r)
     }
@@ -309,12 +310,12 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
-      val r = S(R.string.mode) + " " + v.currentMode + (if (!s.isConnected) 
-        " (" + S(R.string.no_link) + ")" 
-        else (if (v.hasHeartbeat) 
-          "" 
-          else 
-            " (" + S(R.string.lost_comms) + ")"))
+      val r = S(R.string.mode) + " " + v.currentMode + (if (!s.isConnected)
+        " (" + S(R.string.no_link) + ")"
+      else (if (v.hasHeartbeat)
+        ""
+      else
+        " (" + S(R.string.lost_comms) + ")"))
       //debug("title: " + r)
       r
     }).getOrElse("No service"))
@@ -466,6 +467,9 @@ with AndropilotPrefs with AndroServiceFragment with UsesResources {
       handler.post(handleWaypoints _)
 
     case MsgFenceChanged =>
+      handler.post(handleWaypoints _)
+
+    case MsgWaypointCurrentChanged(n) =>
       handler.post(handleWaypoints _)
   }
 

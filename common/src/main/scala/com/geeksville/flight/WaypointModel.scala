@@ -25,6 +25,7 @@ import scala.io.Source
 // Messages we publish on our event bus when something happens
 //
 case object MsgWaypointsChanged
+case class MsgWaypointCurrentChanged(seq: Int)
 
 // Commands we accept in our actor queue
 case class DoGotoGuided(m: msg_mission_item, withRetry: Boolean = true)
@@ -60,6 +61,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   private var nextWaypointToFetch = 0
 
   private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
+  private def onWaypointsCurrentChanged(n: Int) { eventStream.publish(MsgWaypointCurrentChanged(n)) }
   protected def onWaypointsDownloaded() { onWaypointsChanged() }
 
   override def onReceive = mReceive.orElse(super.onReceive)
@@ -157,14 +159,15 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       checkRetryReply(msg)
       perhapsRequestWaypoints()
 
+      val newWpSeq = msg.seq
       if (waypoints.count { w =>
-        val newval = if (w.seq == msg.seq) 1 else 0
+        val newval = if (w.seq == newWpSeq) 1 else 0
         val changed = newval != w.msg.current
         if (changed)
           w.msg.current = newval
         changed
       } > 0)
-        onWaypointsChanged()
+        onWaypointsCurrentChanged(newWpSeq)
   }
 
   private def startWaypointDownload() {

@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
+import com.geeksville.flight.MsgWaypointCurrentChanged
 
 class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
 
@@ -132,6 +133,9 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
   override def onVehicleReceive = {
 
     case MsgWaypointsChanged =>
+      handler.post(handleWaypoints _)
+
+    case MsgWaypointCurrentChanged(n) =>
       handler.post(handleWaypoints _)
   }
 
