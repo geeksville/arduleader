@@ -2,15 +2,15 @@ import AndroidKeys._
 
 name := "andropilot"
 
-version := "1.4.06"
+version := "1.4.07"
 
-versionCode := 10406
+versionCode := 10407
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 Github.settings
 
-libraryDependencies += "ch.acra" % "acra" % "4.4.0" 
+// libraryDependencies += "ch.acra" % "acra" % "4.4.0" 
 
 libraryDependencies += "google-play-services" % "google-play-services_2.10" % "0.1-SNAPSHOT" artifacts(Artifact("google-play-services_2.10", "apklib", "apklib"))
 

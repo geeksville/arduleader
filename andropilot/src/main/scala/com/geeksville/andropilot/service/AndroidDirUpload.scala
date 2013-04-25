@@ -14,6 +14,7 @@ import com.geeksville.andropilot.AndropilotPrefs
 import android.net.ConnectivityManager
 import android.app.IntentService
 import com.geeksville.andropilot.gui.NotificationIds
+import com.bugsense.trace.BugSenseHandler
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
@@ -52,7 +53,7 @@ class AndroidDirUpload extends IntentService("Uploader")
 
         // We have a candidate for uploading, is the network good and user prefs entered?
         if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
-          toast(R.string.starting_upload, false)
+          //toast(R.string.starting_upload, false)
           curUpload = Some(new AndroidUpload(n))
         }
       case None =>
@@ -146,6 +147,7 @@ class AndroidDirUpload extends IntentService("Uploader")
       nBuilder.setContentText(S(R.string.failed) + ex.map(": " + _.getMessage).getOrElse(""))
       updateNotification(false)
       handleFailure()
+      ex.foreach(BugSenseHandler.sendExceptionMessage("share", "exception", _))
 
       super.handleUploadFailed(ex)
     }
