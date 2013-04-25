@@ -9,8 +9,8 @@
 	<string name="uploading_fence">Uploading fence: %s</string>
 	<string name="uploading_waypoint">Uploading waypoints: %s</string>
 	<string name="telem_connected">3DR Telemetry connected...</string>
-	<string name="start_lead_it">Start lead-it</string>
-	<string name="start_follow_me">Start follow-me</string>
+	<string name="lead_it">Lead it</string>
+	<string name="follow_me">Follow me</string>
 	<string name="please_attach">Please attach telemetry or APM</string>
 	<string name="empty"></string> <!-- Do not localize -->
 	<string name="parameters">Parameters</string>

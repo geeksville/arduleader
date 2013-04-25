@@ -90,6 +90,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
+  private lazy val notifyManager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+
   // These pages might be on the main view, so no need to include them in the pager
   private lazy val waypointPageInfo = PageInfo(S(R.string.waypoints), { () => new WaypointListFragment })
   private lazy val overviewPageInfo = PageInfo(S(R.string.overview), { () => new OverviewFragment })
@@ -398,16 +400,17 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (shouldNagUser) {
       val pendingIntent = PendingIntent.getActivity(this, 0, SettingsActivity.sharingSettingsIntent(this), 0)
 
-      val notifyManager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
       val nBuilder = new NotificationCompat.Builder(context)
       nBuilder.setContentTitle("Configure droneshare.com settings")
         .setContentText("Select this to configure or disable sharing")
-        .setSmallIcon(R.drawable.icon)
+        .setSmallIcon(android.R.drawable.ic_menu_share)
         .setPriority(NotificationCompat.PRIORITY_MAX)
         .setContentIntent(pendingIntent)
+        .setTicker("Please configure droneshare settings")
 
       notifyManager.notify(NotificationIds.setupDroneshareId, nBuilder.build)
-    }
+    } else
+      notifyManager.cancel(NotificationIds.setupDroneshareId)
   }
 
   override def onPause() {
@@ -607,7 +610,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setEnabled(FollowMe.isAvailable(this))
       // If the user has customized min/max distances they are really going to be _leading_ instead
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
-      follow.setTitle(if (isLeading) R.string.start_lead_it else R.string.start_follow_me)
+      follow.setTitle(if (isLeading) R.string.lead_it else R.string.follow_me)
+      follow.setChecked(svc.isFollowMe)
     }
 
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
@@ -643,8 +647,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
-          debug("Start followme")
-          s.setFollowMe(true)
+          debug("Toggle followme")
+          val n = !item.isChecked
+          s.setFollowMe(n)
+          item.setChecked(s.isFollowMe)
         }
 
       case R.id.menu_levelnow =>
