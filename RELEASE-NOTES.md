@@ -1,7 +1,9 @@
+# 1.4.06
+* Move droneshare out of beta
 * Add support for localizing into german or other languages (need to convert a few more strings)
 * Register with Android as able to manage our own network bandwidth
-* Prompt user to setup droneshare
 * Show follow-me as a checkbox (to make it more obvious on how to cancel)
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
 
 # 1.4.05
 * Apply altitude changes to markers immediately (so if the user clicks on GOTO etc... without clicking Done it will do the right thing)
@@ -12,10 +14,8 @@
 TODO:
 install android tools
 Fix: localize resources
-Fix: test correct TTS lang name
-Fix: https://github.com/geeksville/arduleader/issues/56
+Fix: add button to force parameter download
 Fix: Rana's bug with UDP uploading
-FIXME: wpt selection off by one sometimes!!!
 FIXME: report droneshare failures via google
 FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
 FIXME: move droneshare client stuff to common

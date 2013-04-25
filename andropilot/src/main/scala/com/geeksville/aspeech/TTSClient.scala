@@ -12,8 +12,8 @@ import com.geeksville.andropilot.R
 /**
  * Speak using the Android TTS library
  */
-trait TTSClient extends Activity with UsesPreferences 
-with AndroidLogger with FlurryContext with UsesResources {
+trait TTSClient extends Activity with UsesPreferences
+  with AndroidLogger with FlurryContext with UsesResources {
   private val MY_DATA_CHECK_CODE = 0x4403
 
   private var tts: Option[TextToSpeech] = None
