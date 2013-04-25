@@ -4,7 +4,7 @@
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="dshare_upload"
-        android:summary="If a username and password is provided"
+        android:summary="If a username and password is provided (disable to prevent prompting)"
         android:title="Upload flight logs to droneshare.com" />
 
     <EditTextPreference
@@ -14,6 +14,7 @@
         android:key="dshare_username"
         android:summary="If that user does not exist, it will be created"
         android:title="Username" />
+    
     <EditTextPreference
         android:defaultValue=""
         android:dialogTitle="Droneshare password"

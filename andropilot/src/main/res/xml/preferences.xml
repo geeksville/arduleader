@@ -18,6 +18,7 @@
             android:value="mavlink" />
     </header>
     <header
+        android:id="@+id/pref_share"
         android:fragment="com.geeksville.andropilot.gui.SettingsFragment"
         android:summary="Share flights via droneshare, G+, email"
         android:title="Sharing" >

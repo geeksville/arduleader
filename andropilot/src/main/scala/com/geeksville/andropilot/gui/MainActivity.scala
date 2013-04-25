@@ -64,6 +64,9 @@ import android.os.Build
 import com.geeksville.android.PlayTools
 import scala.concurrent._
 import ExecutionContext.Implicits.global
+import android.support.v4.app.NotificationCompat
+import android.app.NotificationManager
+import android.app.PendingIntent
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -392,8 +395,19 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
 
-    if (shouldNagUser)
-      toast(R.string.sharing_disabled, true)
+    if (shouldNagUser) {
+      val pendingIntent = PendingIntent.getActivity(this, 0, SettingsActivity.sharingSettingsIntent(this), 0)
+
+      val notifyManager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+      val nBuilder = new NotificationCompat.Builder(context)
+      nBuilder.setContentTitle("Configure droneshare.com settings")
+        .setContentText("Select this to configure or disable sharing")
+        .setSmallIcon(R.drawable.icon)
+        .setPriority(NotificationCompat.PRIORITY_MAX)
+        .setContentIntent(pendingIntent)
+
+      notifyManager.notify(NotificationIds.setupDroneshareId, nBuilder.build)
+    }
   }
 
   override def onPause() {

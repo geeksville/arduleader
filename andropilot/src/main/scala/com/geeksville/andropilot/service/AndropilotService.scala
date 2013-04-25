@@ -38,13 +38,13 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.IOException
 import android.support.v4.app.NotificationCompat
+import com.geeksville.andropilot.gui.NotificationIds
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with 
-FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
+class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
   val groundControlId = 255
 
   /**
@@ -412,8 +412,6 @@ FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
     super.onDestroy()
   }
 
-  private val ONGOING_NOTIFICATION = 1
-
   private def requestForeground() {
     val notificationIntent = new Intent(this, classOf[MainActivity])
     val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
@@ -426,7 +424,7 @@ FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
       .setPriority(NotificationCompat.PRIORITY_LOW)
       .getNotification() // Don't use .build, it isn't in rev12
 
-    startForeground(ONGOING_NOTIFICATION, notification)
+    startForeground(NotificationIds.vehicleConnectedId, notification)
   }
 }
 

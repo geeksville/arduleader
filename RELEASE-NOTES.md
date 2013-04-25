@@ -1,3 +1,7 @@
+* Add support for localizing into german or other languages (need to convert a few more strings)
+* Register with Android as able to manage our own network bandwidth
+* Prompt user to setup droneshare
+
 # 1.4.05
 * Apply altitude changes to markers immediately (so if the user clicks on GOTO etc... without clicking Done it will do the right thing)
 * Use best possible altitude on hud view

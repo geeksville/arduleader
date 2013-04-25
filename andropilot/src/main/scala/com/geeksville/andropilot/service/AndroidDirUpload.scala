@@ -13,12 +13,13 @@ import android.app.PendingIntent
 import com.geeksville.andropilot.AndropilotPrefs
 import android.net.ConnectivityManager
 import android.app.IntentService
+import com.geeksville.andropilot.gui.NotificationIds
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
  * move to destdir
  */
-class AndroidDirUpload extends IntentService("Uploader") 
+class AndroidDirUpload extends IntentService("Uploader")
   with AndroidLogger with AndropilotPrefs with UsesResources {
 
   val srcDirOpt = AndropilotService.logDirectory
@@ -193,7 +194,7 @@ class AndroidDirUpload extends IntentService("Uploader")
   }
 
   object AndroidUpload {
-    private var nextId = 2
+    private var nextId = NotificationIds.uploadId
 
     def makeId = {
       val r = nextId
