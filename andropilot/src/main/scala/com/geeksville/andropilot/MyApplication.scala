@@ -15,7 +15,7 @@ class MyApplication extends Application {
     // The following line triggers the initialization of ACRA
     // ACRA.init(this)
     BugSenseHandler.initAndStartSession(this, "2a5e5e70")
-    BugSenseHandler.setLogging(true)
+    // BugSenseHandler.setLogging(true)
 
     FlurryAgent.setCaptureUncaughtExceptions(false) // So we get the reports through google instead
     super.onCreate()

@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <!-- To get logcat output in bug reports -->
-    <uses-permission android:name="android.permission.READ_LOGS" /> 
+    <!-- <uses-permission android:name="android.permission.READ_LOGS" />  --> 
     
     <uses-feature
         android:name="android.hardware.bluetooth"
