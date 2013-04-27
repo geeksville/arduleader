@@ -176,7 +176,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         throttleBattery((pct * 100).toInt) { pct =>
           handler.post { () =>
             debug("Speak battery: " + pct)
-            speak(S(R.string.spk_percent).format("%s percent"))
+            speak(S(R.string.spk_percent).format(pct))
           }
         }
       }
