@@ -1,3 +1,16 @@
+* oops - last release broke lead-it/follow-me - fixed
+* spoken battery percent was busted (due to localization changes) - fixed
+* add support for the following advanced wpts:
+
+    MAV_CMD.MAV_CMD_CONDITION_DISTANCE -> "CondDist",
+    MAV_CMD.MAV_CMD_CONDITION_DELAY -> "CondDelay",
+    MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT -> "CondAlt",
+    MAV_CMD.MAV_CMD_DO_CHANGE_SPEED -> "ChangeSpd",
+    MAV_CMD.MAV_CMD_DO_SET_SERVO -> "SetServo",
+    MAV_CMD.MAV_CMD_DO_SET_RELAY -> "SetRelay",
+    MAV_CMD.MAV_CMD_DO_REPEAT_SERVO -> "RepeatServo",
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay"
+
 # 1.4.09
 * Fix a few minor autobugs
 * Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)

@@ -40,7 +40,7 @@ case class Waypoint(val msg: msg_mission_item) {
   /**
    * Should we show this waypoint on the map?
    */
-  def isForMap = (msg.x != 0 || msg.y != 0) && !isJump
+  def isForMap = (msg.x != 0 || msg.y != 0) && isNavCommand
 
   //
   // Accessors for particular waypoint types
@@ -49,6 +49,8 @@ case class Waypoint(val msg: msg_mission_item) {
   def jumpSequence = msg.param1.toInt
   def loiterTime = msg.param1
   def loiterTurns = msg.param1
+
+  def isNavCommand = !Waypoint.nonNavCommands.contains(msg.command)
 
   /**
    * Allows access to params using a civilized index
@@ -125,6 +127,14 @@ case class Waypoint(val msg: msg_mission_item) {
       case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => 1
       case MAV_CMD.MAV_CMD_NAV_TAKEOFF => 1
       case MAV_CMD.MAV_CMD_DO_SET_HOME => 1
+      case MAV_CMD.MAV_CMD_CONDITION_DISTANCE => 1
+      case MAV_CMD.MAV_CMD_CONDITION_DELAY => 1
+      case MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT => 1
+      case MAV_CMD.MAV_CMD_DO_CHANGE_SPEED => 3
+      case MAV_CMD.MAV_CMD_DO_SET_SERVO => 2
+      case MAV_CMD.MAV_CMD_DO_SET_RELAY => 2
+      case MAV_CMD.MAV_CMD_DO_REPEAT_SERVO => 4
+      case MAV_CMD.MAV_CMD_DO_REPEAT_RELAY => 3
       case _ =>
         0
     }
@@ -157,6 +167,20 @@ case class Waypoint(val msg: msg_mission_item) {
 }
 
 object Waypoint {
+  /**
+   * Commands that should not show on a map
+   */
+  val nonNavCommands = Set(
+    MAV_CMD.MAV_CMD_DO_JUMP,
+    MAV_CMD.MAV_CMD_CONDITION_DISTANCE,
+    MAV_CMD.MAV_CMD_CONDITION_DELAY,
+    MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT,
+    MAV_CMD.MAV_CMD_DO_CHANGE_SPEED,
+    MAV_CMD.MAV_CMD_DO_SET_SERVO,
+    MAV_CMD.MAV_CMD_DO_SET_RELAY,
+    MAV_CMD.MAV_CMD_DO_REPEAT_SERVO,
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY)
+
   val commandCodes = Map(
     MAV_CMD.MAV_CMD_DO_JUMP -> "Jump",
     MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
@@ -165,7 +189,15 @@ object Waypoint {
     MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM -> "Loiter", // Loiter indefinitely
     MAV_CMD.MAV_CMD_NAV_LOITER_TURNS -> "LoiterN", // Loiter N Times
     MAV_CMD.MAV_CMD_NAV_LOITER_TIME -> "LoiterT",
-    MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL")
+    MAV_CMD.MAV_CMD_NAV_RETURN_TO_LAUNCH -> "RTL",
+    MAV_CMD.MAV_CMD_CONDITION_DISTANCE -> "CondDist",
+    MAV_CMD.MAV_CMD_CONDITION_DELAY -> "CondDelay",
+    MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT -> "CondAlt",
+    MAV_CMD.MAV_CMD_DO_CHANGE_SPEED -> "ChangeSpd",
+    MAV_CMD.MAV_CMD_DO_SET_SERVO -> "SetServo",
+    MAV_CMD.MAV_CMD_DO_SET_RELAY -> "SetRelay",
+    MAV_CMD.MAV_CMD_DO_REPEAT_SERVO -> "RepeatServo",
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay")
 
   val commandToCodes = commandCodes.map { case (k, v) => (v, k) }
 

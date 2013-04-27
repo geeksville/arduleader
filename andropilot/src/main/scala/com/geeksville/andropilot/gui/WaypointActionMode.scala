@@ -135,6 +135,8 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     initEditText(menu.findItem(R.id.menu_setalt).getActionView.asInstanceOf[TextView], { m => m.altitude.toFloat }, { (m, v) => m.altitude = v })
     initEditText(menu.findItem(R.id.menu_param1).getActionView.asInstanceOf[TextView], { m => m.getParam(0) }, { (m, v) => m.setParam(0, v) })
     initEditText(menu.findItem(R.id.menu_param2).getActionView.asInstanceOf[TextView], { m => m.getParam(1) }, { (m, v) => m.setParam(1, v) })
+    initEditText(menu.findItem(R.id.menu_param3).getActionView.asInstanceOf[TextView], { m => m.getParam(2) }, { (m, v) => m.setParam(2, v) })
+    initEditText(menu.findItem(R.id.menu_param4).getActionView.asInstanceOf[TextView], { m => m.getParam(3) }, { (m, v) => m.setParam(3, v) })
 
     true // Did create a menu
   }
@@ -150,6 +152,8 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     val setalt = menu.findItem(R.id.menu_setalt)
     val param1 = menu.findItem(R.id.menu_param1)
     val param2 = menu.findItem(R.id.menu_param2)
+    val param3 = menu.findItem(R.id.menu_param3)
+    val param4 = menu.findItem(R.id.menu_param4)
     val changetype = menu.findItem(R.id.menu_changetype)
     val autocontinue = menu.findItem(R.id.menu_autocontinue)
 
@@ -187,6 +191,14 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
             if (numParams >= 2) {
               param2.setVisible(true)
               param2.getActionView.asInstanceOf[TextView].setText(marker.getParam(1).toString)
+            }
+            if (numParams >= 3) {
+              param3.setVisible(true)
+              param3.getActionView.asInstanceOf[TextView].setText(marker.getParam(2).toString)
+            }
+            if (numParams >= 4) {
+              param4.setVisible(true)
+              param4.getActionView.asInstanceOf[TextView].setText(marker.getParam(3).toString)
             }
 
             if (marker.isAllowGoto)
