@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.content.IntentFilter
 import com.ridemission.scandroid.AndroidLogger
+import com.bugsense.trace.BugSenseHandler
 
 /**
  * When we see a network connection arrive, try to restart the upload
@@ -29,14 +30,20 @@ object NetworkStateReceiver extends BroadcastReceiver with AndroidLogger {
     if (!registered) {
       val filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
 
-      context.registerReceiver(this, filter)
       registered = true
+      context.registerReceiver(this, filter)
     }
   }
 
   def unregister(context: Context) {
     if (registered) {
-      context.unregisterReceiver(this)
+      try {
+        context.unregisterReceiver(this)
+      } catch {
+        case ex: Exception =>
+          // Should not happen... let's see
+          BugSenseHandler.sendExceptionMessage("unregister", "exception", ex)
+      }
       registered = false
     }
   }
