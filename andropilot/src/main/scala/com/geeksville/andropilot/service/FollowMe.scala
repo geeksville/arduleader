@@ -35,7 +35,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
   /**
    * Add an android location listener
    */
-  private val locListener = new LocationListener {
+  private lazy val locListener = new LocationListener {
     private val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
     locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 3, this)
 
@@ -53,7 +53,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
     }
   }
 
-  private val compassListener = new SensorEventListener {
+  private lazy val compassListener = new SensorEventListener {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE).asInstanceOf[SensorManager]
 
     /**

@@ -265,7 +265,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   def setFollowMe(b: Boolean) {
     debug("Setting follow: " + b)
-    if (b && follower.map(_.isTerminated).getOrElse(true))
+    if (b && follower.map(_.isTerminated).getOrElse(true) && FollowMe.isAvailable(this))
       vehicle.foreach { v =>
         follower = Some(MockAkka.actorOf(new FollowMe(this, v), "follow"))
       }
