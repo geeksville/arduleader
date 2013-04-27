@@ -1,9 +1,12 @@
+# 1.4.09
+* Fix a few minor autobugs
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
+
 # 1.4.06
 * Move droneshare out of beta
 * Add support for localizing into german or other languages (need to convert a few more strings)
 * Register with Android as able to manage our own network bandwidth
 * Show follow-me as a checkbox (to make it more obvious on how to cancel)
-* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
 
 # 1.4.05
 * Apply altitude changes to markers immediately (so if the user clicks on GOTO etc... without clicking Done it will do the right thing)
