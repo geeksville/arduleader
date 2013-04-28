@@ -66,7 +66,7 @@ abstract class ListAdapterHelper[T] extends ListFragment with AndroidLogger {
             //debug("in getView " + position)
             if (isSelected(position)) {
               //debug("Selecting " + itemView)
-              itemView.setBackgroundColor(Color.LTGRAY)
+              itemView.setBackgroundColor(Color.DKGRAY)
             } else
               itemView.setBackgroundColor(Color.TRANSPARENT)
             itemView

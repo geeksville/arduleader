@@ -124,9 +124,6 @@ class AndroidDirUpload extends IntentService("Uploader")
     private def updateNotification(isForeground: Boolean) {
       val n = nBuilder.build
 
-      // Try to avoid flicker
-      n.flags |= Notification.FLAG_ONGOING_EVENT
-
       notifyManager.notify(notifyId, n)
       if (isForeground)
         startForeground(notifyId, n)
