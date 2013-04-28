@@ -1,4 +1,5 @@
 # 1.4.10
+* fix a couple more autobugs in droneshare
 * fix an auto bug - droneshare uploads of 'boring' flights would show incorrect message
 * oops - last release broke lead-it/follow-me - fixed
 * spoken battery percent was busted (due to localization changes) - fixed

@@ -38,13 +38,14 @@ object NetworkStateReceiver extends BroadcastReceiver with AndroidLogger {
   def unregister(context: Context) {
     if (registered) {
       try {
+        registered = false
         context.unregisterReceiver(this)
       } catch {
         case ex: Exception =>
-          // Should not happen... let's see
-          BugSenseHandler.sendExceptionMessage("unregister", "exception", ex)
+          warn("Ignoring unregister problem - android bug?")
+        // Seems to be an android bug - this happens sometimes
+        // BugSenseHandler.sendExceptionMessage("unregister", "exception", ex)
       }
-      registered = false
     }
   }
 }

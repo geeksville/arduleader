@@ -51,7 +51,8 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
   var selectedMarker: Option[WaypointMenuItem] = None
 
   private def setTypeOptions(s: Spinner) {
-    val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(context), android.R.layout.simple_spinner_dropdown_item, Waypoint.commandNames)
+    val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(context),
+      android.R.layout.simple_spinner_dropdown_item, Waypoint.commandNames)
 
     s.setAdapter(spinnerAdapter) // set the adapter
   }

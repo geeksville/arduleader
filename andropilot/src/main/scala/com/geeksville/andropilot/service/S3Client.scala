@@ -40,7 +40,7 @@ class S3Upload(val bucketName: String, val keyName: String, val srcFile: File) e
       case ProgressEvent.FAILED_EVENT_CODE =>
         onCompletion()
         // val ex = Option(upload.waitForException()) // can't call this inside a handler
-        handleUploadFailed(Some(new IOException("File upload failed")))
+        handleUploadFailed(Some(new IOException("File upload interrupted")))
       case ProgressEvent.COMPLETED_EVENT_CODE =>
         onCompletion()
         handleUploadCompleted()
