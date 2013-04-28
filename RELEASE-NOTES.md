@@ -1,7 +1,9 @@
+# 1.4.10
+* fix an auto bug - droneshare uploads of 'boring' flights would show incorrect message
 * oops - last release broke lead-it/follow-me - fixed
 * spoken battery percent was busted (due to localization changes) - fixed
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
 * add support for the following advanced wpts:
-
     MAV_CMD.MAV_CMD_CONDITION_DISTANCE -> "CondDist",
     MAV_CMD.MAV_CMD_CONDITION_DELAY -> "CondDelay",
     MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT -> "CondAlt",
@@ -13,7 +15,6 @@
 
 # 1.4.09
 * Fix a few minor autobugs
-* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
 
 # 1.4.06
 * Move droneshare out of beta

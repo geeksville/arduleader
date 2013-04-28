@@ -218,6 +218,7 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
                 val newtyp = s.getAdapter.getItem(pos).toString
                 debug("Type selected: " + newtyp)
                 marker.typStr = newtyp
+                mode.invalidate() // Repopulate the options
               }
               s.onItemSelected(spinnerListener)
 

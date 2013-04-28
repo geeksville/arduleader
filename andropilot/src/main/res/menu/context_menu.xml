@@ -19,6 +19,7 @@
     <item
         android:id="@+id/menu_changetype"
         android:actionViewClass="android.widget.Spinner"
+        android:showAsAction="always"
         android:title="Change Type"
         android:visible="false"/>
     <item

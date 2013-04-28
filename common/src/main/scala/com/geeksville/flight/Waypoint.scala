@@ -181,7 +181,10 @@ object Waypoint {
     MAV_CMD.MAV_CMD_DO_REPEAT_SERVO,
     MAV_CMD.MAV_CMD_DO_REPEAT_RELAY)
 
-  val commandCodes = Map(
+  /**
+   * We keep this separate so we can preserve order
+   */
+  private val commandCodesSeq = Seq(
     MAV_CMD.MAV_CMD_DO_JUMP -> "Jump",
     MAV_CMD.MAV_CMD_NAV_TAKEOFF -> "Takeoff",
     MAV_CMD.MAV_CMD_NAV_WAYPOINT -> "Waypoint", // Navigate to Waypoint
@@ -199,7 +202,9 @@ object Waypoint {
     MAV_CMD.MAV_CMD_DO_REPEAT_SERVO -> "RepeatServo",
     MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay")
 
+  val commandCodes = Map(commandCodesSeq: _*)
+
   val commandToCodes = commandCodes.map { case (k, v) => (v, k) }
 
-  val commandNames = commandCodes.values.toArray
+  val commandNames = commandCodesSeq.map(_._2).toArray
 }

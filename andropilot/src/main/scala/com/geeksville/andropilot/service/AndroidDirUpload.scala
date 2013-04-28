@@ -15,6 +15,7 @@ import android.net.ConnectivityManager
 import android.app.IntentService
 import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
+import android.app.Notification
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
@@ -123,6 +124,9 @@ class AndroidDirUpload extends IntentService("Uploader")
     private def updateNotification(isForeground: Boolean) {
       val n = nBuilder.build
 
+      // Try to avoid flicker
+      n.flags |= Notification.FLAG_ONGOING_EVENT
+
       notifyManager.notify(notifyId, n)
       if (isForeground)
         startForeground(notifyId, n)
@@ -141,10 +145,25 @@ class AndroidDirUpload extends IntentService("Uploader")
       super.handleProgress(bytesTransferred)
     }
 
+    /**
+     * The webserver will send error code 406 if the file upload is considered unacceptably boring (flight too short)
+     * Just tell the user something about that and do not treat it as an error
+     */
+    override protected def handleUploadNotAccepted() {
+      warn("Webapp upload not accepted")
+      nBuilder.setContentText("This tracklog was not interesting")
+
+      updateNotification(false)
+
+      // Send the next file
+      handleSuccess()
+    }
+
     override protected def handleUploadFailed(ex: Option[Exception]) {
       error("Upload failed: " + ex)
       removeProgress()
       nBuilder.setContentText(S(R.string.failed) + ex.map(": " + _.getMessage).getOrElse(""))
+      nBuilder.setSubText(S(R.string.will_try_again))
       updateNotification(false)
       handleFailure()
       ex.foreach(BugSenseHandler.sendExceptionMessage("share", "exception", _))

@@ -61,12 +61,12 @@
 	<string name="no_sd_card">No SD card</string> 
 	<string name="no_logging">No logging</string> 
 	<string name="receiving_mavlink">Receiving Mavlink</string> 
-			
+	<string name="will_try_again">Will try again later</string>	
 	<!-- 
 
 
 
-	<string name=""></string> 
+	 
 	<string name=""></string> 
 	<string name=""></string> 
 	<string name=""></string> 
