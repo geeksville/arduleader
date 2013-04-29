@@ -17,8 +17,33 @@ import com.geeksville.andropilot.R
 import android.view.View
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment {
+  private lazy val uploadWpButton = getView.findView(TR.upload_waypoint_button)
+
   override def onVehicleReceive = {
 
-    case MsgStatusChanged(s) =>
+    case MsgWaypointDirty(dirty) =>
+      handler.post { () =>
+        setVisibility(dirty)
+      }
+  }
+
+  private def setVisibility(dirty: Boolean) {
+    if (getView != null) {
+      uploadWpButton.setVisibility(if (dirty) View.VISIBLE else View.GONE)
+    }
+  }
+
+  override def onActivityCreated(savedInstanceState: Bundle) {
+    super.onActivityCreated(savedInstanceState)
+
+    myVehicle.foreach { v =>
+      setVisibility(v.isDirty)
+    }
+
+    uploadWpButton.onClick { b =>
+      myVehicle.foreach { v =>
+        v ! SendWaypoints
+      }
+    }
   }
 }

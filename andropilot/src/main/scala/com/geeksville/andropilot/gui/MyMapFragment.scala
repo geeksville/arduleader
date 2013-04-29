@@ -136,7 +136,6 @@ class MyMapFragment extends SupportMapFragment
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
         v ! DoAddWaypoint(Waypoint(wp))
-        v ! SendWaypoints
         toast("Waypoint added")
       }
     }
@@ -155,17 +154,22 @@ class MyMapFragment extends SupportMapFragment
     override def altitude = wp.msg.z
     override def altitude_=(n: Double) {
       if (n != altitude) {
-        wp.msg.z = n.toFloat
-        setSnippet()
-        sendWaypointsAndUpdate()
+        val f = n.toFloat
+        if (f != wp.msg.z) {
+          wp.msg.z = f
+          setSnippet()
+          sendWaypointsAndUpdate()
+        }
       }
     }
     override def numParams = wp.numParamsUsed
     override def getParam(i: Int) = wp.getParam(i)
     override def setParam(i: Int, n: Float) = {
-      wp.setParam(i, n)
-      setSnippet()
-      sendWaypointsAndUpdate()
+      if (getParam(i) != n) {
+        wp.setParam(i, n)
+        setSnippet()
+        sendWaypointsAndUpdate()
+      }
     }
 
     override def title = {
@@ -227,7 +231,7 @@ class MyMapFragment extends SupportMapFragment
     override def toString = title.get
 
     protected def sendWaypointsAndUpdate() {
-      myVehicle.foreach(_ ! SendWaypoints) // Will implicitly cause an update
+      myVehicle.foreach(_ ! DoMarkDirty) // Will implicitly cause an update
     }
   }
 
@@ -284,9 +288,11 @@ class MyMapFragment extends SupportMapFragment
 
     override def typStr = wp.commandStr
     override def typStr_=(s: String) {
-      wp.commandStr = s
+      if (s != wp.commandStr) {
+        wp.commandStr = s
 
-      sendWaypointsAndUpdate()
+        sendWaypointsAndUpdate()
+      }
     }
   }
 

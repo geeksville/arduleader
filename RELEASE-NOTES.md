@@ -1,3 +1,7 @@
+# 1.4.12
+* Clean up UI a bit (switch to holo-dark theme)
+* Perform waypoint upload only based on user selection
+
 # 1.4.10
 * fix a couple more autobugs in droneshare
 * fix an auto bug - droneshare uploads of 'boring' flights would show incorrect message

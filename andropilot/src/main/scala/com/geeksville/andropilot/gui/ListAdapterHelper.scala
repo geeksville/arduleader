@@ -19,7 +19,7 @@ abstract class ListAdapterHelper[T] extends ListFragment with AndroidLogger {
   protected def isSelected(row: Int): Boolean
   protected def rowId: Int
 
-  private var adapter: Option[SimpleAdapter] = None
+  protected var adapter: Option[SimpleAdapter] = None
   private var adapterList: Option[java.util.List[java.util.Map[String, Any]]] = None
   private var oldSrc: Option[Seq[T]] = None
 

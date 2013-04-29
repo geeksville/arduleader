@@ -87,8 +87,8 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
       def afterTextChanged(e: Editable) {
         try {
           // FIXME - this will also get invoked every time _we_ change the value
-          val str = tv.getText.toString
-          selectedMarker.foreach(onSet(_, str.toFloat))
+          val f = tv.getText.toString.toFloat
+          selectedMarker.foreach(onSet(_, f))
         } catch {
           case ex: Exception =>
             error("Error parsing user entry: " + ex)
