@@ -106,7 +106,6 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     case SendWaypoints =>
       log.info("Sending " + waypoints.size + " waypoints")
       sendWithRetry(missionCount(waypoints.size), classOf[msg_mission_request])
-      onWaypointsChanged() // Tell any local observers about our new waypoints
 
     case msg: msg_mission_request =>
       if (msg.target_system == systemId) {
@@ -223,6 +222,9 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     if (v != dirty) {
       dirty = v
       eventStream.publish(MsgWaypointDirty(v))
+
+      if (v)
+        onWaypointsChanged() // Tell any local observers about our new waypoints
     }
   }
 

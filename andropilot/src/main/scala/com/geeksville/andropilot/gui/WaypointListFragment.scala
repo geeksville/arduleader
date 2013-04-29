@@ -53,9 +53,11 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     private def changed() {
       for { v <- myVehicle } yield {
         v ! DoMarkDirty
+
+        // We don't need this because the model will publish waypointschanged
         // a.notifyDataSetChanged()
         //l.invalidate()
-        setAdapter(v.waypoints)
+        // setAdapter(v.waypoints)
       }
     }
 
