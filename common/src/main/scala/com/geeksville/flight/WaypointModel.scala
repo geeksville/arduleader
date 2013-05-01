@@ -122,7 +122,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
           log.debug("Sending wp: " + wp)
           sendMavlink(wp)
         } else
-          error("Ignoring validate wp req from vehicle")
+          log.error("Ignoring validate wp req from vehicle")
 
         if (msg.seq >= waypoints.size - 1)
           setDirty(false) // We've now sent all waypoints
@@ -264,7 +264,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     } else
       0.0f
 
-    l.alt.get - groundAlt
+    l.alt.getOrElse(0.0) - groundAlt
   }
 
   /**

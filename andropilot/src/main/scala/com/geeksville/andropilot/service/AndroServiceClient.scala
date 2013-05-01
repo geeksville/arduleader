@@ -117,7 +117,12 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
     stopVehicleModel()
 
     debug("Unbinding from service")
-    context.unbindService(serviceConnection)
+    try {
+      context.unbindService(serviceConnection)
+    } catch {
+      case ex: IllegalArgumentException =>
+        warn("Ignoring error on unbind") // If we get paused before the service has started, we could get this
+    }
     service = None
   }
 

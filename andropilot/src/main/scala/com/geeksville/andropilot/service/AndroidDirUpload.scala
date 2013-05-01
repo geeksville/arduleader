@@ -16,6 +16,7 @@ import android.app.IntentService
 import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import android.app.Notification
+import java.io.IOException
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
@@ -159,11 +160,19 @@ class AndroidDirUpload extends IntentService("Uploader")
     override protected def handleUploadFailed(ex: Option[Exception]) {
       error("Upload failed: " + ex)
       removeProgress()
-      nBuilder.setContentText(S(R.string.failed) + ex.map(": " + _.getMessage).getOrElse(""))
+
+      val detailmessage = ex.map {
+        case x: IOException =>
+          ": connection problem"
+        case x @ _ =>
+          BugSenseHandler.sendExceptionMessage("share", "exception", x)
+          ": " + x.getMessage
+      }.getOrElse("")
+
+      nBuilder.setContentText(S(R.string.failed) + detailmessage)
       nBuilder.setSubText(S(R.string.will_try_again))
       updateNotification(false)
       handleFailure()
-      ex.foreach(BugSenseHandler.sendExceptionMessage("share", "exception", _))
 
       super.handleUploadFailed(ex)
     }
