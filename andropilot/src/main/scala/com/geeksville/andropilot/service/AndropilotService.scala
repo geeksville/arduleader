@@ -446,7 +446,19 @@ object AndropilotService {
     }
   }
 
-  def logDirectory = sdDirectory.map { sd => new File(sd, "newlogs") }
-  def uploadedDirectory = sdDirectory.map { sd => new File(sd, "uploaded") }
-  def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
+  def logDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "newlogs")
+    f.mkdirs()
+    f
+  }
+  def uploadedDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "uploaded")
+    f.mkdirs()
+    f
+  }
+  def paramDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "param-files")
+    f.mkdirs()
+    f
+  }
 }

@@ -1,3 +1,8 @@
+# 1.4.14
+* Fix problem of not creating temp directories on some tablets
+* Fix a couple of rare autobugs
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (when I get back to Andropilot I'll fix...)
+
 # 1.4.12
 * Clean up UI a bit (switch to holo-dark theme)
 * Perform waypoint upload only based on user selection
@@ -7,7 +12,6 @@
 * fix an auto bug - droneshare uploads of 'boring' flights would show incorrect message
 * oops - last release broke lead-it/follow-me - fixed
 * spoken battery percent was busted (due to localization changes) - fixed
-* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (soon, I'll keep thinking)
 * add support for the following advanced wpts:
     MAV_CMD.MAV_CMD_CONDITION_DISTANCE -> "CondDist",
     MAV_CMD.MAV_CMD_CONDITION_DELAY -> "CondDelay",

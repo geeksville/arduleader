@@ -16,6 +16,7 @@ import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.aspeech.TTSClient
 import com.geeksville.andropilot.R
+import android.content.ActivityNotFoundException
 
 /**
  * Provides joystick control either through hardware or a virtual screen joystick (not yet implemented)
@@ -26,8 +27,8 @@ import com.geeksville.andropilot.R
  * Button R1 = cycle through favorite modes
  * Button START = return all axis controls to regular RC transmitter
  */
-trait JoystickController extends Activity 
-with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
+trait JoystickController extends Activity
+  with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
 
   private val debugOutput = false
 
@@ -260,7 +261,13 @@ with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
           super.dispatchKeyEvent(ev)
       }
     } else
-      super.dispatchKeyEvent(ev)
+      try {
+        super.dispatchKeyEvent(ev)
+      } catch {
+        case ex: ActivityNotFoundException =>
+          toast("Google play services missing - maps won't work!")
+          false
+      }
   }
 
   override def onKeyDown(code: Int, ev: KeyEvent) = {
