@@ -2,7 +2,7 @@
 * I broke waypoint editing in 1.4.12 - fixed
 * Fix problem of not creating temp directories on some tablets
 * Fix a couple of rare autobugs
-* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (when I get back to Andropilot I'll fix...)
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (I'm working on another cool APM based project now, when I get back to Andropilot next week I'll fix...)
 
 # 1.4.12
 * Clean up UI a bit (switch to holo-dark theme)
