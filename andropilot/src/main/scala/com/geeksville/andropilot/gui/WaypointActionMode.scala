@@ -159,7 +159,7 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
     val autocontinue = menu.findItem(R.id.menu_autocontinue)
 
     // Default to nothing
-    Seq(goto, add, delete, setalt, param1, param2, changetype, autocontinue).foreach(_.setVisible(false))
+    Seq(goto, add, delete, setalt, param1, param2, param3, param4, changetype, autocontinue).foreach(_.setVisible(false))
 
     debug("Prepare " + selectedMarker)
 
