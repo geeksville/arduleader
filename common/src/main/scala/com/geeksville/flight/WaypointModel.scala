@@ -219,13 +219,11 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   }
 
   private def setDirty(v: Boolean) {
-    if (v != dirty) {
-      dirty = v
-      eventStream.publish(MsgWaypointDirty(v))
+    dirty = v
+    eventStream.publish(MsgWaypointDirty(v))
 
-      if (v)
-        onWaypointsChanged() // Tell any local observers about our new waypoints
-    }
+    if (v)
+      onWaypointsChanged() // Tell any local observers about our new waypoints
   }
 
   private def deleteWaypoint(seqnum: Int) = deleteByFilter { w => w.seq != seqnum }

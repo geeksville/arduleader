@@ -136,7 +136,7 @@ class MyMapFragment extends SupportMapFragment
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
         v ! DoAddWaypoint(Waypoint(wp))
-        toast("Waypoint added")
+        // toast("Waypoint added")
       }
     }
   }
@@ -274,7 +274,7 @@ class MyMapFragment extends SupportMapFragment
         v ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
-        toast(R.string.waypoint_deleted, true)
+        // toast(R.string.waypoint_deleted, true)
       }
     }
 
