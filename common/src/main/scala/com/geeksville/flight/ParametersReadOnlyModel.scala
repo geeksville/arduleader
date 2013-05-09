@@ -31,9 +31,15 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     11 -> "TOY_A",
     12 -> "TOY_B")
 
+  private val roverCodeToModeMap = Map(
+    0 -> "MANUAL", 2 -> "LEARNING", 3 -> "STEERING",
+    4 -> "HOLD",
+    10 -> "AUTO",
+    11 -> "RTL", 15 -> "GUIDED", 16 -> "INITIALIZING")
+
   private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
   private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
-
+  private val roverModeToCodeMap = roverCodeToModeMap.map { case (k, v) => (v, k) }
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
@@ -74,12 +80,18 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
 
   /// Either ArduCopter or ArduPlane etc... used to find appropriate parameter docs
   // FIXME handle other vehicle types
-  def vehicleTypeName = if (isCopter) "ArduCopter" else "ArduPlane"
+  def vehicleTypeName = if (isCopter)
+    "ArduCopter"
+  else if (isRover)
+    "APMrover2"
+  else
+    "ArduPlane"
 
   def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
   def isCopter = vehicleType.map { t =>
     (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
   }.getOrElse(true)
+  def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 
   /// A MAV_TYPE vehicle code
   def vehicleType: Option[Int]
@@ -88,6 +100,8 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     planeCodeToModeMap
   else if (isCopter)
     copterCodeToModeMap
+  else if (isRover)
+    roverCodeToModeMap
   else
     Map[Int, String]()
 
@@ -95,6 +109,8 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     planeModeToCodeMap
   else if (isCopter)
     copterModeToCodeMap
+  else if (isRover)
+    roverModeToCodeMap
   else
     Map[String, Int]()
 
