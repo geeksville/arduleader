@@ -1,3 +1,9 @@
+# 1.4.15
+* Add support for upcoming accelerometer cal APM feature (not yet tested with real hardware)
+* Update param docs from master
+* Add support for APM Rover
+* Add beginnings of support for direct connect to PX4 USB
+
 # 1.4.14
 * I broke waypoint editing in 1.4.12 - fixed
 * Fix problem of not creating temp directories on some tablets
