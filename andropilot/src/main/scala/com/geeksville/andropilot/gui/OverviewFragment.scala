@@ -77,7 +77,7 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
         }
       }
 
-    case MsgStatusChanged(s) =>
+    case MsgStatusChanged(s, _) =>
       debug("Status changed: " + s)
       handler.post { () =>
         if (getView != null) {

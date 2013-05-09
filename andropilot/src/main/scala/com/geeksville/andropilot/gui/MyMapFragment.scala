@@ -438,7 +438,7 @@ class MyMapFragment extends SupportMapFragment
         updateMarker()
       }
 
-    case MsgStatusChanged(s) =>
+    case MsgStatusChanged(s, _) =>
       debug("Status changed: " + s)
       handler.post { () =>
         updateMarker()

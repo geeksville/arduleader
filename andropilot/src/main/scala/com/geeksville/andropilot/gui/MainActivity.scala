@@ -201,7 +201,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
       }
 
-    case MsgStatusChanged(s) =>
+    case MsgStatusChanged(s, _) =>
       debug("Status changed: " + s)
       handler.post { () =>
         toast(s)
