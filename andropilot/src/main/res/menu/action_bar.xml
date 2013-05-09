@@ -24,6 +24,10 @@
         android:showAsAction="never"
         android:title="Help"/>
     <item
+        android:id="@+id/menu_calibrate"
+        android:showAsAction="never"
+        android:title="Calibrate Accel"/>
+    <item
         android:id="@+id/menu_levelnow"
         android:showAsAction="never"
         android:title="Manual Level"/>

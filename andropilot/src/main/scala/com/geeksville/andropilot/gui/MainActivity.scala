@@ -67,6 +67,7 @@ import ExecutionContext.Implicits.global
 import android.support.v4.app.NotificationCompat
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.AlertDialog
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -201,10 +202,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
       }
 
-    case MsgStatusChanged(s, _) =>
-      debug("Status changed: " + s)
+    case MsgStatusChanged(s, severity) =>
       handler.post { () =>
-        toast(s)
+        handleStatus(s, severity)
       }
 
     case MsgParametersDownloaded =>
@@ -212,6 +212,24 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
         handleParameters()
       }
+  }
+
+  private def handleStatus(s: String, severity: Int) {
+    debug("Status changed: " + s)
+    if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE)
+      toast(s)
+    else {
+      // Show a user dialog and have them ack what the APM wants acked
+
+      val builder = new AlertDialog.Builder(this)
+      builder.setMessage(s).setCancelable(false).setPositiveButton("Ok", { which: Int =>
+        myVehicle.foreach { v =>
+          v.sendMavlink(v.commandAck())
+        }
+      })
+
+      builder.create().show()
+    }
   }
 
   override def onServiceConnected(s: AndropilotService) {
@@ -655,17 +673,29 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       case R.id.menu_levelnow =>
         myVehicle.foreach { v =>
-          if (v.vfrHud.map(_.groundspeed).getOrElse(0.0f) > 0.5f)
+          if (inFlight)
             toast(R.string.no_level, true)
-          else {
-            v.sendMavlink(v.commandDoCalibrate())
-          }
+          else
+            v.sendMavlink(v.commandDoCalibrate(calINS = true, calBaro = true))
+        }
+
+      case R.id.menu_calibrate =>
+        myVehicle.foreach { v =>
+          if (inFlight)
+            toast(R.string.no_level, true)
+          else
+            v.sendMavlink(v.commandDoCalibrate(calAccel = true))
         }
       case _ =>
     }
 
     super.onOptionsItemSelected(item)
   }
+
+  /**
+   * Do we think the vehicle is flying?
+   */
+  private def inFlight = myVehicle.flatMap(_.vfrHud.map(_.groundspeed > 0.5f)).getOrElse(true)
 
   /** Ask for permission to access our device */
   def requestAccess() {
