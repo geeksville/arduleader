@@ -148,7 +148,6 @@ class MyMapFragment extends SupportMapFragment
 
     override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
     override def isAllowChangeType = !isHome
-    override def isAllowDelete = !isHome && !isCurrent
 
     override def isAltitudeEditable = !isHome
     override def altitude = wp.msg.z
@@ -261,6 +260,7 @@ class MyMapFragment extends SupportMapFragment
     override def lon_=(n: Double) { wp.msg.y = n.toFloat }
 
     override def draggable = !isHome
+    override def isAllowDelete = !isHome && !isCurrent
 
     override def onDragEnd() {
       super.onDragEnd()

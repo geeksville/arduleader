@@ -39,6 +39,7 @@ import java.io.OutputStream
 import java.io.IOException
 import android.support.v4.app.NotificationCompat
 import com.geeksville.andropilot.gui.NotificationIds
+import com.bugsense.trace.BugSenseHandler
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -243,10 +244,18 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // If already logging ignore
       if (!logger.isDefined)
         AndropilotService.logDirectory.foreach { d =>
-          logfile = Some(LogBinaryMavlink.getFilename(d))
-          val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
-          MavlinkEventBus.subscribe(l, -1)
-          logger = Some(l)
+          try {
+            logfile = Some(LogBinaryMavlink.getFilename(d))
+            val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
+            MavlinkEventBus.subscribe(l, -1)
+            logger = Some(l)
+          } catch {
+            case ex: Exception =>
+              BugSenseHandler.sendExceptionMessage("sdwrite", "exception", ex)
+              error("Can't access sdcard")
+              logger = None
+              logfile = None
+          }
         }
     } else
       // Shut down any existing loggers
