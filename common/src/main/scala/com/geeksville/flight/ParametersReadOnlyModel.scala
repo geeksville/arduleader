@@ -43,6 +43,28 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     /// The docs for this parameter (if we can find them)
     def docs = for { id <- getId; d <- paramDocs.get(id) } yield { d }
 
+    /**
+     * Check this parameter to see if it is within the range expected by the documentation, if not in range return false
+     */
+    def isInRange = (for {
+      doc <- docs
+      range <- doc.range
+      v <- raw
+    } yield {
+      v.param_value >= range._1 && v.param_value <= range._2
+    }).getOrElse(true)
+
+    /**
+     * Should this parameter be shared with others (or is it so instance specific it should not be passed around)
+     */
+    def isSharable =
+      (for {
+        doc <- docs
+        share <- doc.share
+      } yield {
+        share.toLowerCase == "vehicle"
+      }).getOrElse(false)
+
     def getId = raw.map(_.getParam_id)
 
     def getValue: Option[AnyVal] = raw.map { v =>

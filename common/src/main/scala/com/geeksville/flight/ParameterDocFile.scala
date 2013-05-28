@@ -17,6 +17,39 @@ case class ParamDoc(val humanName: String, val name: String, val documentation: 
   }
 
   /**
+   * If a min max range was specified for this parameter, return it
+   */
+  lazy val range: Option[(Float, Float)] = {
+    try {
+      fieldMap.flatMap { f =>
+        f.get("Range").map { rangestr =>
+          rangestr match {
+            case RangeValPattern(minr, maxr) =>
+              minr.toFloat -> maxr.toFloat
+          }
+        }
+      }
+    } catch {
+      case ex: Exception =>
+        println("Ignoring invalid range: " + ex.getMessage)
+        None
+    }
+  }
+
+  lazy val uiHint: Option[String] =
+    fieldMap.flatMap { f =>
+      f.get("UIHint")
+    }
+
+  /**
+   * Type of sharing, if specified (vehicle normally)
+   */
+  lazy val share: Option[String] =
+    fieldMap.flatMap { f =>
+      f.get("share")
+    }
+
+  /**
    * Try to decode a raw value into the best symbolic representation we can find
    */
   def decodeValue(f: Float) = {
@@ -31,6 +64,7 @@ case class ParamDoc(val humanName: String, val name: String, val documentation: 
 
 object ParamDoc {
   private val NamePattern = "(.*):(.*)".r
+  private val RangeValPattern = "\\s*(\\S+) (\\S+)\\s*".r
 }
 
 /**
