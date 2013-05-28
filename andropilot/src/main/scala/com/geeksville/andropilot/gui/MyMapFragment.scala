@@ -8,7 +8,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.geeksville.flight._
 import com.geeksville.akka._
 import com.geeksville.mavlink._
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.geeksville.util.ThreadTools._
 import com.google.android.gms.common.GooglePlayServicesUtil
@@ -39,11 +39,13 @@ import org.mavlink.messages.MAV_CMD
 import com.geeksville.flight.DoAddWaypoint
 import com.geeksville.gmaps.PolylineFactory
 import org.mavlink.messages.FENCE_ACTION
+import com.geeksville.flight.MsgWaypointCurrentChanged
 
 /**
  * Our customized map fragment
  */
-class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroServiceFragment {
+class MyMapFragment extends SupportMapFragment
+  with AndropilotPrefs with AndroServiceFragment with UsesResources {
 
   var scene: Option[Scene] = None
 
@@ -113,8 +115,8 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def isAllowGoto = true
 
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(R.drawable.waypoint))
-    override def title = Some("Provisional waypoint")
-    override def snippet = Some("Altitude %sm".format(altitude))
+    override def title = Some(S(R.string.provisional_waypoint))
+    override def snippet = Some(S(R.string.altitude_m).format(altitude))
 
     /**
      * Go to our previously placed guide marker
@@ -125,7 +127,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         val wp = myVehicle.get.makeGuided(loc)
         v ! DoGotoGuided(wp)
 
-        toast("Guided flight selected")
+        toast(S(R.string.guided_meters).format(loc.alt.get))
       }
     }
 
@@ -134,8 +136,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
         v ! DoAddWaypoint(Waypoint(wp))
-        v ! SendWaypoints
-        toast("Waypoint added")
+        // toast("Waypoint added")
       }
     }
   }
@@ -147,30 +148,34 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
     override def isAllowChangeType = !isHome
-    override def isAllowDelete = !isHome && !isCurrent
 
     override def isAltitudeEditable = !isHome
     override def altitude = wp.msg.z
     override def altitude_=(n: Double) {
       if (n != altitude) {
-        wp.msg.z = n.toFloat
-        setSnippet()
-        sendWaypointsAndUpdate()
+        val f = n.toFloat
+        if (f != wp.msg.z) {
+          wp.msg.z = f
+          setSnippet()
+          sendWaypointsAndUpdate()
+        }
       }
     }
     override def numParams = wp.numParamsUsed
     override def getParam(i: Int) = wp.getParam(i)
     override def setParam(i: Int, n: Float) = {
-      wp.setParam(i, n)
-      setSnippet()
-      sendWaypointsAndUpdate()
+      if (getParam(i) != n) {
+        wp.setParam(i, n)
+        setSnippet()
+        sendWaypointsAndUpdate()
+      }
     }
 
     override def title = {
       val r = if (isHome)
-        "Home"
+        S(R.string.home)
       else
-        "Waypoint #" + wp.msg.seq + " (" + wp.commandStr + ")"
+        S(R.string.wp_num_label).format(wp.msg.seq, wp.commandStr)
 
       Some(r)
     }
@@ -180,9 +185,9 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       val params = Seq(param1, param2, param3, param4)
       val hasParams = params.find(_ != 0.0f).isDefined
       val r = if (hasParams)
-        "Alt=%sm %s params=%s".format(z, wp.frameStr, params.mkString(","))
+        S(R.string.wp_parms).format(z, wp.frameStr, params.mkString(","))
       else
-        "Altitude %sm %s".format(z, wp.frameStr)
+        S(R.string.wp_alt).format(z, wp.frameStr)
       Some(r)
     }
 
@@ -225,7 +230,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def toString = title.get
 
     protected def sendWaypointsAndUpdate() {
-      myVehicle.foreach(_ ! SendWaypoints) // Will implicitly cause an update
+      myVehicle.foreach(_ ! DoMarkDirty) // Will implicitly cause an update
     }
   }
 
@@ -255,6 +260,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     override def lon_=(n: Double) { wp.msg.y = n.toFloat }
 
     override def draggable = !isHome
+    override def isAllowDelete = !isHome && !isCurrent
 
     override def onDragEnd() {
       super.onDragEnd()
@@ -268,7 +274,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         v ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
-        toast("Waypoint deleted")
+        // toast(R.string.waypoint_deleted, true)
       }
     }
 
@@ -282,9 +288,11 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
 
     override def typStr = wp.commandStr
     override def typStr_=(s: String) {
-      wp.commandStr = s
+      if (s != wp.commandStr) {
+        wp.commandStr = s
 
-      sendWaypointsAndUpdate()
+        sendWaypointsAndUpdate()
+      }
     }
   }
 
@@ -308,7 +316,12 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     }).getOrElse(R.drawable.plane_red)
 
     override def title = Some((for { s <- service; v <- myVehicle } yield {
-      val r = "Mode " + v.currentMode + (if (!s.isConnected) " (No Link)" else (if (v.hasHeartbeat) "" else " (Lost Comms)"))
+      val r = S(R.string.mode) + " " + v.currentMode + (if (!s.isConnected)
+        " (" + S(R.string.no_link) + ")"
+      else (if (v.hasHeartbeat)
+        ""
+      else
+        " (" + S(R.string.lost_comms) + ")"))
       //debug("title: " + r)
       r
     }).getOrElse("No service"))
@@ -321,15 +334,15 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
           "Altitude %.1fm".format(v.toAGL(l))
         }
 
-        val batStr = if (isLowVolt) Some("LowVolt!") else None
-        val pctStr = if (isLowBatPercent) Some("LowPct!") else None
-        val radioStr = if (isLowRssi) Some("LowRssi!") else None
-        val gpsStr = if (isLowNumSats) Some("LowSats!") else None
+        val batStr = if (isLowVolt) Some(S(R.string.low_volt)) else None
+        val pctStr = if (isLowBatPercent) Some(S(R.string.low_charge)) else None
+        val radioStr = if (isLowRssi) Some(S(R.string.low_rssi)) else None
+        val gpsStr = if (isLowNumSats) Some(S(R.string.low_sats)) else None
 
         val r = Seq(locStr, batStr, pctStr, radioStr, gpsStr).flatten.mkString(" ")
         //debug("snippet: " + r)
         r
-      }.getOrElse("No service"))
+      }.getOrElse(S(R.string.no_service)))
 
     override def toString = title.get
 
@@ -397,10 +410,6 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
     planeMarker
   }
 
-  private def toast(str: String) {
-    Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
-  }
-
   override def onVehicleReceive = {
     case l: Location =>
       // log.debug("Handling location: " + l)
@@ -429,7 +438,7 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
         updateMarker()
       }
 
-    case MsgStatusChanged(s) =>
+    case MsgStatusChanged(s, _) =>
       debug("Status changed: " + s)
       handler.post { () =>
         updateMarker()
@@ -464,6 +473,9 @@ class MyMapFragment extends SupportMapFragment with AndropilotPrefs with AndroSe
       handler.post(handleWaypoints _)
 
     case MsgFenceChanged =>
+      handler.post(handleWaypoints _)
+
+    case MsgWaypointCurrentChanged(n) =>
       handler.post(handleWaypoints _)
   }
 

@@ -19,6 +19,7 @@
     <item
         android:id="@+id/menu_changetype"
         android:actionViewClass="android.widget.Spinner"
+        android:showAsAction="always"
         android:title="Change Type"
         android:visible="false"/>
     <item
@@ -33,7 +34,19 @@
         android:showAsAction="always"
         android:title="Param2"
         android:visible="false"/>
-
+    <item
+        android:id="@+id/menu_param3"
+        android:actionViewClass="android.widget.EditText"
+        android:showAsAction="always"
+        android:title="Param3"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_param4"
+        android:actionViewClass="android.widget.EditText"
+        android:showAsAction="always"
+        android:title="Param4"
+        android:visible="false"/>
+        
     <!-- Checkbox won't show if in action bar, so never go there -->
     <item
         android:id="@+id/menu_autocontinue"

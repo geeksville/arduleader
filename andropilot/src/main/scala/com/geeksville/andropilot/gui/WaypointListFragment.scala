@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.view.LayoutInflater
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
+import com.geeksville.flight.MsgWaypointCurrentChanged
 
 class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
 
@@ -38,8 +39,11 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     override def altitude = selected.map(_.altitude).getOrElse(0.0f).toDouble
     override def altitude_=(n: Double) {
       selected.foreach { s =>
-        s.msg.z = n.toFloat
-        changed()
+        val f = n.toFloat
+        if (f != s.msg.z) {
+          s.msg.z = f
+          changed()
+        }
       }
     }
 
@@ -47,7 +51,14 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
      * The menu has just changed our item
      */
     private def changed() {
-      myVehicle.foreach(_ ! SendWaypoints)
+      for { v <- myVehicle } yield {
+        v ! DoMarkDirty
+
+        // We don't need this because the model will publish waypointschanged
+        // a.notifyDataSetChanged()
+        //l.invalidate()
+        // setAdapter(v.waypoints)
+      }
     }
 
     override def isAllowGoto = true
@@ -64,8 +75,10 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     override def numParams = selected.map(_.numParamsUsed).getOrElse(0)
     override def getParam(i: Int) = selected.map(_.getParam(i)).getOrElse(0)
     override def setParam(i: Int, n: Float) = selected.foreach { s =>
-      s.setParam(i, n)
-      changed()
+      if (n != getParam(i)) {
+        s.setParam(i, n)
+        changed()
+      }
     }
 
     /**
@@ -77,8 +90,6 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
         v ! DoSetMode("AUTO")
       }
     }
-
-    override def doAdd() { throw new Exception("Not yet implemented") }
 
     override def doDelete() {
       for { v <- myVehicle; s <- selected } yield {
@@ -96,8 +107,12 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     }
 
     override def typStr_=(s: String) {
-      selected.foreach(_.commandStr = s)
-      changed()
+      selected.foreach { w =>
+        if (s != w.commandStr) {
+          w.commandStr = s
+          changed()
+        }
+      }
     }
   }
 
@@ -132,6 +147,9 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
   override def onVehicleReceive = {
 
     case MsgWaypointsChanged =>
+      handler.post(handleWaypoints _)
+
+    case MsgWaypointCurrentChanged(n) =>
       handler.post(handleWaypoints _)
   }
 

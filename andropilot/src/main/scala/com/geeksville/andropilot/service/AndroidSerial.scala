@@ -145,9 +145,9 @@ class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends Android
   private def open() {
 
     info("Acquiring")
-    val rawDeviceOpt = AndroidSerial.getDevice 
+    val rawDeviceOpt = AndroidSerial.getDevice
 
-    if(!rawDeviceOpt.isDefined) // If the user unplugs the USB device at just the right time, the device might have gone away
+    if (!rawDeviceOpt.isDefined) // If the user unplugs the USB device at just the right time, the device might have gone away
       throw new IOException("Device not found")
 
     val rawDevice = rawDeviceOpt.get
@@ -172,7 +172,7 @@ class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends Android
     }
 
     // on apm just turn on rts/dtr because that's what linux does...
-    if (AndroidSerial.isAPM(rawDevice)) {
+    if (AndroidSerial.isAPM(rawDevice) || AndroidSerial.isPX4(rawDevice)) {
       d.setRTS(true)
       d.setDTR(true)
     } else
@@ -201,6 +201,7 @@ object AndroidSerial extends AndroidLogger {
 
   def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && (dvr.getProductId == 0x6001 || dvr.getProductId == 0x6015)
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
+  def isPX4(dvr: UsbDevice) = dvr.getVendorId == 0x26ac && dvr.getProductId == 0x0010
 
   def getDevice(implicit context: Context) = {
     val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]
@@ -209,7 +210,7 @@ object AndroidSerial extends AndroidLogger {
       "%s:vend=%04x:id=%04x".format(dvr.getDeviceName, dvr.getVendorId, dvr.getProductId)
     }.mkString(","))
 
-    val filtered = devices.filter { dvr => isTelemetry(dvr) || isAPM(dvr) }
+    val filtered = devices.filter { dvr => isTelemetry(dvr) || isAPM(dvr) || isPX4(dvr) }
     if (filtered.size == 0)
       None
     else if (filtered.size != 1) {

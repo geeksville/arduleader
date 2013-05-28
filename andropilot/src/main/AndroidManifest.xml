@@ -18,6 +18,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <!-- To get logcat output in bug reports -->
+    <!-- <uses-permission android:name="android.permission.READ_LOGS" />  --> 
+    
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="false" />
@@ -130,7 +133,13 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".gui.SettingsActivity" />
+        <activity android:name=".gui.SettingsActivity" >
+            <!-- Show this activity when the user selects network usage in android settings -->
+            <intent-filter>
+                <action android:name="android.intent.action.MANAGE_NETWORK_USAGE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <service android:name=".service.AndropilotService" />
         <service android:name=".service.AndroidDirUpload" />

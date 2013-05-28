@@ -6,7 +6,7 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def curLatitude = floatPreference("cur_lat", 0.0f)
   def curLongitude = floatPreference("cur_lon", 0.0f)
-  def paramsToFile = boolPreference("params_to_file", true)
+  def paramsToFile = boolPreference("params_to_file", false)
   def speechAltBucket = intPreference("speech_altbucket", 10)
 
   def minVoltage = floatPreference("min_voltage", 9.5f)

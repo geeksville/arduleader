@@ -1,6 +1,6 @@
 package com.geeksville.andropilot.gui
 
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import android.view._
 import android.os.Bundle
 import com.geeksville.flight.VehicleModel
@@ -18,12 +18,11 @@ import android.widget.Spinner
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
 
-class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends DialogFragment with AndroidLogger with FlurryClient {
+class ParameterEditorFragment(val param: VehicleModel#ParamValue) 
+extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
   setCancelable(true)
 
-  private def toast(str: String) {
-    Toast.makeText(getActivity, str, Toast.LENGTH_LONG).show()
-  }
+    implicit def context: Context = getActivity
 
   override def onCreateDialog(savedInstanceState: Bundle) = {
     val builder = new AlertDialog.Builder(getActivity)
@@ -75,9 +74,9 @@ class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends Dialog
     // Inflate and set the layout for the dialog
     // Pass null as the parent view because its going in the dialog layout
     builder.setView(v)
-      .setTitle("Set parameter")
+      .setTitle(R.string.set_parameter)
       // Add action buttons
-      .setPositiveButton("Ok", new DialogInterface.OnClickListener {
+      .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, id: Int) {
           info("User clicked ok")
           val str = valueView.getText.toString
@@ -86,12 +85,12 @@ class ParameterEditorFragment(val param: VehicleModel#ParamValue) extends Dialog
             param.setValue(str.toFloat)
           } catch {
             case ex: Exception =>
-              toast("Can't set value: " + ex.getMessage)
+              toast(S(R.string.can_not_set) + ": " + ex.getMessage)
           }
           getDialog.dismiss()
         }
       })
-      .setNegativeButton("Cancel", new DialogInterface.OnClickListener {
+      .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, id: Int) {
           info("User clicked cancel")
           getDialog.cancel()

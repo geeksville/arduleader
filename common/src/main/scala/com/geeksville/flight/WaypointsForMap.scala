@@ -16,7 +16,9 @@ trait WaypointsForMap {
 
     // No matter what we never want to emit more waypoints than we started with
     (0 until waypoints.size).flatMap { loopNum =>
-      if (!inspected(index)) {
+      if (index >= waypoints.size)
+        None
+      else if (!inspected(index)) {
         val wp = waypoints(index)
         inspected(index) = true
 

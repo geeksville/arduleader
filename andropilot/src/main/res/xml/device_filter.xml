@@ -8,4 +8,7 @@
         
     <!-- 0x2341 / 0x0010: APM 2.5 device -->
     <usb-device vendor-id="9025" product-id="16" />    
+    
+    <!-- 0x26ac / 0x0010: APM 2.5 device -->
+    <usb-device vendor-id="9900" product-id="16" />        
 </resources>

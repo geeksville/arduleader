@@ -1,3 +1,61 @@
+# 1.4.15
+* Add support for upcoming accelerometer cal APM feature (not yet tested with real hardware)
+* Update param docs from master
+* Add support for APM Rover
+* Add beginnings of support for direct connect to PX4 USB
+
+# 1.4.14
+* I broke waypoint editing in 1.4.12 - fixed
+* Fix problem of not creating temp directories on some tablets
+* Fix a couple of rare autobugs
+* Sorry Rana: I still haven't figured out what causes UDP upload from the tablet to not work in mission planner (I'm working on another cool APM based project now, when I get back to Andropilot next week I'll fix...)
+
+# 1.4.12
+* Clean up UI a bit (switch to holo-dark theme)
+* Perform waypoint upload only based on user selection
+
+# 1.4.10
+* fix a couple more autobugs in droneshare
+* fix an auto bug - droneshare uploads of 'boring' flights would show incorrect message
+* oops - last release broke lead-it/follow-me - fixed
+* spoken battery percent was busted (due to localization changes) - fixed
+* add support for the following advanced wpts:
+    MAV_CMD.MAV_CMD_CONDITION_DISTANCE -> "CondDist",
+    MAV_CMD.MAV_CMD_CONDITION_DELAY -> "CondDelay",
+    MAV_CMD.MAV_CMD_CONDITION_CHANGE_ALT -> "CondAlt",
+    MAV_CMD.MAV_CMD_DO_CHANGE_SPEED -> "ChangeSpd",
+    MAV_CMD.MAV_CMD_DO_SET_SERVO -> "SetServo",
+    MAV_CMD.MAV_CMD_DO_SET_RELAY -> "SetRelay",
+    MAV_CMD.MAV_CMD_DO_REPEAT_SERVO -> "RepeatServo",
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay"
+
+# 1.4.09
+* Fix a few minor autobugs
+
+# 1.4.06
+* Move droneshare out of beta
+* Add support for localizing into german or other languages (need to convert a few more strings)
+* Register with Android as able to manage our own network bandwidth
+* Show follow-me as a checkbox (to make it more obvious on how to cancel)
+
+# 1.4.05
+* Apply altitude changes to markers immediately (so if the user clicks on GOTO etc... without clicking Done it will do the right thing)
+* Use best possible altitude on hud view
+* Add an optimized view layout for 10" tablets in portrait mode (Such as the beautiful Nexus 10" - Thank you anonymous Googler for the gift!)
+* Don't say 'underscore' when reading out modes
+
+TODO:
+install android tools
+Fix: localize resources
+Fix: add button to force parameter download
+Fix: Rana's bug with UDP uploading
+FIXME: report droneshare failures via google
+FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
+FIXME: move droneshare client stuff to common
+report upload exceptions via google
+s3 use reduced redundancy
+put size limits on uploads
+
 # 1.4.03
 * Fix a couple of autobugs with the new droneshare feature
 
@@ -11,17 +69,6 @@
 * Beta test feature: Optional sharing tlogs with G+, gmail, facebook, google earth & web...
 * We automatically delete 'boring' tlogs (no vehicle motion) - controllable from settings
 * Use the new android 4.0 style preferences UI
-
-TODO:
-FIXME: wpt selection off by one sometimes!!!
-FIXME: report droneshare failures via google
-FIXME: release new upload url
-FIXME: make sure cache control is correct for view, static and lists.  https://groups.google.com/forum/?fromgroups=#!topic/scalatra-user/UrwL01iBygY
-FIXME: move droneshare client stuff to common
-report upload exceptions via google
-internationalize strings
-s3 use reduced redundancy
-put size limits on uploads
 
 # 1.3.03
 * Fix a few autobugs

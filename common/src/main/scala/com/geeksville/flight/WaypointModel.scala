@@ -25,6 +25,9 @@ import scala.io.Source
 // Messages we publish on our event bus when something happens
 //
 case object MsgWaypointsChanged
+case class MsgWaypointCurrentChanged(seq: Int)
+// Tell front end the waypoint state is now 'dirty' and must be sent to vehicle
+case class MsgWaypointDirty(isDirty: Boolean)
 
 // Commands we accept in our actor queue
 case class DoGotoGuided(m: msg_mission_item, withRetry: Boolean = true)
@@ -32,6 +35,7 @@ case class DoSetMode(s: String)
 case class DoSetCurrent(n: Int)
 case class DoAddWaypoint(w: Waypoint)
 case class DoDeleteWaypoint(seqnum: Int)
+case object DoMarkDirty
 
 /**
  * Upload a sequence of waypoints to the vehicle (being careful to not replace home)
@@ -59,12 +63,24 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
 
+  private var dirty = false
+
   private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
-  protected def onWaypointsDownloaded() { onWaypointsChanged() }
+  private def onWaypointsCurrentChanged(n: Int) { eventStream.publish(MsgWaypointCurrentChanged(n)) }
+
+  protected def onWaypointsDownloaded() {
+    onWaypointsChanged()
+    setDirty(false)
+  }
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
+  def isDirty = dirty
+
   private def mReceive: Receiver = {
+    case DoMarkDirty =>
+      setDirty(true)
+
     case DoGotoGuided(m, withRetry) =>
       gotoGuided(m, withRetry)
 
@@ -76,6 +92,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       if (w.msg.seq == 0)
         w.msg.seq = waypoints.size
       waypoints = waypoints :+ w
+      setDirty(true)
 
     case DoDeleteWaypoint(seqnum) =>
       deleteWaypoint(seqnum)
@@ -89,21 +106,26 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     case SendWaypoints =>
       log.info("Sending " + waypoints.size + " waypoints")
       sendWithRetry(missionCount(waypoints.size), classOf[msg_mission_request])
-      onWaypointsChanged() // Tell any local observers about our new waypoints
 
     case msg: msg_mission_request =>
       if (msg.target_system == systemId) {
         log.debug("Vehicle requesting waypoint %d".format(msg.seq))
         checkRetryReply(msg) // Cancel any retries that were waiting for this message
 
-        val wp = waypoints(msg.seq).msg
-        // Make sure that the target system is correct (FIXME - it seems like this is not correct)
-        wp.target_system = msg.sysId
-        wp.target_component = msg.componentId
-        wp.sysId = systemId
-        wp.componentId = componentId
-        log.debug("Sending wp: " + wp)
-        sendMavlink(wp)
+        if (msg.seq < waypoints.size) {
+          val wp = waypoints(msg.seq).msg
+          // Make sure that the target system is correct (FIXME - it seems like this is not correct)
+          wp.target_system = msg.sysId
+          wp.target_component = msg.componentId
+          wp.sysId = systemId
+          wp.componentId = componentId
+          log.debug("Sending wp: " + wp)
+          sendMavlink(wp)
+        } else
+          log.error("Ignoring validate wp req from vehicle")
+
+        if (msg.seq >= waypoints.size - 1)
+          setDirty(false) // We've now sent all waypoints
       }
 
     //
@@ -157,14 +179,15 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       checkRetryReply(msg)
       perhapsRequestWaypoints()
 
+      val newWpSeq = msg.seq
       if (waypoints.count { w =>
-        val newval = if (w.seq == msg.seq) 1 else 0
+        val newval = if (w.seq == newWpSeq) 1 else 0
         val changed = newval != w.msg.current
         if (changed)
           w.msg.current = newval
         changed
       } > 0)
-        onWaypointsChanged()
+        onWaypointsCurrentChanged(newWpSeq)
   }
 
   private def startWaypointDownload() {
@@ -189,7 +212,18 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       keepme
     }
 
+    if (numdeleted > 0)
+      setDirty(true)
+
     numdeleted
+  }
+
+  private def setDirty(v: Boolean) {
+    dirty = v
+    eventStream.publish(MsgWaypointDirty(v))
+
+    if (v)
+      onWaypointsChanged() // Tell any local observers about our new waypoints
   }
 
   private def deleteWaypoint(seqnum: Int) = deleteByFilter { w => w.seq != seqnum }
@@ -228,7 +262,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     } else
       0.0f
 
-    l.alt.get - groundAlt
+    l.alt.getOrElse(0.0) - groundAlt
   }
 
   /**

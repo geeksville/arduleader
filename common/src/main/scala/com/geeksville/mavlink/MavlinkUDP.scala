@@ -96,7 +96,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
       }
     } catch {
       case ex: BindException =>
-        error("Unable to bind to port!")
+        log.error("Unable to bind to port!")
         self ! PoisonPill
 
       case ex: SocketException =>

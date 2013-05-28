@@ -3,16 +3,17 @@ package com.geeksville.aspeech
 import android.app.Activity
 import android.content.Intent
 import android.speech.tts.TextToSpeech
-import com.ridemission.scandroid.UsesPreferences
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import android.content.Context
 import java.util.Locale
 import com.geeksville.andropilot.FlurryContext
+import com.geeksville.andropilot.R
 
 /**
  * Speak using the Android TTS library
  */
-trait TTSClient extends Activity with UsesPreferences with AndroidLogger with FlurryContext {
+trait TTSClient extends Activity with UsesPreferences
+  with AndroidLogger with FlurryContext with UsesResources {
   private val MY_DATA_CHECK_CODE = 0x4403
 
   private var tts: Option[TextToSpeech] = None
@@ -28,7 +29,10 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger with Fl
       else {
         info("Opened TTS")
         tts.foreach { t =>
-          val langCheck = t.setLanguage(Locale.getDefault())
+          // val langName = Locale.getDefault
+          val langName = new Locale(S(R.string.tts_language))
+          warn("Using TTS lang: " + langName)
+          val langCheck = t.setLanguage(langName)
           langCheck match {
             case TextToSpeech.LANG_MISSING_DATA =>
               error("Missing lang data")
@@ -56,7 +60,9 @@ trait TTSClient extends Activity with UsesPreferences with AndroidLogger with Fl
   def speak(str: String, urgent: Boolean = false) {
     if (isSpeechEnabled) {
       usageEvent("speech_on", "msg" -> str)
-      tts.foreach(_.speak(str, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
+
+      val cleaned = str.replace('_', ' ') // Don't say 'underscore'
+      tts.foreach(_.speak(cleaned, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
     } else
       usageEvent("speech_off", "msg" -> str)
   }

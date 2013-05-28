@@ -13,7 +13,7 @@
     <!-- FIXME - move this into the action bar for the map -->
     <item
         android:id="@+id/menu_followme"
-        android:showAsAction="never"
+        android:checkable="true"
         android:title="Start follow-me"/>
     <item
         android:id="@+id/menu_settings"
@@ -23,6 +23,10 @@
         android:id="@+id/menu_help"
         android:showAsAction="never"
         android:title="Help"/>
+    <item
+        android:id="@+id/menu_calibrate"
+        android:showAsAction="never"
+        android:title="Calibrate Accel"/>
     <item
         android:id="@+id/menu_levelnow"
         android:showAsAction="never"

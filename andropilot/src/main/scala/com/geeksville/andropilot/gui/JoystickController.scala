@@ -2,7 +2,7 @@ package com.geeksville.andropilot.gui
 
 import android.view.MotionEvent
 import android.view.InputDevice
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import scala.collection.JavaConverters._
 import android.app.Activity
 import android.view.KeyEvent
@@ -15,6 +15,8 @@ import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.aspeech.TTSClient
+import com.geeksville.andropilot.R
+import android.content.ActivityNotFoundException
 
 /**
  * Provides joystick control either through hardware or a virtual screen joystick (not yet implemented)
@@ -25,7 +27,8 @@ import com.geeksville.aspeech.TTSClient
  * Button R1 = cycle through favorite modes
  * Button START = return all axis controls to regular RC transmitter
  */
-trait JoystickController extends Activity with AndroidLogger with AndroServiceClient with TTSClient {
+trait JoystickController extends Activity
+  with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
 
   private val debugOutput = false
 
@@ -154,58 +157,58 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
 
   override def onGenericMotionEvent(ev: MotionEvent) = {
     val isJoystick = ((ev.getSource & InputDevice.SOURCE_JOYSTICK) != 0) || ((ev.getSource & InputDevice.SOURCE_GAMEPAD) != 0)
-    warn("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
+    debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
 
     val devId = ev.getDeviceId
     if (isJoystick && devId != 0 && hasParameters) {
-
       val dev = InputDevice.getDevice(devId)
+      if (dev != null) {
+        if (debugOutput) {
+          val vibrator = dev.getVibrator
+          debug("Name: " + dev.getName)
+          debug("Has vibe: " + vibrator)
+          dev.getMotionRanges.asScala.foreach { r =>
+            debug("Axis %s(%s), %s, flat %s, fuzz %s, min %s, max %s".format(r.getAxis, MotionEvent.axisToString(r.getAxis), ev.getAxisValue(r.getAxis), r.getFlat, r.getFuzz, r.getMin, r.getMax))
+          }
 
-      if (debugOutput) {
-        val vibrator = dev.getVibrator
-        debug("Name: " + dev.getName)
-        debug("Has vibe: " + vibrator)
-        dev.getMotionRanges.asScala.foreach { r =>
-          debug("Axis %s(%s), %s, flat %s, fuzz %s, min %s, max %s".format(r.getAxis, MotionEvent.axisToString(r.getAxis), ev.getAxisValue(r.getAxis), r.getFlat, r.getFuzz, r.getMin, r.getMax))
+          debug("History size: " + ev.getHistorySize)
+          debug("Buttons: " + ev.getButtonState)
         }
 
-        debug("History size: " + ev.getHistorySize)
-        debug("Buttons: " + ev.getButtonState)
+        /// Process a historical (or current) joystick record
+        def processJoystick(historyPos: Int) {
+          def getAxisValue(axis: Int) = if (historyPos < 0) ev.getAxisValue(axis) else ev.getHistoricalAxisValue(axis, historyPos)
+
+          rudder = getAxisValue(MotionEvent.AXIS_X)
+          elevator = getAxisValue(MotionEvent.AXIS_RZ)
+          aileron = getAxisValue(MotionEvent.AXIS_Z)
+          throttleStickPos = getAxisValue(MotionEvent.AXIS_Y)
+
+          /// Is the specified joystick axis moved away from center?
+          def isMoved(axisNum: Int) = math.abs(getAxisValue(axisNum)) > dev.getMotionRange(axisNum, ev.getSource).getFlat
+
+          // Possibly turn on overrides
+          throttleMoved = isMoved(MotionEvent.AXIS_Y)
+          //debug("set throttle moved %s, because %s is outside %s".format(throttleMoved, getAxisValue(MotionEvent.AXIS_Y), dev.getMotionRange(MotionEvent.AXIS_Y, ev.getSource).getFlat))
+
+          if (throttleMoved || isMoved(MotionEvent.AXIS_X) || isMoved(MotionEvent.AXIS_RZ) || isMoved(MotionEvent.AXIS_Z))
+            startOverride()
+        }
+
+        (0 until ev.getHistorySize).foreach { i =>
+          // Handle any prior state
+          processJoystick(i)
+        }
+
+        // Handle the current state
+        processJoystick(-1)
+
+        if (throttleMoved && !throttleTimer.isDefined) // Prime the pump on the throttle timer if necessary
+          applyThrottle()
+
+        if (isOverriding && sticksEnabled)
+          sendOverride()
       }
-
-      /// Process a historical (or current) joystick record
-      def processJoystick(historyPos: Int) {
-        def getAxisValue(axis: Int) = if (historyPos < 0) ev.getAxisValue(axis) else ev.getHistoricalAxisValue(axis, historyPos)
-
-        rudder = getAxisValue(MotionEvent.AXIS_X)
-        elevator = getAxisValue(MotionEvent.AXIS_RZ)
-        aileron = getAxisValue(MotionEvent.AXIS_Z)
-        throttleStickPos = getAxisValue(MotionEvent.AXIS_Y)
-
-        /// Is the specified joystick axis moved away from center?
-        def isMoved(axisNum: Int) = math.abs(getAxisValue(axisNum)) > dev.getMotionRange(axisNum, ev.getSource).getFlat
-
-        // Possibly turn on overrides
-        throttleMoved = isMoved(MotionEvent.AXIS_Y)
-        //debug("set throttle moved %s, because %s is outside %s".format(throttleMoved, getAxisValue(MotionEvent.AXIS_Y), dev.getMotionRange(MotionEvent.AXIS_Y, ev.getSource).getFlat))
-
-        if (throttleMoved || isMoved(MotionEvent.AXIS_X) || isMoved(MotionEvent.AXIS_RZ) || isMoved(MotionEvent.AXIS_Z))
-          startOverride()
-      }
-
-      (0 until ev.getHistorySize).foreach { i =>
-        // Handle any prior state
-        processJoystick(i)
-      }
-
-      // Handle the current state
-      processJoystick(-1)
-
-      if (throttleMoved && !throttleTimer.isDefined) // Prime the pump on the throttle timer if necessary
-        applyThrottle()
-
-      if (isOverriding && sticksEnabled)
-        sendOverride()
     }
 
     isJoystick
@@ -258,7 +261,13 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
           super.dispatchKeyEvent(ev)
       }
     } else
-      super.dispatchKeyEvent(ev)
+      try {
+        super.dispatchKeyEvent(ev)
+      } catch {
+        case ex: ActivityNotFoundException =>
+          toast("Google play services missing - maps won't work!")
+          false
+      }
   }
 
   override def onKeyDown(code: Int, ev: KeyEvent) = {
@@ -273,7 +282,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
           doToggleFence()
           true
         case KeyEvent.KEYCODE_BUTTON_START =>
-          speak("Joystick off")
+          speak(S(R.string.spk_joystick_off), true)
           stopOverrides()
           true
         case x @ _ =>
@@ -350,7 +359,7 @@ trait JoystickController extends Activity with AndroidLogger with AndroServiceCl
       if (!sticksEnabled)
         getParameters()
 
-      speak("Joystick on")
+      speak(S(R.string.spk_joystick_on))
       isOverriding = true
 
       // Pull over current throttle setting

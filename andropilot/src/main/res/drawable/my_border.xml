@@ -4,5 +4,5 @@
             android:right="12dp" android:bottom="12dp" />
     <corners android:radius="6dp" />
     <solid
-        android:color="#ffcccccc" />
+        android:color="@android:color/background_dark" />
 </shape>

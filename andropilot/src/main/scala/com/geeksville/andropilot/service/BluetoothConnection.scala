@@ -57,9 +57,14 @@ trait BluetoothConnection extends Context with AndroidLogger {
   private class BTInputWrapper(val s: BluetoothSocket) extends FilterInputStream(s.getInputStream) {
     override def close() {
       warn("Closing bluetooth device")
-      super.close()
-      s.close()
-      onBluetoothDisconnect()
+      try {
+        super.close()
+        s.close()
+        onBluetoothDisconnect()
+      } catch {
+        case ex: IOException =>
+          error("Ignoring BT error on close: " + ex)
+      }
     }
   }
 

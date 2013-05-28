@@ -5,7 +5,7 @@ import com.geeksville.flight.FlightLead
 import com.geeksville.flight.IGCPublisher
 import android.app._
 import android.content.Intent
-import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid._
 import com.geeksville.mavlink.MavlinkEventBus
 import android.os._
 import scala.io.Source
@@ -38,12 +38,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.io.IOException
 import android.support.v4.app.NotificationCompat
+import com.geeksville.andropilot.gui.NotificationIds
+import com.bugsense.trace.BugSenseHandler
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection {
+class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
   val groundControlId = 255
 
   /**
@@ -51,8 +53,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    */
   var logfile: Option[File] = None
   private var logger: Option[LogBinaryMavlink] = None
-  private var logPrefListener: Option[OnSharedPreferenceChangeListener] = None
-  private var udpPrefListener: Option[OnSharedPreferenceChangeListener] = None
+  private var prefListeners: Seq[OnSharedPreferenceChangeListener] = Seq()
 
   var vehicle: Option[VehicleModel] = None
 
@@ -107,18 +108,18 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
    */
   def serviceStatus = {
     val linkMsg = if (isSerialConnected)
-      "USB Link"
+      S(R.string.usb_link)
     else if (btStream.isDefined)
-      "Bluetooth Link"
+      S(R.string.bluetooth_link)
     else
       udp.map { u =>
         udpMode + " " + NetTools.localIPAddresses.mkString(",")
-      }.getOrElse("No Link")
+      }.getOrElse(S(R.string.no_link))
 
     val logmsg = if (loggingEnabled)
-      logfile.map { f => "Logging" }.getOrElse("No SD card")
+      logfile.map { f => S(R.string.logging) }.getOrElse(S(R.string.no_sd_card))
     else
-      "No logging"
+      S(R.string.no_logging)
 
     if (!isConnected)
       linkMsg
@@ -182,8 +183,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
-    logPrefListener = Some(registerOnPreferenceChanged("log_to_file")(setLogging _))
-    udpPrefListener = Some(registerOnPreferenceChanged("udp_mode")(startUDP _))
+    val handlers = Seq("log_to_file" -> setLogging _,
+      "udp_mode" -> startUDP _, "outbound_udp_host" -> startUDP _, "inbound_port" -> startUDP _, "outbound_port" -> startUDP _)
+    prefListeners = prefListeners ++ handlers.map { p => registerOnPreferenceChanged(p._1)(p._2) }
 
     info("Done starting service")
   }
@@ -229,7 +231,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       None
     }
 
-    if (udp.isDefined)
+    // We don't consider outbound udp high value, if there is a serial port connected it will need to keep us awake
+    if (udp.isDefined && !outboundUdpEnabled)
       startHighValue()
     else if (wasOn)
       stopHighValue()
@@ -241,10 +244,18 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       // If already logging ignore
       if (!logger.isDefined)
         AndropilotService.logDirectory.foreach { d =>
-          logfile = Some(LogBinaryMavlink.getFilename(d))
-          val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
-          MavlinkEventBus.subscribe(l, -1)
-          logger = Some(l)
+          try {
+            logfile = Some(LogBinaryMavlink.getFilename(d))
+            val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
+            MavlinkEventBus.subscribe(l, -1)
+            logger = Some(l)
+          } catch {
+            case ex: Exception =>
+              BugSenseHandler.sendExceptionMessage("sdwrite", "exception", ex)
+              error("Can't access sdcard")
+              logger = None
+              logfile = None
+          }
         }
     } else
       // Shut down any existing loggers
@@ -263,7 +274,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
   def setFollowMe(b: Boolean) {
     debug("Setting follow: " + b)
-    if (b && follower.map(_.isTerminated).getOrElse(true))
+    if (b && follower.map(_.isTerminated).getOrElse(true) && FollowMe.isAvailable(this))
       vehicle.foreach { v =>
         follower = Some(MockAkka.actorOf(new FollowMe(this, v), "follow"))
       }
@@ -400,8 +411,8 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
   override def onDestroy() {
     warn("in onDestroy ******************************")
     setFollowMe(false)
-    logPrefListener.foreach(unregisterOnPreferenceChanged)
-    udpPrefListener.foreach(unregisterOnPreferenceChanged)
+    prefListeners.foreach(unregisterOnPreferenceChanged)
+    prefListeners = Seq()
     udp.foreach(_ ! PoisonPill)
     udp = None
     serialDetached()
@@ -410,21 +421,19 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     super.onDestroy()
   }
 
-  private val ONGOING_NOTIFICATION = 1
-
   private def requestForeground() {
     val notificationIntent = new Intent(this, classOf[MainActivity])
     val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
     val notification = new NotificationCompat.Builder(this)
-      .setContentTitle("Andropilot")
-      .setContentText("Receiving Mavlink")
+      .setContentTitle(S(R.string.app_name))
+      .setContentText(S(R.string.receiving_mavlink))
       .setSmallIcon(R.drawable.icon)
       .setContentIntent(pendingIntent)
       .setPriority(NotificationCompat.PRIORITY_LOW)
       .getNotification() // Don't use .build, it isn't in rev12
 
-    startForeground(ONGOING_NOTIFICATION, notification)
+    startForeground(NotificationIds.vehicleConnectedId, notification)
   }
 }
 
@@ -446,7 +455,19 @@ object AndropilotService {
     }
   }
 
-  def logDirectory = sdDirectory.map { sd => new File(sd, "newlogs") }
-  def uploadedDirectory = sdDirectory.map { sd => new File(sd, "uploaded") }
-  def paramDirectory = sdDirectory.map { sd => new File(sd, "param-files") }
+  def logDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "newlogs")
+    f.mkdirs()
+    f
+  }
+  def uploadedDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "uploaded")
+    f.mkdirs()
+    f
+  }
+  def paramDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "param-files")
+    f.mkdirs()
+    f
+  }
 }

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_weight="2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            class="com.geeksville.andropilot.gui.MyMapFragment"
+            map:mapType="satellite"
+            map:uiCompass="true"
+            map:uiRotateGestures="false"
+            map:uiScrollGestures="false"
+            map:uiTiltGestures="false"
+            map:uiZoomControls="true"
+            map:uiZoomGestures="true" />
+
+        <TextView
+            android:id="@+id/maps_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:visibility="gone" />
+
+        <!--
+    <fragment
+        android:id="@+id/parameter_fragment"
+        android:name="com.geeksville.andropilot.ParameterListFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="2" />
+
+    <fragment
+        android:id="@+id/rchannels_fragment"
+        android:name="com.geeksville.andropilot.RcChannelsFragment"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="2" />
+        -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:orientation="horizontal" >
+
+            <!-- For equal sized horizontal widgets, use 0dp layout_width and 1 for layout_weight -->
+
+            <fragment
+                android:id="@+id/overview_fragment"
+                android:name="com.geeksville.andropilot.gui.OverviewFragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <fragment
+                android:id="@+id/waypoint_fragment"
+                android:name="com.geeksville.andropilot.gui.WaypointListFragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/pager"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:tag="with-sidebar"
+                tools:context=".MainActivity" >
+
+                <!--
+    This title strip will display the currently visible page title, as well as the page
+    titles for adjacent pages.
+                -->
+
+                <android.support.v4.view.PagerTabStrip
+                    android:id="@+id/pager_title_strip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top" />
+            </android.support.v4.view.ViewPager>
+        </LinearLayout>
+    </LinearLayout>
+
+    <fragment
+        android:layout_weight="1"
+        android:id="@+id/modal_fragment"
+        android:name="com.geeksville.andropilot.gui.ModalFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

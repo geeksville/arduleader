@@ -11,6 +11,7 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.BasicResponseHandler
 import org.apache.http.client.HttpResponseException
 import scala.util.Random
+import org.apache.http.HttpStatus
 
 class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
   extends S3Upload("s3-droneshare", DroneShareUpload.createKey(), srcFile) {
@@ -46,10 +47,18 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
 
       handleWebAppCompleted()
     } catch {
+      case ex: HttpResponseException if ex.getStatusCode == HttpStatus.SC_NOT_ACCEPTABLE =>
+        handleUploadNotAccepted()
       case ex: Exception =>
         handleUploadFailed(Some(ex))
     }
   }
+
+  /**
+   * The webserver will send error code 406 if the file upload is considered unacceptably boring (flight too short)
+   * Just tell the user something about that and do not treat it as an error
+   */
+  protected def handleUploadNotAccepted() {}
 
   /**
    * Show the user the view/download URL

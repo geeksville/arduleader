@@ -22,7 +22,16 @@ import com.geeksville.util.ThrottledActor
 //
 // Messages we publish on our event bus when something happens
 //
-case class MsgStatusChanged(s: String)
+case class MsgStatusChanged(s: String, severity: Int)
+
+object MsgStatusChanged {
+  val SEVERITY_LOW = 1
+  val SEVERITY_MEDIUM = 2
+  val SEVERITY_HIGH = 3
+  val SEVERITY_CRITICAL = 4
+  val SEVERITY_USER_RESPONSE = 5
+}
+
 case object MsgSysStatusChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgServoOutputChanged(m: msg_servo_output_raw)
@@ -77,7 +86,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    */
   def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
 
-  private def onStatusChanged(s: String) { eventStream.publish(MsgStatusChanged(s)) }
+  private def onStatusChanged(s: String, sc: Int) { eventStream.publish(MsgStatusChanged(s, sc)) }
   private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
 
   override def onReceive = mReceive.orElse(super.onReceive)
@@ -107,7 +116,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
       status = Some(m.getText)
-      onStatusChanged(m.getText)
+      onStatusChanged(m.getText, m.severity)
 
     case msg: msg_sys_status =>
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
@@ -156,7 +165,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private def setMode(mode: String) {
     sendMavlink(setMode(modeToCodeMap(mode)))
   }
-  
-  
+
 }
 

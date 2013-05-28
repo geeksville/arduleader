@@ -10,13 +10,14 @@ import com.geeksville.andropilot.service.AndroServiceClient
 import android.view.ActionMode
 import com.ridemission.scandroid.PagerPage
 import com.geeksville.andropilot.FlurryClient
+import android.content.Context
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
  */
 trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient with PagerPage with FlurryClient {
 
-  implicit def context = getActivity
+  implicit def context: Context = getActivity
 
   /**
    * Does work in the GUIs thread

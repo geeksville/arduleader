@@ -118,7 +118,7 @@ object Main extends Logging {
       // FIXME create this somewhere else
       logger.info("Opening UDP link")
       val udp = if (startOutgoingUDP)
-        new MavlinkUDP(destHostName = Some("192.168.0.101"), destPortNumber = Some(MavlinkUDP.portNumber))
+        new MavlinkUDP(destHostName = Some("192.168.0.160"), destPortNumber = Some(MavlinkUDP.portNumber))
       else
         new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))
 
@@ -166,7 +166,7 @@ object Main extends Logging {
 
     if (logToFile) {
       // Generate log files mission control would understand
-      val logger = MockAkka.actorOf(LogBinaryMavlink.create(), "gclog")
+      val logger = MockAkka.actorOf(LogBinaryMavlink.create(true), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
       MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)

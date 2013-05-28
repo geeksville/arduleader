@@ -94,14 +94,24 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     r
   }
 
+  def commandAck() = {
+    val msg = new msg_command_ack(systemId, componentId)
+    msg.result = MAV_CMD_ACK.MAV_CMD_ACK_OK
+    msg
+  }
+
   /**
    * Do a manual levelling operation
    */
-  def commandDoCalibrate(targetSystem: Int = 1, targetComponent: Int = 1) = {
+  def commandDoCalibrate(targetSystem: Int = 1, targetComponent: Int = 1,
+    calINS: Boolean = false,
+    calBaro: Boolean = false,
+    calAccel: Boolean = false) = {
     val r = commandLong(MAV_CMD.MAV_CMD_PREFLIGHT_CALIBRATION, targetSystem, targetComponent)
-    r.param1 = 1 // Per Mission planner
+    r.param1 = if (calINS) 1 else 0 // Cal INS
     r.param2 = 0
-    r.param3 = 1
+    r.param3 = if (calBaro) 1 else 0 // Cal Baro
+    r.param5 = if (calAccel) 1 else 0 // Cal accel
     r
   }
 

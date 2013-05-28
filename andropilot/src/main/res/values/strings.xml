@@ -1,4 +1,87 @@
 <resources>
-    <string name="app_name">Andropilot</string>
-    <string name="crash_toast_text">Ooops! I crashed, but a report has been sent to my developer to help fix the issue!  Thanks for testing this alpha release.</string>
+	<string name="app_name">Andropilot</string>
+	<string name="crash_toast_text">I crashed, but a report has been sent to my
+		developer to help fix the issue! Thanks for testing this alpha
+		release.</string>
+	<string name="parameters_backed_up">Parameters backed up to %s</string>
+	<string name="telem_disconnected">3DR Telemetry disconnected...</string>
+	<string name="fence_not_avail">Fence not yet available, try back later...</string>
+	<string name="uploading_fence">Uploading fence: %s</string>
+	<string name="uploading_waypoint">Uploading waypoints: %s</string>
+	<string name="telem_connected">3DR Telemetry connected...</string>
+	<string name="lead_it">Lead it</string>
+	<string name="follow_me">Follow me</string>
+	<string name="please_attach">Please attach telemetry or APM</string>
+	<string name="empty"></string> <!-- Do not localize -->
+	<string name="parameters">Parameters</string>
+	<string name="hud">HUD</string>
+	<string name="rc_channels">RC Channels</string>
+	<string name="servos">Servos</string>
+	<string name="map">Map</string>
+	<string name="waypoints">Waypoints</string>
+	<string name="overview">Overview</string>
+	<string name="sharing_disabled">Sharing disabled: Please set username in settings</string>
+	<string name="no_level">Can not level while in motion</string>
+	<string name="connecting_link">Connecting link...</string>
+	<string name="usb_access_denied">User denied access to USB device</string>
+    <string name="provisional_waypoint">Provisional waypoint</string> 
+	<string name="altitude_m">Altitude %sm</string> 
+	<string name="guided_meters">Guided flight to %s meters</string> 
+	<string name="home">Home</string> 
+	<string name="wp_num_label">Waypoint #%1$s (%2$s)</string> 
+	<string name="wp_parms">Alt=%1$sm %2$s params=%3$s</string> 
+	<string name="wp_alt">Altitude %1$sm %2$s</string> 
+	<string name="waypoint_deleted">Waypoint deleted</string> 
+	<string name="mode">Mode</string> 
+	<string name="no_link">No Link</string> 
+	<string name="lost_comms">Lost Comms</string> 
+	<string name="low_volt">LowVolt!</string> 
+	<string name="low_charge">LowCharge!</string> 
+	<string name="low_rssi">LowRssi!</string> 
+	<string name="low_sats">LowSats!"</string> 
+	<string name="no_service">No service</string> 
+    <string name="set_parameter">Set parameter</string> 
+	<string name="ok">Ok</string> 
+	<string name="cancel">Cancel</string> 
+	<string name="can_not_set">Can not set value</string> 
+	<string name="channel">Channel %s</string> 
+	<string name="servo">Servo %s</string> 
+	<string name="starting_upload">Starting droneshare upload</string> 
+	<string name="droneshare_upload">Droneshare upload</string> 
+	<string name="uploading_tlog">Uploading tlog</string> 
+	<string name="failed">Failed</string> 
+	<string name="completed_select">Completed, select to view...</string> 
+	<string name="google_earth">Earth</string> 
+	<string name="web">Web</string> 
+	<string name="share">Share</string> 
+	<string name="usb_link">USB Link</string> 
+	<string name="bluetooth_link">Bluetooth Link</string> 
+	<string name="no_link">No Link</string> 
+	<string name="logging">Logging</string> 
+	<string name="no_sd_card">No SD card</string> 
+	<string name="no_logging">No logging</string> 
+	<string name="receiving_mavlink">Receiving Mavlink</string> 
+	<string name="will_try_again">Will try again later</string>	
+	<!-- 
+
+
+
+	 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	<string name=""></string> 
+	-->
 </resources>
