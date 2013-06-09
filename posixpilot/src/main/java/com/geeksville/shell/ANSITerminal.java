@@ -51,7 +51,7 @@ import scala.tools.jline.internal.ReplayPrefixOneCharInputStream;
  * @author <a href="mailto:dwkemp@gmail.com">Dale Kemp</a>
  * @author <a href="mailto:jason@planet57.com">Jason Dillon</a>
  * @author <a href="mailto:jbonofre@apache.org">Jean-Baptiste Onofrè</a>
- * @author <a href="mailto:pop.atry@gmail.com">杨博</a>
+ * @author <a href="mailto:pop.atry@gmail.com"></a>
  * @since 2.0
  */
 public class ANSITerminal extends TerminalSupport {
