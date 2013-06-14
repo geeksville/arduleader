@@ -1,3 +1,5 @@
+fixme - make flurry optional
+
 # 1.4.15
 * Add support for upcoming accelerometer cal APM feature (not yet tested with real hardware)
 * Update param docs from master
