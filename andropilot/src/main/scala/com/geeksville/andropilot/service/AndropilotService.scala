@@ -127,9 +127,9 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
       linkMsg + " " + logmsg
   }
 
-  def inboundUdpEnabled = udpMode == UDPMode.Downlink
-  def outboundUdpEnabled = udpMode == UDPMode.Uplink
-  def outboundTcpEnabled = udpMode == UDPMode.TCPUplink
+  def inboundUdpEnabled = udpMode == UDPMode.Downlink && inboundPort <= 65535
+  def outboundUdpEnabled = udpMode == UDPMode.Uplink && outboundPort <= 65535
+  def outboundTcpEnabled = udpMode == UDPMode.TCPUplink && outboundPort <= 65535
 
   private def perhapsUpload() {
     startService(AndroidDirUpload.createIntent(this))
