@@ -12,6 +12,13 @@ import org.apache.http.impl.client.BasicResponseHandler
 import org.apache.http.client.HttpResponseException
 import scala.util.Random
 import org.apache.http.HttpStatus
+import org.apache.http.params.BasicHttpParams
+import org.apache.http.conn.scheme.SchemeRegistry
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.scheme.PlainSocketFactory
+import org.apache.http.conn.ssl.SSLSocketFactory
+import org.apache.http.params.HttpConnectionParams
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager
 
 class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
   extends S3Upload("s3-droneshare", DroneShareUpload.createKey(), srcFile) {
@@ -96,7 +103,26 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
 }
 
 object DroneShareUpload {
-  val httpclient = new DefaultHttpClient()
+  val httpclient = {
+    // new DefaultHttpClient()
+    //use following code to solve Adapter is detached error
+    //refer: http://stackoverflow.com/questions/5317882/android-handling-back-button-during-asynctask
+    val params = new BasicHttpParams()
+
+    val schemeRegistry = new SchemeRegistry()
+    schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+    val sslSocketFactory = SSLSocketFactory.getSocketFactory();
+    schemeRegistry.register(new Scheme("https", sslSocketFactory, 443));
+
+    // Set the timeout in milliseconds until a connection is established.
+    //HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
+    // Set the default socket timeout (SO_TIMEOUT) 
+    // in milliseconds which is the timeout for waiting for data.
+    //HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
+
+    val cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+    new DefaultHttpClient(cm, params);
+  }
 
   private val rand = new Random(System.currentTimeMillis)
 

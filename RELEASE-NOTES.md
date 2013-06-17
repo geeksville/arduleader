@@ -2,6 +2,7 @@
 * add support for arming via menus (copter/quad only)
 * fix channel numbering to make RC channels start with 1 rather than zero
 * voice announce arrival at a waypoint
+* fix an autobug: java.lang.IllegalStateException: Adapter is detached
 * Make flurry optional
 
 # 1.4.15
