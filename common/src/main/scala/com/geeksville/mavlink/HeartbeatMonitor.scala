@@ -26,6 +26,7 @@ class HeartbeatMonitor extends InstrumentedActor {
   private var mySysId: Option[Int] = None
 
   var customMode: Option[Int] = None
+  var baseMode: Option[Int] = None
 
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
@@ -38,12 +39,14 @@ class HeartbeatMonitor extends InstrumentedActor {
       val typ = msg.`type`
       if (typ != MAV_TYPE.MAV_TYPE_GCS) {
         val oldVal = customMode
+        val oldBase = baseMode
         val newVal = msg.custom_mode.toInt
         customMode = Some(newVal)
+        baseMode = Some(msg.base_mode)
 
         val oldVehicle = vehicleType
         vehicleType = Some(typ)
-        if (oldVal != customMode || oldVehicle != vehicleType)
+        if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
           onModeChanged(newVal)
         resetWatchdog(msg.sysId)
       }

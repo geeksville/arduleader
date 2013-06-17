@@ -115,6 +115,13 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     r
   }
 
+  def commandDoArm(armed: Boolean, targetSystem: Int = 1, targetComponent: Int = 250) = {
+    val r = commandLong(MAV_CMD.MAV_CMD_COMPONENT_ARM_DISARM, targetSystem, targetComponent)
+    r.param1 = if (armed) 1 else 0
+    r.param2 = 0
+    r
+  }
+
   // The following variants aren't really needed, at least for Ardupilot you can just use SET_MODE
 
   def commandLoiter(targetSystem: Int = 1, targetComponent: Int = 1) = commandLong(MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM, targetSystem, targetComponent)

@@ -18,6 +18,8 @@ import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
+import org.mavlink.messages.MAV_MODE
+import org.mavlink.messages.MAV_MODE_FLAG
 
 //
 // Messages we publish on our event bus when something happens
@@ -80,6 +82,8 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   def bestAltitude = globalPos.map(_.relative_alt / 1000.0f).getOrElse(location.map(toAGL(_).toFloat).getOrElse(-999f))
 
   def currentMode = modeToString(customMode.getOrElse(-1))
+
+  def isArmed = baseMode.map { m => (m & MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED) != 0 }.getOrElse(false)
 
   /**
    * The mode names we understand

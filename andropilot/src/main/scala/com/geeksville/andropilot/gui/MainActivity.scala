@@ -185,6 +185,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgModeChanged(_) =>
       handler.post { () =>
         debug("modeChanged received")
+
+        invalidateOptionsMenu()
+
         myVehicle.foreach { v =>
           if (oldVehicleType != v.vehicleType) {
             usageEvent("vehicle_type", "type" -> v.vehicleType.toString)
@@ -632,6 +635,15 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setChecked(svc.isFollowMe)
     }
 
+    myVehicle.foreach { v =>
+      val armMenu = menu.findItem(R.id.menu_arm)
+
+      if (v.isCopter)
+        armMenu.setChecked(v.isArmed)
+      else
+        armMenu.setVisible(false)
+    }
+
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
     menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
       Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
@@ -662,6 +674,13 @@ class MainActivity extends FragmentActivity with TypedActivity
         debug("Toggle speech, newmode " + n)
         isSpeechEnabled = n
         item.setChecked(n)
+
+      case R.id.menu_arm =>
+        val n = !item.isChecked
+        myVehicle.foreach { v =>
+          v.sendMavlink(v.commandDoArm(n))
+          item.setChecked(n)
+        }
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
