@@ -1,4 +1,8 @@
-fixme - make flurry optional
+# 1.4.17
+* add support for arming via menus (copter/quad only)
+* fix channel numbering to make RC channels start with 1 rather than zero
+* voice announce arrival at a waypoint
+* Make flurry optional
 
 # 1.4.15
 * Add support for upcoming accelerometer cal APM feature (not yet tested with real hardware)

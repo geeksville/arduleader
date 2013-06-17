@@ -182,6 +182,11 @@ class MainActivity extends FragmentActivity with TypedActivity
         }
       }
 
+    case MsgWaypointCurrentChanged(n) =>
+      handler.post { () =>
+        speak("Waypoint " + n)
+      }
+
     case MsgModeChanged(_) =>
       handler.post { () =>
         debug("modeChanged received")
