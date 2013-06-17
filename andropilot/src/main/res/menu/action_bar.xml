@@ -18,7 +18,7 @@
     <item
         android:id="@+id/menu_arm"
         android:checkable="true"
-        android:title="Arm"/>    
+        android:title="Arm"/>
     <item
         android:id="@+id/menu_settings"
         android:showAsAction="never"
@@ -35,6 +35,10 @@
         android:id="@+id/menu_levelnow"
         android:showAsAction="never"
         android:title="Manual Level"/>
+    <item
+        android:id="@+id/menu_gotovehicle"
+        android:showAsAction="never"
+        android:title="Navigate to vehicle"/>
     <!--
          <item android:id="@+id/menu_sethome" android:showAsAction="never"
 		android:title="Set Home" />

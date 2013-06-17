@@ -1,8 +1,10 @@
 # 1.4.17
+* add a "Navigate to vehicle" menu item which will use google maps to lead you to the last known vehicle location
 * add support for arming via menus (copter/quad only)
 * fix channel numbering to make RC channels start with 1 rather than zero
 * voice announce arrival at a waypoint
 * fix an autobug: java.lang.IllegalStateException: Adapter is detached
+* fix an autobug: don't let users use invalid port numbers
 * Make flurry optional
 
 # 1.4.15

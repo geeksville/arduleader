@@ -649,6 +649,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         armMenu.setVisible(false)
     }
 
+    val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
+    gotoMenu.setEnabled(navToVehicleIntent.isDefined)
+
     // FIXME - host this help doc in some better location (local?) and possibly use a webview
     menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
       Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
@@ -670,6 +673,22 @@ class MainActivity extends FragmentActivity with TypedActivity
     true
   }
 
+  /**
+   * If we are capable of navigating to the current vehicle location, return an intent that will get us there
+   */
+  private def navToVehicleIntent = {
+    (for { v <- myVehicle; loc <- v.location } yield {
+
+      val navIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=%f,%f".format(loc.lat, loc.lon)))
+      val info = context.getPackageManager().resolveActivity(navIntent, 0)
+
+      if (info != null)
+        Some(navIntent)
+      else
+        None
+    }).getOrElse(None)
+  }
+
   override def onOptionsItemSelected(item: MenuItem) = {
     item.getItemId match {
       case R.id.menu_settings =>
@@ -685,6 +704,11 @@ class MainActivity extends FragmentActivity with TypedActivity
         myVehicle.foreach { v =>
           v.sendMavlink(v.commandDoArm(n))
           item.setChecked(n)
+        }
+
+      case R.id.menu_gotovehicle =>
+        navToVehicleIntent.map { intent =>
+          startActivity(intent)
         }
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
