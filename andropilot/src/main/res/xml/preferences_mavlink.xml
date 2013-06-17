@@ -26,5 +26,10 @@
         android:key="stay_awake"
         android:summary="Keeps CPU from sleeping when device is connected"
         android:title="Stay awake when connected" />
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="use_flurry"
+        android:summary="Use flurry to send anonymous usage data/bug reports to developers"
+        android:title="Send usage data" />
 
 </PreferenceScreen>

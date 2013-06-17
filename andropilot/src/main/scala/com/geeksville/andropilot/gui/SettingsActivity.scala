@@ -26,6 +26,8 @@ object SettingsActivity {
 
 class SettingsActivity extends PreferenceActivity with FlurryActivity with AndroidLogger {
 
+  implicit def context: Context = this
+
   // Bug in android - we have to track pref headers on our own
   // https://code.google.com/p/android/issues/detail?id=22430
   private var headers: Seq[Header] = Seq()
