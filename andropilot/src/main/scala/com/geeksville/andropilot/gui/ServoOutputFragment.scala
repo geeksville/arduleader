@@ -24,10 +24,11 @@ class ServoOutputFragment extends SimpleListFragment with UsesResources {
 
   private def rcToSeq(m: msg_servo_output_raw) =
     Seq(m.servo1_raw, m.servo2_raw, m.servo3_raw, m.servo4_raw,
-      m.servo5_raw, m.servo6_raw, m.servo7_raw, m.servo8_raw).zipWithIndex.map { case (a, i) =>
-         S(R.string.servo).format(i) -> a
-         }
-      
+      m.servo5_raw, m.servo6_raw, m.servo7_raw, m.servo8_raw).zipWithIndex.map {
+        case (a, i) =>
+          S(R.string.servo).format(i + 1) -> a
+      }
+
   protected def makeAdapter(): Option[SimpleAdapter] = {
     for { v <- myVehicle; rc <- v.servoOutputRaw } yield {
       seqToAdapter(rcToSeq(rc))
