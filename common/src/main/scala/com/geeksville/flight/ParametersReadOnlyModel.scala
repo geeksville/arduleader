@@ -115,6 +115,9 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
   }.getOrElse(true)
   def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 
+  // Rover uses a different mode prefix than the other vehicle types
+  def flightModePrefix = if (isRover) "MODE" else "FLTMODE"
+
   /// A MAV_TYPE vehicle code
   def vehicleType: Option[Int]
 

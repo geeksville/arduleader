@@ -139,7 +139,7 @@ trait JoystickController extends Activity
       }
 
       favoriteModes = (1 to 6).map { i =>
-        val modeInt = v.parametersById("FLTMODE" + i).getInt.getOrElse(0)
+        val modeInt = v.parametersById(v.flightModePrefix + i).getInt.getOrElse(0)
         v.modeToString(modeInt)
       }
 
