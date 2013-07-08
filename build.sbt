@@ -14,6 +14,8 @@ libraryDependencies += "org.scala-lang" % "jline" % "2.10.0" withSources()
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
 
+javacOptions ++= Seq("-source", "1.6", "-target", "1.6") // Needed for android
+
 EclipseKeys.createSrc in ThisBuild := EclipseCreateSrc.Default + EclipseCreateSrc.Resource // Include resources dir in eclipse classpath
 
 EclipseKeys.withSource in ThisBuild := true // Try to include source for libs
