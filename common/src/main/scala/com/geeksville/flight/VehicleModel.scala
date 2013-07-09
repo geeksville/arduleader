@@ -83,8 +83,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   def currentMode = modeToString(customMode.getOrElse(-1))
 
-  def isArmed = baseMode.map { m => (m & MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED) != 0 }.getOrElse(false)
-
   /**
    * The mode names we understand
    */

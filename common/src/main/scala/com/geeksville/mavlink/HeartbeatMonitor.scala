@@ -9,6 +9,7 @@ import scala.concurrent.duration._
 import com.geeksville.akka.Cancellable
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
+import org.mavlink.messages.MAV_MODE_FLAG
 
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
@@ -31,6 +32,11 @@ class HeartbeatMonitor extends InstrumentedActor {
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
 
+  def isArmed: Boolean = baseMode.map(isArmed).getOrElse(false)
+
+  /// Parse a baseMode to see if we are armed
+  private def isArmed(m: Int): Boolean = (m & MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED) != 0
+
   def hasHeartbeat = mySysId.isDefined
 
   def onReceive = {
@@ -41,6 +47,7 @@ class HeartbeatMonitor extends InstrumentedActor {
         val oldVal = customMode
         val oldBase = baseMode
         val newVal = msg.custom_mode.toInt
+        val oldArmed = isArmed
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
 
@@ -48,6 +55,8 @@ class HeartbeatMonitor extends InstrumentedActor {
         vehicleType = Some(typ)
         if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
           onModeChanged(newVal)
+        if (oldArmed != isArmed)
+          onArmedChanged(isArmed)
         resetWatchdog(msg.sysId)
       }
 
@@ -60,6 +69,10 @@ class HeartbeatMonitor extends InstrumentedActor {
   override def postStop() {
     cancelWatchdog()
     super.postStop()
+  }
+
+  protected def onArmedChanged(armed: Boolean) {
+    log.info("Armed changed: " + armed)
   }
 
   protected def onModeChanged(m: Int) {
