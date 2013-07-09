@@ -135,6 +135,10 @@ case class Waypoint(val msg: msg_mission_item) {
       case MAV_CMD.MAV_CMD_DO_SET_RELAY => 2
       case MAV_CMD.MAV_CMD_DO_REPEAT_SERVO => 4
       case MAV_CMD.MAV_CMD_DO_REPEAT_RELAY => 3
+      case MAV_CMD.MAV_CMD_DO_MOUNT_CONFIGURE => 4
+      case MAV_CMD.MAV_CMD_DO_MOUNT_CONTROL => 3
+      case MAV_CMD.MAV_CMD_DO_DIGICAM_CONTROL => 6
+      case MAV_CMD.MAV_CMD_DO_DIGICAM_CONFIGURE => 7
       case _ =>
         0
     }
@@ -179,7 +183,12 @@ object Waypoint {
     MAV_CMD.MAV_CMD_DO_SET_SERVO,
     MAV_CMD.MAV_CMD_DO_SET_RELAY,
     MAV_CMD.MAV_CMD_DO_REPEAT_SERVO,
-    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY)
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY,
+    MAV_CMD.MAV_CMD_DO_CONTROL_VIDEO,
+    MAV_CMD.MAV_CMD_DO_MOUNT_CONFIGURE,
+    MAV_CMD.MAV_CMD_DO_MOUNT_CONTROL,
+    MAV_CMD.MAV_CMD_DO_DIGICAM_CONFIGURE,
+    MAV_CMD.MAV_CMD_DO_DIGICAM_CONTROL)
 
   /**
    * We keep this separate so we can preserve order
@@ -200,7 +209,11 @@ object Waypoint {
     MAV_CMD.MAV_CMD_DO_SET_SERVO -> "SetServo",
     MAV_CMD.MAV_CMD_DO_SET_RELAY -> "SetRelay",
     MAV_CMD.MAV_CMD_DO_REPEAT_SERVO -> "RepeatServo",
-    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay")
+    MAV_CMD.MAV_CMD_DO_REPEAT_RELAY -> "RepeatRelay",
+    MAV_CMD.MAV_CMD_DO_DIGICAM_CONFIGURE -> "DigiCfg",
+    MAV_CMD.MAV_CMD_DO_DIGICAM_CONTROL -> "DigiCtrl",
+    MAV_CMD.MAV_CMD_DO_MOUNT_CONFIGURE -> "MountCfg",
+    MAV_CMD.MAV_CMD_DO_MOUNT_CONTROL -> "MountCtrl")
 
   val commandCodes = Map(commandCodesSeq: _*)
 

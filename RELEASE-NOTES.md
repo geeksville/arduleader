@@ -1,3 +1,9 @@
+# 1.4.18
+* change ground color on horizon to brown
+* refetch waypoints (including Home) whenever vehicle gets rearmed
+* Make joystick based mode changes work correctly on rover
+* Properly handle MOUNT and DIGICAM configure and control waypoints
+
 # 1.4.17
 * add a "Navigate to vehicle" menu item which will use google maps to lead you to the last known vehicle location
 * add support for arming via menus (copter/quad only)
