@@ -439,6 +439,12 @@ class MainActivity extends FragmentActivity with TypedActivity
       notifyManager.cancel(NotificationIds.setupDroneshareId)
   }
 
+  def showSplashDialog() {
+    val fm = getSupportFragmentManager()
+    val splash = new SplashFragment()
+    splash.show(fm, "spash_fragment")
+  }
+
   override def onPause() {
     serviceOnPause()
 
@@ -776,7 +782,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         }))
       case None =>
         toast(R.string.please_attach, true)
-      // startService() // FIXME, remove this
+      // showSplashDialog()
     }
   }
 
