@@ -163,69 +163,71 @@ abstract class WaypointActionMode(val context: FragmentActivity) extends ActionM
 
     debug("Prepare " + selectedMarker)
 
-    // We only enable options if we are talking to a real vehicle
-    if (shouldShowMenu) {
-      selectedMarker match {
-        case None =>
-          // Nothing selected - exit context mode 
-          mode.finish()
-
-        case Some(marker) =>
-          if (!marker.isAllowContextMenu)
+    if (mode != null) {
+      // We only enable options if we are talking to a real vehicle
+      if (shouldShowMenu) {
+        selectedMarker match {
+          case None =>
+            // Nothing selected - exit context mode 
             mode.finish()
-          else {
-            if (marker.isAllowAutocontinue) {
-              autocontinue.setVisible(true)
-              autocontinue.setChecked(marker.isAutocontinue)
-            }
 
-            if (marker.isAltitudeEditable) {
-              setalt.setVisible(true)
-              setalt.getActionView.asInstanceOf[TextView].setText(marker.altitude.toString)
-            }
-
-            val numParams = marker.numParams
-            if (numParams >= 1) {
-              param1.setVisible(true)
-              param1.getActionView.asInstanceOf[TextView].setText(marker.getParam(0).toString)
-            }
-            if (numParams >= 2) {
-              param2.setVisible(true)
-              param2.getActionView.asInstanceOf[TextView].setText(marker.getParam(1).toString)
-            }
-            if (numParams >= 3) {
-              param3.setVisible(true)
-              param3.getActionView.asInstanceOf[TextView].setText(marker.getParam(2).toString)
-            }
-            if (numParams >= 4) {
-              param4.setVisible(true)
-              param4.getActionView.asInstanceOf[TextView].setText(marker.getParam(3).toString)
-            }
-
-            if (marker.isAllowGoto)
-              goto.setVisible(true)
-
-            if (marker.isAllowAdd)
-              add.setVisible(true)
-
-            if (marker.isAllowDelete)
-              delete.setVisible(true)
-
-            if (marker.isAllowChangeType) {
-              val s = changetype.getActionView.asInstanceOf[Spinner]
-              setTypeSpinner(s, marker.typStr)
-
-              def spinnerListener(parent: Spinner, selected: View, pos: Int, id: Long) {
-                val newtyp = s.getAdapter.getItem(pos).toString
-                debug("Type selected: " + newtyp)
-                marker.typStr = newtyp
-                mode.invalidate() // Repopulate the options
+          case Some(marker) =>
+            if (!marker.isAllowContextMenu)
+              mode.finish()
+            else {
+              if (marker.isAllowAutocontinue) {
+                autocontinue.setVisible(true)
+                autocontinue.setChecked(marker.isAutocontinue)
               }
-              s.onItemSelected(spinnerListener)
 
-              changetype.setVisible(true)
+              if (marker.isAltitudeEditable) {
+                setalt.setVisible(true)
+                setalt.getActionView.asInstanceOf[TextView].setText(marker.altitude.toString)
+              }
+
+              val numParams = marker.numParams
+              if (numParams >= 1) {
+                param1.setVisible(true)
+                param1.getActionView.asInstanceOf[TextView].setText(marker.getParam(0).toString)
+              }
+              if (numParams >= 2) {
+                param2.setVisible(true)
+                param2.getActionView.asInstanceOf[TextView].setText(marker.getParam(1).toString)
+              }
+              if (numParams >= 3) {
+                param3.setVisible(true)
+                param3.getActionView.asInstanceOf[TextView].setText(marker.getParam(2).toString)
+              }
+              if (numParams >= 4) {
+                param4.setVisible(true)
+                param4.getActionView.asInstanceOf[TextView].setText(marker.getParam(3).toString)
+              }
+
+              if (marker.isAllowGoto)
+                goto.setVisible(true)
+
+              if (marker.isAllowAdd)
+                add.setVisible(true)
+
+              if (marker.isAllowDelete)
+                delete.setVisible(true)
+
+              if (marker.isAllowChangeType) {
+                val s = changetype.getActionView.asInstanceOf[Spinner]
+                setTypeSpinner(s, marker.typStr)
+
+                def spinnerListener(parent: Spinner, selected: View, pos: Int, id: Long) {
+                  val newtyp = s.getAdapter.getItem(pos).toString
+                  debug("Type selected: " + newtyp)
+                  marker.typStr = newtyp
+                  mode.invalidate() // Repopulate the options
+                }
+                s.onItemSelected(spinnerListener)
+
+                changetype.setVisible(true)
+              }
             }
-          }
+        }
       }
     }
     true // Return false if nothing is done

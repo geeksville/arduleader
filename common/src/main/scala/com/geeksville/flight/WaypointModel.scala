@@ -58,6 +58,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   var waypoints = IndexedSeq[Waypoint]()
 
+  var hasRequestedWaypoints = false
+
   private var numWaypointsRemaining = 0
   private var nextWaypointToFetch = 0
 
@@ -175,6 +177,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     case msg: msg_mission_current =>
       // Update the current waypoint
       checkRetryReply(msg)
+      perhapsRequestWaypoints()
 
       val newWpSeq = msg.seq
       if (waypoints.count { w =>
@@ -196,7 +199,14 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private def startWaypointDownload() {
     log.info("Downloading waypoints")
+    hasRequestedWaypoints = true
     sendWithRetry(missionRequestList(), classOf[msg_mission_count])
+  }
+
+  private def perhapsRequestWaypoints() {
+    // First contact, download any waypoints from the vehicle and get params
+    if (!hasRequestedWaypoints)
+      self ! StartWaypointDownload
   }
 
   /**
