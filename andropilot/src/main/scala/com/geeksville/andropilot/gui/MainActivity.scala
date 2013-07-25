@@ -114,6 +114,10 @@ class MainActivity extends FragmentActivity with TypedActivity
   def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
   def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
 
+  def joystickPanel = Option(findViewById(R.id.joysticks))
+  def leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
+  def rightJoystickView = Option(findViewById(R.id.rightStick).asInstanceOf[JoystickView])
+
   // On some layouts we have dedicated versions of these views
   def waypointFragment = Option(findViewById(R.id.waypoint_fragment))
   def overviewFragment = Option(findViewById(R.id.overview_fragment))
@@ -366,8 +370,16 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
       for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
     }
-
+    initScreenJoysticks()
     initSpeech()
+  }
+
+  private def initScreenJoysticks() {
+    leftJoystickView.foreach { v =>
+      v.xLabel = "Yaw"
+      v.yLabel = "Throttle"
+      v.centerYonRelease = false
+    }
   }
 
   // Workaround to make sure child fragment state is not saved on orientation page (makes fragment panes show correctly)
@@ -627,6 +639,8 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  var showJoystick = true
+
   override def onCreateOptionsMenu(menu: Menu) = {
     debug("Creating option menu")
     getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
@@ -654,6 +668,11 @@ class MainActivity extends FragmentActivity with TypedActivity
       else
         armMenu.setVisible(false)
     }
+
+    val joystickMenu = menu.findItem(R.id.menu_showjoystick)
+    val hasJoystickView = joystickPanel.isDefined
+    joystickMenu.setChecked(showJoystick && hasJoystickView)
+    joystickMenu.setEnabled(hasJoystickView)
 
     val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
     gotoMenu.setEnabled(navToVehicleIntent.isDefined)
@@ -711,6 +730,11 @@ class MainActivity extends FragmentActivity with TypedActivity
           v.sendMavlink(v.commandDoArm(n))
           item.setChecked(n)
         }
+
+      case R.id.menu_showjoystick =>
+        val n = !item.isChecked
+        item.setChecked(n)
+        joystickPanel.foreach(_.setVisibility(if (n) View.VISIBLE else View.INVISIBLE))
 
       case R.id.menu_gotovehicle =>
         navToVehicleIntent.map { intent =>

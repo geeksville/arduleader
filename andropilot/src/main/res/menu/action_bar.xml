@@ -20,6 +20,10 @@
         android:checkable="true"
         android:title="Arm"/>
     <item
+        android:id="@+id/menu_showjoystick"
+        android:checkable="true"
+        android:title="Show Joystick"/>
+    <item
         android:id="@+id/menu_settings"
         android:showAsAction="never"
         android:title="Settings"/>

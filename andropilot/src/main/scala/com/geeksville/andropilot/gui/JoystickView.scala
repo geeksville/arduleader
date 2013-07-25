@@ -21,19 +21,31 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
   var pointerId: Option[Int] = None
 
-  val bgPaint = new Paint(Paint.ANTI_ALIAS_FLAG) {
+  var centerYonRelease = true
+  var centerXonRelease = true
+  var xLabel = "Roll"
+  var yLabel = "Pitch"
+
+  val bgPaint = new Paint {
     setColor(Color.DKGRAY)
     setStrokeWidth(1)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
-  val handlePaint = new Paint(Paint.ANTI_ALIAS_FLAG) {
-    setColor(Color.LTGRAY)
+  val labelPaint = new Paint {
+    setColor(Color.GREEN)
     setStrokeWidth(1)
+    setTextSize(48)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
-  val selectedPaint = new Paint(Paint.ANTI_ALIAS_FLAG) {
+  val handlePaint = new Paint {
+    setColor(Color.WHITE)
+    setStrokeWidth(6)
+    setStyle(Paint.Style.STROKE)
+  }
+
+  val selectedPaint = new Paint {
     setColor(Color.YELLOW)
     setStrokeWidth(1)
     setStyle(Paint.Style.FILL_AND_STROKE)
@@ -42,16 +54,39 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   // We want clicks
   setClickable(true)
 
+  private def drawLabels(canvas: Canvas) {
+    {
+      val l = "<- " + xLabel + " ->"
+      canvas.drawText(l, cX - labelPaint.measureText(l) / 2, getMeasuredHeight - 40, labelPaint)
+    }
+
+    canvas.save()
+    val l = "<- " + yLabel + " ->"
+    val x = 30
+    val y = cY - labelPaint.measureText(l) / 2
+    canvas.rotate(90, x, y)
+    canvas.drawText(l, x, y, labelPaint)
+    canvas.restore()
+  }
+
   override def onDraw(canvas: Canvas) {
     canvas.save()
     // Draw the background
     val rect = new RectF(0, 0, getMeasuredWidth, getMeasuredHeight)
     canvas.drawRoundRect(rect, handleRadius, handleRadius, bgPaint)
 
+    // Draw the labels
+    drawLabels(canvas)
+
     // Draw the handle
     val handleX = touchX + cX
     val handleY = touchY + cY
-    canvas.drawCircle(handleX, handleY, handleRadius, if (pointerId.isDefined) selectedPaint else handlePaint)
+
+    // Fill with yellow if selected
+    if (pointerId.isDefined)
+      canvas.drawCircle(handleX, handleY, handleRadius, selectedPaint)
+
+    canvas.drawCircle(handleX, handleY, handleRadius, handlePaint)
 
     canvas.restore()
   }
@@ -59,8 +94,8 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
     super.onLayout(changed, left, top, right, bottom)
 
-    cX = getMeasuredWidth() / 2
-    cY = getMeasuredHeight() / 2
+    cX = getMeasuredWidth / 2
+    cY = getMeasuredHeight / 2
 
     val shortestSide = math.min(getMeasuredWidth, getMeasuredHeight)
     val pad = 4
@@ -72,6 +107,11 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
   def onUserRelease() {
     pointerId.foreach { id =>
+      if (centerYonRelease)
+        touchY = 0
+      if (centerXonRelease)
+        touchX = 0
+
       pointerId = None
       invalidate()
     }
