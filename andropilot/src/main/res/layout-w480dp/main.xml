@@ -74,14 +74,30 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-    <com.geeksville.andropilot.gui.JoystickView
-        android:id="@+id/overlay"
-        android:layout_width="256dp"
-        android:layout_height="256dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:alpha="0.6"
-        android:background="#880000"
-        android:clickable="true"/>
+    <!-- So we can hide/show our joysticks in one go -->
+    <RelativeLayout
+        android:id="@+id/joysticks"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent" >
+
+        <com.geeksville.andropilot.gui.JoystickView
+            android:id="@+id/leftStick"
+            android:layout_width="256dp"
+            android:layout_height="256dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:alpha="0.6"
+            android:clickable="true" />
+
+        <com.geeksville.andropilot.gui.JoystickView
+            android:id="@+id/rightStick"
+            android:layout_width="256dp"
+            android:layout_height="256dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:alpha="0.6"
+            android:clickable="true" />
+        <!-- android:background="#880000" -->
+    </RelativeLayout>
 
 </RelativeLayout>
