@@ -71,7 +71,7 @@ import android.app.AlertDialog
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
-  with AndroServiceClient with JoystickController with UsesResources {
+  with AndroServiceClient with JoystickHID with UsesResources {
 
   implicit def context = this
 

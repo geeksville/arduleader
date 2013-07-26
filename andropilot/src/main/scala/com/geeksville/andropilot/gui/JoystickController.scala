@@ -30,7 +30,7 @@ import android.content.ActivityNotFoundException
 trait JoystickController extends Activity
   with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
 
-  private val debugOutput = false
+  protected val debugOutput = false
 
   private var fenceChannel = 0
 
@@ -40,35 +40,24 @@ trait JoystickController extends Activity
 
   // Raw values from the stick
   // -1 is up and to the left for the gamepad
-  private var rudder = 0f
-  private var aileron = 0f
-  private var elevator = 0f
+  var rudder = 0f
+  var aileron = 0f
+  var elevator = 0f
 
   private val aileronScale = 0.8f
   private val elevatorScale = 0.8f
   private val rudderScale = 0.8f
 
   /// Are we driving the four primary axes?
-  private var isOverriding = false
+  var isOverriding = false
 
   /// 0 is 0 throttle 1.0f is full throttle
-  private var throttle = 0f
+  var throttle = 0f
 
-  /// We integrate this value over time
-  private var throttleStickPos = 0f
-
-  /// Is the throttle currently pressed by the user?
-  private var throttleMoved = false
-
-  private var throttleTimer: Option[Cancellable] = None
-
-  var fenceEnabled = false
+  private var fenceEnabled = false
 
   // We handle overrides of fence separately (so as to not change fence enable just because we switched to game pad)
-  var fenceOverridden = false
-
-  /// For cycling through modes with the up/down arrow
-  private var favoriteModes = Seq[String]()
+  private var fenceOverridden = false
 
   /**
    * @param reverse -1 or 1 depending on how vehicle is configured
@@ -138,11 +127,6 @@ trait JoystickController extends Activity
         r
       }
 
-      favoriteModes = (1 to 6).map { i =>
-        val modeInt = v.parametersById(v.flightModePrefix + i).getInt.getOrElse(0)
-        v.modeToString(modeInt)
-      }
-
       // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
       axis = Array(makeInfo(1, false, scaleVal = aileronScale), makeInfo(2, false, scaleVal = elevatorScale), makeInfo(3, false, trimDefault = 1000),
         makeInfo(4, false, scaleVal = rudderScale))
@@ -155,144 +139,6 @@ trait JoystickController extends Activity
     }
   }
 
-  override def onGenericMotionEvent(ev: MotionEvent) = {
-    val isJoystick = ((ev.getSource & InputDevice.SOURCE_JOYSTICK) != 0) || ((ev.getSource & InputDevice.SOURCE_GAMEPAD) != 0)
-    debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
-
-    val devId = ev.getDeviceId
-    if (isJoystick && devId != 0 && hasParameters) {
-      val dev = InputDevice.getDevice(devId)
-      if (dev != null) {
-        if (debugOutput) {
-          val vibrator = dev.getVibrator
-          debug("Name: " + dev.getName)
-          debug("Has vibe: " + vibrator)
-          dev.getMotionRanges.asScala.foreach { r =>
-            debug("Axis %s(%s), %s, flat %s, fuzz %s, min %s, max %s".format(r.getAxis, MotionEvent.axisToString(r.getAxis), ev.getAxisValue(r.getAxis), r.getFlat, r.getFuzz, r.getMin, r.getMax))
-          }
-
-          debug("History size: " + ev.getHistorySize)
-          debug("Buttons: " + ev.getButtonState)
-        }
-
-        /// Process a historical (or current) joystick record
-        def processJoystick(historyPos: Int) {
-          def getAxisValue(axis: Int) = if (historyPos < 0) ev.getAxisValue(axis) else ev.getHistoricalAxisValue(axis, historyPos)
-
-          rudder = getAxisValue(MotionEvent.AXIS_X)
-          elevator = getAxisValue(MotionEvent.AXIS_RZ)
-          aileron = getAxisValue(MotionEvent.AXIS_Z)
-          throttleStickPos = getAxisValue(MotionEvent.AXIS_Y)
-
-          /// Is the specified joystick axis moved away from center?
-          def isMoved(axisNum: Int) = math.abs(getAxisValue(axisNum)) > dev.getMotionRange(axisNum, ev.getSource).getFlat
-
-          // Possibly turn on overrides
-          throttleMoved = isMoved(MotionEvent.AXIS_Y)
-          //debug("set throttle moved %s, because %s is outside %s".format(throttleMoved, getAxisValue(MotionEvent.AXIS_Y), dev.getMotionRange(MotionEvent.AXIS_Y, ev.getSource).getFlat))
-
-          if (throttleMoved || isMoved(MotionEvent.AXIS_X) || isMoved(MotionEvent.AXIS_RZ) || isMoved(MotionEvent.AXIS_Z))
-            startOverride()
-        }
-
-        (0 until ev.getHistorySize).foreach { i =>
-          // Handle any prior state
-          processJoystick(i)
-        }
-
-        // Handle the current state
-        processJoystick(-1)
-
-        if (throttleMoved && !throttleTimer.isDefined) // Prime the pump on the throttle timer if necessary
-          applyThrottle()
-
-        if (isOverriding && sticksEnabled)
-          sendOverride()
-      }
-    }
-
-    isJoystick
-  }
-
-  private def applyThrottle() {
-    val scale = 0.05f // FIXME, make adjustable and/or exponential
-
-    if (throttleMoved && isOverriding) {
-      // We invert stick because the joystick uses -1 to mean top of travel, we want it to mean increase throttle
-      val newval = throttle + -throttleStickPos * scale
-
-      //debug("apply " + throttleStickPos + " to throttle " + newval)
-      val newt = math.min(1.0f, math.max(0.0f, newval))
-
-      if (newt != throttle) {
-        throttle = newt
-        sendOverride()
-      }
-
-      // Schedule us to be invoked again in a little while
-      throttleTimer = Some(MockAkka.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
-    } else
-      throttleTimer = None
-  }
-
-  protected def selectNextPage(toRight: Boolean)
-
-  /**
-   * d-pad keys seem to only be available here
-   */
-  override def dispatchKeyEvent(ev: KeyEvent) = {
-    if (ev.getAction == KeyEvent.ACTION_DOWN) {
-      // debug("dispatch " + ev.getKeyCode)
-
-      ev.getKeyCode match {
-        case KeyEvent.KEYCODE_DPAD_LEFT =>
-          selectNextPage(false)
-          true
-        case KeyEvent.KEYCODE_DPAD_RIGHT =>
-          selectNextPage(true)
-          true
-        case KeyEvent.KEYCODE_DPAD_UP =>
-          doNextMode(false)
-          true
-        case KeyEvent.KEYCODE_DPAD_DOWN =>
-          doNextMode(true)
-          true
-        case _ =>
-          super.dispatchKeyEvent(ev)
-      }
-    } else
-      try {
-        super.dispatchKeyEvent(ev)
-      } catch {
-        case ex: ActivityNotFoundException =>
-          toast("Google play services missing - maps won't work!")
-          false
-      }
-  }
-
-  override def onKeyDown(code: Int, ev: KeyEvent) = {
-    // debug("keydown " + code)
-    if (KeyEvent.isGamepadButton(code)) {
-      // debug("press " + code)
-      code match {
-        case KeyEvent.KEYCODE_BUTTON_R2 =>
-          doRTL()
-          true
-        case KeyEvent.KEYCODE_BUTTON_L1 =>
-          doToggleFence()
-          true
-        case KeyEvent.KEYCODE_BUTTON_START =>
-          speak(S(R.string.spk_joystick_off), true)
-          stopOverrides()
-          true
-        case x @ _ =>
-          warn("Unknown key: " + x)
-          super.onKeyDown(code, ev)
-      }
-    } else
-      super.onKeyDown(code, ev)
-  }
-
   /**
    * When we get a service, make sure we turn off any stale overrides
    */
@@ -302,46 +148,7 @@ trait JoystickController extends Activity
     stopOverrides()
   }
 
-  private def doRTL() {
-    myVehicle.foreach(_ ! DoSetMode("RTL"))
-  }
-
-  private def doToggleFence() {
-    debug("In toggle fence")
-    if (fenceChannel != 0) {
-      fenceOverridden = true
-      fenceEnabled = !fenceEnabled
-      debug("new fence state: " + fenceEnabled)
-      startOverride()
-      sendOverride()
-    }
-  }
-
-  private def doNextMode(isNext: Boolean) {
-    if (!favoriteModes.isEmpty)
-      myVehicle.foreach { v =>
-
-        // If the current mode is not a 'favorite' we'll return -1 and just pick the first mode option
-        val curPos = favoriteModes.indexOf(v.currentMode)
-
-        // Wrap around if we fall off the table
-        val newMode = if (isNext) {
-          if (curPos < favoriteModes.size - 1)
-            favoriteModes(curPos + 1)
-          else
-            favoriteModes.head
-        } else {
-          if (curPos > 0)
-            favoriteModes(curPos - 1)
-          else
-            favoriteModes.last
-        }
-
-        v ! DoSetMode(newMode)
-      }
-  }
-
-  private def stopOverrides() {
+  def stopOverrides() {
     warn("Stopping overrides")
     isOverriding = false
     fenceOverridden = false
@@ -353,7 +160,7 @@ trait JoystickController extends Activity
     }
   }
 
-  private def startOverride() {
+  def startOverride() {
     if (!isOverriding) {
       // On first we need to read some calibration from the device
       if (!sticksEnabled)
@@ -384,11 +191,22 @@ trait JoystickController extends Activity
     }
   }
 
+  def doToggleFence() {
+    debug("In toggle fence")
+    if (fenceChannel != 0) {
+      fenceOverridden = true
+      fenceEnabled = !fenceEnabled
+      debug("new fence state: " + fenceEnabled)
+      startOverride()
+      sendOverride()
+    }
+  }
+
   /**
    * -1 for a channel means leave unchanged
    * 0 for a channel means do not override
    */
-  private def sendOverride() {
+  def sendOverride() {
     //debug("sendOverride")
     for {
       v <- myVehicle;
