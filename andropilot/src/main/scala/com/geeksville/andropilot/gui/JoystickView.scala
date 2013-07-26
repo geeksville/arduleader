@@ -6,6 +6,12 @@ import android.graphics._
 import android.view._
 import com.ridemission.scandroid.AndroidLogger
 
+trait JoystickListener {
+  def onMove(x: Float, y: Float) {}
+  def onPress() {}
+  def onRelease() {}
+}
+
 class JoystickView(context: Context, attrs: AttributeSet) extends View(context, attrs) with AndroidLogger {
 
   // center coords
@@ -25,6 +31,8 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   var centerXonRelease = true
   var xLabel = "Roll"
   var yLabel = "Pitch"
+
+  var listener = new JoystickListener {}
 
   val bgPaint = new Paint {
     setColor(Color.DKGRAY)
@@ -53,6 +61,7 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
   // We want clicks
   setClickable(true)
+  setHapticFeedbackEnabled(true)
 
   private def drawLabels(canvas: Canvas) {
     {
@@ -112,14 +121,26 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
       if (centerXonRelease)
         touchX = 0
 
+      onMove()
+      listener.onRelease()
       pointerId = None
       invalidate()
+      performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
     }
+  }
+
+  private def onMove() {
+    listener.onMove(touchX.toFloat / cX, touchY.toFloat / cY)
+  }
+
+  private def onPress(newId: Int) {
+    pointerId = Some(newId)
+    listener.onPress()
   }
 
   override def onTouchEvent(ev: MotionEvent) = {
     val action = ev.getAction
-    debug("Got action " + action)
+    //debug("Got action " + action)
     (action & MotionEvent.ACTION_MASK) match {
       case MotionEvent.ACTION_MOVE =>
         processMoveEvent(ev)
@@ -142,14 +163,14 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
       case MotionEvent.ACTION_DOWN =>
         if (!pointerId.isDefined)
-          pointerId = Some(ev.getPointerId(0))
+          onPress(ev.getPointerId(0))
         true
 
       case MotionEvent.ACTION_POINTER_DOWN =>
         if (!pointerId.isDefined) {
           val pointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT
           val newId = ev.getPointerId(pointerIndex)
-          pointerId = Some(newId)
+          onPress(newId)
         }
         true
 
@@ -166,17 +187,29 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
     else
       delta
 
+  def crossedZero(oldVal: Int, newVal: Int) = oldVal.signum != newVal.signum
+
   def processMoveEvent(ev: MotionEvent) {
     pointerId.foreach { id =>
       val pointerIndex = ev.findPointerIndex(id)
 
       // Translate touch position to center of view
       val x = ev.getX(pointerIndex).toInt - cX
-      touchX = clampRadius(x)
+      val newX = clampRadius(x)
       val y = ev.getY(pointerIndex).toInt - cY
-      touchY = clampRadius(y)
+      val newY = clampRadius(y)
 
-      invalidate()
+      if (touchX != newX || touchY != newY) {
+
+        if (crossedZero(touchX, newX) || crossedZero(touchY, newY))
+          performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+
+        touchX = newX
+        touchY = newY
+
+        invalidate()
+        onMove()
+      }
     }
   }
 

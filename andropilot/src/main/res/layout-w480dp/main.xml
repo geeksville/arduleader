@@ -77,6 +77,7 @@
     <!-- So we can hide/show our joysticks in one go -->
     <RelativeLayout
         android:id="@+id/joysticks"
+        android:visibility="invisible"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
 

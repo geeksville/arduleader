@@ -379,6 +379,29 @@ class MainActivity extends FragmentActivity with TypedActivity
       v.xLabel = "Yaw"
       v.yLabel = "Throttle"
       v.centerYonRelease = false
+      v.listener = new JoystickListener {
+        override def onMove(x: Float, y: Float) {
+          rudder = x
+          throttle = -y
+          sendOverride()
+        }
+        override def onPress() {
+          startOverride()
+        }
+      }
+    }
+
+    rightJoystickView.foreach { v =>
+      v.listener = new JoystickListener {
+        override def onMove(x: Float, y: Float) {
+          aileron = x
+          elevator = -y
+          sendOverride()
+        }
+        override def onPress() {
+          startOverride()
+        }
+      }
     }
   }
 
@@ -482,6 +505,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   override protected def handleParameters() {
     super.handleParameters()
+
+    invalidateOptionsMenu()
 
     // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
 
@@ -639,8 +664,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
-  var showJoystick = true
-
   override def onCreateOptionsMenu(menu: Menu) = {
     debug("Creating option menu")
     getMenuInflater.inflate(R.menu.action_bar, menu) // inflate the menu
@@ -671,8 +694,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
     val hasJoystickView = joystickPanel.isDefined
-    joystickMenu.setChecked(showJoystick && hasJoystickView)
-    joystickMenu.setEnabled(hasJoystickView)
+    joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
+    joystickMenu.setEnabled(hasJoystickView && hasParameters)
 
     val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
     gotoMenu.setEnabled(navToVehicleIntent.isDefined)
@@ -714,10 +737,18 @@ class MainActivity extends FragmentActivity with TypedActivity
     }).getOrElse(None)
   }
 
+  private def setShowJoystick(show: Boolean) {
+    if (!show)
+      stopOverrides()
+
+    joystickPanel.foreach(_.setVisibility(if (show) View.VISIBLE else View.INVISIBLE))
+  }
+
   override def onOptionsItemSelected(item: MenuItem) = {
     item.getItemId match {
       case R.id.menu_settings =>
         startActivity(new Intent(this, classOf[SettingsActivity]))
+
       case R.id.menu_speech =>
         val n = !item.isChecked
         debug("Toggle speech, newmode " + n)
@@ -734,7 +765,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       case R.id.menu_showjoystick =>
         val n = !item.isChecked
         item.setChecked(n)
-        joystickPanel.foreach(_.setVisibility(if (n) View.VISIBLE else View.INVISIBLE))
+        setShowJoystick(n)
 
       case R.id.menu_gotovehicle =>
         navToVehicleIntent.map { intent =>
