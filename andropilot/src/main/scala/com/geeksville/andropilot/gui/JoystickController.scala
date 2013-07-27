@@ -17,6 +17,8 @@ import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.aspeech.TTSClient
 import com.geeksville.andropilot.R
 import android.content.ActivityNotFoundException
+import com.geeksville.flight.MsgRcChannelsChanged
+import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 
 /**
  * Provides joystick control either through hardware or a virtual screen joystick (not yet implemented)
@@ -43,6 +45,11 @@ trait JoystickController extends Activity
   var rudder = 0f
   var aileron = 0f
   var elevator = 0f
+
+  val aileronAxisNum = 0
+  val elevatorAxisNum = 1
+  val throttleAxisNum = 2
+  val rudderAxisNum = 3
 
   private val aileronScale = 0.8f
   private val elevatorScale = 0.8f
@@ -98,7 +105,7 @@ trait JoystickController extends Activity
     }
   }
 
-  private var axis = Array(AxisInfo(), AxisInfo(), AxisInfo(), AxisInfo())
+  protected var axis = Array(AxisInfo(), AxisInfo(), AxisInfo(), AxisInfo())
 
   /**
    * Super skanky - this hook is called from the activity when our parameters have arrived
@@ -172,7 +179,7 @@ trait JoystickController extends Activity
       // Pull over current throttle setting
       for (v <- myVehicle; rc <- v.rcChannels) yield {
         val oldthrottle = rc.chan3_raw
-        throttle = axis(2).unscale(oldthrottle)
+        throttle = axis(throttleAxisNum).unscale(oldthrottle)
       }
     }
   }

@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.View
 import scala.collection.JavaConverters._
 import android.widget.SimpleAdapter
-import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
-import com.geeksville.flight.MsgRcChannelsChanged
 import com.geeksville.util.ThreadTools._
 import android.support.v4.app.ListFragment
 import com.geeksville.andropilot.R

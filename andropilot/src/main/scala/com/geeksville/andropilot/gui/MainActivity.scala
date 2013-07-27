@@ -68,6 +68,7 @@ import android.support.v4.app.NotificationCompat
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.AlertDialog
+import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -224,6 +225,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
         handleParameters()
       }
+
+    case MsgRcChannelsChanged(x) =>
+      handleRCChannels(x)
   }
 
   private def handleStatus(s: String, severity: Int) {
@@ -405,6 +409,16 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  def handleRCChannels(x: msg_rc_channels_raw) = {
+    leftJoystickView.foreach { v =>
+      v.setReceived(axis(throttleAxisNum).unscale(x.chan3_raw), -axis(throttleAxisNum).unscale(x.chan4_raw))
+    }
+
+    rightJoystickView.foreach { v =>
+      v.setReceived(axis(aileronAxisNum).unscale(x.chan1_raw), -axis(elevatorAxisNum).unscale(x.chan2_raw))
+    }
+  }
+
   // Workaround to make sure child fragment state is not saved on orientation page (makes fragment panes show correctly)
   // http://stackoverflow.com/questions/13910826/viewpager-fragmentstatepageradapter-orientation-change
   override def onSaveInstanceState(outState: Bundle) {
@@ -556,6 +570,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       using(AndroidJUtil.getFromURI(this, uri)) { s =>
         myVehicle.foreach { v =>
+          if (filename.toLowerCase.endsWith(".param")) {
+            toast("Parameter file reading not yet supported")
+          }
+
           if (filename.toLowerCase.endsWith(".fen")) {
             if (!v.isFenceAvailable)
               toast(R.string.fence_not_avail, true)

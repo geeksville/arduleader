@@ -78,6 +78,8 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
     canvas.restore()
   }
 
+  def isTouching = pointerId.isDefined
+
   override def onDraw(canvas: Canvas) {
     canvas.save()
     // Draw the background
@@ -92,12 +94,24 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
     val handleY = touchY + cY
 
     // Fill with yellow if selected
-    if (pointerId.isDefined)
+    if (isTouching)
       canvas.drawCircle(handleX, handleY, handleRadius, selectedPaint)
 
     canvas.drawCircle(handleX, handleY, handleRadius, handlePaint)
 
     canvas.restore()
+  }
+
+  def setReceived(x: Float, y: Float) {
+    if (!isTouching) {
+      val tx = (cX * x).toInt
+      val ty = (cY * y).toInt
+      if (tx != touchX || ty != touchY) {
+        touchX = tx
+        touchY = ty
+        invalidate() // We don't call onMove, because we just want to show this value
+      }
+    }
   }
 
   override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
