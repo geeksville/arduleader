@@ -1,3 +1,9 @@
+# 1.6.01
+* Add on-screen joysticks (Choose 'show joystick' from menu - when holding tablet in landscape mode)
+* Make joysticks appear as a translucent overlay
+* Add haptic feedback to let user feel when they cross the zero position on sticks
+* Add support for backup service (so prefs will be restored if phone gets replaced)
+
 # 1.4.18
 * change ground color on horizon to brown
 * refetch waypoints (including Home) whenever vehicle gets rearmed
