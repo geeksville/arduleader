@@ -102,14 +102,15 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
     canvas.restore()
   }
 
+  /// @return true if changed
   def setReceived(x: Float, y: Float) {
     if (!isTouching) {
-      val tx = (cX * x).toInt
-      val ty = (cY * y).toInt
+      val tx = (movementRadius * x).toInt
+      val ty = (movementRadius * y).toInt
       if (tx != touchX || ty != touchY) {
         touchX = tx
         touchY = ty
-        invalidate() // We don't call onMove, because we just want to show this value
+        postInvalidate() // We don't call onMove, because we just want to show this value
       }
     }
   }

@@ -115,9 +115,9 @@ class MainActivity extends FragmentActivity with TypedActivity
   def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
   def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
 
-  def joystickPanel = Option(findViewById(R.id.joysticks))
-  def leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
-  def rightJoystickView = Option(findViewById(R.id.rightStick).asInstanceOf[JoystickView])
+  lazy val joystickPanel = Option(findViewById(R.id.joysticks))
+  lazy val leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
+  lazy val rightJoystickView = Option(findViewById(R.id.rightStick).asInstanceOf[JoystickView])
 
   // On some layouts we have dedicated versions of these views
   def waypointFragment = Option(findViewById(R.id.waypoint_fragment))
@@ -411,11 +411,16 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   def handleRCChannels(x: msg_rc_channels_raw) = {
     leftJoystickView.foreach { v =>
-      v.setReceived(axis(throttleAxisNum).unscale(x.chan3_raw), -axis(throttleAxisNum).unscale(x.chan4_raw))
+      v.setReceived(axis(rudderAxisNum).unscale(x.chan4_raw), -axis(throttleAxisNum).unscale(x.chan3_raw))
     }
 
     rightJoystickView.foreach { v =>
-      v.setReceived(axis(aileronAxisNum).unscale(x.chan1_raw), -axis(elevatorAxisNum).unscale(x.chan2_raw))
+      val ail = axis(aileronAxisNum).unscale(x.chan1_raw)
+      debug(axis(aileronAxisNum) + " ail " + x.chan1_raw + " to " + ail)
+
+      val ele = axis(elevatorAxisNum).unscale(x.chan2_raw)
+      debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
+      v.setReceived(ail, -ele)
     }
   }
 

@@ -51,9 +51,9 @@ trait JoystickController extends Activity
   val throttleAxisNum = 2
   val rudderAxisNum = 3
 
-  private val aileronScale = 0.8f
-  private val elevatorScale = 0.8f
-  private val rudderScale = 0.8f
+  private val aileronScale = 1.0f
+  private val elevatorScale = 1.0f
+  private val rudderScale = 1.0f
 
   /// Are we driving the four primary axes?
   var isOverriding = false
@@ -85,6 +85,7 @@ trait JoystickController extends Activity
     }
 
     /// throttle scales differently, it ignores trim, rather 0 maps to min and 1 maps to max
+    /// Not used? FIXME
     def scaleThrottle(raw: Float) = {
       // Convert to a range from 0 to 1 with all proper reversals done
       val stick = raw * reverse * (if (stickBackwards) -1 else 1) * scaleVal
@@ -96,12 +97,17 @@ trait JoystickController extends Activity
      * Given a servo usec value return a value between 0 and 1 (scaling and reversing)
      */
     def unscale(raw: Int) = {
-      val r = (reverse * (raw.toFloat - min) / (max - min)) / scaleVal
 
-      debug("Unscale " + raw + " to " + r)
+      // scale linearly between the trimpos and the correct min/max
+      val r = (reverse / scaleVal) * (if (raw > trim)
+        (raw.toFloat - trim) / (max - trim)
+      else
+        (raw.toFloat - trim) / (trim - min))
 
-      // Clamp to 0 to 1.0
-      math.min(1.0f, math.max(0.0f, r))
+      //debug(this + ": Unscale " + raw + " to " + r)
+
+      // Clamp to -1.0 to 1.0
+      math.min(1.0f, math.max(-1.0f, r))
     }
   }
 
@@ -112,6 +118,9 @@ trait JoystickController extends Activity
    */
   protected def handleParameters() {
     hasParameters = true
+
+    // On first we need to read some calibration from the device
+    getParameters()
   }
 
   /**
@@ -169,10 +178,6 @@ trait JoystickController extends Activity
 
   def startOverride() {
     if (!isOverriding) {
-      // On first we need to read some calibration from the device
-      if (!sticksEnabled)
-        getParameters()
-
       speak(S(R.string.spk_joystick_on))
       isOverriding = true
 
