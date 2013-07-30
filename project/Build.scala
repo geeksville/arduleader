@@ -2,7 +2,8 @@ import sbt._
 import Keys._
 import sbtassembly.Plugin._
 import AssemblyKeys._ // put this at the top of the file
-import AndroidKeys._
+import sbtandroid.AndroidKeys._
+import sbtandroid._
 
 object ScalaFlyBuild extends Build {
 

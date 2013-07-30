@@ -118,6 +118,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   lazy val joystickPanel = Option(findViewById(R.id.joysticks))
   lazy val leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
   lazy val rightJoystickView = Option(findViewById(R.id.rightStick).asInstanceOf[JoystickView])
+  lazy val cancelOverrideButton = Option(findViewById(R.id.cancelOverride).asInstanceOf[Button])
 
   // On some layouts we have dedicated versions of these views
   def waypointFragment = Option(findViewById(R.id.waypoint_fragment))
@@ -378,7 +379,27 @@ class MainActivity extends FragmentActivity with TypedActivity
     initSpeech()
   }
 
+  override def startOverride() {
+    super.startOverride()
+    cancelOverrideButton.foreach { v =>
+      v.setVisibility(View.VISIBLE)
+    }
+  }
+
+  override def stopOverrides() {
+    super.stopOverrides()
+    cancelOverrideButton.foreach { v =>
+      v.setVisibility(View.INVISIBLE)
+    }
+  }
+
   private def initScreenJoysticks() {
+    cancelOverrideButton.foreach { v =>
+      v.onClick { b =>
+        stopOverrides()
+      }
+    }
+
     leftJoystickView.foreach { v =>
       v.xLabel = "Yaw"
       v.yLabel = "Throttle"
@@ -399,7 +420,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       v.listener = new JoystickListener {
         override def onMove(x: Float, y: Float) {
           aileron = x
-          elevator = -y
+          elevator = y // FIXME - not sure why this is not inverted
           sendOverride()
         }
         override def onPress() {
@@ -420,7 +441,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       val ele = axis(elevatorAxisNum).unscale(x.chan2_raw)
       debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
-      v.setReceived(ail, -ele)
+      v.setReceived(ail, ele)
     }
   }
 

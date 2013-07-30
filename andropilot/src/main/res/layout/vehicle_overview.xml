@@ -142,7 +142,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="GPS satellites"
+                android:text="GPS sats"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
@@ -162,7 +162,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rssi margins"
+                android:text="Rssi"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView

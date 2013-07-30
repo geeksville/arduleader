@@ -1,3 +1,8 @@
+# 1.6.02
+* Fix problems where the screen joysticks directions coule be reversed
+* Add an on-screen panic button to cancel RC override
+* Allow phone sized devices to show joysticks (in landscape orientation)
+
 # 1.6.01
 * Add on-screen joysticks (Choose 'show joystick' from menu - when holding tablet in landscape mode)
 * Make joysticks appear as a translucent overlay

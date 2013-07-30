@@ -1,14 +1,14 @@
-import AndroidKeys._
+import sbtandroid.AndroidKeys._
 
 name := "andropilot"
 
-version := "1.6.01"
+version := "1.6.03"
 
-versionCode := 10601
+versionCode := 10603
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
-Github.settings
+// Github.settings
 
 // libraryDependencies += "ch.acra" % "acra" % "4.4.0" 
 
@@ -26,4 +26,4 @@ keystorePath in Android := file("andropilot/geeksville-release-key.keystore")
       
 //signRelease in Android <<= (signRelease in Android) dependsOn (packageRelease in Android)
 
-githubRepo in Android := "geeksville/arduleader"
+//githubRepo in Android := "geeksville/arduleader"

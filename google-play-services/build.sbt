@@ -1,4 +1,4 @@
-import AndroidKeys._
+import sbtandroid.AndroidKeys._
 
 // name := "scandroid"
 
