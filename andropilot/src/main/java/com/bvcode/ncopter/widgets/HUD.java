@@ -343,7 +343,11 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 						// during the above, we don't leave the Surface in an
 						// inconsistent state
 						if (c != null) {
-							_surfaceHolder.unlockCanvasAndPost(c);
+							try {
+								_surfaceHolder.unlockCanvasAndPost(c);
+							} catch (IllegalArgumentException ex) {
+								Log.e("HUD", "Our surface is missing");
+							}
 						}
 					}
 

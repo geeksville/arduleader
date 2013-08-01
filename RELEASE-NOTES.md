@@ -1,3 +1,6 @@
+# 1.6.05
+* Fix a couple rare auto bugs
+
 # 1.6.04
 * Oops - Last build accidentally broken Nexus 7 portrait.  Thank Steve S for the fix.
 * Increase throttle travel 2x (thanks Steve S)

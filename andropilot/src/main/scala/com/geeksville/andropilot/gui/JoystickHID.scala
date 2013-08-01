@@ -180,32 +180,36 @@ trait JoystickHID extends JoystickController {
   }
 
   private def doNextMode(isNext: Boolean) {
-
-    myVehicle.foreach { v =>
-      val favoriteModes = (1 to 6).map { i =>
-        val modeInt = v.parametersById(v.flightModePrefix + i).getInt.getOrElse(0)
-        v.modeToString(modeInt)
-      }
-
-      if (!favoriteModes.isEmpty) {
-        // If the current mode is not a 'favorite' we'll return -1 and just pick the first mode option
-        val curPos = favoriteModes.indexOf(v.currentMode)
-
-        // Wrap around if we fall off the table
-        val newMode = if (isNext) {
-          if (curPos < favoriteModes.size - 1)
-            favoriteModes(curPos + 1)
-          else
-            favoriteModes.head
-        } else {
-          if (curPos > 0)
-            favoriteModes(curPos - 1)
-          else
-            favoriteModes.last
+    try {
+      myVehicle.foreach { v =>
+        val favoriteModes = (1 to 6).map { i =>
+          val modeInt = v.parametersById(v.flightModePrefix + i).getInt.getOrElse(0)
+          v.modeToString(modeInt)
         }
 
-        v ! DoSetMode(newMode)
+        if (!favoriteModes.isEmpty) {
+          // If the current mode is not a 'favorite' we'll return -1 and just pick the first mode option
+          val curPos = favoriteModes.indexOf(v.currentMode)
+
+          // Wrap around if we fall off the table
+          val newMode = if (isNext) {
+            if (curPos < favoriteModes.size - 1)
+              favoriteModes(curPos + 1)
+            else
+              favoriteModes.head
+          } else {
+            if (curPos > 0)
+              favoriteModes(curPos - 1)
+            else
+              favoriteModes.last
+          }
+
+          v ! DoSetMode(newMode)
+        }
       }
+    } catch {
+      case ex: NoSuchElementException =>
+        error("Vehicle doesn't support FLTMODE")
     }
   }
 }
