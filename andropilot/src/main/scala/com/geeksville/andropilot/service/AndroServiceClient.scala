@@ -31,13 +31,15 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
   def isLowVolt = (for { v <- myVehicle; volt <- v.batteryVoltage } yield { volt < minVoltage }).getOrElse(false)
 
   /// Apparently ardupane treats -1 for pct charge as 'no idea'
-  def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield { pct < minBatPercent }).getOrElse(false)
+  def isLowBatPercent = (for { v <- myVehicle; pct <- v.batteryPercent } yield {
+    pct < minBatPercent && pct >= -1.0
+  }).getOrElse(false)
   def isLowRssi = (for { v <- myVehicle; r <- v.radio } yield {
     val span = minRssiSpan
 
     r.rssi - span < r.noise || r.remrssi - span < r.remnoise
   }).getOrElse(false)
-  def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(true)
+  def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { n < minNumSats }).getOrElse(false)
   def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
   /**

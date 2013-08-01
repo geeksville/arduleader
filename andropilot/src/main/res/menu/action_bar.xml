@@ -39,6 +39,10 @@
         android:id="@+id/menu_levelnow"
         android:showAsAction="never"
         android:title="Manual Level"/>
+    <!--  <item
+        android:id="@+id/menu_compasscal"
+        android:showAsAction="never"
+        android:title="Compass Calibration"/> -->
     <item
         android:id="@+id/menu_gotovehicle"
         android:showAsAction="never"

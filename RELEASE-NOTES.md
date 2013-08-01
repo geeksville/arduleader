@@ -1,3 +1,9 @@
+# 1.6.04
+* Oops - Last build accidentally broken Nexus 7 portrait.  Thank Steve S for the fix.
+* Increase throttle travel 2x (thanks Steve S)
+* Don't warn about no gps until we have comms with vehicle (thanks Thomas N)
+* Don't warn about battery % charge if there is no charge data available (thanks Thomas N)
+
 # 1.6.02
 * Fix problems where the screen joysticks directions coule be reversed
 * Add an on-screen panic button to cancel RC override

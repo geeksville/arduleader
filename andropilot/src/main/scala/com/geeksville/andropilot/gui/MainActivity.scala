@@ -407,7 +407,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       v.listener = new JoystickListener {
         override def onMove(x: Float, y: Float) {
           rudder = x
-          throttle = -y
+          throttle = (-y + 1) / 2 // convert -1 -> 1 into 1 -> 0, so 0 on bottom and 1 and top (for more travel) (was -y)
           sendOverride()
         }
         override def onPress() {
@@ -437,10 +437,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     rightJoystickView.foreach { v =>
       val ail = axis(aileronAxisNum).unscale(x.chan1_raw)
-      debug(axis(aileronAxisNum) + " ail " + x.chan1_raw + " to " + ail)
+      //debug(axis(aileronAxisNum) + " ail " + x.chan1_raw + " to " + ail)
 
       val ele = axis(elevatorAxisNum).unscale(x.chan2_raw)
-      debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
+      //debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
       v.setReceived(ail, ele)
     }
   }

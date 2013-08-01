@@ -11,14 +11,14 @@
     <EditTextPreference
         android:defaultValue="9.5"
         android:dialogTitle="Minimum battery voltage"
-        android:inputType="numberDecimal"
+        android:inputType="numberDecimal|numberSigned"
         android:key="min_volt"
         android:summary="If voltage falls below this level, Andropilot will warn you"
         android:title="Voltage warn level" />
     <EditTextPreference
         android:defaultValue="25"
         android:dialogTitle="Minimum battery percentage"
-        android:inputType="number"
+        android:inputType="number|numberSigned"
         android:key="min_batpct"
         android:summary="If battery percent falls below this level, Andropilot will warn you"
         android:title="Percent charge warn level" />
