@@ -431,17 +431,21 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   def handleRCChannels(x: msg_rc_channels_raw) = {
-    leftJoystickView.foreach { v =>
-      v.setReceived(axis(rudderAxisNum).unscale(x.chan4_raw), -axis(throttleAxisNum).unscale(x.chan3_raw))
-    }
+    if (hasParameters && !isOverriding) {
+      leftJoystickView.foreach { v =>
+        val thro = -axis(throttleAxisNum).unscale(x.chan3_raw)
+        debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
+        v.setReceived(axis(rudderAxisNum).unscale(x.chan4_raw), thro)
+      }
 
-    rightJoystickView.foreach { v =>
-      val ail = axis(aileronAxisNum).unscale(x.chan1_raw)
-      //debug(axis(aileronAxisNum) + " ail " + x.chan1_raw + " to " + ail)
+      rightJoystickView.foreach { v =>
+        val ail = axis(aileronAxisNum).unscale(x.chan1_raw)
+        //debug(axis(aileronAxisNum) + " ail " + x.chan1_raw + " to " + ail)
 
-      val ele = axis(elevatorAxisNum).unscale(x.chan2_raw)
-      //debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
-      v.setReceived(ail, ele)
+        val ele = axis(elevatorAxisNum).unscale(x.chan2_raw)
+        //debug(axis(elevatorAxisNum) + " ele " + x.chan2_raw + " to " + ele)
+        v.setReceived(ail, ele)
+      }
     }
   }
 

@@ -1,3 +1,8 @@
+# 1.6.06
+* Joystick trim position would be set correctly only if you had a real RC radio hooked up - fix to work totally without radio
+* Make sure on screen joystick can go all the way to zero throttle
+* Fix a couple of new autobugs
+
 # 1.6.05
 * Fix a couple rare auto bugs
 

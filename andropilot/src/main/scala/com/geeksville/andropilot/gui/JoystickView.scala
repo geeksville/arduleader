@@ -15,17 +15,17 @@ trait JoystickListener {
 class JoystickView(context: Context, attrs: AttributeSet) extends View(context, attrs) with AndroidLogger {
 
   // center coords
-  var cX = 0
-  var cY = 0
+  private var cX = 0
+  private var cY = 0
 
-  var touchX = 0
-  var touchY = 0
+  private var touchX = 0
+  private var touchY = 0
 
-  var ctrlRadius = 0
-  var handleRadius = 0
-  var movementRadius = 0
+  private var ctrlRadius = 0
+  private var handleRadius = 0
+  private var movementRadius = 0
 
-  var pointerId: Option[Int] = None
+  private var pointerId: Option[Int] = None
 
   var centerYonRelease = true
   var centerXonRelease = true
@@ -34,26 +34,26 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
   var listener = new JoystickListener {}
 
-  val bgPaint = new Paint {
+  private val bgPaint = new Paint {
     setColor(Color.DKGRAY)
     setStrokeWidth(1)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
-  val labelPaint = new Paint {
+  private val labelPaint = new Paint {
     setColor(Color.GREEN)
     setStrokeWidth(1)
     setTextSize(48)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
-  val handlePaint = new Paint {
+  private val handlePaint = new Paint {
     setColor(Color.WHITE)
     setStrokeWidth(6)
     setStyle(Paint.Style.STROKE)
   }
 
-  val selectedPaint = new Paint {
+  private val selectedPaint = new Paint {
     setColor(Color.YELLOW)
     setStrokeWidth(1)
     setStyle(Paint.Style.FILL_AND_STROKE)
@@ -105,11 +105,16 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   /// @return true if changed
   def setReceived(x: Float, y: Float) {
     if (!isTouching) {
-      val tx = (movementRadius * x).toInt
-      val ty = (movementRadius * y).toInt
-      if (tx != touchX || ty != touchY) {
-        touchX = tx
-        touchY = ty
+      val newX = (movementRadius * x).toInt
+      val newY = (movementRadius * y).toInt
+
+      if (newX != touchX || newY != touchY) {
+        touchX = newX
+        touchY = newY
+
+        //debug("%s: Applying override %s, current %s, touch %s".format(xLabel, x, currentX, touchX))
+        //debug("%s: Applying override %s, current %s, touch %s".format(yLabel, y, currentY, touchY))
+
         postInvalidate() // We don't call onMove, because we just want to show this value
       }
     }
@@ -145,8 +150,11 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   }
 
   private def onMove() {
-    listener.onMove(touchX.toFloat / cX, touchY.toFloat / cY)
+    listener.onMove(currentX, currentY)
   }
+
+  def currentX = touchX.toFloat / movementRadius
+  def currentY = touchY.toFloat / movementRadius
 
   private def onPress(newId: Int) {
     pointerId = Some(newId)

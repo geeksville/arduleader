@@ -88,7 +88,7 @@ trait JoystickHID extends JoystickController {
         if (throttleMoved && !throttleTimer.isDefined) // Prime the pump on the throttle timer if necessary
           applyThrottle()
 
-        if (isOverriding && sticksEnabled)
+        if (isOverriding)
           sendOverride()
       }
     }

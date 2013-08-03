@@ -37,7 +37,6 @@ trait JoystickController extends Activity
   private var fenceChannel = 0
 
   /// Don't enable till we've read our params
-  var sticksEnabled = false
   var hasParameters = false
 
   // Raw values from the stick
@@ -104,7 +103,7 @@ trait JoystickController extends Activity
       else
         (raw.toFloat - trim) / (trim - min))
 
-      //debug(this + ": Unscale " + raw + " to " + r)
+      debug(this + ": Unscale " + raw + " to " + r)
 
       // Clamp to -1.0 to 1.0
       math.min(1.0f, math.max(-1.0f, r))
@@ -136,11 +135,20 @@ trait JoystickController extends Activity
       fenceChannel = v.fenceChannel
 
       def makeInfo(ch: Int, backwards: Boolean, scaleVal: Float = 1.0f, trimDefault: Int = 1500) = {
+        val min = v.parametersById("RC" + ch + "_MIN").getInt.getOrElse(1000)
+        val max = v.parametersById("RC" + ch + "_MAX").getInt.getOrElse(2000)
+        var trim = v.parametersById("RC" + ch + "_TRIM").getInt.getOrElse(trimDefault)
+
+        if (trim < min && max > min) {
+          warn("No trim set for channel " + ch + " assuming midspan") // Trim might not get set if we don't have a real radio
+          trim = (max - min) / 2 + min
+        }
+
         val r = AxisInfo(
           v.parametersById("RC" + ch + "_REV").getInt.getOrElse(1),
-          v.parametersById("RC" + ch + "_MIN").getInt.getOrElse(1000),
-          v.parametersById("RC" + ch + "_MAX").getInt.getOrElse(2000),
-          v.parametersById("RC" + ch + "_TRIM").getInt.getOrElse(trimDefault),
+          min,
+          max,
+          trim,
           scaleVal,
           backwards)
 
@@ -151,7 +159,6 @@ trait JoystickController extends Activity
       // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
       axis = Array(makeInfo(1, false, scaleVal = aileronScale), makeInfo(2, false, scaleVal = elevatorScale), makeInfo(3, false, trimDefault = 1000),
         makeInfo(4, false, scaleVal = rudderScale))
-      sticksEnabled = true
 
       // Tell the vehicle we are controlling it - FIXME - do this someplace better
       v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
