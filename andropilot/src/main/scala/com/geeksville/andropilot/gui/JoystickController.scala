@@ -117,10 +117,15 @@ trait JoystickController extends Activity
    * Super skanky - this hook is called from the activity when our parameters have arrived
    */
   protected def handleParameters() {
-    hasParameters = true
+    try {
+      // On first we need to read some calibration from the device
+      getParameters()
 
-    // On first we need to read some calibration from the device
-    getParameters()
+      hasParameters = true
+    } catch {
+      case ex: NoSuchElementException =>
+        error("This vehicle is missing key joystick params")
+    }
   }
 
   /**
@@ -177,7 +182,7 @@ trait JoystickController extends Activity
   }
 
   def startOverride() {
-    if (!isOverriding) {
+    if (!isOverriding && hasParameters) {
       speak(S(R.string.spk_joystick_on))
       isOverriding = true
 
