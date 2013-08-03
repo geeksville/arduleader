@@ -146,7 +146,6 @@ class MyMapFragment extends SupportMapFragment
     def lat = wp.msg.x
     def lon = wp.msg.y
 
-    override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
     override def isAllowChangeType = !isHome
 
     override def isAltitudeEditable = !isHome
@@ -255,6 +254,8 @@ class MyMapFragment extends SupportMapFragment
    * A draggable marker that will send movement commands to the vehicle
    */
   class DraggableWaypointMarker(wp: Waypoint) extends WaypointMarker(wp) {
+
+    override def isAllowGoto = !isHome // Don't let people 'goto' home because that would probably smack them into the ground.  Really they want RTL
 
     override def lat_=(n: Double) { wp.msg.x = n.toFloat }
     override def lon_=(n: Double) { wp.msg.y = n.toFloat }
