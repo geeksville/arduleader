@@ -42,7 +42,7 @@ trait JoystickHID extends JoystickController {
     debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
 
     val devId = ev.getDeviceId
-    if (isJoystick && devId != 0 && hasParameters) {
+    if (isJoystick && devId != 0 && joystickAvailable) {
       val dev = InputDevice.getDevice(devId)
       if (dev != null) {
         if (debugOutput) {

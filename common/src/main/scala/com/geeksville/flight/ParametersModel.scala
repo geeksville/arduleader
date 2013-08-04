@@ -49,6 +49,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
   private var numAttemptsRemaining = 10
 
+  def hasParameters = !parametersById.isEmpty
+
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */

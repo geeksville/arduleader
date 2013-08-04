@@ -37,7 +37,7 @@ trait JoystickController extends Activity
   private var fenceChannel = 0
 
   /// Don't enable till we've read our params
-  var hasParameters = false
+  var joystickAvailable = false
 
   // Raw values from the stick
   // -1 is up and to the left for the gamepad
@@ -113,57 +113,50 @@ trait JoystickController extends Activity
   protected var axis = Array(AxisInfo(), AxisInfo(), AxisInfo(), AxisInfo())
 
   /**
-   * Super skanky - this hook is called from the activity when our parameters have arrived
+   * We wait to fetch our params until the first time the user moves the stick (so as to not change the behavior for non joystick devices)
    */
-  protected def handleParameters() {
+  def initJoystickParams() {
     try {
       // On first we need to read some calibration from the device
-      getParameters()
+      myVehicle.foreach { v =>
+        fenceChannel = v.fenceChannel
 
-      hasParameters = true
+        def makeInfo(ch: Int, backwards: Boolean, scaleVal: Float = 1.0f, trimDefault: Int = 1500) = {
+          val min = v.parametersById("RC" + ch + "_MIN").getInt.getOrElse(1000)
+          val max = v.parametersById("RC" + ch + "_MAX").getInt.getOrElse(2000)
+          var trim = v.parametersById("RC" + ch + "_TRIM").getInt.getOrElse(trimDefault)
+
+          if (trim < min && max > min) {
+            warn("No trim set for channel " + ch + " assuming midspan") // Trim might not get set if we don't have a real radio
+            trim = (max - min) / 2 + min
+          }
+
+          val r = AxisInfo(
+            v.parametersById("RC" + ch + "_REV").getInt.getOrElse(1),
+            min,
+            max,
+            trim,
+            scaleVal,
+            backwards)
+
+          debug("Got axis: " + r)
+          r
+        }
+
+        // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
+        axis = Array(makeInfo(1, false, scaleVal = aileronScale), makeInfo(2, false, scaleVal = elevatorScale), makeInfo(3, false, trimDefault = 1000),
+          makeInfo(4, false, scaleVal = rudderScale))
+
+        // Tell the vehicle we are controlling it - FIXME - do this someplace better
+        v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
+        v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
+        v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
+      }
+
+      joystickAvailable = true
     } catch {
       case ex: NoSuchElementException =>
         error("This vehicle is missing key joystick params")
-    }
-  }
-
-  /**
-   * We wait to fetch our params until the first time the user moves the stick (so as to not change the behavior for non joystick devices)
-   */
-  private def getParameters() {
-    myVehicle.foreach { v =>
-      fenceChannel = v.fenceChannel
-
-      def makeInfo(ch: Int, backwards: Boolean, scaleVal: Float = 1.0f, trimDefault: Int = 1500) = {
-        val min = v.parametersById("RC" + ch + "_MIN").getInt.getOrElse(1000)
-        val max = v.parametersById("RC" + ch + "_MAX").getInt.getOrElse(2000)
-        var trim = v.parametersById("RC" + ch + "_TRIM").getInt.getOrElse(trimDefault)
-
-        if (trim < min && max > min) {
-          warn("No trim set for channel " + ch + " assuming midspan") // Trim might not get set if we don't have a real radio
-          trim = (max - min) / 2 + min
-        }
-
-        val r = AxisInfo(
-          v.parametersById("RC" + ch + "_REV").getInt.getOrElse(1),
-          min,
-          max,
-          trim,
-          scaleVal,
-          backwards)
-
-        debug("Got axis: " + r)
-        r
-      }
-
-      // Elevator is NOT reversed vs standard android gamepad (forward should get larger)
-      axis = Array(makeInfo(1, false, scaleVal = aileronScale), makeInfo(2, false, scaleVal = elevatorScale), makeInfo(3, false, trimDefault = 1000),
-        makeInfo(4, false, scaleVal = rudderScale))
-
-      // Tell the vehicle we are controlling it - FIXME - do this someplace better
-      v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
-      v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
-      v.parametersById.get("SYSID_MYGCS").foreach(_.setValueNoAck(v.systemId))
     }
   }
 
@@ -189,7 +182,7 @@ trait JoystickController extends Activity
   }
 
   def startOverride() {
-    if (!isOverriding && hasParameters) {
+    if (!isOverriding && joystickAvailable) {
       speak(S(R.string.spk_joystick_on))
       isOverriding = true
 

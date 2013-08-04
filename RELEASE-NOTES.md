@@ -1,3 +1,6 @@
+# 1.6.07
+* Fix problem where screen joystick would not reappear following screen rotation.  Thanks Steve!
+
 # 1.6.06
 * Joystick trim position would be set correctly only if you had a real RC radio hooked up - fix to work totally without radio
 * Make sure on screen joystick can go all the way to zero throttle

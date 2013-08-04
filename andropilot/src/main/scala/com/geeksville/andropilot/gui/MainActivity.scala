@@ -268,6 +268,11 @@ class MainActivity extends FragmentActivity with TypedActivity
       handleIntent(intent)
       waitingForService = None
     }
+
+    myVehicle.foreach { v =>
+      if (v.hasParameters)
+        initJoystickParams()
+    }
   }
 
   private def screenWidthDp = try {
@@ -431,7 +436,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   def handleRCChannels(x: msg_rc_channels_raw) = {
-    if (hasParameters && !isOverriding) {
+    if (joystickAvailable && !isOverriding) {
       leftJoystickView.foreach { v =>
         val thro = -axis(throttleAxisNum).unscale(x.chan3_raw)
         debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
@@ -547,8 +552,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   /// If we are configured to upload, but have no username/psw tell user why we are ignoring them
   def shouldNagUser = dshareUpload && (dshareUsername.isEmpty || dsharePassword.isEmpty)
 
-  override protected def handleParameters() {
-    super.handleParameters()
+  private def handleParameters() {
+    initJoystickParams()
 
     invalidateOptionsMenu()
 
@@ -743,7 +748,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
     val hasJoystickView = joystickPanel.isDefined
     joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
-    joystickMenu.setEnabled(hasJoystickView && hasParameters)
+    joystickMenu.setEnabled(hasJoystickView && joystickAvailable)
 
     val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
     gotoMenu.setEnabled(navToVehicleIntent.isDefined)
