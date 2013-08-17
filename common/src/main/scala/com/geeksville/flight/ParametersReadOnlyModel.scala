@@ -31,6 +31,24 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     11 -> "TOY_A",
     12 -> "TOY_B")
 
+  /**
+   * A mapping to RGB tuples (chosen to match the colors used by Tridge's python tool)
+   */
+  val modeToColorMap = Map(
+    "MANUAL" -> (255, 0, 0),
+    "AUTO" -> (0, 255, 0),
+    "LOITER" -> (0, 0, 255),
+    "FBWA" -> (255, 100, 0),
+    "RTL" -> (255, 0, 100),
+    "STABILIZE" -> (100, 255, 0),
+    "LAND" -> (0, 255, 100),
+    "STEERING" -> (100, 0, 255),
+    "HOLD" -> (0, 100, 255),
+    "ALT_HOLD" -> (255, 100, 100),
+    "CIRCLE" -> (100, 255, 100),
+    "GUIDED" -> (100, 100, 255),
+    "ACRO" -> (255, 255, 0))
+
   private val roverCodeToModeMap = Map(
     0 -> "MANUAL", 2 -> "LEARNING", 3 -> "STEERING",
     4 -> "HOLD",
