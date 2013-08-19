@@ -1,3 +1,6 @@
+# 1.6.08
+* Oops - typo, wasn't properly checking min battery voltage from the preferences
+
 # 1.6.07
 * Fix problem where screen joystick would not reappear following screen rotation.  Thanks Steve!
 
