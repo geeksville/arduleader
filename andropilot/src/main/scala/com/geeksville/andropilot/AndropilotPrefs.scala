@@ -9,7 +9,7 @@ trait AndropilotPrefs extends UsesPreferences {
   def paramsToFile = boolPreference("params_to_file", false)
   def speechAltBucket = intPreference("speech_altbucket", 10)
 
-  def minVoltage = floatPreference("min_voltage", 9.5f)
+  def minVoltage = floatPreference("min_volt", 9.5f)
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
   def minRssiSpan = intPreference("min_rssi_span", 2)
   def minNumSats = intPreference("min_numsats", 5)
