@@ -26,8 +26,8 @@ import com.geeksville.andropilot.UsesDirectories
 class AndroidDirUpload extends IntentService("Uploader")
   with AndroidLogger with AndropilotPrefs with UsesResources with UsesDirectories {
 
-  val srcDirOpt = logDirectory
-  val destDirOpt = uploadedDirectory
+  lazy val srcDirOpt = logDirectory
+  lazy val destDirOpt = uploadedDirectory
 
   private var curUpload: Option[AndroidUpload] = None
 
