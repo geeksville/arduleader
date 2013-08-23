@@ -17,16 +17,17 @@ import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import android.app.Notification
 import java.io.IOException
+import com.geeksville.andropilot.UsesDirectories
 
 /**
  * Scan for tlogs in the specified directory.  If found, upload them to droneshare and then either delete or
  * move to destdir
  */
 class AndroidDirUpload extends IntentService("Uploader")
-  with AndroidLogger with AndropilotPrefs with UsesResources {
+  with AndroidLogger with AndropilotPrefs with UsesResources with UsesDirectories {
 
-  val srcDirOpt = AndropilotService.logDirectory
-  val destDirOpt = AndropilotService.uploadedDirectory
+  val srcDirOpt = logDirectory
+  val destDirOpt = uploadedDirectory
 
   private var curUpload: Option[AndroidUpload] = None
 

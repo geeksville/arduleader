@@ -72,7 +72,7 @@ import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
-  with AndroServiceClient with JoystickHID with UsesResources {
+  with AndroServiceClient with JoystickHID with UsesResources with UsesDirectories {
 
   implicit def context = this
 
@@ -560,7 +560,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     // Our parameters are valid, perhaps write them to disk (FIXME, this really should be done in the service)
 
     if (paramsToFile)
-      for { dir <- AndropilotService.paramDirectory; vm <- myVehicle } yield {
+      for { dir <- paramDirectory; vm <- myVehicle } yield {
         val file = ParameterFile.getFilename(dir)
         try {
           usageEvent("params_saved")

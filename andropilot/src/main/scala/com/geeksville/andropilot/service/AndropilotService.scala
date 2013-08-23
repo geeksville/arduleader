@@ -40,12 +40,14 @@ import java.io.IOException
 import android.support.v4.app.NotificationCompat
 import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
+import com.geeksville.andropilot.UsesDirectories
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources {
+class AndropilotService extends Service with AndroidLogger
+  with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources with UsesDirectories {
   val groundControlId = 255
 
   /**
@@ -243,7 +245,7 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
     if (loggingEnabled) {
       // If already logging ignore
       if (!logger.isDefined)
-        AndropilotService.logDirectory.foreach { d =>
+        logDirectory.foreach { d =>
           try {
             logfile = Some(LogBinaryMavlink.getFilename(d))
             val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
@@ -435,39 +437,10 @@ class AndropilotService extends Service with AndroidLogger with FlurryService wi
 
     startForeground(NotificationIds.vehicleConnectedId, notification)
   }
+
 }
 
 object AndropilotService {
   val arduPilotId = 1
 
-  /**
-   * Where we should spool our output files (if allowed)
-   */
-  def sdDirectory = {
-    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-      None
-    else {
-      val sdcard = Environment.getExternalStorageDirectory()
-      if (!sdcard.exists())
-        None
-      else
-        Some(new File(sdcard, "andropilot"))
-    }
-  }
-
-  def logDirectory = sdDirectory.map { sd =>
-    val f = new File(sd, "newlogs")
-    f.mkdirs()
-    f
-  }
-  def uploadedDirectory = sdDirectory.map { sd =>
-    val f = new File(sd, "uploaded")
-    f.mkdirs()
-    f
-  }
-  def paramDirectory = sdDirectory.map { sd =>
-    val f = new File(sd, "param-files")
-    f.mkdirs()
-    f
-  }
 }

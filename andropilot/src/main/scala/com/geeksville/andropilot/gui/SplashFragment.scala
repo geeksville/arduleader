@@ -10,7 +10,7 @@ class SplashFragment extends DialogFragment {
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     val view = inflater.inflate(R.layout.splash_fragment, container)
-    getDialog().setTitle("Andropilot")
+    getDialog().setTitle(R.string.app_name)
 
     view
   }
