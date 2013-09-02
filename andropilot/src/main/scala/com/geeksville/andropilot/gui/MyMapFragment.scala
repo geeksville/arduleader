@@ -40,6 +40,7 @@ import com.geeksville.flight.DoAddWaypoint
 import com.geeksville.gmaps.PolylineFactory
 import org.mavlink.messages.FENCE_ACTION
 import com.geeksville.flight.MsgWaypointCurrentChanged
+import com.geeksville.gmaps.CircleFactory
 
 /**
  * Our customized map fragment
@@ -556,9 +557,9 @@ class MyMapFragment extends SupportMapFragment
       scene.foreach { scene =>
 
         def createWaypointSegments() {
-          // Generate segments going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+          // Generate drawables going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
           val pairs = waypointMarkers.zip(waypointMarkers.tail)
-          scene.segments.appendAll(pairs.map { p =>
+          scene.drawables.appendAll(pairs.map { p =>
             val color = if (p._1.isAutocontinue)
               Color.GREEN
             else
@@ -569,17 +570,33 @@ class MyMapFragment extends SupportMapFragment
         }
 
         def createFenceSegments() = {
-          val points = v.fenceBoundary.map { p =>
-            new LatLng(p.lat, p.lon)
+          val fenceRadius = v.fenceRadius
+          val homeOpt = v.home
+          if (v.fenceIsCircle && v.isFenceEnable && fenceRadius.isDefined && homeOpt.isDefined) {
+
+            // An arducopter style fence
+
+            val color = Color.YELLOW
+            val home = homeOpt.get.location
+            val center = new LatLng(home.lat, home.lon)
+            val circle = new CircleFactory((new CircleOptions).center(center).strokeColor(color).strokeWidth(5).radius(fenceRadius.get))
+            scene.drawables.append(circle)
+          } else {
+
+            // A plane style fence
+
+            val points = v.fenceBoundary.map { p =>
+              new LatLng(p.lat, p.lon)
+            }
+
+            val color = if (v.fenceAction != FENCE_ACTION.FENCE_ACTION_NONE)
+              Color.YELLOW
+            else
+              Color.GRAY
+
+            val line = PolylineFactory(points, color)
+            scene.drawables.append(line)
           }
-
-          val color = if (v.fenceAction != FENCE_ACTION.FENCE_ACTION_NONE)
-            Color.YELLOW
-          else
-            Color.GRAY
-
-          val line = PolylineFactory(points, color)
-          scene.segments.append(line)
         }
 
         val isAuto = v.currentMode == "AUTO"
@@ -634,7 +651,7 @@ class MyMapFragment extends SupportMapFragment
 
         // Create a segment for the path we expect the plane to take
         for { dm <- destMarker; pm <- planeMarker } yield {
-          scene.segments.append(Segment(pm -> dm, Color.RED))
+          scene.drawables.append(Segment(pm -> dm, Color.RED))
         }
 
         scene.render()

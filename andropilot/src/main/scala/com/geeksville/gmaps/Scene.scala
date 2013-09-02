@@ -12,10 +12,10 @@ import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
 import scala.collection.mutable.HashSet
 
 /**
- * A collection of SmartMarkers and the segments that connect them
+ * A collection of SmartMarkers and the drawables that connect them
  */
 class Scene(val map: GoogleMap) extends AndroidLogger {
-  val segments = ListBuffer[LineFactory]()
+  val drawables = ListBuffer[DrawableFactory]()
   private val markers = HashSet[SmartMarker]()
 
   /**
@@ -72,28 +72,23 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
   }
 
   /**
-   * Move any segments as we are dragged
+   * Move any drawables as we are dragged
    */
   private def handleMarkerDrag(sm: SmartMarker) {
-    segments.foreach(_.handleMarkerDrag(sm))
+    drawables.foreach(_.handleMarkerDrag(sm))
   }
 
   /**
-   * Redraw all segments
+   * Redraw all drawables
    */
   private def renderSegments() {
-    debug("Rendering " + segments.size + " segments")
-    segments.foreach { m =>
-      m.polyline = Some(map.addPolyline(m.lineOptions))
-    }
+    debug("Rendering " + drawables.size + " drawables")
+    drawables.foreach(_.render(map))
   }
 
   def clearSegments() {
-    segments.foreach { m =>
-      m.polyline.foreach(_.remove())
-      m.polyline = None
-    }
-    segments.clear()
+    drawables.foreach(_.remove())
+    drawables.clear()
   }
 
   def render() {

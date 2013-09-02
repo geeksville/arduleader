@@ -75,6 +75,18 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
+  /**
+   * @return the home waypoint (if we have one)
+   */
+  def home = {
+    waypoints.headOption.flatMap { r =>
+      if (r.isHome)
+        Some(r)
+      else
+        None
+    }
+  }
+
   def isDirty = dirty
 
   private def mReceive: Receiver = {

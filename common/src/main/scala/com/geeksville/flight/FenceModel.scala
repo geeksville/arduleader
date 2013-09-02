@@ -44,6 +44,9 @@ trait FenceModel extends ParametersModel {
    */
   def fenceReturnPoint = fencePoints.headOption.map { p => Location(p.lat, p.lng) }
 
+  /**
+   * If this fence has a bounding box, this sequence will be non-empty
+   */
   def fenceBoundary = if (fencePoints.isEmpty) Seq() else fencePoints.tail.map { p => Location(p.lat, p.lng) }
 
   def fenceNumBreach = fenceStatus.map(_.breach_count).getOrElse(0)
@@ -122,6 +125,8 @@ trait FenceModel extends ParametersModel {
 
   private def requestPoint(n: Int) = sendWithRetry(fenceFetchPoint(n), classOf[msg_fence_point])
 
+  // These parameters are for the plane stype of fence
+
   private def fenceTotal = parametersById.get("FENCE_TOTAL").map(_.getInt.get).getOrElse(0)
   def fenceAction = parametersById.get("FENCE_ACTION").map(_.getInt.get).getOrElse(FENCE_ACTION.FENCE_ACTION_NONE)
 
@@ -139,6 +144,48 @@ trait FenceModel extends ParametersModel {
   private def fenceTotal_=(n: Int) {
     parametersById.get("FENCE_TOTAL").get.setValueNoAck(n)
   }
+
+  // These parameters for for copter style fence
+
+  // @Param: ENABLE
+  // @DisplayName: Fence enable/disable
+  // @Description: Allows you to enable (1) or disable (0) the fence functionality
+  // @Values: 0:Disabled,1:Enabled
+  def isFenceEnable = parametersById.get("FENCE_ENABLE").map(_.getBoolean.get).getOrElse(false)
+
+  // @Param: TYPE
+  // @DisplayName: Fence Type
+  // @Description: Enabled fence types held as bitmask
+  // @Values: 0:None,1:Altitude,2:Circle,3:Altitude and Circle
+  // @User: Standard
+  def fenceType = parametersById.get("FENCE_TYPE").map(_.getInt.get).getOrElse(0)
+  def fenceIsCircle = {
+    val t = fenceType
+    t == 2 || t == 3
+  }
+
+  // @Param: ACTION
+  // @DisplayName: Action to perform when the limit is breached
+  // @Description: What to do on fence breach
+  // @Values: 0:Report Only,1:RTL or Land
+  // @User: Standard
+
+  // @Param: ALT_MAX
+  // @DisplayName: Fence Maximum Altitude
+  // @Description: Maximum altitude allowed before geofence triggers
+  // @Units: Meters
+  // @Range: 10 1000
+  // @Increment: 1
+  // @User: Standard
+  def fenceAltMax = parametersById.get("FENCE_ALT_MAX").map(_.getFloat.get)
+
+  // @Param: RADIUS
+  // @DisplayName: Circular Fence Radius
+  // @Description: Circle fence radius which when breached will cause an RTL
+  // @Units: Meters
+  // @Range: 0 10000
+  // @User: Standard
+  def fenceRadius = parametersById.get("FENCE_RADIUS").map(_.getFloat.get)
 }
 
 object FenceModel {

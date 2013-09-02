@@ -1,3 +1,8 @@
+# 1.7.00
+* Add support for copter style fences (plane was already supported)
+* Update google play services
+* Update autodocs for parameters
+
 # 1.6.08
 * Oops - typo, wasn't properly checking min battery voltage from the preferences
 

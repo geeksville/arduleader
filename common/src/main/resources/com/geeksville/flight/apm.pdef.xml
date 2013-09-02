@@ -3,6 +3,12 @@
         <paramfile>
         <vehicles>
         <parameters name="ArduPlane">
+<param humanName="MAVLink system ID" name="ArduPlane:SYSID_THISMAV" documentation="The identifier of this device in the MAVLink protocol" user="Advanced">
+<field name="Range">1 255</field>
+</param>
+<param humanName="Ground station MAVLink system ID" name="ArduPlane:SYSID_MYGCS" documentation="The identifier of the ground station in the MAVLink protocol. Don't change this unless you also modify the ground station to match." user="Advanced">
+<field name="Range">1 255</field>
+</param>
 <param humanName="USB Console Baud Rate" name="ArduPlane:SERIAL0_BAUD" documentation="The baud rate used on the main uart" user="Standard">
 <values>
 <value code="1">1200</value>
@@ -33,10 +39,6 @@
 <field name="Range">0 10</field>
 <field name="Increment">1</field>
 <field name="Units">seconds</field>
-</param>
-<param humanName="Pitch Compensation" name="ArduPlane:KFF_PTCHCOMP" documentation="Adds pitch input to compensate for the loss of lift due to roll control. 0 = 0 %, 1 = 100%" user="Advanced">
-<field name="Range">0 1</field>
-<field name="Increment">0.01</field>
 </param>
 <param humanName="Rudder Mix" name="ArduPlane:KFF_RDDRMIX" documentation="The amount of rudder mix to apply during aileron movement 0 = 0 %, 1 = 100%" user="Standard">
 <field name="Range">0 1</field>
@@ -89,13 +91,7 @@
 <value code="1">L1Controller</value>
 </values>
 </param>
-<param humanName="Attitude controller selection" name="ArduPlane:ATT_CONTROLLER" documentation="Which attitude (roll, pitch, yaw) controller to enable" user="Standard">
-<values>
-<value code="0">PID</value>
-<value code="1">APMControl</value>
-</values>
-</param>
-<param humanName="Gps to Baro Mix" name="ArduPlane:ALT_MIX" documentation="The percent of mixing between gps altitude and baro altitude. 0 = 100% gps, 1 = 100% baro" user="Advanced">
+<param humanName="GPS to Baro Mix" name="ArduPlane:ALT_MIX" documentation="The percent of mixing between GPS altitude and baro altitude. 0 = 100% gps, 1 = 100% baro. It is highly recommend that you not change this from the default of 1, as GPS altitude is notoriously unreliable. The only time I would recommend changing this is if you have a high altitude enabled GPS, and you are dropping a plane from a high altitude baloon many kilometers off the ground." user="Advanced">
 <field name="Range">0 1</field>
 <field name="Increment">0.1</field>
 <field name="Units">Percent</field>
@@ -110,6 +106,12 @@
 <field name="Range">-32767 32767</field>
 <field name="Increment">1</field>
 <field name="Units">Meters</field>
+</param>
+<param humanName="Number of loaded mission items" name="ArduPlane:CMD_TOTAL" documentation="The number of mission mission items that has been loaded by the ground station. Do not change this manually." user="Advanced">
+<field name="Range">1 255</field>
+</param>
+<param humanName="Current mission command index" name="ArduPlane:CMD_INDEX" documentation="The index of the currently running mission item. Do not change this manually." user="Advanced">
+<field name="Range">1 255</field>
 </param>
 <param humanName="Waypoint Radius" name="ArduPlane:WP_RADIUS" documentation="Defines the distance from a waypoint, that when crossed indicates the wp has been hit." user="Standard">
 <field name="Range">1 32767</field>
@@ -219,6 +221,12 @@
 <value code="0">None</value>
 <value code="1">ReturnToLaunch</value>
 </values>
+</param>
+<param humanName="Failsafe battery voltage" name="ArduPlane:FS_BATT_VOLTAGE" documentation="Battery voltage to trigger failsafe. Set to 0 to disable battery voltage failsafe. If the battery voltage drops below this voltage then the plane will RTL" user="Standard">
+<field name="Units">Volts</field>
+</param>
+<param humanName="Failsafe battery milliAmpHours" name="ArduPlane:FS_BATT_MAH" documentation="Battery capacity remaining to trigger failsafe. Set to 0 to disable battery remaining failsafe. If the battery remaining drops below this level then the plane will RTL" user="Standard">
+<field name="Units">mAh</field>
 </param>
 <param humanName="GCS failsafe enable" name="ArduPlane:FS_GCS_ENABL" documentation="Enable ground control station telemetry failsafe. Failsafe will trigger after 20 seconds of no MAVLink heartbeat messages. WARNING: Enabling this option opens up the possibility of your plane going into failsafe mode and running the motor on the ground it it loses contact with your ground station. If this option is enabled on an electric plane then either use a separate motor arming switch or remove the propeller in any ground testing." user="Standard">
 <values>
@@ -339,8 +347,7 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Elevon reverse" name="ArduPlane:ELEVON_REVERSE" documentation="Reverse elevon mixing" user="User" share="Vehicle" uihint="vertarg">
-<field name="UIHint">vertarg</field>
+<param humanName="Elevon reverse" name="ArduPlane:ELEVON_REVERSE" documentation="Reverse elevon mixing" user="User">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
@@ -358,7 +365,7 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="VTail output" name="ArduPlane:VTAIL_OUTPUT" documentation="Enable VTail output in software. If enabled then the APM will provide software VTail mixing on the elevator and rudder channels. There are 4 different mixing modes available, which refer to the 4 ways the elevator can be mapped to the two VTail servos. Note that you must not use VTail output mixing with hardware pass-through of RC values, such as with channel 8 manual control on an APM1. So if you use an APM1 then set FLTMODE_CH to something other than 8 before you enable VTAIL_OUTPUT." user="User">
+<param humanName="VTail output" name="ArduPlane:VTAIL_OUTPUT" documentation="Enable VTail output in software. If enabled then the APM will provide software VTail mixing on the elevator and rudder channels. There are 4 different mixing modes available, which refer to the 4 ways the elevator can be mapped to the two VTail servos. Note that you must not use VTail output mixing with hardware pass-through of RC values, such as with channel 8 manual control on an APM1. So if you use an APM1 then set FLTMODE_CH to something other than 8 before you enable VTAIL_OUTPUT. Please also see the MIXING_GAIN parameter for the output gain of the mixer." user="User">
 <values>
 <value code="0">Disabled</value>
 <value code="1">UpUp</value>
@@ -367,7 +374,7 @@
 <value code="4">DownDown</value>
 </values>
 </param>
-<param humanName="Elevon output" name="ArduPlane:ELEVON_OUTPUT" documentation="Enable software elevon output mixer. If enabled then the APM will provide software elevon mixing on the aileron and elevator channels. There are 4 different mixing modes available, which refer to the 4 ways the elevator can be mapped to the two elevon servos. Note that you must not use elevon output mixing with hardware pass-through of RC values, such as with channel 8 manual control on an APM1. So if you use an APM1 then set FLTMODE_CH to something other than 8 before you enable ELEVON_OUTPUT." user="User">
+<param humanName="Elevon output" name="ArduPlane:ELEVON_OUTPUT" documentation="Enable software elevon output mixer. If enabled then the APM will provide software elevon mixing on the aileron and elevator channels. There are 4 different mixing modes available, which refer to the 4 ways the elevator can be mapped to the two elevon servos. Note that you must not use elevon output mixing with hardware pass-through of RC values, such as with channel 8 manual control on an APM1. So if you use an APM1 then set FLTMODE_CH to something other than 8 before you enable ELEVON_OUTPUT. Please also see the MIXING_GAIN parameter for the output gain of the mixer." user="User">
 <values>
 <value code="0">Disabled</value>
 <value code="1">UpUp</value>
@@ -375,6 +382,9 @@
 <value code="3">DownUp</value>
 <value code="4">DownDown</value>
 </values>
+</param>
+<param humanName="Mixing Gain" name="ArduPlane:MIXING_GAIN" documentation="The gain for the Vtail and elevon output mixers. The default is 0.5, which ensures that the mixer doesn't saturate, allowing both input channels to go to extremes while retaining control over the output. Hardware mixers often have a 1.0 gain, which gives more servo throw, but can saturate. If you don't have enough throw on your servos with VTAIL_OUTPUT or ELEVON_OUTPUT enabled then you can raise the gain using MIXING_GAIN. The mixer allows outputs in the range 900 to 2100 microseconds." user="User">
+<field name="Range">0.5 1.2</field>
 </param>
 <param humanName="Num Resets" name="ArduPlane:SYS_NUM_RESETS" documentation="Number of APM board resets" user="Advanced">
 </param>
@@ -401,7 +411,7 @@
 <param humanName="Pitch angle offset" name="ArduPlane:TRIM_PITCH_CD" documentation="offset to add to pitch - used for in-flight pitch trimming. It is recommended that instead of using this parameter you level your plane correctly on the ground for good flight attitude." user="Advanced">
 <field name="Units">centi-Degrees</field>
 </param>
-<param humanName="RTL altitude" name="ArduPlane:ALT_HOLD_RTL" documentation="Return to launch target altitude" user="User">
+<param humanName="RTL altitude" name="ArduPlane:ALT_HOLD_RTL" documentation="Return to launch target altitude. This is the altitude the plane will aim for and loiter at when returning home. If this is negative (usually -1) then the plane will use the current altitude at the time of entering RTL." user="User">
 <field name="Units">centimeters</field>
 </param>
 <param humanName="Minimum altitude for FBWB mode" name="ArduPlane:ALT_HOLD_FBWCM" documentation="This is the minimum altitude in centimeters that FBWB will allow. If you attempt to descend below this altitude then the plane will level off. A value of zero means no limit." user="User">
@@ -413,6 +423,33 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="Flap 1 percentage" name="ArduPlane:FLAP_1_PERCNT" documentation="The percentage change in flap position when FLAP_1_SPEED is reached. Use zero to disable flaps" user="Advanced">
+<field name="Range">0 100</field>
+<field name="Units">Percent</field>
+</param>
+<param humanName="Flap 1 speed" name="ArduPlane:FLAP_1_SPEED" documentation="The speed in meters per second at which to engage FLAP_1_PERCENT of flaps. Note that FLAP_1_SPEED should be greater than or equal to FLAP_2_SPEED" user="Advanced">
+<field name="Range">0 100</field>
+<field name="Increment">1</field>
+<field name="Units">m/s</field>
+</param>
+<param humanName="Flap 2 percentage" name="ArduPlane:FLAP_2_PERCNT" documentation="The percentage change in flap position when FLAP_2_SPEED is reached. Use zero to disable flaps" user="Advanced">
+<field name="Range">0 100</field>
+<field name="Units">Percent</field>
+</param>
+<param humanName="Flap 2 speed" name="ArduPlane:FLAP_2_SPEED" documentation="The speed in meters per second at which to engage FLAP_2_PERCENT of flaps. Note that FLAP_1_SPEED should be greater than or equal to FLAP_2_SPEED" user="Advanced">
+<field name="Range">0 100</field>
+<field name="Increment">1</field>
+<field name="Units">m/s</field>
+</param>
+<param humanName="Battery monitoring" name="ArduPlane:BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="3">Voltage Only</value>
+<value code="4">Voltage and Current</value>
+</values>
+</param>
+<param humanName="Voltage Divider" name="ArduPlane:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
+</param>
 <param humanName="Apms per volt" name="ArduPlane:APM_PER_VOLT" documentation="Number of amps that a 1V reading on the current sensor corresponds to" user="Standard">
 <field name="Units">A/V</field>
 </param>
@@ -422,20 +459,22 @@
 <param humanName="Battery capacity" name="ArduPlane:BATT_CAPACITY" documentation="Capacity of the battery in mAh when full" user="Standard">
 <field name="Units">mAh</field>
 </param>
-<param humanName="Battery Voltage sensing pin" name="ArduPlane:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Voltage sensing pin" name="ArduPlane:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 0">A0</value>
 <value code=" 1">A1</value>
 <value code=" 13">A13</value>
+<value code=" 100">PX4</value>
 </values>
 </param>
-<param humanName="Battery Current sensing pin" name="ArduPlane:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Current sensing pin" name="ArduPlane:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 1">A1</value>
 <value code=" 2">A2</value>
 <value code=" 12">A12</value>
+<value code=" 101">PX4</value>
 </values>
 </param>
 <param humanName="Receiver RSSI sensing pin" name="ArduPlane:RSSI_PIN" documentation="This selects an analog pin for the receiver RSSI voltage. It assumes the voltage is 5V for max rssi, 0V for minimum" user="Standard">
@@ -506,7 +545,7 @@
 </param>
 <param humanName="Sonar type" name="ArduCopter:SONAR_TYPE" documentation="Used to adjust scaling to match the sonar used (only Maxbotix sonars are supported at this time)" user="Standard">
 <values>
-<value code="0">XL-EZ0</value>
+<value code="0">XL-EZ0 / XL-EZ4</value>
 <value code="1">LV-EZ0</value>
 <value code="2">XLL-EZ0</value>
 <value code="3">HRLV</value>
@@ -542,7 +581,7 @@
 <value code="2">Enabled Continue with Mission in Auto Mode</value>
 </values>
 </param>
-<param humanName="Voltage Divider" name="ArduCopter:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin voltage * INPUT_VOLTS/1024 * VOLT_DIVIDER)" user="Advanced">
+<param humanName="Voltage Divider" name="ArduCopter:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
 </param>
 <param humanName="Current Amps per volt" name="ArduCopter:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )" user="Advanced">
 </param>
@@ -576,20 +615,22 @@
 <field name="Increment">1</field>
 <field name="Units">Centimeters</field>
 </param>
-<param humanName="Battery Voltage sensing pin" name="ArduCopter:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Voltage sensing pin" name="ArduCopter:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 0">A0</value>
 <value code=" 1">A1</value>
 <value code=" 13">A13</value>
+<value code=" 100">PX4</value>
 </values>
 </param>
-<param humanName="Battery Current sensing pin" name="ArduCopter:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Current sensing pin" name="ArduCopter:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 1">A1</value>
 <value code=" 2">A2</value>
 <value code=" 12">A12</value>
+<value code=" 101">PX4</value>
 </values>
 </param>
 <param humanName="Receiver RSSI sensing pin" name="ArduCopter:RSSI_PIN" documentation="This selects an analog pin for the receiver RSSI voltage. It assumes the voltage is 5V for max rssi, 0V for minimum" user="Standard">
@@ -931,68 +972,88 @@
 </param>
 <param humanName="Roll axis rate controller P gain" name="ArduCopter:RATE_RLL_P" documentation="Roll axis rate controller P gain.  Converts the difference between desired roll rate and actual roll rate into a motor speed output" user="Standard">
 <field name="Range">0.08 0.20</field>
+<field name="Increment">0.005</field>
 </param>
 <param humanName="Roll axis rate controller I gain" name="ArduCopter:RATE_RLL_I" documentation="Roll axis rate controller I gain.  Corrects long-term difference in desired roll rate vs actual roll rate" user="Standard">
 <field name="Range">0.01 0.5</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Roll axis rate controller I gain maximum" name="ArduCopter:RATE_RLL_IMAX" documentation="Roll axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output" user="Standard">
 <field name="Range">0 500</field>
+<field name="Increment">10</field>
 <field name="Units">PWM</field>
 </param>
 <param humanName="Roll axis rate controller D gain" name="ArduCopter:RATE_RLL_D" documentation="Roll axis rate controller D gain.  Compensates for short-term change in desired roll rate vs actual roll rate" user="Standard">
 <field name="Range">0.001 0.008</field>
+<field name="Increment">0.001</field>
 </param>
 <param humanName="Pitch axis rate controller P gain" name="ArduCopter:RATE_PIT_P" documentation="Pitch axis rate controller P gain.  Converts the difference between desired pitch rate and actual pitch rate into a motor speed output" user="Standard">
 <field name="Range">0.08 0.20</field>
+<field name="Increment">0.005</field>
 </param>
 <param humanName="Pitch axis rate controller I gain" name="ArduCopter:RATE_PIT_I" documentation="Pitch axis rate controller I gain.  Corrects long-term difference in desired pitch rate vs actual pitch rate" user="Standard">
 <field name="Range">0.01 0.5</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Pitch axis rate controller I gain maximum" name="ArduCopter:RATE_PIT_IMAX" documentation="Pitch axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output" user="Standard">
 <field name="Range">0 500</field>
+<field name="Increment">10</field>
 <field name="Units">PWM</field>
 </param>
 <param humanName="Pitch axis rate controller D gain" name="ArduCopter:RATE_PIT_D" documentation="Pitch axis rate controller D gain.  Compensates for short-term change in desired pitch rate vs actual pitch rate" user="Standard">
 <field name="Range">0.001 0.008</field>
+<field name="Increment">0.001</field>
 </param>
 <param humanName="Yaw axis rate controller P gain" name="ArduCopter:RATE_YAW_P" documentation="Yaw axis rate controller P gain.  Converts the difference between desired yaw rate and actual yaw rate into a motor speed output" user="Standard">
 <field name="Range">0.150 0.250</field>
+<field name="Increment">0.005</field>
 </param>
 <param humanName="Yaw axis rate controller I gain" name="ArduCopter:RATE_YAW_I" documentation="Yaw axis rate controller I gain.  Corrects long-term difference in desired yaw rate vs actual yaw rate" user="Standard">
 <field name="Range">0.010 0.020</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Yaw axis rate controller I gain maximum" name="ArduCopter:RATE_YAW_IMAX" documentation="Yaw axis rate controller I gain maximum.  Constrains the maximum motor output that the I gain will output" user="Standard">
 <field name="Range">0 500</field>
+<field name="Increment">10</field>
 <field name="Units">PWM</field>
 </param>
 <param humanName="Yaw axis rate controller D gain" name="ArduCopter:RATE_YAW_D" documentation="Yaw axis rate controller D gain.  Compensates for short-term change in desired yaw rate vs actual yaw rate" user="Standard">
 <field name="Range">0.000 0.001</field>
+<field name="Increment">0.001</field>
 </param>
 <param humanName="Loiter latitude rate controller P gain" name="ArduCopter:LOITER_LAT_P" documentation="Loiter latitude rate controller P gain.  Converts the difference between desired speed and actual speed into a lean angle in the latitude direction" user="Standard">
-<field name="Range">2.000 6.000</field>
+<field name="Range">0.1 6.0</field>
+<field name="Increment">0.1</field>
 </param>
 <param humanName="Loiter latitude rate controller I gain" name="ArduCopter:LOITER_LAT_I" documentation="Loiter latitude rate controller I gain.  Corrects long-term difference in desired speed and actual speed in the latitude direction" user="Standard">
-<field name="Range">0.020 0.060</field>
+<field name="Range">0.02 1.00</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Loiter rate controller I gain maximum" name="ArduCopter:LOITER_LAT_IMAX" documentation="Loiter rate controller I gain maximum.  Constrains the lean angle that the I gain will output" user="Standard">
 <field name="Range">0 4500</field>
+<field name="Increment">10</field>
 <field name="Units">Centi-Degrees</field>
 </param>
 <param humanName="Loiter latitude rate controller D gain" name="ArduCopter:LOITER_LAT_D" documentation="Loiter latitude rate controller D gain.  Compensates for short-term change in desired speed vs actual speed" user="Standard">
-<field name="Range">0.200 0.600</field>
+<field name="Range">0.0 0.6</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Loiter longitude rate controller P gain" name="ArduCopter:LOITER_LON_P" documentation="Loiter longitude rate controller P gain.  Converts the difference between desired speed and actual speed into a lean angle in the longitude direction" user="Standard">
-<field name="Range">2.000 6.000</field>
+<field name="Range">0.1 6.0</field>
+<field name="Increment">0.1</field>
 </param>
 <param humanName="Loiter longitude rate controller I gain" name="ArduCopter:LOITER_LON_I" documentation="Loiter longitude rate controller I gain.  Corrects long-term difference in desired speed and actual speed in the longitude direction" user="Standard">
-<field name="Range">0.020 0.060</field>
+<field name="Range">0.02 1.00</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Loiter longitude rate controller I gain maximum" name="ArduCopter:LOITER_LON_IMAX" documentation="Loiter longitude rate controller I gain maximum.  Constrains the lean angle that the I gain will output" user="Standard">
 <field name="Range">0 4500</field>
+<field name="Increment">10</field>
 <field name="Units">Centi-Degrees</field>
 </param>
 <param humanName="Loiter longituderate controller D gain" name="ArduCopter:LOITER_LON_D" documentation="Loiter longitude rate controller D gain.  Compensates for short-term change in desired speed vs actual speed" user="Standard">
-<field name="Range">0.200 0.600</field>
+<field name="Range">0.0 0.6</field>
+<field name="Increment">0.01</field>
 </param>
 <param humanName="Throttle rate controller P gain" name="ArduCopter:THR_RATE_P" documentation="Throttle rate controller P gain.  Converts the difference between desired vertical speed and actual speed into a desired acceleration that is passed to the throttle acceleration controller" user="Standard">
 <field name="Range">1.000 8.000</field>
@@ -1115,6 +1176,8 @@
 <value code="4078">Default+IMU</value>
 </values>
 </param>
+<param humanName="Reset Switch Channel" name="APMrover2:RST_SWITCH_CH" documentation="RC channel to use to reset to last flight mode&#9;after geofence takeover." user="Advanced">
+</param>
 <param humanName="Initial driving mode" name="APMrover2:INITIAL_MODE" documentation="This selects the mode to start in on boot. This is useful for when you want to start in AUTO mode on boot without a receiver. Usuallly used in combination with when AUTO_TRIGGER_PIN or AUTO_KICKSTART." user="Advanced">
 <values>
 <value code="0">MANUAL</value>
@@ -1134,20 +1197,22 @@
 <value code=" 13">A13</value>
 </values>
 </param>
-<param humanName="Battery Voltage sensing pin" name="APMrover2:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Voltage sensing pin" name="APMrover2:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 0">A0</value>
 <value code=" 1">A1</value>
 <value code=" 13">A13</value>
+<value code=" 100">PX4</value>
 </values>
 </param>
-<param humanName="Battery Current sensing pin" name="APMrover2:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13." user="Standard">
+<param humanName="Battery Current sensing pin" name="APMrover2:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
 <values>
 <value code="-1">Disabled</value>
 <value code=" 1">A1</value>
 <value code=" 2">A2</value>
 <value code=" 12">A12</value>
+<value code=" 101">PX4</value>
 </values>
 </param>
 <param humanName="MAVLink system ID" name="APMrover2:SYSID_THIS_MAV" documentation="ID used in MAVLink protocol to identify this vehicle" user="Advanced">
@@ -1198,7 +1263,7 @@
 <value code="4">Voltage and Current</value>
 </values>
 </param>
-<param humanName="Voltage Divider" name="APMrover2:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin voltage * INPUT_VOLTS/1024 * VOLT_DIVIDER)" user="Advanced">
+<param humanName="Voltage Divider" name="APMrover2:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
 </param>
 <param humanName="Current Amps per volt" name="APMrover2:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )" user="Advanced">
 </param>
@@ -1214,10 +1279,10 @@
 <field name="Increment">1</field>
 <field name="Units">centi-Degrees</field>
 </param>
-<param humanName="Auto mode trigger pin" name="APMrover2:AUTO_TRIGGER_PIN" documentation="pin number to use to trigger start of auto mode. If set to -1 then don't use a trigger, otherwise this is a pin number which if held low in auto mode will start the motor, and otherwise will force the throttle off. This can be used in combination with INITIAL_MODE to give a 'press button to start' rover with no receiver." user="standard">
+<param humanName="Auto mode trigger pin" name="APMrover2:AUTO_TRIGGER_PIN" documentation="pin number to use to enable the throttle in auto mode. If set to -1 then don't use a trigger, otherwise this is a pin number which if held low in auto mode will enable the motor to run. If the switch is released while in AUTO then the motor will stop again. This can be used in combination with INITIAL_MODE to give a 'press button to start' rover with no receiver." user="standard">
 <values>
 <value code="-1">Disabled</value>
-<value code="0-9">TiggerPin</value>
+<value code="0-8">TiggerPin</value>
 </values>
 </param>
 <param humanName="Auto mode trigger kickstart acceleration" name="APMrover2:AUTO_KICKSTART" documentation="X acceleration in meters/second/second to use to trigger the motor start in auto mode. If set to zero then auto throttle starts immediately when the mode switch happens, otherwise the rover waits for the X acceleration to go above this value before it will start the motor" user="standard">
@@ -1439,7 +1504,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC1_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC1_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -1464,7 +1529,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC2_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC2_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -1489,7 +1554,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC3_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC3_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -1514,7 +1579,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC4_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC4_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -1939,75 +2004,77 @@
 </values>
 </param>
 </parameters>
-<parameters name="CTL_RLL_">
-<param humanName="Roll rate gain" name="CTL_RLL_OMEGA" documentation="This is the gain from pitch angle error to demanded pitch rate. It controls the time constant from demanded to achieved pitch angle. For example if a time constant from demanded to achieved pitch of 0.5 sec was required, this gain would be set to 1/0.5 = 2.0. A value of 1.0 is a good default and will work with nearly all models. Advanced users may want to increase this to obtain a faster response." user="Advanced">
-<field name="Range">0.8 2.5</field>
+<parameters name="RLL2SRV_">
+<param humanName="Pitch Time Constant" name="RLL2SRV_T_CONST" documentation="This controls the time constant in seconds from demanded to achieved bank angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
+<field name="Range">0.4 1.0</field>
+<field name="Increment">0.1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="Proportional Gain" name="RLL2SRV_P" documentation="This is the gain from bank angle to aileron. This gain works the same way as the P term in the old PID (RLL2SRV_P) and can be set to the same value." user="User">
+<field name="Range">0.1 1.0</field>
 <field name="Increment">0.1</field>
 </param>
-<param humanName="Roll demand gain" name="CTL_RLL_K_P" documentation="This is the gain from demanded roll rate to demanded aileron. Provided CTL_RLL_OMEGA is set to 1.0, then this gain works the same way as the P term in the old PID (RLL2SRV_P) and can be set to the same value." user="User">
-<field name="Range">0.1 2</field>
-<field name="Increment">0.1</field>
-</param>
-<param humanName="Roll derivative gain" name="CTL_RLL_K_D" documentation="This is the gain from pitch rate error to demanded elevator. This adjusts the damping of the roll control loop. It has the same effect as the D term in the old PID (RLL2SRV_D) but without the large spikes in servo demands. This will be set to 0 as a default. This should be increased in 0.01 increments as too high a value can lead to high frequency roll oscillation." user="User">
+<param humanName="Damping Gain" name="RLL2SRV_D" documentation="This is the gain from roll rate to aileron. This adjusts the damping of the roll control loop. It has the same effect as RLL2SRV_D in the old PID controller but without the spikes in servo demands. This gain helps to reduce rolling in turbulence. It should be increased in 0.01 increments as too high a value can lead to a high frequency pitch oscillation that could overstress the airframe." user="User">
 <field name="Range">0 0.1</field>
 <field name="Increment">0.01</field>
 </param>
-<param humanName="Roll integration gain" name="CTL_RLL_K_I" documentation="This is the gain for integration of the roll rate error. It has essentially the same effect as the I term in the old PID (RLL2SRV_I). This can be set to 0 as a default, however users can increment this to enable the controller trim out any roll trim offset." user="User">
-<field name="Range">0 0.2</field>
-<field name="Increment">0.01</field>
+<param humanName="Integrator Gain" name="RLL2SRV_I" documentation="This is the gain from the integral of bank angle to aileron. It has the same effect as RLL2SRV_I in the old PID controller. Increasing this gain causes the controller to trim out steady offsets due to an out of trim aircraft." user="User">
+<field name="Range">0 1.0</field>
+<field name="Increment">0.05</field>
 </param>
-<param humanName="Roll max rate" name="CTL_RLL_RMAX" documentation="This sets the maximum roll rate that the controller will demand (degrees/sec). Setting it to zero disables the limit. If this value is set too low, then the roll can't keep up with the navigation demands and the plane will start weaving. If it is set too high (or disabled by setting to zero) then ailerons will get large inputs at the start of turns. A limit of 60 degrees/sec is a good default." user="User">
+<param humanName="Maximum Roll Rate" name="RLL2SRV_RMAX" documentation="This sets the maximum roll rate that the controller will demand (degrees/sec). Setting it to zero disables the limit. If this value is set too low, then the roll can't keep up with the navigation demands and the plane will start weaving. If it is set too high (or disabled by setting to zero) then ailerons will get large inputs at the start of turns. A limit of 60 degrees/sec is a good default." user="Advanced">
 <field name="Range">0 180</field>
 <field name="Increment">1</field>
 <field name="Units">degrees/second</field>
 </param>
 </parameters>
-<parameters name="CTL_PTCH_">
-<param humanName="Pitch to rate gain" name="CTL_PTCH_OMEGA" documentation="This is the gain from pitch angle error to demanded pitch rate. It controls the time constant from demanded to achieved pitch angle. For example if a time constant from demanded to achieved pitch of 0.5 sec was required, this gain would be set to 1/0.5 = 2.0. A value of 1.0 is a good default and will work with nearly all models. Advanced users may want to increase this to obtain a faster response." user="Advanced">
-<field name="Range">0.8 2.5</field>
+<parameters name="PTCH2SRV_">
+<param humanName="Pitch Time Constant" name="PTCH2SRV_TCONST" documentation="This controls the time constant in seconds from demanded to achieved pitch angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
+<field name="Range">0.4 1.0</field>
+<field name="Increment">0.1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="Proportional Gain" name="PTCH2SRV_P" documentation="This is the gain from pitch angle to elevator. This gain works the same way as PTCH2SRV_P in the old PID controller and can be set to the same value." user="User">
+<field name="Range">0.1 1.0</field>
 <field name="Increment">0.1</field>
 </param>
-<param humanName="Pitch to elevator gain" name="CTL_PTCH_K_P" documentation="This is the gain from demanded pitch rate to demanded elevator. Provided CTL_PTCH_OMEGA is set to 1.0, then this gain works the same way as the P term in the old PID (PTCH2SRV_P) and can be set to the same value." user="User">
-<field name="Range">0.1 2</field>
-<field name="Increment">0.1</field>
-</param>
-<param humanName="Pitch damping gain" name="CTL_PTCH_K_D" documentation="This is the gain from pitch rate error to demanded elevator. This adjusts the damping of the pitch control loop. It has the same effect as the D term in the old PID (PTCH2SRV_D) but without the large spikes in servo demands. This will be set to 0 as a default. Some airframes such as flying wings that have poor pitch damping can benefit from a small value of up to 0.1 on this gain term. This should be increased in 0.01 increments as to high a value can lead to a high frequency pitch oscillation that could overstress the airframe." user="User">
+<param humanName="Damping Gain" name="PTCH2SRV_D" documentation="This is the gain from pitch rate to elevator. This adjusts the damping of the pitch control loop. It has the same effect as PTCH2SRV_D in the old PID controller and can be set to the same value, but without the spikes in servo demands. This gain helps to reduce pitching in turbulence. Some airframes such as flying wings that have poor pitch damping can benefit from increasing this gain term. This should be increased in 0.01 increments as too high a value can lead to a high frequency pitch oscillation that could overstress the airframe." user="User">
 <field name="Range">0 0.1</field>
 <field name="Increment">0.01</field>
 </param>
-<param humanName="Pitch integrator gain" name="CTL_PTCH_K_I" documentation="This is the gain for integration of the pitch rate error. It has essentially the same effect as the I term in the old PID (PTCH2SRV_I). This can be set to 0 as a default, however users can increment this to make the pitch angle tracking more accurate." user="User">
-<field name="Range">0 0.3</field>
-<field name="Increment">0.01</field>
+<param humanName="Integrator Gain" name="PTCH2SRV_I" documentation="This is the gain applied to the integral of pitch angle. It has the same effect as PTCH2SRV_I in the old PID controller and can be set to the same value. Increasing this gain causes the controller to trim out constant offsets between demanded and measured pitch angle." user="User">
+<field name="Range">0 0.5</field>
+<field name="Increment">0.05</field>
 </param>
-<param humanName="Pitch up max rate" name="CTL_PTCH_RMAX_U" documentation="This sets the maximum nose up pitch rate that the controller will demand (degrees/sec). Setting it to zero disables the limit." user="User">
+<param humanName="Pitch up max rate" name="PTCH2SRV_RMAX_UP" documentation="This sets the maximum nose up pitch rate that the controller will demand (degrees/sec). Setting it to zero disables the limit." user="Advanced">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
 <field name="Units">degrees/second</field>
 </param>
-<param humanName="Pitch down max rate" name="CTL_PTCH_RMAX_D" documentation="This sets the maximum nose down pitch rate that the controller will demand (degrees/sec). Setting it to zero disables the limit." user="User">
+<param humanName="Pitch down max rate" name="PTCH2SRV_RMAX_DN" documentation="This sets the maximum nose down pitch rate that the controller will demand (degrees/sec). Setting it to zero disables the limit." user="Advanced">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
 <field name="Units">degrees/second</field>
 </param>
-<param humanName="Roll compensation" name="CTL_PTCH_K_RLL" documentation="This is the gain term that is applied to the pitch rate offset calculated as required to keep the nose level during turns. The default value is 1 which will work for all models. Advanced users can use it to correct for height variation in turns. If height is lost initially in turns this can be increased in small increments of 0.05 to compensate. If height is gained initially in turns then it can be decreased." user="User">
+<param humanName="Roll compensation" name="PTCH2SRV_RLL" documentation="This is the gain term that is applied to the pitch rate offset calculated as required to keep the nose level during turns. The default value is 1 which will work for all models. Advanced users can use it to correct for height variation in turns. If height is lost initially in turns this can be increased in small increments of 0.05 to compensate. If height is gained initially in turns then it can be decreased." user="User">
 <field name="Range">0.7 1.5</field>
 <field name="Increment">0.05</field>
 </param>
 </parameters>
-<parameters name="CTL_YAW_">
-<param humanName="Sideslip control gain" name="CTL_YAW_K_A" documentation="This is the gain from measured lateral acceleration to demanded yaw rate. It should be set to zero unless active control of sideslip is desired. This will only work effectively if there is enough fuselage side area to generate a measureable lateral acceleration when the model sideslips. Flying wings and most gliders cannot use this term. This term should only be adjusted after the basic yaw damper gain K_D is tuned and the K_I integrator gain has been set. Set this gain to zero if only yaw damping is required.">
+<parameters name="YAW2SRV_">
+<param humanName="Sideslip control gain" name="YAW2SRV_SLIP" documentation="This is the gain from measured lateral acceleration to demanded yaw rate. It should be set to zero unless active control of sideslip is desired. This will only work effectively if there is enough fuselage side area to generate a measureable lateral acceleration when the model sideslips. Flying wings and most gliders cannot use this term. This term should only be adjusted after the basic yaw damper gain YAW2SRV_DAMP is tuned and the YAW2SRV_INT integrator gain has been set. Set this gain to zero if only yaw damping is required.">
 <field name="Range">0 4</field>
 <field name="Increment">0.25</field>
 </param>
-<param humanName="Sidelsip control integrator" name="CTL_YAW_K_I" documentation="This is the integral gain from lateral acceleration error. This gain should only be non-zero if active control over sideslip is desired. If active control over sideslip is required then this can be set to 1.0 as a first try.">
+<param humanName="Sidelsip control integrator" name="YAW2SRV_INT" documentation="This is the integral gain from lateral acceleration error. This gain should only be non-zero if active control over sideslip is desired. If active control over sideslip is required then this can be set to 1.0 as a first try.">
 <field name="Range">0 2</field>
 <field name="Increment">0.25</field>
 </param>
-<param humanName="Yaw damping" name="CTL_YAW_K_D" documentation="This is the gain from yaw rate to rudder. It acts as a damper on yaw motion. If a basic yaw damper is required, this gain term can be incremented, whilst leaving the K_A and K_I gains at zero.">
+<param humanName="Yaw damping" name="YAW2SRV_DAMP" documentation="This is the gain from yaw rate to rudder. It acts as a damper on yaw motion. If a basic yaw damper is required, this gain term can be incremented, whilst leaving the YAW2SRV_SLIP and YAW2SRV_INT gains at zero.">
 <field name="Range">0 2</field>
 <field name="Increment">0.25</field>
 </param>
-<param humanName="Yaw coordination gain" name="CTL_YAW_K_RLL" documentation="This is the gain term that is applied to the yaw rate offset calculated as required to keep the yaw rate consistent with the turn rate for a coordinated turn. The default value is 1 which will work for all models. Advanced users can use it to correct for any tendency to yaw away from or into the turn once the turn is established. Increase to make the model yaw more initially and decrease to make the model yaw less initially. If values greater than 1.1 or less than 0.9 are required then it normally indicates a problem with the airspeed calibration.">
+<param humanName="Yaw coordination gain" name="YAW2SRV_RLL" documentation="This is the gain term that is applied to the yaw rate offset calculated as required to keep the yaw rate consistent with the turn rate for a coordinated turn. The default value is 1 which will work for all models. Advanced users can use it to correct for any tendency to yaw away from or into the turn once the turn is established. Increase to make the model yaw more initially and decrease to make the model yaw less initially. If values greater than 1.1 or less than 0.9 are required then it normally indicates a problem with the airspeed calibration.">
 <field name="Range">0.8 1.2</field>
 <field name="Increment">0.05</field>
 </param>
@@ -2099,6 +2166,33 @@
 <value code="23">Pitch90</value>
 <value code="24">Pitch270</value>
 </values>
+</param>
+</parameters>
+<parameters name="SCHED_">
+<param humanName="Scheduler debug level" name="SCHED_DEBUG" documentation="Set to non-zero to enable scheduler debug messages" user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">ShowSlipe</value>
+<value code="2">ShowOverruns</value>
+</values>
+</param>
+</parameters>
+<parameters name="RCMAP_">
+<param humanName="Roll channel" name="RCMAP_ROLL" documentation="Roll channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Roll is normally on channel 1, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Pitch channel" name="RCMAP_PITCH" documentation="Pitch channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Pitch is normally on channel 2, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Throttle channel" name="RCMAP_THROTTLE" documentation="Throttle channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Throttle is normally on channel 3, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Yaw channel" name="RCMAP_YAW" documentation="Yaw channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Yaw (also known as rudder) is normally on channel 4, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
 </param>
 </parameters>
 <parameters name="INS_">
@@ -2238,6 +2332,8 @@
 </param>
 <param humanName="Airspeed ratio" name="ARSPD_RATIO" documentation="Airspeed calibration ratio">
 <field name="Increment">0.1</field>
+</param>
+<param humanName="Airspeed pin" name="ARSPD_PIN" documentation="The analog pin number that the airspeed sensor is connected to. Set this to 0..9 for the APM2 analog pins. Set to 64 on an APM1 for the dedicated airspeed port on the end of the board. Set to 11 on PX4 for the analog airspeed port. Set to 65 on the PX4 for an EagleTree I2C airspeed sensor." user="Advanced">
 </param>
 </parameters>
 <parameters name="NAVL1_">
@@ -2525,7 +2621,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="HS1_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="HS1_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2550,7 +2646,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="HS2_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="HS2_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2575,7 +2671,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="HS3_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="HS3_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2600,7 +2696,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="HS4_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="HS4_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2625,7 +2721,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC1_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC1_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2650,7 +2746,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC2_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC2_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2675,7 +2771,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC3_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC3_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2700,7 +2796,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC4_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC4_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2725,7 +2821,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC5_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC5_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2775,7 +2871,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC6_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC6_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2825,7 +2921,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC7_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC7_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2875,7 +2971,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC8_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC8_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2925,7 +3021,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC10_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC10_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -2975,7 +3071,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC11_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC11_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -3025,7 +3121,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC9_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC9_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -3075,7 +3171,7 @@
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
-<param humanName="RC reverse" name="RC12_REV" documentation="Reverse servo operation. Ignored on APM1 unless dip-switches are disabled." user="Advanced">
+<param humanName="RC reverse" name="RC12_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
 <values>
 <value code="-1">Reversed</value>
 <value code="1">Normal</value>
@@ -3748,6 +3844,340 @@
 </param>
 <param humanName="Thrust Curve max thrust percentage" name="MOT_TCRV_MAXPCT" documentation="Set to the lowest pwm position that produces the maximum thrust of the motors.  Most motors produce maximum thrust below the maximum pwm value that they accept.">
 <field name="Range">20 80</field>
+</param>
+</parameters>
+<parameters name="RCMAP_">
+<param humanName="Roll channel" name="RCMAP_ROLL" documentation="Roll channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Roll is normally on channel 1, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Pitch channel" name="RCMAP_PITCH" documentation="Pitch channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Pitch is normally on channel 2, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Throttle channel" name="RCMAP_THROTTLE" documentation="Throttle channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Throttle is normally on channel 3, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Yaw channel" name="RCMAP_YAW" documentation="Yaw channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Yaw (also known as rudder) is normally on channel 4, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+</parameters>
+<parameters name="RC1_">
+<param humanName="RC min PWM" name="RC1_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC1_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC1_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC1_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC1_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC2_">
+<param humanName="RC min PWM" name="RC2_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC2_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC2_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC2_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC2_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC3_">
+<param humanName="RC min PWM" name="RC3_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC3_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC3_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC3_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC3_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC4_">
+<param humanName="RC min PWM" name="RC4_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC4_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC4_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC4_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC4_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC5_">
+<param humanName="RC min PWM" name="RC5_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC5_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC5_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC5_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC5_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC6_">
+<param humanName="RC min PWM" name="RC6_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC6_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC6_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC6_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC6_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC7_">
+<param humanName="RC min PWM" name="RC7_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC7_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC7_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC7_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC7_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="RC8_">
+<param humanName="RC min PWM" name="RC8_MIN" documentation="RC minimum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC trim PWM" name="RC8_TRIM" documentation="RC trim (neutral) PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC max PWM" name="RC8_MAX" documentation="RC maximum PWM pulse width. Typically 1000 is lower limit, 1500 is neutral and 2000 is upper limit." user="Advanced">
+<field name="Range">800 2200</field>
+<field name="Increment">1</field>
+<field name="Units">ms</field>
+</param>
+<param humanName="RC reverse" name="RC8_REV" documentation="Reverse servo operation. Set to 1 for normal (forward) operation. Set to -1 to reverse this channel." user="Advanced">
+<values>
+<value code="-1">Reversed</value>
+<value code="1">Normal</value>
+</values>
+</param>
+<param humanName="RC dead-zone" name="RC8_DZ" documentation="dead zone around trim." user="Advanced">
+</param>
+</parameters>
+<parameters name="COMPASS_">
+<param humanName="Compass offsets on the X axis" name="COMPASS_OFS_X" documentation="Offset to be added to the compass x-axis values to compensate for metal in the frame">
+<field name="Range">-400 400</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Compass offsets on the Y axis" name="COMPASS_OFS_Y" documentation="Offset to be added to the compass y-axis values to compensate for metal in the frame">
+<field name="Range">-400 400</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Compass offsets on the Z axis" name="COMPASS_OFS_Z" documentation="Offset to be added to the compass z-axis values to compensate for metal in the frame">
+<field name="Range">-400 400</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Compass declination" name="COMPASS_DEC" documentation="An angle to compensate between the true north and magnetic north" user="Standard">
+<field name="Range">-3.142 3.142</field>
+<field name="Increment">0.01</field>
+<field name="Units">Radians</field>
+</param>
+<param humanName="Learn compass offsets automatically" name="COMPASS_LEARN" documentation="Enable or disable the automatic learning of compass offsets" user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param humanName="Use compass for yaw" name="COMPASS_USE" documentation="Enable or disable the use of the compass (instead of the GPS) for determining heading" user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param humanName="Auto Declination" name="COMPASS_AUTODEC" documentation="Enable or disable the automatic calculation of the declination based on gps location" user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param humanName="Motor interference compensation type" name="COMPASS_MOTCT" documentation="Set motor interference compensation type to disabled, throttle or current.  Do not change manually.">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Use Throttle</value>
+<value code="2">Use Current</value>
+</values>
+<field name="Increment">1</field>
+</param>
+<param humanName="Motor interference compensation for body frame X axis" name="COMPASS_MOT_X" documentation="Multiplied by the current throttle and added to the compass's x-axis values to compensate for motor interference">
+<field name="Range">-1000 1000</field>
+<field name="Increment">1</field>
+<field name="Units">Offset per Amp or at Full Throttle</field>
+</param>
+<param humanName="Motor interference compensation for body frame Y axis" name="COMPASS_MOT_Y" documentation="Multiplied by the current throttle and added to the compass's y-axis values to compensate for motor interference">
+<field name="Range">-1000 1000</field>
+<field name="Increment">1</field>
+<field name="Units">Offset per Amp or at Full Throttle</field>
+</param>
+<param humanName="Motor interference compensation for body frame Z axis" name="COMPASS_MOT_Z" documentation="Multiplied by the current throttle and added to the compass's z-axis values to compensate for motor interference">
+<field name="Range">-1000 1000</field>
+<field name="Increment">1</field>
+<field name="Units">Offset per Amp or at Full Throttle</field>
+</param>
+<param humanName="Compass orientation" name="COMPASS_ORIENT" documentation="The orientation of the compass relative to the autopilot board. This will default to the right value for each board type, but can be changed if you have an external compass. See the documentation for your external compass for the right value. The correct orientation should give the X axis forward, the Y axis to the right and the Z axis down. So if your aircraft is pointing west it should show a position value for the Y axis, and a value close to zero for the X axis. NOTE: This orientation is combined with any AHRS_ORIENTATION setting. ">
+<values>
+<value code="0">None</value>
+<value code="1">Yaw45</value>
+<value code="2">Yaw90</value>
+<value code="3">Yaw135</value>
+<value code="4">Yaw180</value>
+<value code="5">Yaw225</value>
+<value code="6">Yaw270</value>
+<value code="7">Yaw315</value>
+<value code="8">Roll180</value>
+<value code="9">Roll180Yaw45</value>
+<value code="10">Roll180Yaw90</value>
+<value code="11">Roll180Yaw135</value>
+<value code="12">Pitch180</value>
+<value code="13">Roll180Yaw225</value>
+<value code="14">Roll180Yaw270</value>
+<value code="15">Roll180Yaw315</value>
+<value code="16">Roll90</value>
+<value code="17">Roll90Yaw45</value>
+<value code="18">Roll90Yaw135</value>
+<value code="19">Roll270</value>
+<value code="20">Roll270Yaw45</value>
+<value code="21">Roll270Yaw90</value>
+<value code="22">Roll270Yaw136</value>
+<value code="23">Pitch90</value>
+<value code="24">Pitch270</value>
+</values>
+</param>
+</parameters>
+<parameters name="SCHED_">
+<param humanName="Scheduler debug level" name="SCHED_DEBUG" documentation="Set to non-zero to enable scheduler debug messages" user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">ShowSlipe</value>
+<value code="2">ShowOverruns</value>
+</values>
+</param>
+</parameters>
+<parameters name="RCMAP_">
+<param humanName="Roll channel" name="RCMAP_ROLL" documentation="Roll channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Roll is normally on channel 1, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Pitch channel" name="RCMAP_PITCH" documentation="Pitch channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Pitch is normally on channel 2, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Throttle channel" name="RCMAP_THROTTLE" documentation="Throttle channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Throttle is normally on channel 3, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Yaw channel" name="RCMAP_YAW" documentation="Yaw channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Yaw (also known as rudder) is normally on channel 4, but you can move it to any channel with this parameter." user="Advanced">
+<field name="Range">1 8</field>
+<field name="Increment">1</field>
 </param>
 </parameters>
 <parameters name="SONAR_">
