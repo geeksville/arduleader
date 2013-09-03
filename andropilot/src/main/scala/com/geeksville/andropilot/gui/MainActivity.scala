@@ -217,6 +217,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
 
     case MsgArmChanged(armed) =>
+      debug(s"Arm changed to $armed")
       invalidateOptionsMenu()
 
     case MsgStatusChanged(s, severity) =>

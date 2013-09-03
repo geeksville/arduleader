@@ -112,6 +112,16 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     eventStream.publish(MsgParametersDownloaded)
   }
 
+  /**
+   * We only want to stop downloading _once_ if we get multiple completions
+   */
+  private def perhapsParametersDownloaded() {
+    if (!hasParameters)
+      onParametersDownloaded()
+    else
+      log.warn("Ignoring stale parameter update")
+  }
+
   override def onReceive = mReceive.orElse(super.onReceive)
 
   private def mReceive: Receiver = {
@@ -152,6 +162,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
       } else {
         // Are we done with our initial download early?  If so, we can publish done right now
         if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
+          log.info("Sending early finish")
           finisher.foreach(_.cancel())
           finisher = None
           self ! FinishParameters
@@ -167,6 +178,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
       }
 
     case FinishParameters =>
+      log.info("Handling finish parameters")
       if (useRequestById)
         readNextParameter()
       else
@@ -199,14 +211,15 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    * We setup a deadman timer after each parameter
    */
   private def restartFinisher() {
-    finisher.foreach(_.cancel)
+    finisher.foreach(_.cancel())
     finisher = Some(MockAkka.scheduler.scheduleOnce(4 seconds, ParametersModel.this, FinishParameters))
   }
 
   private def requestParameterByIndex(i: Int) {
     sendWithRetry(paramRequestReadByIndex(i), classOf[msg_param_value], { () =>
       // We failed, just tell everyone we are done
-      onParametersDownloaded()
+      log.warn("failed read by index")
+      perhapsParametersDownloaded()
     })
   }
 
@@ -228,11 +241,11 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
       log.warn("Asking for params, attempts remaining: " + numAttemptsRemaining)
       restartParameterDownload()
     } else
-      onParametersDownloaded() // Yay!  Success (or we gave up)
+      perhapsParametersDownloaded() // Yay!  Success (or we gave up)
   }
 
   /**
-   * If we are still missing parameters, try to read again
+   * If we are still missing parameters, try to read again (only used if we are reading params by id)
    */
   private def readNextParameter() {
     val isMissing = unsortedParameters.zipWithIndex.find {
@@ -244,9 +257,11 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
         !hasData // Stop here?
     }.isDefined
 
+    log.info(s"In readNextParameter missing=$isMissing")
+
     retryingParameters = isMissing
     if (!isMissing) {
-      onParametersDownloaded() // Yay - we have everything!
+      perhapsParametersDownloaded() // Yay - we have everything!
     }
   }
 }

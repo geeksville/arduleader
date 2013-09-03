@@ -1,3 +1,7 @@
+# 1.7.03
+* If a copter fails to arm, voice announce the reason
+* Improve the "Arm" menu item to work 100% correctly for arming/disarming copters
+ 
 # 1.7.00
 * Add support for copter style fences (plane was already supported)
 * Dramatically speed up parameter download over low quality links
