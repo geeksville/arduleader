@@ -13,6 +13,7 @@ import org.mavlink.messages.MAV_MODE_FLAG
 
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
+case class MsgArmChanged(armed: Boolean)
 
 /**
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
@@ -73,6 +74,7 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   protected def onArmedChanged(armed: Boolean) {
     log.info("Armed changed: " + armed)
+    eventStream.publish(MsgArmChanged(armed))
   }
 
   protected def onModeChanged(m: Int) {

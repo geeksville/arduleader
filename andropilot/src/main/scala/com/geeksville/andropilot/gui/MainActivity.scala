@@ -216,6 +216,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
       }
 
+    case MsgArmChanged(armed) =>
+      invalidateOptionsMenu()
+
     case MsgStatusChanged(s, severity) =>
       handler.post { () =>
         handleStatus(s, severity)
@@ -233,9 +236,19 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private def handleStatus(s: String, severity: Int) {
     debug("Status changed: " + s)
-    if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE)
-      toast(s)
-    else {
+    if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE) {
+      val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
+      toast(s, isImportant)
+
+      if (isImportant) {
+        val prefix = "PreArm: "
+        val toSpeak = if (s.startsWith(prefix))
+          s.substring(prefix.length)
+        else
+          s
+        speak(toSpeak)
+      }
+    } else {
       // Show a user dialog and have them ack what the APM wants acked
 
       val builder = new AlertDialog.Builder(this)
@@ -739,9 +752,11 @@ class MainActivity extends FragmentActivity with TypedActivity
     myVehicle.foreach { v =>
       val armMenu = menu.findItem(R.id.menu_arm)
 
-      if (v.isCopter)
-        armMenu.setChecked(v.isArmed)
-      else
+      if (v.isCopter) {
+        val armed = v.isArmed
+        debug("Setting arm checkbox to " + armed)
+        armMenu.setChecked(armed)
+      } else
         armMenu.setVisible(false)
     }
 
@@ -812,7 +827,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         val n = !item.isChecked
         myVehicle.foreach { v =>
           v.sendMavlink(v.commandDoArm(n))
-          item.setChecked(n)
+          //item.setChecked(n) - wait for the next heartbeat msg
         }
 
       case R.id.menu_showjoystick =>
