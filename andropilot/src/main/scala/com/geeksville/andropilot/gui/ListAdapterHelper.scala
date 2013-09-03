@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.graphics.Color
 import java.util.ArrayList
+import android.view.LayoutInflater
+import android.os.Bundle
 
 /**
  * A mixin that makes it easier to use SimpleAdapters

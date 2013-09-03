@@ -19,8 +19,9 @@ import android.graphics.Color
 import com.geeksville.flight.MsgParameterReceived
 import android.support.v4.app.Fragment
 import com.geeksville.flight.ParametersModel
+import com.geeksville.flight.MsgParameterDownloadProgress
 
-class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue] with AndroServiceFragment {
+class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue] with ProgressList with AndroServiceFragment {
   private var selected = -1
   private var haveInitialParams = false
 
@@ -36,6 +37,8 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
     debug("Creating parameter list view")
     // Inflate the layout for this fragment
     super.onActivityCreated(savedInstanceState)
+
+    progressBar.setMax(100 * 100)
 
     // Fire up our editor dialog as needed
     getListView.setOnItemLongClickListener(new OnItemLongClickListener {
@@ -64,6 +67,12 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
     case MsgParametersDownloaded =>
       haveInitialParams = true
       handler.post(updateParameters _)
+
+    case MsgParameterDownloadProgress(primary, secondary) =>
+      handler.post { () =>
+        progressBar.setProgress(primary * 100)
+        progressBar.setSecondaryProgress(primary * 100 + secondary * 100)
+      }
 
     case MsgParameterReceived(index) =>
       if (haveInitialParams) // Don't bother with every little update when we haven't received our big squirt

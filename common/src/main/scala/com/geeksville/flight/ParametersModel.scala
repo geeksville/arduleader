@@ -28,6 +28,13 @@ case object MsgParametersDownloaded
 case class MsgParameterReceived(index: Int)
 
 /**
+ * A download progress update
+ * primary is a number between 0 and 100 showing the amount of 'primary' progress (each big download pass)
+ * secondary is a number between 0 and 100 showing per param progress
+ */
+case class MsgParameterDownloadProgress(primary: Int, secondary: Int)
+
+/**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
 trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
@@ -47,9 +54,15 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    */
   private val useRequestById = false
 
-  private var numAttemptsRemaining = 10
+  private val maxNumAttempts = 10
+  private var numAttemptsRemaining = maxNumAttempts
 
   def hasParameters = !parametersById.isEmpty
+
+  /**
+   * How many params do we want to find
+   */
+  private def numParametersDesired = unsortedParameters.size
 
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
@@ -78,6 +91,12 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     }
   }
 
+  private def sendProgress(secondary: Int) {
+    val primary = 100 * (maxNumAttempts - numAttemptsRemaining - 1) / maxNumAttempts
+
+    eventStream.publish(MsgParameterDownloadProgress(primary, secondary))
+  }
+
   protected def onParametersDownloaded() {
     setStreamEnable(true) // Turn streaming back on
 
@@ -102,6 +121,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
     case msg: msg_param_value =>
       // log.debug("Receive: " + msg)
+      restartFinisher()
       checkRetryReply(msg)
       if (msg.param_count != unsortedParameters.size) {
         // Resize for new parameter count
@@ -121,7 +141,10 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
         msg.param_index = index
       }
 
-      unsortedParameters(index).raw = Some(msg)
+      if (unsortedParameters(index).raw == None) {
+        unsortedParameters(index).raw = Some(msg)
+        sendProgress(100 * index / (numParametersDesired - 1))
+      }
 
       // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
       if (retryingParameters) {
@@ -169,8 +192,15 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   private def restartParameterDownload() {
     log.info("Requesting vehicle parameters")
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
+    restartFinisher()
+  }
+
+  /**
+   * We setup a deadman timer after each parameter
+   */
+  private def restartFinisher() {
     finisher.foreach(_.cancel)
-    finisher = Some(MockAkka.scheduler.scheduleOnce(30 seconds, ParametersModel.this, FinishParameters))
+    finisher = Some(MockAkka.scheduler.scheduleOnce(4 seconds, ParametersModel.this, FinishParameters))
   }
 
   private def requestParameterByIndex(i: Int) {

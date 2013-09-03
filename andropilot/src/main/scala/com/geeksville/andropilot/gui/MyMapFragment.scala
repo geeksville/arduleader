@@ -479,6 +479,14 @@ class MyMapFragment extends SupportMapFragment
 
     case MsgWaypointCurrentChanged(n) =>
       handler.post(handleWaypoints _)
+
+    // geofence options might have changed - so redraw
+    case MsgParametersDownloaded =>
+      handler.post(handleWaypoints _)
+
+    // geofence options might have changed - so redraw
+    case MsgParameterReceived(index) =>
+      handler.post(handleWaypoints _)
   }
 
   private def redrawMarker() {

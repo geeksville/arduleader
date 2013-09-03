@@ -1,7 +1,9 @@
 # 1.7.00
 * Add support for copter style fences (plane was already supported)
-* Update google play services
+* Dramatically speed up parameter download over low quality links
+* We now show progress bar as parameters are being downloaded
 * Update autodocs for parameters
+* Update google play services
 
 # 1.6.08
 * Oops - typo, wasn't properly checking min battery voltage from the preferences

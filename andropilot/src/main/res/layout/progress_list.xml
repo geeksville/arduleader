@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <!--             style="?android:attr/progressBarStyleLarge" -->
+        <ProgressBar
+            android:id="@id/android:empty"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" 
+            android:layout_marginTop="8dip"
+            android:layout_marginBottom="8dip"
+            android:layout_marginRight="8dip"
+            android:layout_marginLeft="8dip"
+            />
+        
+        <ListView
+            android:id="@id/android:list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:drawSelectorOnTop="false" >
+        </ListView>
+</FrameLayout>
