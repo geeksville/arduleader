@@ -14,6 +14,8 @@ case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Option[Double] = 
   def fixed = quality > 0
 
   def velocity = for { x <- vx; y <- vy } yield { math.sqrt(x * x + y * y) }
+
+  def distance(l: Location) = MathTools.distance(lat, lon, l.lat, l.lon)
 }
 
 object Location extends Logging {

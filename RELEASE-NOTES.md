@@ -1,3 +1,8 @@
+# 1.7.04
+* Announce Arm/Disarm via voice
+* Show estimated radio range as two blue circles (one circle centered on the GCS, one circle centered on the vehicle).
+  This is the predicted range that radio will lose signal reception.
+
 # 1.7.03
 * If a copter fails to arm, voice announce the reason
 * Improve the "Arm" menu item to work 100% correctly for arming/disarming copters

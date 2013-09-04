@@ -41,6 +41,8 @@ import com.geeksville.gmaps.PolylineFactory
 import org.mavlink.messages.FENCE_ACTION
 import com.geeksville.flight.MsgWaypointCurrentChanged
 import com.geeksville.gmaps.CircleFactory
+import android.location.LocationListener
+import android.location.LocationManager
 
 /**
  * Our customized map fragment
@@ -64,6 +66,37 @@ class MyMapFragment extends SupportMapFragment
   var planeMarker: Option[VehicleMarker] = None
 
   private var actionMode: Option[ActionMode] = None
+
+  /**
+   * Add an android location listener
+   */
+  /*
+  private lazy val location = new LocationListener {
+
+    var userGpsLoc: Option[Location] = None
+
+    private val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
+
+    override def onLocationChanged(location: Location) {
+      userGpsLoc = Some(location)
+      handler.post { () =>
+        redrawMarker()
+      }
+    }
+
+    override def onProviderDisabled(provider: String) {}
+    override def onProviderEnabled(provider: String) {}
+    override def onStatusChanged(provider: String, status: Int, extras: Bundle) {}
+
+    def open() {
+      locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 20, this)
+    }
+
+    def close() {
+      locManager.removeUpdates(this)
+    }
+  }
+*/
 
   private lazy val contextMenuCallback = new WaypointActionMode(getActivity) with ActionModeCallback {
 
@@ -437,6 +470,9 @@ class MyMapFragment extends SupportMapFragment
     case MsgSysStatusChanged =>
       //debug("SysStatus changed")
       handler.post { () =>
+        // radio range might have changed
+        handleWaypoints()
+
         updateMarker()
       }
 
@@ -448,11 +484,8 @@ class MyMapFragment extends SupportMapFragment
 
     case MsgModeChanged(_) =>
       handler.post { () =>
-        myVehicle.foreach { v =>
-
-          // we may need to update the segment lines 
-          handleWaypoints()
-        }
+        // we may need to update the segment lines 
+        handleWaypoints()
 
         updateMarker()
       }
@@ -587,7 +620,7 @@ class MyMapFragment extends SupportMapFragment
             val color = Color.YELLOW
             val home = homeOpt.get.location
             val center = new LatLng(home.lat, home.lon)
-            val circle = new CircleFactory((new CircleOptions).center(center).strokeColor(color).strokeWidth(5).radius(fenceRadius.get))
+            val circle = new CircleFactory((new CircleOptions).center(center).strokeColor(color).strokeWidth(8).radius(fenceRadius.get))
             scene.drawables.append(circle)
           } else {
 
@@ -604,6 +637,27 @@ class MyMapFragment extends SupportMapFragment
 
             val line = PolylineFactory(points, color)
             scene.drawables.append(line)
+          }
+        }
+
+        def createRangeCircles() = {
+          for {
+            r <- v.radio
+            vLoc <- v.location
+            map <- mapOpt
+          } yield {
+            val gcsAndroidLoc = map.getMyLocation
+            val gcsLoc = Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude)
+            val curDist = vLoc.distance(gcsLoc).toFloat
+            val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)
+
+            val gcsLocLatLng = new LatLng(gcsLoc.lat, gcsLoc.lon)
+            scene.drawables.append(new CircleFactory((new CircleOptions).center(gcsLocLatLng).
+              strokeColor(Color.BLUE).strokeWidth(5).radius(localRange)))
+
+            val vLocLatLng = new LatLng(vLoc.lat, vLoc.lon)
+            scene.drawables.append(new CircleFactory((new CircleOptions).center(vLocLatLng).
+              strokeColor(Color.BLUE).strokeWidth(5).radius(remRange)))
           }
         }
 
@@ -629,7 +683,10 @@ class MyMapFragment extends SupportMapFragment
           createWaypointSegments()
         }
 
+        createRangeCircles()
+
         createFenceSegments()
+
         fenceMarker.foreach(_.remove())
         fenceMarker = v.fenceReturnPoint.map { p =>
           val m = new FenceReturnMarker(p)
