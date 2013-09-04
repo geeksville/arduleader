@@ -43,6 +43,8 @@ import com.geeksville.flight.MsgWaypointCurrentChanged
 import com.geeksville.gmaps.CircleFactory
 import android.location.LocationListener
 import android.location.LocationManager
+import org.mavlink.messages.ardupilotmega.msg_radio
+import com.geeksville.util.Throttled
 
 /**
  * Our customized map fragment
@@ -55,6 +57,8 @@ class MyMapFragment extends SupportMapFragment
   private var waypointMarkers = Seq[DraggableWaypointMarker]()
 
   def mapOpt = Option(getMap)
+
+  private val statusThrottle = new Throttled(15000)
 
   /**
    * If we are going to a GUIDED location
@@ -469,11 +473,14 @@ class MyMapFragment extends SupportMapFragment
 
     case MsgSysStatusChanged =>
       //debug("SysStatus changed")
-      handler.post { () =>
-        // radio range might have changed
-        handleWaypoints()
 
-        updateMarker()
+      statusThrottle { () =>
+        handler.post { () =>
+          // radio range might have changed
+          handleWaypoints()
+
+          updateMarker()
+        }
       }
 
     case MsgStatusChanged(s, _) =>
@@ -588,6 +595,14 @@ class MyMapFragment extends SupportMapFragment
     provisionalMarker = None
   }
 
+  /// For testing
+  val fakeRadio = Some(new msg_radio(1, 1) {
+    rssi = 130
+    remrssi = 130
+    noise = 10
+    remnoise = 10
+  })
+
   /**
    * Generate our scene
    */
@@ -642,11 +657,11 @@ class MyMapFragment extends SupportMapFragment
 
         def createRangeCircles() = {
           for {
-            r <- v.radio
+            r <- v.radio // fakeRadio 
             vLoc <- v.location
             map <- mapOpt
+            gcsAndroidLoc <- Option(map.getMyLocation)
           } yield {
-            val gcsAndroidLoc = map.getMyLocation
             val gcsLoc = Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude)
             val curDist = vLoc.distance(gcsLoc).toFloat
             val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)

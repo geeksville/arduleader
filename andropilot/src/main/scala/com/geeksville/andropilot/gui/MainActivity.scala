@@ -84,6 +84,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var mainView: View = null
   private var modeSpinner: Option[Spinner] = None
 
+  private var oldArmed = false
+
   /**
    * If an intent arrives before our service is up, squirel it away until we can handle it
    */
@@ -216,11 +218,6 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
       }
 
-    case MsgArmChanged(armed) =>
-      debug(s"Arm changed to $armed")
-      speak(if (armed) "Armed" else "Disarmed")
-      invalidateOptionsMenu()
-
     case MsgStatusChanged(s, severity) =>
       handler.post { () =>
         handleStatus(s, severity)
@@ -245,7 +242,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       if (isImportant) {
         val prefix = "PreArm: "
         val toSpeak = if (s.startsWith(prefix))
-          s.substring(prefix.length)
+          "Failure to ARM: " + s.substring(prefix.length)
         else
           s
         speak(toSpeak)
@@ -701,7 +698,12 @@ class MainActivity extends FragmentActivity with TypedActivity
         }
         myVehicle.foreach { v =>
           val modeName = if (v.hasHeartbeat) {
-            speak(v.currentMode, true)
+            val toSpeak = if (v.isArmed != oldArmed) {
+              oldArmed = v.isArmed
+              if (oldArmed) "Armed" else "Disarmed"
+            } else
+              v.currentMode
+            speak(toSpeak)
             debug("Spinning to " + v.currentMode)
             v.currentMode
           } else {
@@ -712,7 +714,10 @@ class MainActivity extends FragmentActivity with TypedActivity
           val n = findIndex(modeName)
           //debug("Setting mode spinner to: " + n)
 
-          s.setSelection(n)
+          val curModeName = s.getSelectedItem.toString
+          debug(s"Current mode string is $curModeName")
+          if (curModeName != modeName)
+            s.setSelection(n)
         }
       }
   }
