@@ -81,6 +81,7 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Mavl
         var oldLost = 0L
         var oldNumPacket = 0L
         var numPacket = 0L
+        var prevSeq = -1
 
         while (!self.isTerminated) {
           try {
@@ -116,9 +117,11 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Mavl
                 log.info("msgs per sec %s, bytes dropped per sec=%s".format(mPerSec, dropPerSec))
               }
 
-              //  for profiling
-              if (!MavlinkStream.isIgnoreReceive)
+              // Dups are normal, the 3dr radio will duplicate packets if it has nothing better to do
+              if (s.sequence != prevSeq && !MavlinkStream.isIgnoreReceive) //  for profiling
                 handlePacket(s)
+
+              prevSeq = s.sequence
             }
           } catch {
 

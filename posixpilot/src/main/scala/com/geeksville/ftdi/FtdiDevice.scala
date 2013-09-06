@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import com.geeksville.util.DebugInputStream
 import com.geeksville.logback.Logging
 
-class FtdiDevice(vendor: Int, product: Int) extends Logging {
+class FtdiDevice(vendor: Int, product: Int, serial: String = null) extends Logging {
   val handle = ftdi_new()
 
   private var isClosed = false
@@ -21,7 +21,7 @@ class FtdiDevice(vendor: Int, product: Int) extends Logging {
   val out = new FtdiOutputStream(this)
   val in = new FtdiInputStream(this)
 
-  checkError(ftdi_usb_open(handle, vendor, product))
+  checkError(ftdi_usb_open_desc(handle, vendor, product, null, serial))
   checkError(ftdi_usb_purge_buffers(handle))
 
   /// Make sure we tear down our FTDI object cleanly when our app exits (otherwise we blow chunks on Windows)
@@ -64,6 +64,9 @@ class FtdiDevice(vendor: Int, product: Int) extends Logging {
             if (msg.contains("bulk read failed") && readRetriesLeft > 0) {
               logger.error("Ignoring mystery " + msg)
               readRetriesLeft -= 1
+
+              /// Allow a little time for the buggy FTDI code to start up
+              Thread.sleep(200)
             } else
               throw new FtdiException("LibFTDI error " + msg)
           } else

@@ -47,26 +47,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.custom_mode = 0
     msg.system_status = MAV_STATE.MAV_STATE_ACTIVE
     msg.mavlink_version = 3 // Seems to be what ardupilot uses
-
     msg
-  }
-
-  // Send a heartbeat every few seconds 
-  val heartbeatSender = acontext.system.scheduler.schedule(1 seconds, 3 seconds) {
-    //self.log.debug("Sending heartbeat")
-    sendMavlink(heartbeat)
   }
 
   def systemId: Int
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
-  def sendMavlink(m: SendYoungest) = MavlinkEventBus.publish(m)
 
-  override def postStop() {
-    log.debug("cancelling heartbeat sender")
-    heartbeatSender.cancel()
-    super.postStop()
-  }
+  def sendMavlink(m: SendYoungest) = MavlinkEventBus.publish(m)
 
   /**
    * Set by ardupilot custom modes

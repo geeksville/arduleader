@@ -23,7 +23,7 @@ import com.geeksville.mavlink.MavlinkConstants
 /**
  * An endpoint client that talks to a vehicle (adds message retries etc...)
  */
-class VehicleClient extends HeartbeatMonitor with VehicleSimulator with MavlinkConstants {
+class VehicleClient extends HeartbeatMonitor with VehicleSimulator with HeartbeatSender with MavlinkConstants {
 
   case class RetryExpired(ctx: RetryContext)
 

@@ -21,13 +21,22 @@ trait MavlinkSender extends InstrumentedActor {
    */
   protected def doSendMavlink(bytes: Array[Byte])
 
+  var seqNum = 0
+
+  private def assignSequence(msg: MAVLinkMessage) = {
+    msg.sequence = seqNum
+    seqNum = (seqNum + 1) & 0xff
+    //log.debug(s"sending $msg")
+    msg
+  }
+
   def onReceive = {
     case SendYoungest(msg) =>
-      doSendMavlink(findYoungest(msg).get.encode())
+      doSendMavlink(assignSequence(findYoungest(msg).get).encode())
 
     case msg: MAVLinkMessage ⇒
       //log.debug("UDPSend: " + msg)
-      doSendMavlink(msg.encode())
+      doSendMavlink(assignSequence(msg).encode())
   }
 
   /**

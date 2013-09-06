@@ -9,6 +9,11 @@ class LogIncomingMavlink(sysId: Int, allow: MAVLinkMessage => Boolean = allowDef
   MavlinkEventBus.subscribe(self, sysId)
 
   def onReceive = {
+    case msg: msg_rc_channels_override =>
+      val sent = ((msg.chan4_raw & 0xffffffffL) << 48L) | ((msg.chan3_raw & 0xffffffffL) << 32L) | ((msg.chan2_raw & 0xffffffffL) << 16L) | (msg.chan1_raw & 0xffffffffL)
+      val now = System.currentTimeMillis()
+      log.info("RC override latency " + (now - sent) + " ms")
+
     case msg: msg_statustext =>
       log.info("Rcv" + msg.sysId + ": " + msg.getText)
 

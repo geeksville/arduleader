@@ -43,6 +43,8 @@ object LibFtdi {
   @native
   def ftdi_usb_open(ftdi: ftdi_context, vendor: INT, product: INT): INT
   @native
+  def ftdi_usb_open_desc(ftdi: ftdi_context, vendor: INT, product: INT, desc: String, serial: String): INT
+  @native
   def ftdi_usb_close(ftdi: ftdi_context): INT
   @native
   def ftdi_setflowctrl(ftdi: ftdi_context, ctrl: INT): INT
@@ -68,8 +70,8 @@ object LibFtdi {
   @native
   def ftdi_get_error_string(ftdi: ftdi_context): String
 
-  def open(vendor: Int, product: Int) = {
-    new FtdiDevice(vendor, product)
+  def open(vendor: Int, product: Int, serial: String = null) = {
+    new FtdiDevice(vendor, product, serial)
   }
 
   /// For testing

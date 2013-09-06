@@ -17,6 +17,7 @@ import com.geeksville.flight.FlightLead
 import com.geeksville.akka.MockAkka
 import java.io.File
 import com.geeksville.mavserve.MavServe
+import com.geeksville.mavlink.LogIncomingMavlink
 
 object Main extends Logging {
 
@@ -52,7 +53,7 @@ object Main extends Logging {
     try {
       val telemPort = "/dev/ttyUSB0"
       val serDriver = if ((new File(telemPort)).exists)
-        MavlinkPosix.openFtdi(telemPort, 57600)
+        MavlinkPosix.openFtdi(null, 57600)
       else
         MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
 
@@ -64,6 +65,42 @@ object Main extends Logging {
   }
 
   def createSITLClient() = createMavlinkClient(MavlinkTCP.connect("localhost", 5760))
+
+  /**
+   * A quick hack to send a bunch of traffic in one direction and time RC overrides the other way
+   */
+  def testRadios() {
+
+    logger.info("Starting radio test")
+    val serGcs = MockAkka.actorOf(MavlinkPosix.openFtdi("A900X44V", 57600), "serrx0")
+    val serVehicle = MockAkka.actorOf(MavlinkPosix.openFtdi("A1011M1P", 57600), "serrx1")
+
+    //MavlinkEventBus.subscribe(serGcs, 1) // Anything from vehicle goes to gcs
+    //MavlinkEventBus.subscribe(serVehicle, 253) // Anything from gcs goes to vehicle
+
+    val rcrcv = MockAkka.actorOf(new RCOverrideDebug(253), "gclog")
+    //MockAkka.actorOf(new LogIncomingMavlink(1), "vlog")
+
+    val gcs = MockAkka.actorOf(new DirectSending(253), "fakegcs")
+    gcs.sendingInterface = Some(serGcs)
+    val vehicle = MockAkka.actorOf(new StressTestVehicle(1), "fakevehicle")
+    vehicle.sendingInterface = Some(serVehicle)
+
+    // Send some fake RC overrides
+    MockAkka.scheduler.schedule(2 seconds, 300 milliseconds) { () =>
+      val rc = gcs.rcChannelsOverride(1)
+      val now = System.currentTimeMillis
+      rc.chan1_raw = (now.toInt & 0xffff)
+      rc.chan2_raw = ((now >> 16).toInt & 0xffff)
+      rc.chan3_raw = ((now >> 32).toInt & 0xffff)
+      rc.chan4_raw = ((now >> 48).toInt & 0xffff)
+
+      //logger.debug(s"Sending override at $now")
+      rcrcv.expectedSend = now
+      serVehicle ! rc // Send to the interface directly rather than using mavlinkSend - because we want to control which port gets what data
+    }
+
+  }
 
   def main(args: Array[String]) {
     logger.info("FlightLead running...")
@@ -81,20 +118,24 @@ object Main extends Logging {
     System.setProperty("jna.nosys", "true")
 
     // FIXME - select these options based on cmd line flags
-    val startOutgoingUDP = true
+    val startOutgoingUDP = false
     val startIncomingUDP = false
-    val startSerial = true
+    val startSerial = false
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
     val startMonitor = false
-    val startMavServe = true
+    val startMavServe = false
     val dumpSerialRx = false
     val logToConsole = false
-    val logToFile = true
+    val logToFile = false
+    val startRadios = true
 
     if (startSerial)
       createSerial()
+
+    if (startRadios)
+      testRadios()
 
     if (startSITL)
       createSITLClient()
