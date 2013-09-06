@@ -10,11 +10,17 @@ import com.bugsense.trace.BugSenseHandler
   resToastText = R.string.crash_toast_text)
   * 
   */
-class MyApplication extends Application {
+class MyApplication extends Application with AndropilotPrefs {
+  override def context = this
+
   override def onCreate() {
     // The following line triggers the initialization of ACRA
     // ACRA.init(this)
     BugSenseHandler.initAndStartSession(this, "2a5e5e70")
+    val username = dshareUsername
+    if (!username.isEmpty)
+      BugSenseHandler.setUserIdentifier(dshareUsername)
+
     // BugSenseHandler.setLogging(true)
 
     FlurryAgent.setCaptureUncaughtExceptions(false) // So we get the reports through google instead
