@@ -38,7 +38,7 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
     // Inflate the layout for this fragment
     super.onActivityCreated(savedInstanceState)
 
-    progressBar.setMax(100 * 100)
+    progressBar.foreach(_.setMax(100 * 100))
 
     // Fire up our editor dialog as needed
     getListView.setOnItemLongClickListener(new OnItemLongClickListener {
@@ -70,8 +70,10 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
 
     case MsgParameterDownloadProgress(primary, secondary) =>
       handler.post { () =>
-        progressBar.setProgress(primary * 100)
-        progressBar.setSecondaryProgress(primary * 100 + secondary * 100)
+        progressBar.foreach { bar =>
+          bar.setProgress(primary * 100)
+          bar.setSecondaryProgress(primary * 100 + secondary * 100)
+        }
       }
 
     case MsgParameterReceived(index) =>

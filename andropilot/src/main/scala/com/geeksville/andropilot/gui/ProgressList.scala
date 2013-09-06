@@ -11,7 +11,7 @@ import android.widget.ProgressBar
  * A mixin that adds a progress bar while loading
  */
 trait ProgressList extends ListFragment {
-  protected def progressBar = getView.findViewById(android.R.id.empty).asInstanceOf[ProgressBar]
+  protected def progressBar = Option(getView).map(_.findViewById(android.R.id.empty).asInstanceOf[ProgressBar])
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     val view = inflater.inflate(R.layout.progress_list, container, false);
