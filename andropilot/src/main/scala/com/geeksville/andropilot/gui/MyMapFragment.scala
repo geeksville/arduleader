@@ -563,16 +563,15 @@ class MyMapFragment extends SupportMapFragment
   private def selectMarker(m: MyMarker) {
     contextMenuCallback.selectedMarker = Some(m)
 
+    invalidateContextMenu() // menu choices might have changed
+
     // Start up action menu if necessary
-    actionMode match {
-      case Some(am) =>
-        invalidateContextMenu() // menu choices might have changed
-      case None =>
-        // FIXME - temp hack to not raise menu for clicks on plane
-        if (!m.isInstanceOf[VehicleMarker]) {
-          startActionMode(contextMenuCallback)
-          getView.setSelected(true)
-        }
+    if (!actionMode.isDefined) {
+      // FIXME - temp hack to not raise menu for clicks on plane
+      if (!m.isInstanceOf[VehicleMarker]) {
+        startActionMode(contextMenuCallback)
+        getView.setSelected(true)
+      }
     }
   }
 
