@@ -147,7 +147,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
-  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) {
+  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
     val warning = if (isLowVolt)
       R.string.spk_warn_volt
     else if (isLowBatPercent)
