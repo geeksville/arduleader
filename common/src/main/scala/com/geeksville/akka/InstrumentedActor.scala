@@ -29,6 +29,9 @@ trait InstrumentedActor extends Actor with Logging {
 
   def isTerminated = isDead
 
+  /// For debugging it is sometimes useful to peek at this
+  def debugMailboxSize = mailboxSize
+
   /**
    * The replacement for the akka receive method
    */
