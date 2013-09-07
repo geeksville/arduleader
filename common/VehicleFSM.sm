@@ -1,0 +1,97 @@
+%{
+//
+// Copyright (c) 2013 Kevin Hester
+// All rights reserved.
+//
+%}
+
+// This FSM works for the VehicleModel class
+
+%class VehicleModel
+%package com.geeksville.flight
+%fsmclass VehicleFSM
+%access package
+
+%start VehicleFSM::WantInterface
+%map VehicleFSM
+%%
+
+//
+// Begin the 4 initializing states
+
+WantInterface
+{
+  OnHasInterface
+    WantVehicle
+    {}
+}
+
+WantVehicle
+{
+  OnHasHeartbeat
+    DownloadingWaypoints
+    {}
+}
+
+DownloadingWaypoints
+{
+  OnWaypointsDownloaded
+    DownloadingParameters
+    {}
+}
+
+DownloadingParameters
+Entry { setStreamEnable(false); }
+Exit { setStreamEnable(true); }
+{
+
+  OnParametersDownloaded
+    DownloadedParameters
+    {}
+}
+
+DownloadedParameters
+{
+  HBSaysArmed
+    Armed
+    {}
+
+  HBSaysDisarmed
+    Disarmed
+    {}
+
+  HBSaysFlying
+    Flying
+    {}
+}
+
+//
+// Now the operational states
+//
+
+Disarmed
+{
+  HBSaysArmed
+    Armed
+    {}
+}
+
+Armed
+{
+  HBSaysDisarmed
+    Disarmed
+    {}
+
+  HBSaysFlying
+    Flying
+    {}
+}
+
+Flying
+{
+  HBSaysDisarmed
+    Disarmed
+    {}
+}
+
+%%

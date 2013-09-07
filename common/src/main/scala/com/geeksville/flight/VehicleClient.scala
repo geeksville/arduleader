@@ -127,7 +127,7 @@ class VehicleClient extends HeartbeatMonitor with VehicleSimulator with Heartbea
   /**
    * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
    */
-  protected def setStreamEnable(enabled: Boolean) {
+  protected[flight] def setStreamEnable(enabled: Boolean) {
 
     log.info("Setting stream enable: " + enabled)
 
