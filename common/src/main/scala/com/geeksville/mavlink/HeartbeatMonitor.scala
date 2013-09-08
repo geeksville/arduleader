@@ -50,14 +50,15 @@ class HeartbeatMonitor extends InstrumentedActor {
         val oldBase = baseMode
         val newVal = msg.custom_mode.toInt
         val oldArmed = isArmed
-        val newStatus = Some(msg.system_status)
+        val oldStatus = systemStatus
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
+        systemStatus = Some(msg.system_status)
 
         val oldVehicle = vehicleType
         vehicleType = Some(typ)
-        if (newStatus != systemStatus)
-          onSystemStatusChanged(newStatus.get)
+        if (systemStatus != oldStatus)
+          onSystemStatusChanged(systemStatus.get)
         if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
           onModeChanged(newVal)
         if (oldArmed != isArmed)

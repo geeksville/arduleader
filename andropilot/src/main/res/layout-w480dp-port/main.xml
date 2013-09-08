@@ -5,40 +5,46 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <android.support.v4.view.ViewPager
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/pager"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_weight="2"
-        android:tag="no-sidebar"
-        tools:context="com.geeksville.andropilot.gui.MainActivity" >
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
 
-        <!--
+        <android.support.v4.view.ViewPager
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/pager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:tag="no-sidebar"
+            tools:context="com.geeksville.andropilot.gui.MainActivity" >
+
+            <!--
     This title strip will display the currently visible page title, as well as the page
     titles for adjacent pages. 
-        -->
+            -->
 
-        <android.support.v4.view.PagerTabStrip
-            android:id="@+id/pager_title_strip"
-            android:layout_width="match_parent"
+            <android.support.v4.view.PagerTabStrip
+                android:id="@+id/pager_title_strip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top" /> <!-- android:background="#33b5e5" android:textColor="#fff" -->
+        </android.support.v4.view.ViewPager>
+
+        <TextView
+            android:id="@+id/maps_error"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="top" /> <!-- android:background="#33b5e5" android:textColor="#fff" -->
-    </android.support.v4.view.ViewPager>
+            android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/maps_error"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
+        <fragment
+            android:id="@+id/modal_fragment"
+            android:name="com.geeksville.andropilot.gui.ModalFragment"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
-    <fragment
-        android:id="@+id/modal_fragment"
-        android:name="com.geeksville.andropilot.gui.ModalFragment"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
-        <!-- So we can hide/show our joysticks in one go -->
+    <!-- So we can hide/show our joysticks in one go -->
 
     <RelativeLayout
         android:id="@+id/joysticks"
@@ -74,4 +80,5 @@
             android:clickable="true" />
         <!-- android:background="#880000" -->
     </RelativeLayout>
+
 </RelativeLayout>

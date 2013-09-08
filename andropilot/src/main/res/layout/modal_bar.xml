@@ -1,23 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"  android:padding="2dip">
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/mode_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Last Status Msg"
+        android:visibility="visible" />
 
     <Button
-        android:visibility="gone"
         android:id="@+id/upload_waypoint_button"
         android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:layout_centerHorizontal="true"
-        android:text="Upload Waypoints" 
-        />
-        
+        android:text="Upload Waypoints"
+        android:visibility="gone" />
+
     <Button
-        android:visibility="gone"
+        android:id="@+id/arm_mode_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tilt mode" />
+        android:text="Arm"
+        android:visibility="visible" />
 
+    <Button
+        android:id="@+id/takeoff_mode_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Takeoff"
+        android:visibility="gone" />
 
-</RelativeLayout>
+    <Button
+        android:id="@+id/land_mode_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Land"
+        android:visibility="gone" />
+
+</LinearLayout>

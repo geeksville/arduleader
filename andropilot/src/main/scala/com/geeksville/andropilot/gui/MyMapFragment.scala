@@ -348,7 +348,8 @@ class MyMapFragment extends SupportMapFragment
     override def icon: Option[BitmapDescriptor] = Some(BitmapDescriptorFactory.fromResource(iconRes))
 
     private def iconRes = (for { s <- service; v <- myVehicle } yield {
-      if (!v.hasHeartbeat || !s.isSerialConnected)
+      //debug(s"in iconres ${v.hasHeartbeat}, ${s.isConnected}")
+      if (!v.hasHeartbeat || !s.isConnected)
         if (v.isCopter) R.drawable.quad_red else R.drawable.plane_red
       else if (isWarning)
         if (v.isCopter) R.drawable.quad_yellow else R.drawable.plane_yellow
@@ -362,7 +363,7 @@ class MyMapFragment extends SupportMapFragment
         ""
       else
         " (" + S(R.string.lost_comms) + ")"))
-      debug("title: " + r)
+      //debug("title: " + r)
       r
     }).getOrElse("No service"))
 
@@ -607,8 +608,6 @@ class MyMapFragment extends SupportMapFragment
    * Generate our scene
    */
   def handleWaypoints() {
-    updateMarker()
-
     myVehicle.foreach { v =>
       val wpts = v.waypointsForMap
 
