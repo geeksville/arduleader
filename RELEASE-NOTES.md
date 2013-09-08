@@ -1,3 +1,6 @@
+# 1.7.07
+* Simplify UI: Move status messages into their own fragment (and make them update even if fragment is not visible)
+
 # 1.7.04
 * Announce Arm/Disarm via voice
 * Show estimated radio range as two blue circles (one circle centered on the GCS, one circle centered on the vehicle).

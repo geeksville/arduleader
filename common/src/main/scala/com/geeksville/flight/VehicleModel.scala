@@ -21,11 +21,12 @@ import com.geeksville.util.ThrottledActor
 import org.mavlink.messages.MAV_MODE
 import org.mavlink.messages.MAV_MODE_FLAG
 import org.mavlink.messages.MAV_STATE
+import scala.collection.mutable.ObservableBuffer
+import scala.collection.mutable.SynchronizedBuffer
 
 //
 // Messages we publish on our event bus when something happens
 //
-case class MsgStatusChanged(s: String, severity: Int)
 
 object MsgStatusChanged {
   val SEVERITY_LOW = 1
@@ -40,6 +41,10 @@ case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgServoOutputChanged(m: msg_servo_output_raw)
 case class MsgModeChanged(m: String)
 
+case class StatusText(str: String, severity: Int) {
+  override def toString = str // So ObservableAdapter can get nice strings
+}
+
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
@@ -51,6 +56,10 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private val servoOutputThrottle = new Throttled(500)
   private val sysStatusThrottle = new Throttled(5000)
   private val attitudeThrottle = new Throttled(100)
+
+  /// We keep the last 25ish status messages in the model
+  val maxStatusHistory = 25
+  val statusMessages = new ArrayBuffer[StatusText] with ObservableBuffer[StatusText] with SynchronizedBuffer[StatusText]
 
   val fsm = new VehicleFSM(this) {
     setDebugFlag(true)
@@ -97,7 +106,14 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    */
   def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
 
-  private def onStatusChanged(s: String, sc: Int) { eventStream.publish(MsgStatusChanged(s, sc)) }
+  private def onStatusChanged(s: String, sc: Int) {
+    if (statusMessages.size == maxStatusHistory)
+      statusMessages.remove(0)
+    val t = StatusText(s, sc)
+    statusMessages += t
+    eventStream.publish(t)
+  }
+
   private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
 
   override def onReceive = mReceive.orElse(super.onReceive)
@@ -158,7 +174,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     eventStream.publish(MsgModeChanged(currentMode))
   }
 
-  protected def onSystemStatusChanged(m: Int) {
+  override protected def onSystemStatusChanged(m: Int) {
     super.onSystemStatusChanged(m)
 
     if (m == MAV_STATE.MAV_STATE_ACTIVE)
@@ -181,13 +197,13 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     startParameterDownload()
   }
 
-  protected def onParametersDownloaded() {
+  override protected def onParametersDownloaded() {
     super.onParametersDownloaded()
 
     fsm.OnParametersDownloaded()
   }
 
-  protected def onArmedChanged(armed: Boolean) {
+  override protected def onArmedChanged(armed: Boolean) {
     super.onArmedChanged(armed)
     if (armed)
       fsm.HBSaysArmed()

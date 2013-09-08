@@ -15,14 +15,11 @@ import com.geeksville.flight._
 import java.util.LinkedList
 import com.geeksville.andropilot.R
 import android.view.View
+import com.ridemission.scandroid.ObservableAdapter
+import com.geeksville.flight.StatusText
+import android.widget.BaseAdapter
 
 class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with AndroServiceFragment {
-
-  private lazy val statusItems = {
-    val r = new ArrayAdapter(getActivity, R.layout.simple_list_item_1_small, new LinkedList[String]())
-    // r.add("Looking for vehicle...") // Mostly for testing, but gives the user a hint also...
-    r
-  }
 
   private def latView = getView.findView(TR.latitude)
   private def lonView = getView.findView(TR.longitude)
@@ -32,13 +29,7 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
   private def numSatView = getView.findView(TR.gps_numsats)
   private def rssiLocalView = getView.findView(TR.rssi_local)
   private def batteryView = getView.findView(TR.battery_volt)
-  private def listView = getView.findView(TR.status_list)
-
-  override def onViewCreated(v: View) = {
-    val list = v.findView(TR.status_list)
-    list.setAdapter(statusItems)
-    list.setItemsCanFocus(false)
-  }
+  private lazy val listView = getView.findView(TR.status_list)
 
   override def onVehicleReceive = {
     case l: Location =>
@@ -74,20 +65,6 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
               batteryView.setText(n.toString + "V " + socStr)
             }
           }
-        }
-      }
-
-    case MsgStatusChanged(s, _) =>
-      debug("Status changed: " + s)
-      handler.post { () =>
-        if (getView != null) {
-          val maxNumStatus = 32
-
-          statusItems.add(s)
-          if (statusItems.getCount > maxNumStatus)
-            statusItems.remove(statusItems.getItem(0))
-          statusItems.notifyDataSetChanged()
-          listView.smoothScrollToPosition(statusItems.getCount - 1)
         }
       }
   }

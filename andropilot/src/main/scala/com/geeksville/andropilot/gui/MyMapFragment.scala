@@ -45,6 +45,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import org.mavlink.messages.ardupilotmega.msg_radio
 import com.geeksville.util.Throttled
+import com.geeksville.flight.StatusText
 
 /**
  * Our customized map fragment
@@ -483,7 +484,7 @@ class MyMapFragment extends SupportMapFragment
         }
       }
 
-    case MsgStatusChanged(s, _) =>
+    case StatusText(s, _) =>
       debug("Status changed: " + s)
       handler.post { () =>
         updateMarker()

@@ -69,6 +69,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.AlertDialog
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
+import com.geeksville.flight.StatusText
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -103,6 +104,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   private lazy val stdPages = List(
     PageInfo(S(R.string.parameters), { () => new ParameterPane() }),
     PageInfo(S(R.string.hud), { () => new HudFragment }),
+    PageInfo("Status", { () => new StatusMsgFragment }),
     PageInfo(S(R.string.rc_channels), { () => new RcChannelsFragment }),
     PageInfo(S(R.string.servos), { () => new ServoOutputFragment }))
 
@@ -218,7 +220,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         setModeSpinner()
       }
 
-    case MsgStatusChanged(s, severity) =>
+    case StatusText(s, severity) =>
       handler.post { () =>
         handleStatus(s, severity)
       }
