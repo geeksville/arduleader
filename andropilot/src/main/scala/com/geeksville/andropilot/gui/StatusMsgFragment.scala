@@ -24,9 +24,10 @@ case object NeverSent
 
 class StatusMsgFragment extends LayoutFragment(R.layout.statusmsg_fragment) with AndroServiceFragment {
 
-  private lazy val listView = getView.findView(TR.status_list)
+  private def listView = getView.findView(TR.status_list)
 
   override def onViewCreated(v: View) = {
+    debug("In status view create")
     val list = v.findView(TR.status_list)
     list.setItemsCanFocus(false)
     updateListAdapter()
@@ -34,19 +35,23 @@ class StatusMsgFragment extends LayoutFragment(R.layout.statusmsg_fragment) with
 
   override protected def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
+    debug("In status service connected")
     updateListAdapter()
   }
 
   private def updateListAdapter() {
+    debug("In status updateListAdapter")
     for {
       myView <- Option(getView)
       v <- myVehicle
     } yield {
       if (listView.getAdapter == null) {
+        debug(s"Installing new adapter ${v.statusMessages.size} entries")
         val adapt = new ObservableAdapter(getActivity, R.layout.simple_list_item_1_small, v.statusMessages)
         listView.setAdapter(adapt)
         listView.smoothScrollToPosition(v.statusMessages.size - 1)
-      }
+      } else
+        debug("new adapter not needed")
     }
   }
   override def onVehicleReceive = {
