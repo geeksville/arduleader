@@ -29,7 +29,6 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
   private def numSatView = getView.findView(TR.gps_numsats)
   private def rssiLocalView = getView.findView(TR.rssi_local)
   private def batteryView = getView.findView(TR.battery_volt)
-  private lazy val listView = getView.findView(TR.status_list)
 
   override def onVehicleReceive = {
     case l: Location =>

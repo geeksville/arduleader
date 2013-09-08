@@ -362,7 +362,7 @@ class MyMapFragment extends SupportMapFragment
         ""
       else
         " (" + S(R.string.lost_comms) + ")"))
-      //debug("title: " + r)
+      debug("title: " + r)
       r
     }).getOrElse("No service"))
 
@@ -607,6 +607,8 @@ class MyMapFragment extends SupportMapFragment
    * Generate our scene
    */
   def handleWaypoints() {
+    updateMarker()
+
     myVehicle.foreach { v =>
       val wpts = v.waypointsForMap
 
