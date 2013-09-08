@@ -44,7 +44,9 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
               airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
               groundspeedView.setText("%.1f".format(hud.groundspeed) + " m/s")
             }
-            v.numSats.foreach { n => numSatView.setText(n.toString) }
+            val numSats = v.numSats.getOrElse("?")
+            val hdop = v.hdop.getOrElse("?")
+            numSatView.setText("%s / %s m".format(numSats, hdop))
           }
         }
       }

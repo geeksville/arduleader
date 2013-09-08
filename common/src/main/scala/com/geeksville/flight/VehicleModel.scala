@@ -72,6 +72,11 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   var batteryVoltage: Option[Float] = None
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
+  
+  /**
+   * Horizontal position precision in meters
+   */
+  var hdop: Option[Float] = None
   var rcChannels: Option[msg_rc_channels_raw] = None
   var servoOutputRaw: Option[msg_servo_output_raw] = None
   var attitude: Option[msg_attitude] = None
@@ -84,6 +89,16 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   /// FIXME - for now we claim that the interface is automatically good
   fsm.OnHasInterface()
+
+  /**
+   * We can only detect flight modes in copter currently
+   */
+  def isFlying = systemStatus.flatMap { s =>
+    if (isCopter)
+      Some(s == MAV_STATE.MAV_STATE_ACTIVE)
+    else
+      None
+  }
 
   private def onLocationChanged(l: Location) {
     location = Some(l)
@@ -104,7 +119,27 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   /**
    * The mode names we understand
    */
-  def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
+  def modeNames = modeToCodeMap.keys.toSeq.sorted // :+ "unknown"
+
+  /**
+   * Return a restricted set of mode names based just on what the user can do in the current flight mode (if simpleMode)
+   */
+  def selectableModeNames(simpleMode: Boolean) = {
+    var names = modeNames
+    if (isCopter)
+      if (!isArmed)
+        names = names :+ "Arm"
+      else
+        names = names :+ "Disarm"
+
+    val flying = isFlying.getOrElse(false)
+    if (!simpleMode || !isCopter) // Simple modes are only supported for copter right now
+      names
+    else {
+      val filter = if (flying) simpleFlightModes else simpleGroundModes
+      names.filter(filter.contains)
+    }
+  }
 
   private def onStatusChanged(s: String, sc: Int) {
     if (statusMessages.size == maxStatusHistory)
@@ -155,6 +190,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
         //log.debug("Received location: " + loc)
         if (msg.satellites_visible != 255)
           numSats = Some(msg.satellites_visible)
+          if(msg.eph != 65535)
+            hdop = Some(msg.eph / 100.0f)
+            
         onLocationChanged(loc)
       }
 
@@ -177,7 +215,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   override protected def onSystemStatusChanged(m: Int) {
     super.onSystemStatusChanged(m)
 
-    if (m == MAV_STATE.MAV_STATE_ACTIVE)
+    if (isFlying.getOrElse(false))
       fsm.HBSaysFlying()
   }
 
@@ -212,10 +250,14 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   }
 
   /**
-   * Tell vehicle to select a new mode
+   * Tell vehicle to select a new mode (we use Arm and Disarm as special pseduo modes
    */
   private def setMode(mode: String) {
-    sendMavlink(setMode(modeToCodeMap(mode)))
+    mode match { 
+      case"Arm" => sendMavlink(commandDoArm(true))
+      case"Disarm" => sendMavlink(commandDoArm(false))
+      case _=> sendMavlink(setMode(modeToCodeMap(mode)))
+    }
   }
 
 }
