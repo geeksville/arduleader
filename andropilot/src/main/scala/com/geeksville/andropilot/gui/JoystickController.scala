@@ -103,7 +103,7 @@ trait JoystickController extends Activity
       else
         (raw.toFloat - trim) / (trim - min))
 
-      debug(this + ": Unscale " + raw + " to " + r)
+      //debug(this + ": Unscale " + raw + " to " + r)
 
       // Clamp to -1.0 to 1.0
       math.min(1.0f, math.max(-1.0f, r))
