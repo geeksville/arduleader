@@ -20,6 +20,7 @@ import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
 import org.mavlink.messages.MAV_MODE
 import org.mavlink.messages.MAV_MODE_FLAG
+import org.mavlink.messages.MAV_STATE
 
 //
 // Messages we publish on our event bus when something happens
@@ -51,6 +52,11 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private val sysStatusThrottle = new Throttled(5000)
   private val attitudeThrottle = new Throttled(100)
 
+  val fsm = new VehicleFSM(this) {
+    setDebugFlag(true)
+    enterStartState()
+  }
+
   var status: Option[String] = None
   var location: Option[Location] = None
   var batteryPercent: Option[Float] = None
@@ -66,6 +72,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
+
+  /// FIXME - for now we claim that the interface is automatically good
+  fsm.OnHasInterface()
 
   private def onLocationChanged(l: Location) {
     location = Some(l)
@@ -145,7 +154,15 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   override def onModeChanged(m: Int) {
     super.onModeChanged(m)
+
     eventStream.publish(MsgModeChanged(currentMode))
+  }
+
+  protected def onSystemStatusChanged(m: Int) {
+    super.onSystemStatusChanged(m)
+
+    if (m == MAV_STATE.MAV_STATE_ACTIVE)
+      fsm.HBSaysFlying()
   }
 
   override def onHeartbeatFound() {
@@ -153,12 +170,29 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
     setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
+
+    fsm.OnHasHeartbeat()
   }
 
   override def onWaypointsDownloaded() {
     super.onWaypointsDownloaded()
+    fsm.OnWaypointsDownloaded()
 
     startParameterDownload()
+  }
+
+  protected def onParametersDownloaded() {
+    super.onParametersDownloaded()
+
+    fsm.OnParametersDownloaded()
+  }
+
+  protected def onArmedChanged(armed: Boolean) {
+    super.onArmedChanged(armed)
+    if (armed)
+      fsm.HBSaysArmed()
+    else
+      fsm.HBSaysDisarmed()
   }
 
   /**

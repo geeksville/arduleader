@@ -41,8 +41,8 @@ DownloadingWaypoints
 }
 
 DownloadingParameters
-Entry { setStreamEnable(false); }
-Exit { setStreamEnable(true); }
+/* Entry { setStreamEnable(false); }
+Exit { setStreamEnable(true); } */
 {
 
   OnParametersDownloaded
@@ -92,6 +92,14 @@ Flying
   HBSaysDisarmed
     Disarmed
     {}
+}
+
+//
+// Default transitions
+//
+
+Default
+{
 }
 
 %%

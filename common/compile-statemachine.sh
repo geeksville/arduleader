@@ -6,4 +6,6 @@ $JAVABIN -jar $SMCJAR -graph -glevel 1 VehicleFSM.sm
 
 dot -Tsvg VehicleFSM.dot >VehicleFSM.svg
 dot -Tpng VehicleFSM.dot >VehicleFSM.png
+rm VehicleFSM.dot
+
 # gnome-open VehicleFSM.svg

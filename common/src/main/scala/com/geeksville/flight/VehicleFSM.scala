@@ -151,18 +151,6 @@ private class VehicleFSM_DownloadingWaypoints(name: String, id: Int) extends Veh
 
 private class VehicleFSM_DownloadingParameters(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
-    override def Entry (context: VehicleFSM): Unit = {
-        val ctxt = context.getOwner()
-
-        ctxt.setStreamEnable(false)
-    }
-
-    override def Exit (context: VehicleFSM): Unit = {
-        val ctxt: VehicleModel = context.getOwner()
-
-        ctxt.setStreamEnable(true)
-    }
-
     override def OnParametersDownloaded(context: VehicleFSM): Unit = {
 
         context.getState().Exit(context)

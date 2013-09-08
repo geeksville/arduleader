@@ -29,6 +29,7 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   var customMode: Option[Int] = None
   var baseMode: Option[Int] = None
+  var systemStatus: Option[Int] = None
 
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
@@ -49,11 +50,14 @@ class HeartbeatMonitor extends InstrumentedActor {
         val oldBase = baseMode
         val newVal = msg.custom_mode.toInt
         val oldArmed = isArmed
+        val newStatus = Some(msg.system_status)
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
 
         val oldVehicle = vehicleType
         vehicleType = Some(typ)
+        if (newStatus != systemStatus)
+          onSystemStatusChanged(newStatus.get)
         if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
           onModeChanged(newVal)
         if (oldArmed != isArmed)
@@ -79,6 +83,10 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   protected def onModeChanged(m: Int) {
     log.error("Received new mode: " + m)
+  }
+
+  protected def onSystemStatusChanged(m: Int) {
+    log.error("Received new status: " + m)
   }
 
   protected def onHeartbeatLost() {
