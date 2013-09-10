@@ -253,7 +253,7 @@ class AndropilotService extends Service with AndroidLogger
             logger = Some(l)
           } catch {
             case ex: Exception =>
-              BugSenseHandler.sendExceptionMessage("sdwrite", "exception", ex)
+              //BugSenseHandler.sendExceptionMessage("sdwrite", "exception", ex)
               error("Can't access sdcard")
               logger = None
               logfile = None
