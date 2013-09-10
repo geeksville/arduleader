@@ -103,7 +103,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     r
   }
 
-  def commandDoArm(armed: Boolean, targetSystem: Int = 1, targetComponent: Int = 250) = {
+  protected def commandDoArm(armed: Boolean, targetSystem: Int = 1, targetComponent: Int = 250) = {
     val r = commandLong(MAV_CMD.MAV_CMD_COMPONENT_ARM_DISARM, targetSystem, targetComponent)
     r.param1 = if (armed) 1 else 0
     r.param2 = 0

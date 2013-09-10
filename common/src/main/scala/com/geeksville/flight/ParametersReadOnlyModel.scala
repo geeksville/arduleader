@@ -32,6 +32,13 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     12 -> "TOY_B")
 
   /**
+   * A set of modes that are selectable when the vehicle is flying in simple mode
+   */
+  protected val simpleFlightModes = Set("LAND", "RTL", "LOITER", "AUTO", "STABILIZE", "FBW_B")
+
+  protected val simpleGroundModes = Set("Arm", "Disarm")
+
+  /**
    * A mapping to RGB tuples (chosen to match the colors used by Tridge's python tool)
    */
   val modeToColorMap = Map(

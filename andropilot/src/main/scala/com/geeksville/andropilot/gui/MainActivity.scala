@@ -696,7 +696,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           (0 until adapter.getCount).find { i =>
             val is = adapter.getItem(i).toString
             is == str || is == "unknown"
-          }.get
+          }
         }
         myVehicle.foreach { v =>
           val modeName = if (v.hasHeartbeat) {
@@ -713,13 +713,17 @@ class MainActivity extends FragmentActivity with TypedActivity
             "unknown"
           }
 
-          val n = findIndex(modeName)
-          //debug("Setting mode spinner to: " + n)
-
-          val curModeName = s.getSelectedItem.toString
-          debug(s"Current mode string is $curModeName")
-          if (curModeName != modeName)
-            s.setSelection(n)
+          findIndex(modeName) match {
+            case Some(n) =>
+              val curModeName = s.getSelectedItem.toString
+              debug(s"Current mode string is $curModeName")
+              if (curModeName != modeName) {
+                debug("Setting mode spinner to: " + n)
+                s.setSelection(n)
+              }
+            case None =>
+              error(s"Can't find spinner for $modeName")
+          }
         }
       }
   }
@@ -730,7 +734,8 @@ class MainActivity extends FragmentActivity with TypedActivity
   private def setModeOptions() {
     debug("Setting modeOptions")
     for { s <- modeSpinner; v <- myVehicle } yield {
-      val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this), android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
+      val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this),
+        android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
       // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
       s.setAdapter(spinnerAdapter); // set the adapter
 
@@ -835,7 +840,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       case R.id.menu_arm =>
         val n = !item.isChecked
         myVehicle.foreach { v =>
-          v.sendMavlink(v.commandDoArm(n))
+          v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
 

@@ -119,7 +119,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   /**
    * The mode names we understand
    */
-  def modeNames = modeToCodeMap.keys.toSeq.sorted // :+ "unknown"
+  def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
 
   /**
    * Return a restricted set of mode names based just on what the user can do in the current flight mode (if simpleMode)
