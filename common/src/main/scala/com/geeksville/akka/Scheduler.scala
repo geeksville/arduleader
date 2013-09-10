@@ -18,7 +18,7 @@ case class Cancellable(f: ScheduledFuture[_]) {
 }
 
 class Scheduler extends Logging {
-  val jscheduler = new ScheduledThreadPoolExecutor(1)
+  val jscheduler = new ScheduledThreadPoolExecutor(4)
 
   jscheduler.setExecuteExistingDelayedTasksAfterShutdownPolicy(false)
 
