@@ -80,6 +80,7 @@ object Main extends Logging {
 
     val rcrcv = MockAkka.actorOf(new RCOverrideDebug(253), "gclog")
     //MockAkka.actorOf(new LogIncomingMavlink(1), "vlog")
+    //MockAkka.actorOf(new LogIncomingMavlink(253), "gclogdump")
 
     val gcs = MockAkka.actorOf(new DirectSending(253), "fakegcs")
     gcs.sendingInterface = Some(serGcs)
@@ -87,7 +88,7 @@ object Main extends Logging {
     vehicle.sendingInterface = Some(serVehicle)
 
     // Send some fake RC overrides
-    MockAkka.scheduler.schedule(2 seconds, 300 milliseconds) { () =>
+    MockAkka.scheduler.schedule(2 seconds, 1000 milliseconds) { () =>
       val rc = gcs.rcChannelsOverride(1)
       val now = System.currentTimeMillis
       rc.chan1_raw = (now.toInt & 0xffff)
