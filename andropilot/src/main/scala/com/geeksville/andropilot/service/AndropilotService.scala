@@ -41,6 +41,7 @@ import android.support.v4.app.NotificationCompat
 import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.andropilot.UsesDirectories
+import com.geeksville.flight.OnInterfaceConnected
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -374,6 +375,8 @@ class AndropilotService extends Service with AndroidLogger
 
       if (stayAwakeEnabled)
         wakeLock.acquire()
+
+      vehicle.foreach(_ ! OnInterfaceConnected)
     }
   }
 

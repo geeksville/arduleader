@@ -23,6 +23,8 @@ import org.mavlink.messages.MAV_MODE_FLAG
 import org.mavlink.messages.MAV_STATE
 import scala.collection.mutable.ObservableBuffer
 import scala.collection.mutable.SynchronizedBuffer
+import java.beans.PropertyChangeListener
+import java.beans.PropertyChangeEvent
 
 //
 // Messages we publish on our event bus when something happens
@@ -40,6 +42,16 @@ case object MsgSysStatusChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgServoOutputChanged(m: msg_servo_output_raw)
 case class MsgModeChanged(m: String)
+
+/// Published when our state machine changes states
+case class MsgFSMChanged(stateName: String)
+
+//
+// Messages we expect from others
+//
+
+/// Sent from the app layer when a new interface is plugged in
+case object OnInterfaceConnected
 
 case class StatusText(str: String, severity: Int) {
   override def toString = str // So ObservableAdapter can get nice strings
@@ -64,6 +76,14 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   val fsm = new VehicleFSM(this) {
     setDebugFlag(true)
     enterStartState()
+    val l = new PropertyChangeListener {
+      def propertyChange(ev: PropertyChangeEvent) {
+        val newState = ev.getNewValue.asInstanceOf[VehicleModelState]
+        log.debug("publishing fsm change: " + newState.getName)
+        eventStream.publish(MsgFSMChanged(newState.getName))
+      }
+    }
+    addStateChangeListener(l)
   }
 
   var status: Option[String] = None
@@ -86,9 +106,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
-
-  /// FIXME - for now we claim that the interface is automatically good
-  fsm.OnHasInterface()
 
   /**
    * We can only detect flight modes in copter currently
@@ -155,6 +172,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   private def mReceive: Receiver = {
 
+    case OnInterfaceConnected =>
+      fsm.OnHasInterface()
+  
     case DoSetMode(m) =>
       setMode(m)
 
@@ -226,6 +246,12 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     fsm.OnHasHeartbeat()
+  } 
+      
+  override def onHeartbeatLost() {
+    super.onHeartbeatLost()
+
+    fsm.OnLostHeartbeat()
   }
 
   override def onWaypointsDownloaded() {
@@ -239,6 +265,14 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     super.onParametersDownloaded()
 
     fsm.OnParametersDownloaded()
+    
+      /// Select correct next state (because we are guaranteed to already be in one of these states)
+    if(isFlying.getOrElse(false))
+      fsm.HBSaysFlying()
+    else if(isArmed)
+      fsm.HBSaysArmed()
+    else
+      fsm.HBSaysDisarmed()
   }
 
   override protected def onArmedChanged(armed: Boolean) {

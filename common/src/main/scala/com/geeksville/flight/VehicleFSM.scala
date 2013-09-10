@@ -49,6 +49,12 @@ class VehicleFSM(owner: VehicleModel) extends statemap.FSMContext[VehicleModelSt
         _transition = ""
     }
 
+    def OnLostHeartbeat(): Unit = {
+        _transition = "OnLostHeartbeat"
+        getState().OnLostHeartbeat(this)
+        _transition = ""
+    }
+
     def OnParametersDownloaded(): Unit = {
         _transition = "OnParametersDownloaded"
         getState().OnParametersDownloaded(this)
@@ -100,6 +106,10 @@ class VehicleModelState(name: String, id: Int) {
         Default(context)
     }
 
+    def OnLostHeartbeat(context: VehicleFSM): Unit = {
+        Default(context)
+    }
+
     def OnParametersDownloaded(context: VehicleFSM): Unit = {
         Default(context)
     }
@@ -117,6 +127,13 @@ class VehicleModelState(name: String, id: Int) {
 }
 
 private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelState(name, id) {
+
+    override def OnLostHeartbeat(context: VehicleFSM): Unit = {
+
+        context.getState().Exit(context)
+        context.setState(VehicleFSM.WantVehicle)
+        context.getState().Entry(context)
+    }
 }
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {

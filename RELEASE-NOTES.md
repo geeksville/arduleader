@@ -2,6 +2,7 @@
 * Simplify UI: Move status messages into their own fragment (and make them update even if fragment is not visible)
 * When connected by bluetooth, show proper vehicle state on the icon
 * Make popup modal bar appear in correct position on portrait 7" displays
+* Show HDOP (horizontal position precision) in the gps display
 
 # 1.7.04
 * Announce Arm/Disarm via voice

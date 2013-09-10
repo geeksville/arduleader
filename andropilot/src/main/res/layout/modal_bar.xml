@@ -9,7 +9,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Last Status Msg"
-        android:visibility="visible" />
+        android:padding="2dp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/upload_waypoint_button"
@@ -19,6 +20,7 @@
         android:text="Upload Waypoints"
         android:visibility="gone" />
 
+    <!--  
     <Button
         android:id="@+id/arm_mode_button"
         android:layout_width="wrap_content"
@@ -39,5 +41,5 @@
         android:layout_height="wrap_content"
         android:text="Land"
         android:visibility="gone" />
-
+-->
 </LinearLayout>
