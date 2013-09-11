@@ -22,6 +22,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Battery"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -30,6 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -42,6 +44,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Altitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -50,8 +53,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
+                
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
@@ -62,6 +67,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Airspeed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -70,6 +76,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -82,6 +89,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Ground speed"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -90,6 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -102,6 +111,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Latitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -110,6 +120,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -122,6 +133,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Longitude"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -130,6 +142,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -142,6 +155,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="GPS #sats / HDOP"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -150,6 +164,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
@@ -162,6 +177,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0"
                 android:text="Rssi"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
@@ -170,6 +186,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right"
+                android:layout_weight="1"
                 android:gravity="right"
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
