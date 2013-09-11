@@ -41,7 +41,7 @@ import android.support.v4.app.NotificationCompat
 import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.andropilot.UsesDirectories
-import com.geeksville.flight.OnInterfaceConnected
+import com.geeksville.flight.OnInterfaceChanged
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -63,6 +63,7 @@ class AndropilotService extends Service with AndroidLogger
   private var serial: Option[MavlinkStream] = None
   private var udp: Option[InstrumentedActor] = None
 
+  private var btInputStream: Option[InputStream] = None
   private var btStream: Option[MavlinkStream] = None
 
   private var follower: Option[FollowMe] = None
@@ -183,7 +184,8 @@ class AndropilotService extends Service with AndroidLogger
     setLogging()
     serialAttached()
     startUDP()
-    connectToDevices()
+    // We now do this only on user input
+    // connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
     val handlers = Seq("log_to_file" -> setLogging _,
@@ -294,6 +296,7 @@ class AndropilotService extends Service with AndroidLogger
 
     val port = new MavlinkStream(out, in)
 
+    btInputStream = Some(in)
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
     val mavSerial = MockAkka.actorOf(port, "btrx")
     btStream = Some(mavSerial)
@@ -313,6 +316,11 @@ class AndropilotService extends Service with AndroidLogger
 
   protected def onBluetoothDisconnect() {
     btDetached()
+  }
+
+  def forceBluetoothDisconnect() {
+    info("Force stopping bluetooth")
+    btInputStream.foreach(_.close())
   }
 
   def serialAttached() {
@@ -376,12 +384,14 @@ class AndropilotService extends Service with AndroidLogger
       if (stayAwakeEnabled)
         wakeLock.acquire()
 
-      vehicle.foreach(_ ! OnInterfaceConnected)
+      vehicle.foreach(_ ! OnInterfaceChanged(true))
     }
   }
 
   private def stopHighValue() {
     if (!isConnected) {
+      vehicle.foreach(_ ! OnInterfaceChanged(false))
+
       endTimedEvent("high_value")
 
       if (wakeLock.isHeld)

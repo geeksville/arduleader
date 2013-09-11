@@ -103,6 +103,10 @@ Default
   OnLostHeartbeat
     WantVehicle
     {}
+
+  OnLostInterface
+    WantInterface
+    {}
 }
 
 %%

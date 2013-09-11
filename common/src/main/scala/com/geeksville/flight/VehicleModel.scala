@@ -51,7 +51,7 @@ case class MsgFSMChanged(stateName: String)
 //
 
 /// Sent from the app layer when a new interface is plugged in
-case object OnInterfaceConnected
+case class OnInterfaceChanged(connected: Boolean)
 
 case class StatusText(str: String, severity: Int) {
   override def toString = str // So ObservableAdapter can get nice strings
@@ -181,9 +181,12 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   private def mReceive: Receiver = {
 
-    case OnInterfaceConnected =>
-      fsm.OnHasInterface()
-  
+    case OnInterfaceChanged(c) =>
+      if(c)
+        fsm.OnHasInterface()
+      else
+        fsm.OnLostInterface()
+        
     case DoSetMode(m) =>
       setMode(m)
 

@@ -29,6 +29,9 @@ trait BluetoothConnection extends Context with AndroidLogger {
     uuids.find { uuid => uuid.toString.startsWith(serialUUIDprefix) }
   }
 
+  /// Do we see a controllable bluetooth device out there?
+  def bluetoothAdapterPresent = isEnabled && !foundDevices.isEmpty
+
   def foundDevices = {
     val pairedDevices = adapter.getBondedDevices.asScala
     // If there are paired devices

@@ -55,6 +55,12 @@ class VehicleFSM(owner: VehicleModel) extends statemap.FSMContext[VehicleModelSt
         _transition = ""
     }
 
+    def OnLostInterface(): Unit = {
+        _transition = "OnLostInterface"
+        getState().OnLostInterface(this)
+        _transition = ""
+    }
+
     def OnParametersDownloaded(): Unit = {
         _transition = "OnParametersDownloaded"
         getState().OnParametersDownloaded(this)
@@ -110,6 +116,10 @@ class VehicleModelState(name: String, id: Int) {
         Default(context)
     }
 
+    def OnLostInterface(context: VehicleFSM): Unit = {
+        Default(context)
+    }
+
     def OnParametersDownloaded(context: VehicleFSM): Unit = {
         Default(context)
     }
@@ -132,6 +142,13 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
 
         context.getState().Exit(context)
         context.setState(VehicleFSM.WantVehicle)
+        context.getState().Entry(context)
+    }
+
+    override def OnLostInterface(context: VehicleFSM): Unit = {
+
+        context.getState().Exit(context)
+        context.setState(VehicleFSM.WantInterface)
         context.getState().Entry(context)
     }
 }

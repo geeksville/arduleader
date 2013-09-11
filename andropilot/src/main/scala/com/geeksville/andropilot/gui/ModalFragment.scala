@@ -101,7 +101,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     setModeText(msg, errColor)
 
     // Go back to the regular status text after a few secs
-    handler.postDelayed({ () => setModeFromVehicle() }, 5 * 1000)
+    handler.postDelayed({ () => setModeFromVehicle() }, 8 * 1000)
   }
 
   private def fadeIn(v: View) {
@@ -109,22 +109,42 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     v.animate().alpha(1f).setDuration(600)
   }
 
+  private def makeButton(name: String) = {
+    val button = new Button(getActivity)
+    button.setText(name)
+    fadeIn(button)
+
+    val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
+    lp.gravity = Gravity.CENTER
+    modeButtonGroup.addView(button, lp)
+    button
+  }
+
   private def setButtons() {
-    myVehicle.foreach { v =>
+    for {
+      v <- myVehicle
+      s <- service
+    } yield {
       modeButtonGroup.removeAllViews()
-      v.selectableModeNames(true).foreach { name =>
-        val button = new Button(getActivity)
-        button.setText(name)
-        fadeIn(button)
 
-        val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
-        lp.gravity = Gravity.CENTER
-        modeButtonGroup.addView(button, lp)
-
-        button.onClick { b =>
-          v ! DoSetMode(name)
+      // Show the vehicle mode buttons
+      if (s.isConnected)
+        v.selectableModeNames(true).foreach { name =>
+          makeButton(name).onClick { b =>
+            v ! DoSetMode(name)
+          }
         }
-      }
+
+      // Add a special button to turn bluetooth on/off
+      if (s.bluetoothAdapterPresent)
+        if (!s.isConnected)
+          makeButton("Connect").onClick { b =>
+            s.connectToDevices()
+          }
+        else if (!v.isArmed)
+          makeButton("Disconnect").onClick { b =>
+            s.forceBluetoothDisconnect()
+          }
     }
   }
 
