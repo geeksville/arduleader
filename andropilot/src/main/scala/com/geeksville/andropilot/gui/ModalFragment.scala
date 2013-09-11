@@ -81,6 +81,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   override protected def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
     setModeFromVehicle()
+    setButtons()
   }
 
   def setModeText(str: String, color: Int) {
@@ -142,7 +143,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
           case "VehicleFSM.DownloadedParameters" =>
             "Downloaded params (BUG!)" -> errColor
           case "VehicleFSM.Disarmed" =>
-            "Not armed" -> errColor
+            "Disarmed" -> errColor
           case "VehicleFSM.Armed" =>
             "Armed" -> warnColor
           case "VehicleFSM.Flying" =>
