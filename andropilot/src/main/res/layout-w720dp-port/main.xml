@@ -7,7 +7,6 @@
     android:orientation="vertical" >
 
     <LinearLayout
-        android:layout_weight="2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
@@ -94,7 +93,6 @@
     </LinearLayout>
 
     <fragment
-        android:layout_weight="1"
         android:id="@+id/modal_fragment"
         android:name="com.geeksville.andropilot.gui.ModalFragment"
         android:layout_width="fill_parent"

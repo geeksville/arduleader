@@ -241,14 +241,9 @@ class MainActivity extends FragmentActivity with TypedActivity
       val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
       toast(s, isImportant)
 
-      if (isImportant) {
-        val prefix = "PreArm: "
-        val toSpeak = if (s.startsWith(prefix))
-          "Failure to ARM: " + s.substring(prefix.length)
-        else
-          s
-        speak(toSpeak)
-      }
+      if (isImportant)
+        speak(s)
+
     } else {
       // Show a user dialog and have them ack what the APM wants acked
 
@@ -770,6 +765,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         val armed = v.isArmed
         debug("Setting arm checkbox to " + armed)
         armMenu.setChecked(armed)
+        armMenu.setEnabled(v.hasHeartbeat)
       } else
         armMenu.setVisible(false)
     }

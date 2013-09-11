@@ -17,10 +17,15 @@ import com.geeksville.andropilot.R
 import android.view.View
 import android.graphics.Color
 import com.geeksville.andropilot.service.AndropilotService
+import android.widget.Button
+import android.view.ViewGroup.LayoutParams
+import android.widget.LinearLayout
+import android.view.Gravity
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment {
   private def uploadWpButton = getView.findView(TR.upload_waypoint_button)
   private def modeTextView = getView.findView(TR.mode_text)
+  private def modeButtonGroup = getView.findView(TR.mode_buttons)
 
   val errColor = Color.RED
   val warnColor = Color.YELLOW
@@ -29,6 +34,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private def postModeChange() {
     handler.post { () =>
       setModeFromVehicle()
+      setButtons()
     }
   }
 
@@ -44,6 +50,12 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
     case MsgFSMChanged(_) =>
       postModeChange()
+
+    case StatusText(s, severity) =>
+      val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
+      handler.post { () =>
+        handleStatus(s)
+      }
   }
 
   private def setWPUploadVisibility(dirty: Boolean) {
@@ -72,9 +84,47 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   }
 
   def setModeText(str: String, color: Int) {
+    // Fade in the new text
+    if (modeTextView.getText.toString != str) {
+      fadeIn(modeTextView)
+    }
+
     modeTextView.setTextColor(color)
     modeTextView.setText(str)
+
     modeTextView.setVisibility(View.VISIBLE)
+  }
+
+  private def handleStatus(msg: String) {
+    val color = if (msg.contains("Failure")) errColor else okayColor
+    setModeText(msg, errColor)
+
+    // Go back to the regular status text after a few secs
+    handler.postDelayed({ () => setModeFromVehicle() }, 5 * 1000)
+  }
+
+  private def fadeIn(v: View) {
+    v.setAlpha(0f)
+    v.animate().alpha(1f).setDuration(600)
+  }
+
+  private def setButtons() {
+    myVehicle.foreach { v =>
+      modeButtonGroup.removeAllViews()
+      v.selectableModeNames(true).foreach { name =>
+        val button = new Button(getActivity)
+        button.setText(name)
+        fadeIn(button)
+
+        val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
+        lp.gravity = Gravity.CENTER
+        modeButtonGroup.addView(button, lp)
+
+        button.onClick { b =>
+          v ! DoSetMode(name)
+        }
+      }
+    }
   }
 
   private def setModeFromVehicle() {

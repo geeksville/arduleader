@@ -3,6 +3,7 @@
 * When connected by bluetooth, show proper vehicle state on the icon
 * Make popup modal bar appear in correct position on portrait 7" displays
 * Show HDOP (horizontal position precision) in the gps display
+* Only enable arm menu item if we have a heartbeat from the vehicle
 
 # 1.7.04
 * Announce Arm/Disarm via voice

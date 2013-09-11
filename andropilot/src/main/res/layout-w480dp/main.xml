@@ -14,7 +14,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
             android:orientation="horizontal" >
 
             <fragment
@@ -71,7 +70,7 @@
             android:name="com.geeksville.andropilot.gui.ModalFragment"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            />
     </LinearLayout>
 
     <!-- So we can hide/show our joysticks in one go -->

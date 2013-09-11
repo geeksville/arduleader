@@ -86,7 +86,6 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     addStateChangeListener(l)
   }
 
-  var status: Option[String] = None
   var location: Option[Location] = None
   var batteryPercent: Option[Float] = None
   var batteryVoltage: Option[Float] = None
@@ -158,12 +157,22 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     }
   }
 
-  private def onStatusChanged(s: String, sc: Int) {
+  private def onStatusChanged(str: String, sc: Int) {
+    var s = str
+    
     if (statusMessages.size == maxStatusHistory)
       statusMessages.remove(0)
     val t = StatusText(s, sc)
     statusMessages += t
-    eventStream.publish(t)
+    
+    // Publish the interesting strings (stripping out bogus APM msgs)
+    if(!s.startsWith("command received:")) {
+    val prefix = "PreArm: "
+    if (s.startsWith(prefix))
+      s =  "Failure: " + s.substring(prefix.length)
+        
+      eventStream.publish(StatusText(s, sc))
+    }
   }
 
   private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
@@ -197,8 +206,10 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
-      status = Some(m.getText)
-      onStatusChanged(m.getText, m.severity)
+      
+      // APM uses some unfortunate word choice and has no notion of failure codes.  Change the terminology here
+      var s = m.getText        
+      onStatusChanged(s, m.severity)
 
     case msg: msg_sys_status =>
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
