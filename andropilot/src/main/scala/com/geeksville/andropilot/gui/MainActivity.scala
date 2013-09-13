@@ -77,11 +77,6 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   implicit def context = this
 
-  /**
-   * If the user just changed the mode menu, ignore device mode msgs briefly
-   */
-  private var ignoreModeChangesTill = 0L
-
   private var mainView: View = null
   private var modeSpinner: Option[Spinner] = None
 
@@ -201,16 +196,14 @@ class MainActivity extends FragmentActivity with TypedActivity
       handler.post { () =>
         debug("modeChanged received")
 
-        invalidateOptionsMenu()
-
         myVehicle.foreach { v =>
-          if (oldVehicleType != v.vehicleType) {
+          if (oldVehicleType != v.vehicleType)
             usageEvent("vehicle_type", "type" -> v.vehicleType.toString)
-            setModeOptions()
-          }
+
           usageEvent("set_mode", "mode" -> v.currentMode)
-          setModeSpinner() // FIXME, do this someplace better
         }
+
+        invalidateOptionsMenu()
       }
 
     case MsgHeartbeatLost =>
@@ -682,60 +675,63 @@ class MainActivity extends FragmentActivity with TypedActivity
    */
   def setModeSpinner() {
     debug("in setMode")
-    if (System.currentTimeMillis > ignoreModeChangesTill)
-      modeSpinner.foreach { s =>
-        // Crufty way of finding which element of spinner needs selecting
-        def findIndex(str: String) = {
-          val adapter = s.getAdapter
+    modeSpinner.foreach { s =>
+      // Crufty way of finding which element of spinner needs selecting
+      def findIndex(str: String) = {
+        val adapter = s.getAdapter
 
-          (0 until adapter.getCount).find { i =>
-            val is = adapter.getItem(i).toString
-            is == str || is == "unknown"
-          }
-        }
-        myVehicle.foreach { v =>
-          val modeName = if (v.hasHeartbeat) {
-            val toSpeak = if (v.isArmed != oldArmed) {
-              oldArmed = v.isArmed
-              if (oldArmed) "Armed" else "Disarmed"
-            } else
-              v.currentMode
-            speak(toSpeak)
-            debug("Spinning to " + v.currentMode)
-            v.currentMode
-          } else {
-            debug("No heartbeat - claiming unknown")
-            "unknown"
-          }
-
-          findIndex(modeName) match {
-            case Some(n) =>
-              val curModeName = s.getSelectedItem.toString
-              debug(s"Current mode string is $curModeName")
-              if (curModeName != modeName) {
-                debug("Setting mode spinner to: " + n)
-                s.setSelection(n)
-              }
-            case None =>
-              error(s"Can't find spinner for $modeName")
-          }
+        (0 until adapter.getCount).find { i =>
+          val is = adapter.getItem(i).toString
+          is == str || is == "unknown"
         }
       }
+      myVehicle.foreach { v =>
+        val modeName = if (v.hasHeartbeat) {
+          val toSpeak = if (v.isArmed != oldArmed) {
+            oldArmed = v.isArmed
+            if (oldArmed) "Armed" else "Disarmed"
+          } else
+            v.currentMode
+          speak(toSpeak)
+          debug("Spinning to " + v.currentMode)
+          v.currentMode
+        } else {
+          debug("No heartbeat - claiming unknown")
+          "unknown"
+        }
+
+        findIndex(modeName) match {
+          case Some(n) =>
+            val curModeName = s.getSelectedItem.toString
+            debug(s"Current mode string is $curModeName, modeName $modeName")
+            if (curModeName != modeName) {
+              debug(s"Setting mode spinner to: $n " + s.getAdapter.getItem(n))
+              setSpinnerNoNotify(s, n)
+            }
+          case None =>
+            error(s"Can't find spinner for $modeName")
+        }
+      }
+    }
   }
 
   /**
    * Update the set of options in the mode menu (called when vehicle type changes)
    */
   private def setModeOptions() {
-    debug("Setting modeOptions")
+    debug("Considering modeOptions")
     for { s <- modeSpinner; v <- myVehicle } yield {
-      val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this),
-        android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
-      // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
-      s.setAdapter(spinnerAdapter); // set the adapter
+      if (oldVehicleType != v.vehicleType || s.getAdapter == null) {
+        debug("Assigning new mode options")
 
-      // We have now recorded our vehicle type
-      oldVehicleType = v.vehicleType
+        val spinnerAdapter = new ArrayAdapter(MainActivity.getThemedContext(this),
+          android.R.layout.simple_spinner_dropdown_item, v.modeNames.toArray)
+        // val spinnerAdapter = ArrayAdapter.createFromResource(getThemedContext, R.array.mode_names, android.R.layout.simple_spinner_dropdown_item); //  create the adapter from a StringArray
+        s.setAdapter(spinnerAdapter); // set the adapter
+
+        // We have now recorded our vehicle type
+        oldVehicleType = v.vehicleType
+      }
     }
   }
 
@@ -782,21 +778,30 @@ class MainActivity extends FragmentActivity with TypedActivity
     menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
       Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
 
+    true
+  }
+
+  /// Set a spinner selection without accidentally notifying ourselves
+  private def setSpinnerNoNotify(s: Spinner, toSelect: Int) {
     def modeListener(parent: Spinner, selected: View, pos: Int, id: Long) {
-      val modeName = s.getAdapter.getItem(pos)
-      debug("Mode selected: " + modeName)
+      val modeName = s.getAdapter.getItem(pos).toString
+      info(s"Mode selected: $modeName ($pos)")
       myVehicle.foreach { v =>
         if (modeName != "unknown" && modeName != v.currentMode) {
-          // Give up to two seconds before we pay attention to mode msgs - so we don't get confused by stale msgs in our queue
-          ignoreModeChangesTill = System.currentTimeMillis + 2000
           service.foreach(_.setFollowMe(false)) // Immediately cancel any follow-me
+          debug("Sending DoSetMode: " + modeName)
           v ! DoSetMode(modeName.toString)
         }
       }
     }
-    s.onItemSelected(modeListener) // (optional) reference to a OnItemSelectedListener, that you can use to perform actions based on user selection
 
-    true
+    s.setOnItemSelectedListener(null)
+    s.post { () =>
+      s.setSelection(toSelect)
+      s.post { () =>
+        s.onItemSelected(modeListener)
+      }
+    }
   }
 
   /**
