@@ -98,7 +98,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
   private def handleStatus(msg: String) {
     val color = if (msg.contains("Failure")) errColor else okayColor
-    setModeText(msg, errColor)
+    setModeText(msg, color)
 
     // Go back to the regular status text after a few secs
     handler.postDelayed({ () => setModeFromVehicle() }, 8 * 1000)
@@ -126,6 +126,8 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       s <- service
     } yield {
       modeButtonGroup.removeAllViews()
+
+      debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
       // Show the vehicle mode buttons
       if (v.hasHeartbeat)

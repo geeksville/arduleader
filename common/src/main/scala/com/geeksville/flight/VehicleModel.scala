@@ -115,6 +115,21 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     else
       None
   }
+  
+  def isGCSInitializing = {
+    fsm.getState.getName match {
+      case "VehicleFSM.WantInterface" =>
+        true
+      case "VehicleFSM.WantVehicle" =>
+        true
+      case "VehicleFSM.DownloadingWaypoints" =>
+        true
+      case "VehicleFSM.DownloadingParameters" =>
+        true
+      case _ =>
+        false
+    }
+  }
 
   private def onLocationChanged(l: Location) {
     location = Some(l)
@@ -149,10 +164,18 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
         names = names :+ "Disarm"
 
     val flying = isFlying.getOrElse(false)
-    if (!simpleMode || !isCopter) // Simple modes are only supported for copter right now
+    log.debug(s"flying=$flying, mode names: " + names.mkString(","))
+    if (!simpleMode || !isCopter) { // Simple modes are only supported for copter right now 
+      log.debug("Not in simple mode")
       names
+    }
     else {
-      val filter = if (flying) simpleFlightModes else simpleGroundModes
+      val filter = if(isGCSInitializing)
+        initializingModes
+      else if (flying) 
+        simpleFlightModes 
+      else 
+        simpleGroundModes
       names.filter(filter.contains)
     }
   }

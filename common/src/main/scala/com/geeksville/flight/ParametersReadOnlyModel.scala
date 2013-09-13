@@ -36,7 +36,11 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
    */
   protected val simpleFlightModes = Set("LAND", "RTL", "LOITER", "AUTO", "STABILIZE", "FBW_B")
 
-  protected val simpleGroundModes = Set("Arm", "Disarm")
+  // FIXME - add support for a takeoff waypoint set
+  protected val simpleGroundModes = Set("Arm", "LOITER", "AUTO", "STABILIZE", "Disarm")
+
+  // Modes to allow while downloading wpts or params
+  protected val initializingModes = Set("Disarm")
 
   /**
    * A mapping to RGB tuples (chosen to match the colors used by Tridge's python tool)

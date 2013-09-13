@@ -165,6 +165,10 @@ private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM
         context.setState(VehicleFSM.WantVehicle)
         context.getState().Entry(context)
     }
+
+    override def OnLostHeartbeat(context: VehicleFSM): Unit = {
+
+    }
 }
 
 private class VehicleFSM_WantVehicle(name: String, id: Int) extends VehicleFSM_Default(name, id) {

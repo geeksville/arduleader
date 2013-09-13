@@ -24,6 +24,11 @@ WantInterface
   OnHasInterface
     WantVehicle
     {}
+
+  // If we receive an old loss of heartbeat message, but don't have an interface don't leave this state
+  OnLostHeartbeat
+    nil
+    {}
 }
 
 WantVehicle
