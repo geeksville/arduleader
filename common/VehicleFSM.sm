@@ -107,6 +107,11 @@ Default
   OnLostInterface
     WantInterface
     {}
+
+  // In most states we don't care if a new set of waypoints has been downloaded - only useful if we are in DownloadingWaypoints
+  OnWaypointsDownloaded
+    nil
+    {}
 }
 
 %%

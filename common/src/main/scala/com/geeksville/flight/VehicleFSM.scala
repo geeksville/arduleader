@@ -151,6 +151,10 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
         context.setState(VehicleFSM.WantInterface)
         context.getState().Entry(context)
     }
+
+    override def OnWaypointsDownloaded(context: VehicleFSM): Unit = {
+
+    }
 }
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {

@@ -54,7 +54,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    */
   private val useRequestById = false
 
-  private val maxNumAttempts = 1
+  private val maxNumAttempts = 10
   private var numAttemptsRemaining = maxNumAttempts
 
   def hasParameters = !parametersById.isEmpty

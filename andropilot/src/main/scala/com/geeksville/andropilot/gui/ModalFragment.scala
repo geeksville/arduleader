@@ -128,7 +128,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       modeButtonGroup.removeAllViews()
 
       // Show the vehicle mode buttons
-      if (s.isConnected)
+      if (v.hasHeartbeat)
         v.selectableModeNames(true).foreach { name =>
           makeButton(name).onClick { b =>
             v ! DoSetMode(name)
@@ -138,7 +138,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       // Add a special button to turn bluetooth on/off
       if (s.bluetoothAdapterPresent)
         if (!s.isConnected)
-          makeButton("Connect").onClick { b =>
+          makeButton("Bluetooth").onClick { b =>
             s.connectToDevices()
           }
         else if (!v.isArmed)
@@ -155,7 +155,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
           case "VehicleFSM.WantInterface" =>
             "Looking for interface" -> errColor
           case "VehicleFSM.WantVehicle" =>
-            "Looking for interface" -> errColor
+            "Looking for vehicle" -> errColor
           case "VehicleFSM.DownloadingWaypoints" =>
             "Downloading waypoints..." -> warnColor
           case "VehicleFSM.DownloadingParameters" =>
