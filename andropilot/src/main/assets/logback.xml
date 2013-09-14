@@ -1,20 +1,22 @@
-<configuration debug="false">
-            <appender
+<configuration debug="true" scan="false">
+     <appender
                 name="LOGCAT"
                 class="ch.qos.logback.classic.android.LogcatAppender" >
                 <tagEncoder>
                     <pattern>%logger{0}</pattern>
                 </tagEncoder>
-                <encoder>
+        <encoder>
          		<!-- <pattern>[%method] > %msg%n</pattern> -->
 			<pattern>%-5level %-36logger{36}: %msg%n</pattern>
 		</encoder>
 
+        <!--  
 		<filter class="com.geeksville.logback.NameLevelFilter">
 			<Prefix>com.geeksville.mavlink</Prefix>
 			<MinLevel>DEBUG</MinLevel>
 		</filter>
-
+		-->
+		
 		<filter class="com.geeksville.logback.MuteAllFilter" />
 				
 	</appender>

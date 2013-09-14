@@ -1,5 +1,7 @@
 # 1.7.07
-* Simplify UI: Move status messages into their own fragment (and make them update even if fragment is not visible)
+* SimpleUI: Move status messages into their own fragment (and make them update even if fragment is not visible)
+* SimpleUI: Try to guess likely modes the user would want and put them as buttons at the bottom of the screen
+* I played around with the profiler a bit and many operations should now be a bit faster
 * When connected by bluetooth, show proper vehicle state on the icon
 * Make popup modal bar appear in correct position on portrait 7" displays
 * Show HDOP (horizontal position precision) in the gps display

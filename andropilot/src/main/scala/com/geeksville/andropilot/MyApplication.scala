@@ -4,6 +4,7 @@ import android.app.Application
 import com.flurry.android.FlurryAgent
 import com.bugsense.trace.BugSenseHandler
 import com.ridemission.scandroid.AndroidLogger
+import com.geeksville.logback.MuteAllFilter
 
 // @ReportsCrashes(formKey = "dDFiVzhuNkNjVWJjUDFMVzJWbXBxZkE6MQ") /*
 /* mode = ReportingInteractionMode.TOAST,
@@ -22,7 +23,9 @@ class MyApplication extends Application with AndropilotPrefs {
     if (!username.isEmpty)
       BugSenseHandler.setUserIdentifier(dshareUsername)
 
+    // Turn off our two types of logging
     AndroidLogger.enable = developerMode
+    MuteAllFilter.mute = !developerMode
 
     // BugSenseHandler.setLogging(true)
 
