@@ -155,8 +155,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
   /**
    * Return a restricted set of mode names based just on what the user can do in the current flight mode (if simpleMode)
+   * Each pair is a name and a bool to indicate the user should be asked to confirm
    */
-  def selectableModeNames(simpleMode: Boolean) = {
+  def selectableModeNames = {
     var names = modeNames
     if (isCopter)
       if (!isArmed)
@@ -166,19 +167,22 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
     val flying = isFlying.getOrElse(false)
     log.debug(s"flying=$flying, mode names: " + names.mkString(","))
-    if (!simpleMode || !isCopter) { // Simple modes are only supported for copter right now 
-      log.debug("Not in simple mode")
-      names
-    }
-    else {
-      val filter = if(isGCSInitializing)
-        initializingModes
-      else if (flying) 
-        simpleFlightModes 
-      else 
-        simpleGroundModes
-      names.filter(filter.contains)
-    }
+ 
+    val filter = if(isGCSInitializing)
+      initializingModes
+    else if (flying) 
+      simpleFlightModes 
+    else 
+      simpleGroundModes
+    
+    names.flatMap { name =>
+      filter.get(name) match {
+        case Some(confirm) => 
+          Some(name -> confirm)
+        case None =>
+          None
+        }
+      }
   }
 
   private def onStatusChanged(str: String, sc: Int) {

@@ -21,8 +21,9 @@ import android.widget.Button
 import android.view.ViewGroup.LayoutParams
 import android.widget.LinearLayout
 import android.view.Gravity
+import com.ridemission.scandroid.SimpleDialogClient
 
-class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment {
+class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient {
   private def uploadWpButton = getView.findView(TR.upload_waypoint_button)
   private def modeTextView = getView.findView(TR.mode_text)
   private def modeButtonGroup = getView.findView(TR.mode_buttons)
@@ -131,10 +132,14 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
       // Show the vehicle mode buttons
       if (s.isConnected && v.hasHeartbeat)
-        v.selectableModeNames(true).foreach { name =>
-          makeButton(name).onClick { b =>
-            v ! DoSetMode(name)
-          }
+        v.selectableModeNames.foreach {
+          case (name, confirm) =>
+            val b = makeButton(name)
+
+            if (confirm)
+              confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
+            else
+              b.onClick { b => v ! DoSetMode(name) }
         }
 
       // Add a special button to turn bluetooth on/off
@@ -144,7 +149,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
             s.connectToDevices()
           }
         else if (!v.isArmed)
-          makeButton("Disconnect").onClick { b =>
+          confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?") { () =>
             s.forceBluetoothDisconnect()
           }
     }
