@@ -667,13 +667,17 @@ class MyMapFragment extends SupportMapFragment
             val curDist = vLoc.distance(gcsLoc).toFloat
             val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)
 
-            val gcsLocLatLng = new LatLng(gcsLoc.lat, gcsLoc.lon)
-            scene.drawables.append(new CircleFactory((new CircleOptions).center(gcsLocLatLng).
-              strokeColor(Color.BLUE).strokeWidth(5).radius(localRange)))
+            if (localRange > 0) {
+              val gcsLocLatLng = new LatLng(gcsLoc.lat, gcsLoc.lon)
+              scene.drawables.append(new CircleFactory((new CircleOptions).center(gcsLocLatLng).
+                strokeColor(Color.BLUE).strokeWidth(5).radius(localRange)))
+            }
 
-            val vLocLatLng = new LatLng(vLoc.lat, vLoc.lon)
-            scene.drawables.append(new CircleFactory((new CircleOptions).center(vLocLatLng).
-              strokeColor(Color.BLUE).strokeWidth(5).radius(remRange)))
+            if (remRange > 0) {
+              val vLocLatLng = new LatLng(vLoc.lat, vLoc.lon)
+              scene.drawables.append(new CircleFactory((new CircleOptions).center(vLocLatLng).
+                strokeColor(Color.BLUE).strokeWidth(5).radius(remRange)))
+            }
           }
         }
 

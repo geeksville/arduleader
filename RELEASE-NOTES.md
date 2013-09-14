@@ -1,15 +1,18 @@
 # 1.7.07
 * SimpleUI: Move status messages into their own fragment (and make them update even if fragment is not visible)
 * SimpleUI: Try to guess likely modes the user would want and put them as buttons at the bottom of the screen
+* SimpleUI: Show the bluetooth device connect/disconnect button
+* SimpleUI: Prompt user with extra dialog if they try especially dangerous mode switches (disconnecting or disarming while we think the vehicle is flying etc...)
 * I played around with the profiler a bit and many operations should now be a bit faster
 * When connected by bluetooth, show proper vehicle state on the icon
 * Make popup modal bar appear in correct position on portrait 7" displays
 * Show HDOP (horizontal position precision) in the gps display
 * Only enable arm menu item if we have a heartbeat from the vehicle
-* Show the bluetooth device connect/disconnect button in the new SimpleView
 * Fix the bug where mode changes would be announced twice
 * Fix some minor display glitches
 * Add support for profiling/tracing when in developer mode
+* Fix a couple more rare autobugs
+* SimpleUI: Lots more coming in the next release...
 
 # 1.7.04
 * Announce Arm/Disarm via voice

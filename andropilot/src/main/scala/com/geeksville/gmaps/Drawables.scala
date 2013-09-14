@@ -40,7 +40,7 @@ trait LineFactory extends DrawableFactory {
   protected def lineOptions: PolylineOptions
 
   def render(map: GoogleMap) {
-    drawn = Some(map.addPolyline(lineOptions))
+    drawn = Option(map.addPolyline(lineOptions))
   }
 }
 
@@ -48,7 +48,7 @@ class CircleFactory(val circleOptions: CircleOptions) extends DrawableFactory {
   def circle: Option[Circle] = drawn.asInstanceOf[Option[Circle]]
 
   def render(map: GoogleMap) {
-    drawn = Some(map.addCircle(circleOptions))
+    drawn = Option(map.addCircle(circleOptions))
   }
 }
 
