@@ -63,10 +63,5 @@
         android:key="follow_plane"
         android:summary="Try to keep vehicle centered in map"
         android:title="Center on map" />
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="simple_modes"
-        android:summary="Show a simpler (but less flexible) user interface"
-        android:title="Use simple user interface" />
 
 </PreferenceScreen>

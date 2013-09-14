@@ -3,6 +3,7 @@ package com.geeksville.andropilot
 import android.app.Application
 import com.flurry.android.FlurryAgent
 import com.bugsense.trace.BugSenseHandler
+import com.ridemission.scandroid.AndroidLogger
 
 // @ReportsCrashes(formKey = "dDFiVzhuNkNjVWJjUDFMVzJWbXBxZkE6MQ") /*
 /* mode = ReportingInteractionMode.TOAST,
@@ -20,6 +21,8 @@ class MyApplication extends Application with AndropilotPrefs {
     val username = dshareUsername
     if (!username.isEmpty)
       BugSenseHandler.setUserIdentifier(dshareUsername)
+
+    AndroidLogger.enable = developerMode
 
     // BugSenseHandler.setLogging(true)
 

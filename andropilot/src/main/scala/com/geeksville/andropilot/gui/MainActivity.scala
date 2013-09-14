@@ -70,6 +70,7 @@ import android.app.PendingIntent
 import android.app.AlertDialog
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 import com.geeksville.flight.StatusText
+import android.os.Debug
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -743,6 +744,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeOptions()
     setModeSpinner()
 
+    menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
     service foreach { svc =>
       val follow = menu.findItem(R.id.menu_followme)
@@ -843,6 +845,17 @@ class MainActivity extends FragmentActivity with TypedActivity
         myVehicle.foreach { v =>
           v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
+        }
+
+      case R.id.menu_tracing =>
+        val n = !item.isChecked
+        item.setChecked(n)
+        if (n) {
+          toast("Tracing enabled")
+          Debug.startMethodTracing("andropilot")
+        } else {
+          Debug.stopMethodTracing()
+          toast("Tracing disabled")
         }
 
       case R.id.menu_showjoystick =>

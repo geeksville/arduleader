@@ -16,4 +16,10 @@
         android:summary="Baud rate direct APM connection (normally 115200)"
         android:title="APM baud rate" />
 
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="developer_mode"
+        android:summary="You probably don't want to turn this on..."
+        android:title="Are you developing this app (join us!)" />
+        
 </PreferenceScreen>

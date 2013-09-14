@@ -24,14 +24,6 @@
         android:checkable="true"
         android:title="Show Joystick"/>
     <item
-        android:id="@+id/menu_settings"
-        android:showAsAction="never"
-        android:title="Settings"/>
-    <item
-        android:id="@+id/menu_help"
-        android:showAsAction="never"
-        android:title="Help"/>
-    <item
         android:id="@+id/menu_calibrate"
         android:showAsAction="never"
         android:title="Calibrate Accel"/>
@@ -39,10 +31,12 @@
         android:id="@+id/menu_levelnow"
         android:showAsAction="never"
         android:title="Manual Level"/>
-    <!--  <item
+    <!--
+          <item
         android:id="@+id/menu_compasscal"
         android:showAsAction="never"
-        android:title="Compass Calibration"/> -->
+        android:title="Compass Calibration"/>
+    -->
     <item
         android:id="@+id/menu_gotovehicle"
         android:showAsAction="never"
@@ -51,5 +45,20 @@
          <item android:id="@+id/menu_sethome" android:showAsAction="never"
 		android:title="Set Home" />
     -->
+
+    <item
+        android:id="@+id/menu_settings"
+        android:showAsAction="never"
+        android:title="Settings"/>
+    <item
+        android:id="@+id/menu_tracing"
+        android:checkable="true"
+        android:showAsAction="never"
+        android:title="Tracing"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_help"
+        android:showAsAction="never"
+        android:title="Help"/>
 
 </menu>

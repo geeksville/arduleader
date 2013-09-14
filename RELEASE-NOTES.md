@@ -6,6 +6,8 @@
 * Only enable arm menu item if we have a heartbeat from the vehicle
 * Show the bluetooth device connect/disconnect button in the new SimpleView
 * Fix the bug where mode changes would be announced twice
+* Fix some minor display glitches
+* Add support for profiling/tracing when in developer mode
 
 # 1.7.04
 * Announce Arm/Disarm via voice

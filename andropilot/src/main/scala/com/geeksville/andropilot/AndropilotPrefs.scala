@@ -34,7 +34,7 @@ trait AndropilotPrefs extends UsesPreferences {
   def dshareUsername = stringPreference("dshare_username", "").trim
   def dsharePassword = stringPreference("dshare_password", "").trim
 
-  def simpleModes = boolPreference("simple_modes", false)
+  def developerMode = boolPreference("developer_mode", false)
 
   def stayAwakeEnabled = boolPreference("stay_awake", true)
 
