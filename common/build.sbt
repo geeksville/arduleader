@@ -5,6 +5,8 @@ version := "0.1"
 // scalaVersion := "2.10.0" // To match version used by scala-ide
 
 resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+
+scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
  
 libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0"
 

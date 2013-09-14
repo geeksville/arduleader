@@ -5,6 +5,7 @@
 * Show HDOP (horizontal position precision) in the gps display
 * Only enable arm menu item if we have a heartbeat from the vehicle
 * Show the bluetooth device connect/disconnect button in the new SimpleView
+* Fix the bug where mode changes would be announced twice
 
 # 1.7.04
 * Announce Arm/Disarm via voice
