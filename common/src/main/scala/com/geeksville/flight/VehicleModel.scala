@@ -78,8 +78,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     enterStartState()
     val l = new PropertyChangeListener {
       def propertyChange(ev: PropertyChangeEvent) {
+        val oldState = ev.getOldValue.asInstanceOf[VehicleModelState]
         val newState = ev.getNewValue.asInstanceOf[VehicleModelState]
-        log.debug("publishing fsm change: " + newState.getName)
+        log.debug("publishing fsm: " + oldState.getName + " -> " + newState.getName)
         eventStream.publish(MsgFSMChanged(newState.getName))
       }
     }
@@ -289,6 +290,15 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     super.onHeartbeatLost()
 
     fsm.OnLostHeartbeat()
+  }
+
+  override def onWaypointDownloadFailed() {
+   super.onWaypointDownloadFailed()
+   
+   // Temp hack until I understand why WP download sometimes fails - it seems like the far radio just isn't listening
+   // Force the user to reconnect
+   onStatusChanged("WP download failed: please reconnect", MsgStatusChanged.SEVERITY_CRITICAL)
+   fsm.OnLostInterface()
   }
 
   override def onWaypointsDownloaded() {

@@ -752,31 +752,31 @@ class MainActivity extends FragmentActivity with TypedActivity
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
       follow.setTitle(if (isLeading) R.string.lead_it else R.string.follow_me)
       follow.setChecked(svc.isFollowMe)
+
+      myVehicle.foreach { v =>
+        val armMenu = menu.findItem(R.id.menu_arm)
+
+        if (v.isCopter) {
+          val armed = v.isArmed
+          debug("Setting arm checkbox to " + armed)
+          armMenu.setChecked(armed)
+          armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
+        } else
+          armMenu.setVisible(false)
+      }
+
+      val joystickMenu = menu.findItem(R.id.menu_showjoystick)
+      val hasJoystickView = joystickPanel.isDefined
+      joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
+      joystickMenu.setEnabled(hasJoystickView && joystickAvailable && svc.isConnected)
+
+      val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
+      gotoMenu.setEnabled(navToVehicleIntent.isDefined)
+
+      // FIXME - host this help doc in some better location (local?) and possibly use a webview
+      menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
+        Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
     }
-
-    myVehicle.foreach { v =>
-      val armMenu = menu.findItem(R.id.menu_arm)
-
-      if (v.isCopter) {
-        val armed = v.isArmed
-        debug("Setting arm checkbox to " + armed)
-        armMenu.setChecked(armed)
-        armMenu.setEnabled(v.hasHeartbeat)
-      } else
-        armMenu.setVisible(false)
-    }
-
-    val joystickMenu = menu.findItem(R.id.menu_showjoystick)
-    val hasJoystickView = joystickPanel.isDefined
-    joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
-    joystickMenu.setEnabled(hasJoystickView && joystickAvailable)
-
-    val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
-    gotoMenu.setEnabled(navToVehicleIntent.isDefined)
-
-    // FIXME - host this help doc in some better location (local?) and possibly use a webview
-    menu.findItem(R.id.menu_help).setIntent(viewHtmlIntent(
-      Uri.parse("https://github.com/geeksville/arduleader/wiki/Andropilot-Users-Guide")))
 
     true
   }

@@ -205,14 +205,19 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   override protected def onArmedChanged(armed: Boolean) {
     super.onArmedChanged(armed)
 
-    // First contact, download any waypoints from the vehicle and get params
+    log.debug("ArmChanged in WP model")
+    // On AC we can't trust home until after arming - so we do this here, download any waypoints from the vehicle and get params
     self ! StartWaypointDownload
   }
 
   private def startWaypointDownload() {
     log.info("Downloading waypoints")
     hasRequestedWaypoints = true
-    sendWithRetry(missionRequestList(), classOf[msg_mission_count])
+    sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
+  }
+
+  protected def onWaypointDownloadFailed() {
+    log.error("Waypoint download failed")
   }
 
   private def perhapsRequestWaypoints() {

@@ -130,7 +130,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
       // Show the vehicle mode buttons
-      if (v.hasHeartbeat)
+      if (s.isConnected && v.hasHeartbeat)
         v.selectableModeNames(true).foreach { name =>
           makeButton(name).onClick { b =>
             v ! DoSetMode(name)

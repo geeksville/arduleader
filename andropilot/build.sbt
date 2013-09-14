@@ -14,6 +14,8 @@ net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 libraryDependencies += "google-play-services" % "google-play-services_2.10" % "0.1-SNAPSHOT" artifacts(Artifact("google-play-services_2.10", "apklib", "apklib"))
 
+scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
+
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6") // Needed for android
 
 platformName in Android := "android-17"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15
