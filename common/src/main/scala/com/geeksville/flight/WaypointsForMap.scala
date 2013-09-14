@@ -12,10 +12,11 @@ trait WaypointsForMap {
    */
   def waypointsForMap = {
     var index = 0
-    val inspected = Array.fill(waypoints.size)(false)
+    val wpCopy = waypoints
+    val inspected = Array.fill(wpCopy.size)(false)
 
     // No matter what we never want to emit more waypoints than we started with
-    (0 until waypoints.size).flatMap { loopNum =>
+    (0 until wpCopy.size).flatMap { loopNum =>
       if (index >= waypoints.size)
         None
       else if (!inspected(index)) {
