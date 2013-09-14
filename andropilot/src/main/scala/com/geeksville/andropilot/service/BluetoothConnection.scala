@@ -78,6 +78,8 @@ trait BluetoothConnection extends Context with AndroidLogger {
     if (isEnabled)
       foundDevices.foreach { device =>
         val remoteDev = adapter.getRemoteDevice(device.getAddress)
+        adapter.cancelDiscovery()
+
         try {
           val btSocket = remoteDev.createRfcommSocketToServiceRecord(getUUID(device).get)
 
