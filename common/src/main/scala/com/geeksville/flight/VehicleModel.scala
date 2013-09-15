@@ -110,11 +110,17 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   /**
    * We can only detect flight modes in copter currently
    */
-  def isFlying = systemStatus.flatMap { s =>
-    if (isCopter)
-      Some(s == MAV_STATE.MAV_STATE_ACTIVE)
-    else
-      None
+  def isFlying = systemStatus.flatMap { 
+    case MAV_STATE.MAV_STATE_ACTIVE =>
+      Some(true)
+    case MAV_STATE.MAV_STATE_STANDBY => // Used by 3.1 AC and plane to indicate !flying
+      Some(false)
+    case MAV_STATE.MAV_STATE_CALIBRATING => // Plane uses this
+      Some(false)
+    case MAV_STATE.MAV_STATE_CRITICAL => // Plane uses this
+      Some(true)
+    case _ =>
+      None // We don't know
   }
   
   def isGCSInitializing = {

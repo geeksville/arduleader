@@ -183,6 +183,18 @@ private class VehicleFSM_WantVehicle(name: String, id: Int) extends VehicleFSM_D
 
 private class VehicleFSM_DownloadingWaypoints(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
+    override def HBSaysArmed(context: VehicleFSM): Unit = {
+
+    }
+
+    override def HBSaysDisarmed(context: VehicleFSM): Unit = {
+
+    }
+
+    override def HBSaysFlying(context: VehicleFSM): Unit = {
+
+    }
+
     override def OnWaypointsDownloaded(context: VehicleFSM): Unit = {
 
         context.getState().Exit(context)
@@ -192,6 +204,18 @@ private class VehicleFSM_DownloadingWaypoints(name: String, id: Int) extends Veh
 }
 
 private class VehicleFSM_DownloadingParameters(name: String, id: Int) extends VehicleFSM_Default(name, id) {
+
+    override def HBSaysArmed(context: VehicleFSM): Unit = {
+
+    }
+
+    override def HBSaysDisarmed(context: VehicleFSM): Unit = {
+
+    }
+
+    override def HBSaysFlying(context: VehicleFSM): Unit = {
+
+    }
 
     override def OnParametersDownloaded(context: VehicleFSM): Unit = {
 

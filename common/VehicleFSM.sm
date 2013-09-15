@@ -43,6 +43,19 @@ DownloadingWaypoints
   OnWaypointsDownloaded
     DownloadingParameters
     {}
+
+  // Ignore most transitions while downloading wpts/parameters
+  HBSaysArmed
+    nil
+    {}
+
+  HBSaysDisarmed
+    nil
+    {}
+
+  HBSaysFlying
+    nil
+    {}
 }
 
 DownloadingParameters
@@ -52,6 +65,19 @@ Exit { setStreamEnable(true); } */
 
   OnParametersDownloaded
     DownloadedParameters
+    {}
+
+  // Ignore most transitions while downloading wpts/parameters
+  HBSaysArmed
+    nil
+    {}
+
+  HBSaysDisarmed
+    nil
+    {}
+
+  HBSaysFlying
+    nil
     {}
 }
 
