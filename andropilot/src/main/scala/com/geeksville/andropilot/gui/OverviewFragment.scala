@@ -18,8 +18,9 @@ import android.view.View
 import com.ridemission.scandroid.ObservableAdapter
 import com.geeksville.flight.StatusText
 import android.widget.BaseAdapter
+import com.geeksville.andropilot.AndropilotPrefs
 
-class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with AndroServiceFragment {
+class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with AndroServiceFragment with AndropilotPrefs {
 
   private def latView = getView.findView(TR.latitude)
   private def lonView = getView.findView(TR.longitude)
@@ -29,6 +30,23 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
   private def numSatView = getView.findView(TR.gps_numsats)
   private def rssiLocalView = getView.findView(TR.rssi_local)
   private def batteryView = getView.findView(TR.battery_volt)
+  private def devRowView = getView.findView(TR.dev_row)
+  private def devInfoView = getView.findView(TR.dev_info)
+
+  override def onResume() = {
+    super.onResume()
+
+    devRowView.setVisibility(if (developerMode) View.VISIBLE else View.GONE)
+  }
+
+  private def showDevInfo() {
+    // Show current state
+    myVehicle.foreach { v =>
+      val stateName = v.fsm.getState.getName.split('.')(1)
+      val status = v.systemStatus.getOrElse(-1)
+      Option(devInfoView).foreach(_.setText(s"$stateName/$status"))
+    }
+  }
 
   override def onVehicleReceive = {
     case l: Location =>
@@ -51,6 +69,9 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
         }
       }
 
+    case MsgFSMChanged(_) =>
+      handler.post(showDevInfo _)
+
     case MsgSysStatusChanged =>
       handler.post { () =>
         if (getView != null) {
@@ -65,6 +86,9 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
               val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
               batteryView.setText(n.toString + "V " + socStr)
             }
+
+            // Show current state
+            showDevInfo()
           }
         }
       }

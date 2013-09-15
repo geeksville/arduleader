@@ -191,6 +191,30 @@
                 android:singleLine="true"
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
+        
+        <TableRow
+            android:id="@+id/dev_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" 
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="Dev Info"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <TextView
+                android:id="@+id/dev_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_weight="1"
+                android:gravity="right"
+                android:singleLine="true"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+        </TableRow>        
 
     </TableLayout>
 
