@@ -1,3 +1,7 @@
+# 1.7.08
+* Quick fix to make things work better on plane (broken in 1.7.07)
+* Fix a nasty (very rare) race condition that could cause hangs in the HUD code
+
 # 1.7.07
 * SimpleUI: Move status messages into their own fragment (and make them update even if fragment is not visible)
 * SimpleUI: Try to guess likely modes the user would want and put them as buttons at the bottom of the screen

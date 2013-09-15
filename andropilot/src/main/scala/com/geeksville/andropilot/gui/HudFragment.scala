@@ -27,20 +27,18 @@ class HudFragment extends Fragment with AndroServicePage {
   override def onVehicleReceive = {
     case msg: msg_attitude =>
       //debug(msg.toString)
-      hud.newFlightData(msg.roll, msg.pitch, msg.yaw);
+      Option(hud).foreach(_.newFlightData(msg.roll, msg.pitch, msg.yaw))
 
     case l: Location =>
       //debug("Handling location: " + l) 
       handler.post { () =>
-        if (getView != null) {
-          myVehicle.foreach { v =>
-            val degSymbol = "\u00B0"
-            //latView.setText(l.lat.toString + degSymbol)
-            //lonView.setText(l.lon.toString + degSymbol)
-            //altView.setText(l.alt + "m")
-            hud.setAltitude(v.bestAltitude + "m")
-            // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
-          }
+        myVehicle.foreach { v =>
+          val degSymbol = "\u00B0"
+          //latView.setText(l.lat.toString + degSymbol)
+          //lonView.setText(l.lon.toString + degSymbol)
+          //altView.setText(l.alt + "m")
+          Option(hud).foreach(_.setAltitude(v.bestAltitude + "m"))
+          // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
         }
       }
 

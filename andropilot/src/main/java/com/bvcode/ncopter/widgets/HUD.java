@@ -275,8 +275,10 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void setDirty() {
-		if (renderer != null)
+		if (renderer != null) {
+			// Log.d("HUD", "Setting dirty");
 			renderer.setDirty();
+		}
 	}
 
 	@Override
@@ -285,12 +287,15 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		Log.d("HUD", "Surface destroyed");
 		renderer.setRunning(false);
 		while (retry) {
+			Log.d("HUD", "waiting for thread to die");
+
 			try {
 				renderer.join();
 				renderer = null;
 				retry = false;
 			} catch (InterruptedException e) {
 				// we will try it again and again...
+				Log.d("HUD", "trying again");
 			}
 		}
 	}
@@ -333,7 +338,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 						c = _surfaceHolder.lockCanvas(null);
 						synchronized (_surfaceHolder) {
 							if (c != null) {
-								Log.d("HUD", "Refreshing");
+								// Log.d("HUD", "Refreshing");
 								scope.onDraw(c);
 							}
 						}
@@ -356,7 +361,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 					// HUD data
 					try {
 						// Log.d("HUD", "Waiting for change");
-						dirty.wait(); // FIXME - not quite ready
+						dirty.wait();
 						// Log.d("HUD", "Handling change");
 					} catch (InterruptedException e) {
 						// We will try again and again
