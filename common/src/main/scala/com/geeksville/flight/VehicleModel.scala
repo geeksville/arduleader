@@ -345,7 +345,20 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    */
   private def setMode(mode: String) {
     mode match { 
-      case"Arm" => sendMavlink(commandDoArm(true))
+      case"Arm" =>
+        // Temporary hackish safety check until AC can be updated (see https://github.com/diydrones/ardupilot/issues/553)
+        val throttleTooFast = (for {
+          rc <- rcChannels
+          minThrottle <- parametersById("RC3_MIN").getInt
+        } yield {
+          rc.chan3_raw > minThrottle * 1.10
+        }).getOrElse(false)
+
+        if(throttleTooFast)
+          onStatusChanged("ARM suppressed, throttle too high", MsgStatusChanged.SEVERITY_HIGH)
+        else
+          sendMavlink(commandDoArm(true))
+
       case"Disarm" => sendMavlink(commandDoArm(false))
       case _=> sendMavlink(setMode(modeToCodeMap(mode)))
     }
