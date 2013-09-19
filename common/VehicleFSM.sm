@@ -123,6 +123,11 @@ Flying
   HBSaysDisarmed
     Disarmed
     {}
+    
+  // Just stay in this state for redundant notifies
+  HBSaysFlying
+    nil
+    {}    
 }
 
 //
@@ -143,6 +148,12 @@ Default
   OnWaypointsDownloaded
     nil
     {}
+    
+  Default
+    nil
+    {
+    	onUndefinedTransition(endState);
+    }
 }
 
 %%

@@ -46,6 +46,9 @@ case class MsgModeChanged(m: String)
 /// Published when our state machine changes states
 case class MsgFSMChanged(stateName: String)
 
+/// A non fatal bug has occurred
+case class MsgReportBug(m: String)
+
 //
 // Messages we expect from others
 //
@@ -92,7 +95,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   var batteryVoltage: Option[Float] = None
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
-  
+
   /**
    * Horizontal position precision in meters
    */
@@ -110,7 +113,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   /**
    * We can only detect flight modes in copter currently
    */
-  def isFlying = systemStatus.flatMap { 
+  def isFlying = systemStatus.flatMap {
     case MAV_STATE.MAV_STATE_ACTIVE =>
       Some(true)
     case MAV_STATE.MAV_STATE_STANDBY => // Used by 3.1 AC and plane to indicate !flying
@@ -122,7 +125,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     case _ =>
       None // We don't know
   }
-  
+
   def isGCSInitializing = {
     fsm.getState.getName match {
       case "VehicleFSM.WantInterface" =>
@@ -159,6 +162,15 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    */
   def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"
 
+  protected[flight] def onUndefinedTransition(state: VehicleModelState) {
+    val sname = state.getName
+    val trans = fsm.getTransition
+
+    val msg = s"Undefined transition $trans in $sname"
+    log.error(msg)
+    eventStream.publish(MsgReportBug(msg))
+  }
+
   /**
    * Return a restricted set of mode names based just on what the user can do in the current flight mode (if simpleMode)
    * Each pair is a name and a bool to indicate the user should be asked to confirm
@@ -173,38 +185,38 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
     val flying = isFlying.getOrElse(false)
     log.debug(s"flying=$flying, mode names: " + names.mkString(","))
- 
-    val filter = if(isGCSInitializing)
+
+    val filter = if (isGCSInitializing)
       initializingModes
-    else if (flying) 
-      simpleFlightModes 
-    else 
+    else if (flying)
+      simpleFlightModes
+    else
       simpleGroundModes
-    
+
     names.flatMap { name =>
       filter.get(name) match {
-        case Some(confirm) => 
+        case Some(confirm) =>
           Some(name -> confirm)
         case None =>
           None
-        }
       }
+    }
   }
 
   private def onStatusChanged(str: String, sc: Int) {
     var s = str
-    
+
     if (statusMessages.size == maxStatusHistory)
       statusMessages.remove(0)
     val t = StatusText(s, sc)
     statusMessages += t
-    
+
     // Publish the interesting strings (stripping out bogus APM msgs)
-    if(!s.startsWith("command received:")) {
-    val prefix = "PreArm: "
-    if (s.startsWith(prefix))
-      s =  "Failure: " + s.substring(prefix.length)
-        
+    if (!s.startsWith("command received:")) {
+      val prefix = "PreArm: "
+      if (s.startsWith(prefix))
+        s = "Failure: " + s.substring(prefix.length)
+
       eventStream.publish(StatusText(s, sc))
     }
   }
@@ -216,11 +228,11 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private def mReceive: Receiver = {
 
     case OnInterfaceChanged(c) =>
-      if(c)
+      if (c)
         fsm.OnHasInterface()
       else
         fsm.OnLostInterface()
-        
+
     case DoSetMode(m) =>
       setMode(m)
 
@@ -243,9 +255,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
 
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
-      
+
       // APM uses some unfortunate word choice and has no notion of failure codes.  Change the terminology here
-      var s = m.getText        
+      var s = m.getText
       onStatusChanged(s, m.severity)
 
     case msg: msg_sys_status =>
@@ -258,9 +270,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
         //log.debug("Received location: " + loc)
         if (msg.satellites_visible != 255)
           numSats = Some(msg.satellites_visible)
-          if(msg.eph != 65535)
-            hdop = Some(msg.eph / 100.0f)
-            
+        if (msg.eph != 65535)
+          hdop = Some(msg.eph / 100.0f)
+
         onLocationChanged(loc)
       }
 
@@ -283,7 +295,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   override protected def onSystemStatusChanged(m: Int) {
     super.onSystemStatusChanged(m)
 
-    if (isFlying.getOrElse(false))
+    if (isArmed && isFlying.getOrElse(false))
       fsm.HBSaysFlying()
   }
 
@@ -294,21 +306,22 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     fsm.OnHasHeartbeat()
-  } 
-      
+  }
+
   override def onHeartbeatLost() {
     super.onHeartbeatLost()
 
+    onStatusChanged("Lost contact to vehicle", MsgStatusChanged.SEVERITY_HIGH)
     fsm.OnLostHeartbeat()
   }
 
   override def onWaypointDownloadFailed() {
-   super.onWaypointDownloadFailed()
-   
-   // Temp hack until I understand why WP download sometimes fails - it seems like the far radio just isn't listening
-   // Force the user to reconnect
-   onStatusChanged("WP download failed: please reconnect", MsgStatusChanged.SEVERITY_CRITICAL)
-   fsm.OnLostInterface()
+    super.onWaypointDownloadFailed()
+
+    // Temp hack until I understand why WP download sometimes fails - it seems like the far radio just isn't listening
+    // Force the user to reconnect
+    onStatusChanged("WP download failed: please reconnect", MsgStatusChanged.SEVERITY_CRITICAL)
+    fsm.OnLostInterface()
   }
 
   override def onWaypointsDownloaded() {
@@ -322,11 +335,11 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     super.onParametersDownloaded()
 
     fsm.OnParametersDownloaded()
-    
-      /// Select correct next state (because we are guaranteed to already be in one of these states)
-    if(isFlying.getOrElse(false))
+
+    /// Select correct next state (because we are guaranteed to already be in one of these states)
+    if (isFlying.getOrElse(false))
       fsm.HBSaysFlying()
-    else if(isArmed)
+    else if (isArmed)
       fsm.HBSaysArmed()
     else
       fsm.HBSaysDisarmed()
@@ -344,23 +357,26 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
    * Tell vehicle to select a new mode (we use Arm and Disarm as special pseduo modes
    */
   private def setMode(mode: String) {
-    mode match { 
-      case"Arm" =>
+    mode match {
+      case "Arm" =>
         // Temporary hackish safety check until AC can be updated (see https://github.com/diydrones/ardupilot/issues/553)
         val throttleTooFast = (for {
           rc <- rcChannels
           minThrottle <- parametersById("RC3_MIN").getInt
         } yield {
-          rc.chan3_raw > minThrottle * 1.10
-        }).getOrElse(false)
+          // If there is no radio AC will claim 0 for all RC channels - treat that as failure
+          rc.chan3_raw > minThrottle * 1.10 || rc.chan3_raw == 0
+        }).getOrElse(true)
 
-        if(throttleTooFast)
-          onStatusChanged("ARM suppressed, throttle too high", MsgStatusChanged.SEVERITY_HIGH)
+        if (throttleTooFast)
+          onStatusChanged("Failure to ARM - bad throttle", MsgStatusChanged.SEVERITY_HIGH)
         else
           sendMavlink(commandDoArm(true))
 
-      case"Disarm" => sendMavlink(commandDoArm(false))
-      case _=> sendMavlink(setMode(modeToCodeMap(mode)))
+      case "Disarm" =>
+        sendMavlink(commandDoArm(false))
+      case _ =>
+        sendMavlink(setMode(modeToCodeMap(mode)))
     }
   }
 

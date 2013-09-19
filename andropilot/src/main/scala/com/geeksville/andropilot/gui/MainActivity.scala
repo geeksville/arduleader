@@ -71,6 +71,8 @@ import android.app.AlertDialog
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
 import com.geeksville.flight.StatusText
 import android.os.Debug
+import com.geeksville.flight.MsgReportBug
+import com.bugsense.trace.BugSenseHandler
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -186,6 +188,14 @@ class MainActivity extends FragmentActivity with TypedActivity
             speak(S(R.string.spk_percent).format(pct))
           }
         }
+      }
+
+    case MsgReportBug(m) =>
+      handler.post { () =>
+        val e = new Exception(m)
+        BugSenseHandler.sendExceptionMessage("model_bug", "state_machine", e)
+        speak("Warning, non fatal bug")
+        toast("Non fatal andropilot bug - please post on diydrones.com")
       }
 
     case MsgWaypointCurrentChanged(n) =>

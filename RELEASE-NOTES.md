@@ -1,3 +1,9 @@
+# 1.7.10
+* Fix problem introduced where we'd drop the vehicle link occasionally (thanks to beta testers Gary and Luciano)
+* Add extra debugging (and change a suspected error to be non-fatal) if the new state machine gets confused
+* Don't let vehicles arm if the are not at zero throttle (Thanks to Dave C for reporting this important safety issue)
+* Sometimes the AC claims it is flying when it is disarmed, silently deal with this problem...
+
 # 1.7.08
 * Quick fix to make things work better on plane (broken in 1.7.07)
 * Fix a nasty (very rare) race condition that could cause hangs in the HUD code

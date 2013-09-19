@@ -155,6 +155,20 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
     override def OnWaypointsDownloaded(context: VehicleFSM): Unit = {
 
     }
+
+    override def Default(context: VehicleFSM): Unit = {
+        val ctxt: VehicleModel = context.getOwner()
+
+        val endState = context.getState()
+
+        context.clearState()
+        try {
+            ctxt.onUndefinedTransition(endState)
+        }
+        finally {
+            context.setState(endState)
+        }
+    }
 }
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {
@@ -283,6 +297,10 @@ private class VehicleFSM_Flying(name: String, id: Int) extends VehicleFSM_Defaul
         context.getState().Exit(context)
         context.setState(VehicleFSM.Disarmed)
         context.getState().Entry(context)
+    }
+
+    override def HBSaysFlying(context: VehicleFSM): Unit = {
+
     }
 }
 
