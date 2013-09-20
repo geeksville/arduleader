@@ -271,6 +271,10 @@ private class VehicleFSM_Disarmed(name: String, id: Int) extends VehicleFSM_Defa
         context.setState(VehicleFSM.Armed)
         context.getState().Entry(context)
     }
+
+    override def HBSaysFlying(context: VehicleFSM): Unit = {
+
+    }
 }
 
 private class VehicleFSM_Armed(name: String, id: Int) extends VehicleFSM_Default(name, id) {

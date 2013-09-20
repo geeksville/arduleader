@@ -105,6 +105,11 @@ Disarmed
   HBSaysArmed
     Armed
     {}
+  
+  // Ignore this until we are also armed - the vehicle just made a brief mistake...
+  HBSaysFlying
+    nil
+    {}    
 }
 
 Armed
