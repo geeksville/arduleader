@@ -82,7 +82,12 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
 
       // We wait for writes to complete, so if we get backed up we can make a decision on handling on a packet by packet basis
       if (!shuttingDown)
-        devOpt.foreach(_.write(b, len, true))
+        try {
+          devOpt.foreach(_.write(b, len, true))
+        } catch {
+          case ex: NullPointerException =>
+            error("Ignoring NPE inside of FTDI code")
+        }
     }
   }
 
