@@ -337,7 +337,7 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
     fsm.OnParametersDownloaded()
 
     /// Select correct next state (because we are guaranteed to already be in one of these states)
-    if (isFlying.getOrElse(false))
+    if (isArmed && isFlying.getOrElse(false))
       fsm.HBSaysFlying()
     else if (isArmed)
       fsm.HBSaysArmed()

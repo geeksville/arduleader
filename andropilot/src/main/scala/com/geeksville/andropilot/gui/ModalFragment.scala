@@ -24,9 +24,9 @@ import android.view.Gravity
 import com.ridemission.scandroid.SimpleDialogClient
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient {
-  private def uploadWpButton = getView.findView(TR.upload_waypoint_button)
-  private def modeTextView = getView.findView(TR.mode_text)
-  private def modeButtonGroup = getView.findView(TR.mode_buttons)
+  private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
+  private def modeTextView = Option(getView).map(_.findView(TR.mode_text))
+  private def modeButtonGroup = Option(getView).map(_.findView(TR.mode_buttons))
 
   val errColor = Color.RED
   val warnColor = Color.YELLOW
@@ -60,9 +60,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   }
 
   private def setWPUploadVisibility(dirty: Boolean) {
-    if (getView != null) {
-      uploadWpButton.setVisibility(if (dirty) View.VISIBLE else View.GONE)
-    }
+    uploadWpButton.foreach(_.setVisibility(if (dirty) View.VISIBLE else View.GONE))
   }
 
   override def onActivityCreated(savedInstanceState: Bundle) {
@@ -72,7 +70,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       setWPUploadVisibility(v.isDirty)
     }
 
-    uploadWpButton.onClick { b =>
+    uploadWpButton.get.onClick { b =>
       myVehicle.foreach { v =>
         v ! SendWaypoints
       }
@@ -86,15 +84,17 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   }
 
   def setModeText(str: String, color: Int) {
-    // Fade in the new text
-    if (modeTextView.getText.toString != str) {
-      fadeIn(modeTextView)
+    modeTextView.foreach { view =>
+      // Fade in the new text
+      if (view.getText.toString != str) {
+        fadeIn(view)
+      }
+
+      view.setTextColor(color)
+      view.setText(str)
+
+      view.setVisibility(View.VISIBLE)
     }
-
-    modeTextView.setTextColor(color)
-    modeTextView.setText(str)
-
-    modeTextView.setVisibility(View.VISIBLE)
   }
 
   private def handleStatus(msg: String) {
@@ -117,7 +117,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
     val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
     lp.gravity = Gravity.CENTER
-    modeButtonGroup.addView(button, lp)
+    modeButtonGroup.foreach(_.addView(button, lp))
     button
   }
 
@@ -125,8 +125,9 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     for {
       v <- myVehicle
       s <- service
+      bgrp <- modeButtonGroup
     } yield {
-      modeButtonGroup.removeAllViews()
+      bgrp.removeAllViews()
 
       debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 

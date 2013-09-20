@@ -61,12 +61,12 @@ class HeartbeatMonitor extends InstrumentedActor {
         // This will call onHeartbeatChanged
         resetWatchdog(msg.sysId)
 
-        if (systemStatus != oldStatus)
-          onSystemStatusChanged(systemStatus.get)
         if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
           onModeChanged(newVal)
         if (oldArmed != isArmed)
           onArmedChanged(isArmed)
+        if (systemStatus != oldStatus)
+          onSystemStatusChanged(systemStatus.get)
       }
 
     case WatchdogExpired =>
