@@ -16,6 +16,45 @@ case class JArray(s: Any*) extends JValue {
   def asJSON = s.map(valueToJSON).mkString("[", ",", "]")
 }
 
+case class JString(s: String) extends JValue {
+  def asJSON = quoted(s)
+}
+
+case object JNull extends JValue {
+  def asJSON = "null"
+}
+
+/**
+ * All simple types that are not strings
+ */
+case class JScalar(s: AnyVal) extends JValue {
+  def asJSON = s.toString
+}
+
+/**
+ * Use reflection to try and guess at an encoding
+ */
+case class JBestGuess(s: Any) extends JValue {
+  def asJSON = valueToJSON(s)
+}
+
+/**
+ * Import JsonConverters._ if you want to have "asJson" pimpped methods added to all the simple types
+ */
+object JsonConverters {
+  class AsJson(op: => JValue) {
+    def asJson = op
+  }
+
+  implicit def asJsonStringConverter[A](i: String) = new AsJson(JString(i))
+  implicit def asJsonValConverter[A](i: AnyVal) = new AsJson(JScalar(i))
+  implicit def asJsonOptionConverter[A](i: Option[_]) = new AsJson(
+    i match {
+      case Some(s) => JBestGuess(s)
+      case None => JNull
+    })
+}
+
 /**
  * It may make sense to use one of the (zillion) Java to JSON libraries.  However, I want something small for Android so let's just see if we can make do...
  */
