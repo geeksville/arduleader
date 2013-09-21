@@ -64,7 +64,7 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
             }
             val numSats = v.numSats.getOrElse("?")
             val hdop = v.hdop.getOrElse("?")
-            numSatView.setText("%s / %s m".format(numSats, hdop))
+            numSatView.setText("%s / %s".format(numSats, hdop))
           }
         }
       }
