@@ -12,8 +12,12 @@ import scala.collection.mutable.ArrayBuilder
 import java.io.ByteArrayInputStream
 import java.io.IOException
 
+/**
+ * @param time is in usecs
+ */
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
+  def timeSeconds = time / (1e6)
   def timeAsDate = new Date(timeMsec)
 }
 
