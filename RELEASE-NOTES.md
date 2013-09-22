@@ -1,3 +1,6 @@
+# 1.7.13
+* Work around for hangs which could occur when sliding HUD into view (on some 4.3 devices): https://code.google.com/p/android/issues/detail?id=58385
+
 # 1.7.12
 * Known bug: using 'gestures' to slide between screens may cause hangs with this version of the app - for this beta
 please just use the screen names at the top of each tab to switch...

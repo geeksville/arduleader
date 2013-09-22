@@ -18,7 +18,7 @@ public class HUD extends View {
 	private int width;
 	private int height;
 
-	double roll = 0, pitch = 0, yaw = 0;
+	double roll = Double.NaN, pitch = 0, yaw = 0;
 
 	Paint grid_paint = new Paint();
 	Paint ground = new Paint();
@@ -83,29 +83,31 @@ public class HUD extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 
-		width = getWidth();
-		height = getHeight();
+		// We refuse to draw until we at least have orientation data
+		if (!Double.isNaN(roll)) {
+			width = getWidth();
+			height = getHeight();
 
-		// clear screen
-		canvas.drawColor(Color.rgb(20, 20, 20));
-		canvas.translate(width / 2, height / 2);
+			// clear screen
+			canvas.drawColor(Color.rgb(20, 20, 20));
+			canvas.translate(width / 2, height / 2);
 
-		canvas.save();
-		drawPitch(canvas);
-		canvas.restore();
-		canvas.save();
-		drawRoll(canvas);
-		canvas.restore();
-		canvas.save();
-		drawYaw(canvas);
-		canvas.restore();
-		canvas.save();
-		drawText(canvas);
-		canvas.restore();
-		canvas.save();
-		drawPlane(canvas);
-		canvas.restore();
-
+			canvas.save();
+			drawPitch(canvas);
+			canvas.restore();
+			canvas.save();
+			drawRoll(canvas);
+			canvas.restore();
+			canvas.save();
+			drawYaw(canvas);
+			canvas.restore();
+			canvas.save();
+			drawText(canvas);
+			canvas.restore();
+			canvas.save();
+			drawPlane(canvas);
+			canvas.restore();
+		}
 	}
 
 	private void drawPlane(Canvas canvas) {

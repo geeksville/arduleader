@@ -38,6 +38,12 @@ class HudFragment extends Fragment with AndroServicePage {
     }
   }
 
+  override def onResume() = {
+    super.onResume()
+
+    hud.foreach(initView _)
+  }
+
   override def onVehicleReceive = {
     case msg: msg_attitude =>
       //debug(msg.toString)
