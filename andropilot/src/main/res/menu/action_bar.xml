@@ -9,6 +9,10 @@
         android:id="@+id/menu_speech"
         android:checkable="true"
         android:title="Speech"/>
+    <item
+        android:id="@+id/menu_showsidebar"
+        android:checkable="true"
+        android:title="Show Sidebar"/>
 
     <!-- FIXME - move this into the action bar for the map -->
     <item

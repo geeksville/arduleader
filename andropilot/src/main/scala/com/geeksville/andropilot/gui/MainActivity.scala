@@ -351,20 +351,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     // Set up the ViewPager with the sections adapter (if it is present on this layout)
     viewPager.foreach { v =>
-      //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
-
-      // warn("Need to set pager adapter")
       v.setAdapter(sectionsPagerAdapter)
-
-      // We want to suppress drag gestures when on the map view
-      /* doesn't work
-      v.setOnTouchListener(new View.OnTouchListener {
-        override def onTouch(v2: View, event: MotionEvent) = {
-          val disableSwipe = !isWide && v.getCurrentItem == 0
-
-          disableSwipe
-        }
-      }) */
     }
 
     val hasPlay = PlayTools.checkForServices(this)
@@ -484,6 +471,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  /**
+   * Are we optionally showing a pager on the right side of the screen?
+   */
   def isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
 
   private def pages = {
@@ -754,6 +744,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeOptions()
     setModeSpinner()
 
+    val showSidebarMenu = menu.findItem(R.id.menu_showsidebar)
+    showSidebarMenu.setVisible(isWide)
+    showSidebarMenu.setChecked(viewPager.map(_.isShown).getOrElse(false))
+
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
     service foreach { svc =>
@@ -856,6 +850,11 @@ class MainActivity extends FragmentActivity with TypedActivity
           v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
+
+      case R.id.menu_showsidebar =>
+        val n = !item.isChecked
+        item.setChecked(n)
+        viewPager.foreach(_.setVisibility(if (item.isChecked) View.VISIBLE else View.GONE))
 
       case R.id.menu_tracing =>
         val n = !item.isChecked
