@@ -1,4 +1,4 @@
-package com.geeksville.andropilot.gui
+package com.geeksville.andropilot.service
 
 import android.content.Context
 import com.getpebble.android.kit.PebbleKit

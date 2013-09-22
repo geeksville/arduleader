@@ -1,7 +1,6 @@
 package com.geeksville.andropilot.service
 
 import com.geeksville.akka.InstrumentedActor
-import com.geeksville.andropilot.gui.PebbleClient
 import android.content.Context
 import com.geeksville.flight.MsgSysStatusChanged
 import com.geeksville.flight.Location
@@ -9,6 +8,7 @@ import com.geeksville.util.Throttled
 import com.geeksville.flight.MsgModeChanged
 import com.geeksville.flight.VehicleListener
 import com.ridemission.scandroid.AndroidLogger
+import com.geeksville.mavlink.MsgHeartbeatLost
 
 /**
  * Crudely use the pebble watch 'music' app to show flight data
@@ -23,6 +23,8 @@ class PebbleVehicleListener(context: AndropilotService) extends VehicleListener(
       perhapsUpdate()
     case MsgSysStatusChanged =>
       perhapsUpdate()
+    case MsgHeartbeatLost(_) =>
+      updatePebble()
     case MsgModeChanged(_) =>
       updatePebble() // Show this change promptly
   }

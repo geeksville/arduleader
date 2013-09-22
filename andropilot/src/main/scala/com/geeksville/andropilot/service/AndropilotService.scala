@@ -42,7 +42,6 @@ import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.andropilot.UsesDirectories
 import com.geeksville.flight.OnInterfaceChanged
-import com.geeksville.andropilot.gui.PebbleClient
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
