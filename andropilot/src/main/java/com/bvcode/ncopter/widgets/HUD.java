@@ -256,6 +256,59 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		}
 	}
 
+	/**
+	 * Receive current copter orientation
+	 * 
+	 * @param roll
+	 * @param pitch
+	 * @param yaw
+	 */
+	public void newFlightData(float roll, float pitch, float yaw) {
+		double r = (roll * 180.0 / Math.PI), p = (pitch * 180.0 / Math.PI), y = (yaw * 180.0 / Math.PI);
+
+		if (r != roll || p != pitch || y != yaw) {
+			this.roll = r;
+			this.pitch = p;
+			this.yaw = y;
+			setDirty();
+		}
+	}
+
+	public void setAltitude(String alt) {
+		if (!altitude.equals(alt)) {
+			altitude = alt;
+			setDirty();
+		}
+	}
+
+	public void setBatteryRemaining(String d) {
+		if (!remainBatt.equals(d)) {
+			remainBatt = d;
+			setDirty();
+		}
+	}
+
+	public void setBatteryMVolt(String vbat) {
+		if (!battVolt.equals(vbat)) {
+			battVolt = vbat;
+			setDirty();
+		}
+	}
+
+	public void setGPSFix(String s) {
+		if (!gpsFix.equals(s)) {
+			gpsFix = s;
+			setDirty();
+		}
+	}
+
+	private void setDirty() {
+		if (renderer != null) {
+			// Log.d("HUD", "Setting dirty");
+			renderer.setDirty();
+		}
+	}
+
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
@@ -271,13 +324,6 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 	public void surfaceCreated(SurfaceHolder holder) {
 		Log.d("HUD", "Surface created");
 		startRenderer();
-	}
-
-	private void setDirty() {
-		if (renderer != null) {
-			// Log.d("HUD", "Setting dirty");
-			renderer.setDirty();
-		}
 	}
 
 	@Override
@@ -387,51 +433,4 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 			}
 		}
 	}
-
-	/**
-	 * Receive current copter orientation
-	 * 
-	 * @param roll
-	 * @param pitch
-	 * @param yaw
-	 */
-	public void newFlightData(float roll, float pitch, float yaw) {
-		double r = (roll * 180.0 / Math.PI), p = (pitch * 180.0 / Math.PI), y = (yaw * 180.0 / Math.PI);
-
-		if (r != roll || p != pitch || y != yaw) {
-			this.roll = r;
-			this.pitch = p;
-			this.yaw = y;
-			setDirty();
-		}
-	}
-
-	public void setAltitude(String alt) {
-		if (!altitude.equals(alt)) {
-			altitude = alt;
-			setDirty();
-		}
-	}
-
-	public void setBatteryRemaining(String d) {
-		if (!remainBatt.equals(d)) {
-			remainBatt = d;
-			setDirty();
-		}
-	}
-
-	public void setBatteryMVolt(String vbat) {
-		if (!battVolt.equals(vbat)) {
-			battVolt = vbat;
-			setDirty();
-		}
-	}
-
-	public void setGPSFix(String s) {
-		if (!gpsFix.equals(s)) {
-			gpsFix = s;
-			setDirty();
-		}
-	}
-
 }
