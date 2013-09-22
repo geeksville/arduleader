@@ -96,6 +96,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
 
+  /// Are we connected to any sort of interface hardware
+  var hasInterface = false
+
   /**
    * Horizontal position precision in meters
    */
@@ -160,7 +163,9 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   /**
    * Return current vehicle mode, or if not armed/missing say that (useful for small status displays)
    */
-  def currentModeOrStatus = if (!hasHeartbeat)
+  def currentModeOrStatus = if (!hasInterface)
+    "No interface"
+  else if (!hasHeartbeat)
     "No vehicle"
   else if (!isArmed)
     "Disarmed"
@@ -238,10 +243,13 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   private def mReceive: Receiver = {
 
     case OnInterfaceChanged(c) =>
+      hasInterface = c
       if (c)
         fsm.OnHasInterface()
-      else
+      else {
+        forceLostHeartbeat() // No point in waiting for a HB which will never come...
         fsm.OnLostInterface()
+      }
 
     case DoSetMode(m) =>
       setMode(m)

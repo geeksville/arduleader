@@ -70,9 +70,17 @@ class HeartbeatMonitor extends InstrumentedActor {
       }
 
     case WatchdogExpired =>
-      mySysId.foreach { id => eventStream.publish(MsgHeartbeatLost(id)) }
-      mySysId = None
-      onHeartbeatLost()
+      forceLostHeartbeat()
+  }
+
+  /**
+   * Declare that we don't have heartbeat anymore (possibly due to some non timer based knowledge)
+   */
+  protected def forceLostHeartbeat() {
+    cancelWatchdog()
+    mySysId.foreach { id => eventStream.publish(MsgHeartbeatLost(id)) }
+    mySysId = None
+    onHeartbeatLost()
   }
 
   override def postStop() {
