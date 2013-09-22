@@ -22,6 +22,7 @@ import android.view.ViewGroup.LayoutParams
 import android.widget.LinearLayout
 import android.view.Gravity
 import com.ridemission.scandroid.SimpleDialogClient
+import com.geeksville.mavlink.MsgArmChanged
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -45,6 +46,9 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       handler.post { () =>
         setWPUploadVisibility(dirty)
       }
+
+    case MsgArmChanged(_) =>
+      postModeChange()
 
     case MsgModeChanged(_) =>
       postModeChange()
