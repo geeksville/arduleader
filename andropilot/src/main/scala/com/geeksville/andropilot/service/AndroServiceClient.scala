@@ -91,9 +91,6 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
    */
   class MyVehicleListener(val v: VehicleModel) extends InstrumentedActor {
 
-    /// On first position update zoom in on plane
-    private var hasLocation = false
-
     val subscription = v.eventStream.subscribe(this, isInterested _)
 
     override def postStop() {
