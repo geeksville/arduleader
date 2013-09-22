@@ -12,22 +12,38 @@ import com.geeksville.andropilot.TR
 import com.geeksville.flight._
 import org.mavlink.messages.ardupilotmega.msg_attitude
 import com.geeksville.andropilot.R
+import com.bvcode.ncopter.widgets.HUD
 
 class HudFragment extends Fragment with AndroServicePage {
 
-  private def hud = getView.findView(TR.hud_view)
+  private def hud = Option(getView.findView(TR.hud_view))
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     // Inflate the layout for this fragment
     val v = inflater.inflate(R.layout.hud_fragment, container, false)
 
+    initView(v.findView(TR.hud_view))
     v
+  }
+
+  /**
+   * Provide current vehicle state - so the view is correct until it receives new msgs
+   */
+  private def initView(h: HUD) {
+    for {
+      v <- myVehicle
+      att <- v.attitude
+    } yield {
+      h.newFlightData(att.roll, att.pitch, att.yaw)
+    }
   }
 
   override def onVehicleReceive = {
     case msg: msg_attitude =>
       //debug(msg.toString)
-      Option(hud).foreach(_.newFlightData(msg.roll, msg.pitch, msg.yaw))
+      handler.post { () =>
+        hud.foreach(_.newFlightData(msg.roll, msg.pitch, msg.yaw))
+      }
 
     case l: Location =>
       //debug("Handling location: " + l) 
@@ -37,7 +53,7 @@ class HudFragment extends Fragment with AndroServicePage {
           //latView.setText(l.lat.toString + degSymbol)
           //lonView.setText(l.lon.toString + degSymbol)
           //altView.setText(l.alt + "m")
-          Option(hud).foreach(_.setAltitude(v.bestAltitude + "m"))
+          hud.foreach(_.setAltitude(v.bestAltitude + "m"))
           // myVehicle.foreach { v =>v.numSats.foreach { n => numSatView.setText(n.toString) } }
         }
       }
@@ -45,7 +61,10 @@ class HudFragment extends Fragment with AndroServicePage {
     case MsgSysStatusChanged =>
       handler.post { () =>
         if (getView != null) {
-          myVehicle.foreach { v =>
+          for {
+            v <- myVehicle
+            h <- hud
+          } yield {
             v.radio.foreach { n =>
               //rssiLocalView.setText(n.rssi.toString + "/" + n.remrssi.toString)
             }
@@ -53,8 +72,8 @@ class HudFragment extends Fragment with AndroServicePage {
               val socStr = v.batteryPercent.map { pct => "%d%%".format((pct * 100).toInt) }.getOrElse("")
               //batteryView.setText(n.toString + "V " + socStr)
 
-              hud.setBatteryRemaining(socStr)
-              hud.setBatteryMVolt(n.toString + "V")
+              h.setBatteryRemaining(socStr)
+              h.setBatteryMVolt(n.toString + "V")
             }
           }
         }

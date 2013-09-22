@@ -10,13 +10,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.View;
 
-public class HUD extends SurfaceView implements SurfaceHolder.Callback {
+public class HUD extends View {
 
-	private ScopeThread renderer;
+	// private ScopeThread renderer;
 	private int width;
 	private int height;
 
@@ -45,7 +43,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 
 	public HUD(Context context, AttributeSet attributeSet) {
 		super(context, attributeSet);
-		getHolder().addCallback(this);
+		// getHolder().addCallback(this);
 
 		grid_paint.setColor(Color.rgb(100, 100, 100));
 
@@ -84,6 +82,9 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	protected void onDraw(Canvas canvas) {
+
+		width = getWidth();
+		height = getHeight();
 
 		// clear screen
 		canvas.drawColor(Color.rgb(20, 20, 20));
@@ -303,134 +304,66 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 	}
 
 	private void setDirty() {
-		if (renderer != null) {
-			// Log.d("HUD", "Setting dirty");
-			renderer.setDirty();
-		}
+		invalidate();
 	}
 
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width,
-			int height) {
-		this.width = width;
-		this.height = height;
-		Log.d("HUD", "Surface changed");
-		// stopRenderer(); // Make sure the renderer releases any in process
-		// frames
-		// startRenderer();
-	}
-
-	@Override
-	public void surfaceCreated(SurfaceHolder holder) {
-		Log.d("HUD", "Surface created");
-		startRenderer();
-	}
-
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder) {
-		Log.d("HUD", "Surface destroyed");
-		stopRenderer();
-	}
-
-	private void startRenderer() {
-		Log.d("HUD", "Starting renderer");
-		renderer = new ScopeThread(getHolder(), this);
-		if (!renderer.isRunning()) {
-			renderer.setRunning(true);
-			renderer.start();
-		}
-	}
-
-	private void stopRenderer() {
-		boolean retry = true;
-		if (renderer != null) {
-			renderer.setRunning(false);
-			while (retry) {
-				Log.d("HUD", "waiting for thread to die");
-
-				try {
-					renderer.join();
-					renderer = null;
-					retry = false;
-				} catch (InterruptedException e) {
-					// we will try it again and again...
-					Log.d("HUD", "trying again");
-				}
-			}
-		}
-	}
-
-	private class ScopeThread extends Thread {
-		private SurfaceHolder _surfaceHolder;
-		private HUD scope;
-		private volatile boolean running = false;
-		private Object dirty = new Object();
-
-		public ScopeThread(SurfaceHolder surfaceHolder, HUD panel) {
-			setName("HUD");
-			_surfaceHolder = surfaceHolder;
-			scope = panel;
-		}
-
-		public boolean isRunning() {
-			return running;
-
-		}
-
-		public void setRunning(boolean run) {
-			running = run;
-			setDirty();
-		}
-
-		/** We may need to redraw */
-		public void setDirty() {
-			synchronized (dirty) {
-				dirty.notify();
-			}
-		}
-
-		@Override
-		public void run() {
-			Canvas c;
-			while (running) {
-				synchronized (dirty) {
-					c = null;
-					try {
-						c = _surfaceHolder.lockCanvas(null);
-						synchronized (_surfaceHolder) {
-							if (c != null) {
-								// Log.d("HUD", "Refreshing");
-								scope.onDraw(c);
-							}
-						}
-					} finally {
-						// do this in a finally so that if an exception is
-						// thrown
-						// during the above, we don't leave the Surface in an
-						// inconsistent state
-						if (c != null) {
-							try {
-								_surfaceHolder.unlockCanvasAndPost(c);
-							} catch (IllegalArgumentException ex) {
-								Log.e("HUD",
-										"FAILED TO UNLOCK: " + ex.getMessage());
-								break;
-							}
-						}
-					}
-
-					// We do this wait at the _end_ to ensure we always draw at
-					// least one frame of
-					// HUD data
-					try {
-						// Log.d("HUD", "Waiting for change");
-						dirty.wait(); // We are blocked here!!!
-						// Log.d("HUD", "Handling change");
-					} catch (InterruptedException e) {
-						// We will try again and again
-					}
-				}
-			}
-		}
-	}
+	/*
+	 * This is the old SurfaceView based code, but getting hangs on 4.3 due to
+	 * https://code.google.com/p/android/issues/detail?id=58385. Changing to a
+	 * 'classic' view as a workaround which is just as fast on phones with hw
+	 * accel...
+	 * 
+	 * @Override public void surfaceChanged(SurfaceHolder holder, int format,
+	 * int width, int height) { this.width = width; this.height = height;
+	 * Log.d("HUD", "Surface changed"); // stopRenderer(); // Make sure the
+	 * renderer releases any in process // frames // startRenderer(); }
+	 * 
+	 * @Override public void surfaceCreated(SurfaceHolder holder) { Log.d("HUD",
+	 * "Surface created"); startRenderer(); }
+	 * 
+	 * @Override public void surfaceDestroyed(SurfaceHolder holder) {
+	 * Log.d("HUD", "Surface destroyed"); stopRenderer(); }
+	 * 
+	 * private void startRenderer() { Log.d("HUD", "Starting renderer");
+	 * renderer = new ScopeThread(getHolder(), this); if (!renderer.isRunning())
+	 * { renderer.setRunning(true); renderer.start(); } }
+	 * 
+	 * private void stopRenderer() { boolean retry = true; if (renderer != null)
+	 * { renderer.setRunning(false); while (retry) { Log.d("HUD",
+	 * "waiting for thread to die");
+	 * 
+	 * try { renderer.join(); renderer = null; retry = false; } catch
+	 * (InterruptedException e) { // we will try it again and again...
+	 * Log.d("HUD", "trying again"); } } } }
+	 * 
+	 * private class ScopeThread extends Thread { private SurfaceHolder
+	 * _surfaceHolder; private HUD scope; private volatile boolean running =
+	 * false; private Object dirty = new Object();
+	 * 
+	 * public ScopeThread(SurfaceHolder surfaceHolder, HUD panel) {
+	 * setName("HUD"); _surfaceHolder = surfaceHolder; scope = panel; }
+	 * 
+	 * public boolean isRunning() { return running;
+	 * 
+	 * }
+	 * 
+	 * public void setRunning(boolean run) { running = run; setDirty(); }
+	 * 
+	 * public void setDirty() { synchronized (dirty) { dirty.notify(); } }
+	 * 
+	 * @Override public void run() { Canvas c; while (running) { synchronized
+	 * (dirty) { c = null; try { c = _surfaceHolder.lockCanvas(null);
+	 * synchronized (_surfaceHolder) { if (c != null) { // Log.d("HUD",
+	 * "Refreshing"); scope.onDraw(c); } } } finally { // do this in a finally
+	 * so that if an exception is // thrown // during the above, we don't leave
+	 * the Surface in an // inconsistent state if (c != null) { try {
+	 * _surfaceHolder.unlockCanvasAndPost(c); } catch (IllegalArgumentException
+	 * ex) { Log.e("HUD", "FAILED TO UNLOCK: " + ex.getMessage()); break; } } }
+	 * 
+	 * // We do this wait at the _end_ to ensure we always draw at // least one
+	 * frame of // HUD data try { // Log.d("HUD", "Waiting for change");
+	 * dirty.wait(); // We are blocked here!!! // Log.d("HUD",
+	 * "Handling change"); } catch (InterruptedException e) { // We will try
+	 * again and again } } } } }
+	 */
 }
