@@ -1,3 +1,8 @@
+# 1.7.12
+* Known bug: using 'gestures' to slide between screens may cause hangs with this version of the app - for this beta
+please just use the screen names at the top of each tab to switch...
+* Add (basic) support for Pebble watches (go to 'music' inside your watch - this is a temporary home for this proof of concept)
+
 # 1.7.10
 * Fix problem introduced where we'd drop the vehicle link occasionally (thanks to beta testers Gary and Luciano)
 * Add extra debugging (and change a suspected error to be non-fatal) if the new state machine gets confused
