@@ -677,14 +677,15 @@ class MyMapFragment extends SupportMapFragment
             val gcsLoc = Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude)
             val curDist = vLoc.distance(gcsLoc).toFloat
             val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)
+            val maxRangeMeters = 50 * 1000 // 50km limit - If we have bogus location for one of the nodes we can get _really_ huge ranges reported
 
-            if (localRange > 0) {
+            if (localRange > 0 && localRange < maxRangeMeters) {
               val gcsLocLatLng = new LatLng(gcsLoc.lat, gcsLoc.lon)
               scene.drawables.append(new CircleFactory((new CircleOptions).center(gcsLocLatLng).
                 strokeColor(Color.BLUE).strokeWidth(5).radius(localRange)))
             }
 
-            if (remRange > 0) {
+            if (remRange > 0 && localRange < maxRangeMeters) {
               val vLocLatLng = new LatLng(vLoc.lat, vLoc.lon)
               scene.drawables.append(new CircleFactory((new CircleOptions).center(vLocLatLng).
                 strokeColor(Color.BLUE).strokeWidth(5).radius(remRange)))
