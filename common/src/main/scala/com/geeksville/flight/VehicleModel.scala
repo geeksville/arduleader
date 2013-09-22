@@ -158,6 +158,16 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   def currentMode = modeToString(customMode.getOrElse(-1))
 
   /**
+   * Return current vehicle mode, or if not armed/missing say that (useful for small status displays)
+   */
+  def currentModeOrStatus = if (!hasHeartbeat)
+    "No vehicle"
+  else if (!isArmed)
+    "Disarmed"
+  else
+    currentMode
+
+  /**
    * The mode names we understand
    */
   def modeNames = modeToCodeMap.keys.toSeq.sorted :+ "unknown"

@@ -7,11 +7,13 @@ import com.geeksville.flight.MsgSysStatusChanged
 import com.geeksville.flight.Location
 import com.geeksville.util.Throttled
 import com.geeksville.flight.MsgModeChanged
+import com.geeksville.flight.VehicleListener
+import com.ridemission.scandroid.AndroidLogger
 
 /**
  * Crudely use the pebble watch 'music' app to show flight data
  */
-class PebbleVehicleListener(context: AndropilotService) extends InstrumentedActor {
+class PebbleVehicleListener(context: AndropilotService) extends VehicleListener(context.vehicle.get) with AndroidLogger {
 
   // Only update pebble every 10 secs (to save battery)
   private val throttle = new Throttled(10 * 1000)
@@ -31,11 +33,16 @@ class PebbleVehicleListener(context: AndropilotService) extends InstrumentedActo
 
   private def updatePebble() {
     context.vehicle.foreach { v =>
-      val bat = v.batteryVoltage.map { s => "Bat: %sV".format(s) }.getOrElse("")
-      val loc = v.location.flatMap(_.alt).map { l => "Alt: %s meters".format(l.toInt) }.getOrElse("")
-      val mode = v.currentMode
+      val bat = v.batteryVoltage.map { s => "Bat: %1.2f V".format(s) }.getOrElse("")
+      val loc = "Alt: %1.1f m".format(v.bestAltitude)
+      val mode = v.currentModeOrStatus
+      warn(s"Setting pebble $bat/$loc/$mode")
       PebbleClient.sendMusicToPebble(context, bat, loc, mode)
     }
   }
 
+  override def postStop() {
+    PebbleClient.sendMusicToPebble(context, "", "", "Exited")
+    super.postStop()
+  }
 }

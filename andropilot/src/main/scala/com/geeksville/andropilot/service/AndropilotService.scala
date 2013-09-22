@@ -42,6 +42,7 @@ import com.geeksville.andropilot.gui.NotificationIds
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.andropilot.UsesDirectories
 import com.geeksville.flight.OnInterfaceChanged
+import com.geeksville.andropilot.gui.PebbleClient
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -69,6 +70,8 @@ class AndropilotService extends Service with AndroidLogger
   private var follower: Option[FollowMe] = None
 
   private var uploader: Option[AndroidDirUpload] = None
+
+  private var pebbleListener: Option[PebbleVehicleListener] = None
 
   implicit val context = this
 
@@ -180,6 +183,9 @@ class AndropilotService extends Service with AndroidLogger
     val actor = MockAkka.actorOf(new VehicleModel, "vmon")
     MavlinkEventBus.subscribe(actor, AndropilotService.arduPilotId)
     vehicle = Some(actor)
+
+    if (PebbleClient.hasPebble(this))
+      pebbleListener = Some(MockAkka.actorOf(new PebbleVehicleListener(this), "pebble"))
 
     setLogging()
     serialAttached()
@@ -425,6 +431,10 @@ class AndropilotService extends Service with AndroidLogger
 
   override def onDestroy() {
     warn("in onDestroy ******************************")
+
+    pebbleListener.foreach(_ ! PoisonPill)
+    pebbleListener = None
+
     setFollowMe(false)
     prefListeners.foreach(unregisterOnPreferenceChanged)
     prefListeners = Seq()

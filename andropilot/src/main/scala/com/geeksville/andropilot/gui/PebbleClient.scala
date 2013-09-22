@@ -14,8 +14,10 @@ import android.content.Intent
  */
 object PebbleClient {
 
+  private def createMusicIntent = new Intent("com.getpebble.action.NOW_PLAYING")
+
   def sendMusicToPebble(context: Context, artist: String, track: String, album: String) {
-    val i = new Intent("com.getpebble.action.NOW_PLAYING")
+    val i = createMusicIntent
     i.putExtra("artist", artist)
     i.putExtra("album", track)
     i.putExtra("track", album)
@@ -27,6 +29,11 @@ object PebbleClient {
         println("ignoring pebble: " + ex)
     }
   }
+
+  /**
+   * Does this user seem to have the pebble software
+   */
+  def hasPebble(context: Context) = context.getPackageManager.queryBroadcastReceivers(createMusicIntent, 0).size != 0
 }
 
 /**
