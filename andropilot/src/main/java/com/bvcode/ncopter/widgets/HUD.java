@@ -262,16 +262,15 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		this.width = width;
 		this.height = height;
 		Log.d("HUD", "Surface changed");
+		// stopRenderer(); // Make sure the renderer releases any in process
+		// frames
+		// startRenderer();
 	}
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		Log.d("HUD", "Surface created");
-		renderer = new ScopeThread(getHolder(), this);
-		if (!renderer.isRunning()) {
-			renderer.setRunning(true);
-			renderer.start();
-		}
+		startRenderer();
 	}
 
 	private void setDirty() {
@@ -283,19 +282,34 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		boolean retry = true;
 		Log.d("HUD", "Surface destroyed");
-		renderer.setRunning(false);
-		while (retry) {
-			Log.d("HUD", "waiting for thread to die");
+		stopRenderer();
+	}
 
-			try {
-				renderer.join();
-				renderer = null;
-				retry = false;
-			} catch (InterruptedException e) {
-				// we will try it again and again...
-				Log.d("HUD", "trying again");
+	private void startRenderer() {
+		Log.d("HUD", "Starting renderer");
+		renderer = new ScopeThread(getHolder(), this);
+		if (!renderer.isRunning()) {
+			renderer.setRunning(true);
+			renderer.start();
+		}
+	}
+
+	private void stopRenderer() {
+		boolean retry = true;
+		if (renderer != null) {
+			renderer.setRunning(false);
+			while (retry) {
+				Log.d("HUD", "waiting for thread to die");
+
+				try {
+					renderer.join();
+					renderer = null;
+					retry = false;
+				} catch (InterruptedException e) {
+					// we will try it again and again...
+					Log.d("HUD", "trying again");
+				}
 			}
 		}
 	}
@@ -307,6 +321,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 		private Object dirty = new Object();
 
 		public ScopeThread(SurfaceHolder surfaceHolder, HUD panel) {
+			setName("HUD");
 			_surfaceHolder = surfaceHolder;
 			scope = panel;
 		}
@@ -351,7 +366,9 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 							try {
 								_surfaceHolder.unlockCanvasAndPost(c);
 							} catch (IllegalArgumentException ex) {
-								Log.e("HUD", "Our surface is missing");
+								Log.e("HUD",
+										"FAILED TO UNLOCK: " + ex.getMessage());
+								break;
 							}
 						}
 					}
@@ -361,7 +378,7 @@ public class HUD extends SurfaceView implements SurfaceHolder.Callback {
 					// HUD data
 					try {
 						// Log.d("HUD", "Waiting for change");
-						dirty.wait();
+						dirty.wait(); // We are blocked here!!!
 						// Log.d("HUD", "Handling change");
 					} catch (InterruptedException e) {
 						// We will try again and again
