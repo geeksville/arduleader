@@ -543,8 +543,19 @@ class MyMapFragment extends SupportMapFragment
     }
   }
 
+  override def onDestroy() {
+
+    // Our scene is attached to the gmap (which might live on past our view - make sure to remove any left-overs from it)
+    scene.foreach(_.close())
+    scene = None
+
+    super.onDestroy()
+  }
+
   def initMap() {
     mapOpt.foreach { map =>
+      map.clear() // We need to be the exclusive owner of all polylines/markers on the map
+
       scene = Some(new Scene(map))
       map.setMyLocationEnabled(true)
       map.setMapType(GoogleMap.MAP_TYPE_SATELLITE)
