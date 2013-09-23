@@ -165,7 +165,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       case Some(v) =>
         v.fsm.getState.getName match {
           case "VehicleFSM.WantInterface" =>
-            "Looking for interface" -> errColor
+            "Looking for radio" -> errColor
           case "VehicleFSM.WantVehicle" =>
             "Looking for vehicle" -> errColor
           case "VehicleFSM.DownloadingWaypoints" =>
