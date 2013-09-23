@@ -16,7 +16,7 @@ import com.bvcode.ncopter.widgets.HUD
 
 class HudFragment extends Fragment with AndroServicePage {
 
-  private def hud = Option(getView.findView(TR.hud_view))
+  private def hud = Option(getView).map(_.findView(TR.hud_view))
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     // Inflate the layout for this fragment
