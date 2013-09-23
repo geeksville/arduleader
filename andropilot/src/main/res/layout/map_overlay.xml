@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widgets that are designed to be placed just after the map in a relative layout - so we float over the map -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:alpha="0.6"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <TextView
+        android:id="@+id/mode_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/rounded_textbackground"
+        android:padding="4dp"
+        android:text="Last Status Msg"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="visible" />
+
+    <!-- So we can hide/show our joysticks in one go -->
+
+    <RelativeLayout
+        android:id="@+id/joysticks"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="invisible" >
+
+        <com.geeksville.andropilot.gui.JoystickView
+            android:id="@+id/leftStick"
+            android:layout_width="256dp"
+            android:layout_height="256dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:clickable="true" />
+
+        <Button
+            android:id="@+id/cancelOverride"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:text="Cancel RC override"
+            android:visibility="invisible" />
+
+        <com.geeksville.andropilot.gui.JoystickView
+            android:id="@+id/rightStick"
+            android:layout_width="256dp"
+            android:layout_height="256dp"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:clickable="true" />
+        <!-- android:background="#880000" -->
+    </RelativeLayout>
+
+</RelativeLayout>
