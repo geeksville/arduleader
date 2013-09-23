@@ -243,7 +243,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     debug("Status changed: " + s)
     if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE) {
       val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
-      toast(s, isImportant)
+      // toast(s, isImportant) - we show this on the map view now
 
       if (isImportant)
         speak(s)

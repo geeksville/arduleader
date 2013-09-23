@@ -117,13 +117,18 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private def makeButton(name: String) = {
     val button = new Button(getActivity)
     button.setText(name)
+    button.setTextSize(12.0f)
+    button.setBackgroundResource(R.drawable.custombutton)
     fadeIn(button)
 
     val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
     lp.gravity = Gravity.CENTER
+    lp.setMarginStart(4)
     modeButtonGroup.foreach(_.addView(button, lp))
     button
   }
+
+  private val testModeNames = Seq("RTL" -> false, "STABILIZE" -> false, "FISH" -> false, "Arm" -> false)
 
   private def setButtons() {
     for {
@@ -136,16 +141,20 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
       // Show the vehicle mode buttons
-      if (s.isConnected && v.hasHeartbeat)
-        v.selectableModeNames.foreach {
-          case (name, confirm) =>
-            val b = makeButton(name)
+      val modenames = if (s.isConnected && v.hasHeartbeat)
+        v.selectableModeNames
+      else
+        testModeNames
 
-            if (confirm)
-              confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
-            else
-              b.onClick { b => v ! DoSetMode(name) }
-        }
+      modenames.foreach {
+        case (name, confirm) =>
+          val b = makeButton(name)
+
+          if (confirm)
+            confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
+          else
+            b.onClick { b => v ! DoSetMode(name) }
+      }
 
       // Add a special button to turn bluetooth on/off
       if (s.bluetoothAdapterPresent)
