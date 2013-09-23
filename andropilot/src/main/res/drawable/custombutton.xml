@@ -35,7 +35,7 @@
             -->
             <solid android:color="#cc112211" />
 
-            <stroke android:width="2dp" android:color="#cc888888" />
+            <stroke android:width="2dp" android:color="#ccaaaaaa" />
 
             <corners android:radius="6dp" />
 
