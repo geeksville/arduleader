@@ -477,9 +477,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
-  /**
-   * Are we optionally showing a pager on the right side of the screen?
-   */
   def isWide = viewPager.map(_.getTag == "with-sidebar").getOrElse(false)
 
   private def pages = {

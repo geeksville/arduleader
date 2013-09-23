@@ -1,9 +1,9 @@
 package com.geeksville.andropilot.service
 
 import android.content.Context
-import com.getpebble.android.kit.PebbleKit
-import com.getpebble.android.kit.Constants
-import com.getpebble.android.kit.util.PebbleDictionary
+//import com.getpebble.android.kit.PebbleKit
+//import com.getpebble.android.kit.Constants
+//import com.getpebble.android.kit.util.PebbleDictionary
 import android.graphics.BitmapFactory
 import com.geeksville.andropilot.R
 import android.support.v4.app.FragmentActivity
@@ -39,6 +39,7 @@ object PebbleClient {
 /**
  *  A crude mixin to demo using the crummy pebble sport watch api
  */
+/*
 trait PebbleSportsAppClient {
 
   def context: Context
@@ -84,3 +85,4 @@ trait PebbleSportsAppClient {
     PebbleKit.customizeWatchApp(context, Constants.PebbleAppType.SPORTS, name, customIcon);
   }
 }
+*/ 
