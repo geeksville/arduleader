@@ -342,22 +342,23 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (isArchosGamepad)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
-    mainView = getLayoutInflater.inflate(R.layout.main, null)
-    setContentView(mainView)
+    try {
+      mainView = getLayoutInflater.inflate(R.layout.main, null)
+      setContentView(mainView)
 
-    // textView.setText("hello, world!")
+      // textView.setText("hello, world!")
 
-    handler = new Handler
+      handler = new Handler
 
-    // Set up the ViewPager with the sections adapter (if it is present on this layout)
-    viewPager.foreach { v =>
-      //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+      // Set up the ViewPager with the sections adapter (if it is present on this layout)
+      viewPager.foreach { v =>
+        //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
 
-      // warn("Need to set pager adapter")
-      v.setAdapter(sectionsPagerAdapter)
+        // warn("Need to set pager adapter")
+        v.setAdapter(sectionsPagerAdapter)
 
-      // We want to suppress drag gestures when on the map view
-      /* doesn't work
+        // We want to suppress drag gestures when on the map view
+        /* doesn't work
       v.setOnTouchListener(new View.OnTouchListener {
         override def onTouch(v2: View, event: MotionEvent) = {
           val disableSwipe = !isWide && v.getCurrentItem == 0
@@ -365,36 +366,41 @@ class MainActivity extends FragmentActivity with TypedActivity
           disableSwipe
         }
       }) */
-    }
+      }
 
-    val hasPlay = PlayTools.checkForServices(this)
-    if (hasPlay) {
-      // Did the user just plug something in?
-      Option(getIntent).foreach(handleIntent)
-    } else {
-      Option(findView(TR.maps_error)).map { v =>
-        val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
-        val msg = if (probe == ConnectionResult.SERVICE_INVALID)
-          """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
+      val hasPlay = PlayTools.checkForServices(this)
+      if (hasPlay) {
+        // Did the user just plug something in?
+        Option(getIntent).foreach(handleIntent)
+      } else {
+        Option(findView(TR.maps_error)).map { v =>
+          val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
+          val msg = if (probe == ConnectionResult.SERVICE_INVALID)
+            """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they made a mistake repackaging the service)""".stripMargin
-        else
-          """|Google Maps V2 is not installed (code=%d) - you will not be able to run this application... 
+          else
+            """|Google Maps V2 is not installed (code=%d) - you will not be able to run this application... 
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they forgot to include a working version of 'Google
              |Play Services')""".stripMargin.format(probe)
-        v.setText(msg)
-        v.setVisibility(View.VISIBLE)
+          v.setText(msg)
+          v.setVisibility(View.VISIBLE)
 
-        // Alas - this seems to not work
-        // GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
-      }.getOrElse {
-        error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
+          // Alas - this seems to not work
+          // GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
+        }.getOrElse {
+          error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
+        }
+        for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
       }
-      for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
+      initScreenJoysticks()
+      initSpeech()
+    } catch {
+      case ex: NoSuchFieldError =>
+        toast("Your tablet has a pirated/old version of google play - Andropilot can not start")
+        BugSenseHandler.sendExceptionMessage("play-failure", "exception", new Exception(ex))
     }
-    initScreenJoysticks()
-    initSpeech()
   }
 
   override def startOverride() {
