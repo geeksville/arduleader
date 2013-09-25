@@ -41,7 +41,16 @@ object MsgStatusChanged {
 case object MsgSysStatusChanged
 case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
 case class MsgServoOutputChanged(m: msg_servo_output_raw)
+
+/**
+ * The vehicle has changed modes (due to a GCS, RC or local decision)
+ */
 case class MsgModeChanged(m: String)
+
+/**
+ * The vehicle has changed mode due to an RC mode switch position change.  (MsgModeChanged will also be published)
+ */
+case class MsgRCModeChanged(m: String)
 
 /// Published when our state machine changes states
 case class MsgFSMChanged(stateName: String)
@@ -153,6 +162,63 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
   }
 
   /**
+   * Extract a particular rc channel value
+   *
+   * FIXME - move someplace better
+   */
+  private def getChannel(m: msg_rc_channels_raw, chNum: Int) = {
+    chNum match {
+      case 1 => m.chan1_raw
+      case 2 => m.chan2_raw
+      case 3 => m.chan3_raw
+      case 4 => m.chan4_raw
+      case 5 => m.chan5_raw
+      case 6 => m.chan6_raw
+      case 7 => m.chan7_raw
+      case 8 => m.chan8_raw
+      case _ => 0 // All other channels are assumed to be zero (not available by mavlink)
+    }
+
+  }
+
+  /**
+   * What mode does the RC transmitter want us to use?  (If known)
+   */
+  def rcRequestedMode =
+
+    // Use a for comprehension - if any of the following steps generate None the result will be None
+    for {
+      ch <- rcModeChannel
+      rc <- rcChannels
+
+      modeNum <- {
+        // Using constants per AC/AP code
+        val v = getChannel(rc, ch)
+        if (v == 0)
+          None // If the pwm value is exactly zero we assume the user has no real RC xmitter - we are just looking at our own RC_OVERRIDE
+        else
+          Some {
+            if (v <= 1230)
+              1
+            else if (v <= 1360)
+              2
+            else if (v <= 1490)
+              3
+            else if (v <= 1620)
+              4
+            else if (v <= 1749)
+              5
+            else
+              6
+          }
+      }
+
+      requestedMode <- getFlightMode(modeNum)
+    } yield {
+      requestedMode
+    }
+
+  /**
    * Return the best user visible description of altitude that we have (hopefully from a barometer)
    * In AGL
    */
@@ -259,7 +325,15 @@ class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
       attitudeThrottle { () => eventStream.publish(m) }
 
     case m: msg_rc_channels_raw =>
+      val oldMode = rcRequestedMode
       rcChannels = Some(m)
+      val newMode = rcRequestedMode
+      if (newMode.isDefined && oldMode != newMode) {
+        val s = modeToString(newMode.get)
+        log.warn(s"RC mode change: $s")
+        eventStream.publish(MsgRCModeChanged(s))
+      }
+
       rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged(m)) }
 
     case m: msg_servo_output_raw =>

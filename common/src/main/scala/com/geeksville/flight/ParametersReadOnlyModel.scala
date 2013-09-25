@@ -143,9 +143,15 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     "ArduPlane"
 
   def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
-  def isCopter = vehicleType.map { t =>
+
+  /**
+   * Are we on a copter? or None if not sure
+   */
+  def isCopterOpt = vehicleType.map { t =>
     (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
-  }.getOrElse(true)
+  }
+
+  def isCopter = isCopterOpt.getOrElse(true)
   def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 
   // Rover uses a different mode prefix than the other vehicle types

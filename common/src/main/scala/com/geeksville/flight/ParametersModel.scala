@@ -60,6 +60,21 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   def hasParameters = !parametersById.isEmpty
 
   /**
+   * Given a modeNum from 1 to 6, return the mode that is assigned to that position (if known)
+   */
+  def getFlightMode(modeNum: Int) = parametersById(flightModePrefix + modeNum).getInt
+
+  /**
+   * What RC channel # is used to provide the mode switch pwm data? (if known)
+   */
+  def rcModeChannel = isCopterOpt.flatMap { isCopter =>
+    if (isCopter)
+      Some(5)
+    else
+      parametersById(flightModePrefix + "_CH").getInt
+  }
+
+  /**
    * How many params do we want to find
    */
   private def numParametersDesired = unsortedParameters.size

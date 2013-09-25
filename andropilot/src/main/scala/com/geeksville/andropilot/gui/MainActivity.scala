@@ -73,6 +73,7 @@ import com.geeksville.flight.StatusText
 import android.os.Debug
 import com.geeksville.flight.MsgReportBug
 import com.bugsense.trace.BugSenseHandler
+import com.geeksville.flight.MsgRCModeChanged
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -201,6 +202,11 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgWaypointCurrentChanged(n) =>
       handler.post { () =>
         speak("Waypoint " + n)
+      }
+
+    case MsgRCModeChanged(_) =>
+      handler.post { () =>
+        stopOverrides()
       }
 
     case MsgModeChanged(_) =>
