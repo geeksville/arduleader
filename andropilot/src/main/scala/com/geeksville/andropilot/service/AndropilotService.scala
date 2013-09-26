@@ -60,7 +60,7 @@ class AndropilotService extends Service with AndroidLogger
 
   var vehicle: Option[VehicleModel] = None
 
-  private var serial: Option[MavlinkStream] = None
+  private var serial: Seq[MavlinkStream] = Seq()
   private var udp: Option[InstrumentedActor] = None
 
   private var btInputStream: Option[InputStream] = None
@@ -87,6 +87,7 @@ class AndropilotService extends Service with AndroidLogger
 
   /**
    * We install this receiver only once we're connected to a device
+   * FIXME - support multiple devices
    */
   private val disconnectReceiver = new BroadcastReceiver {
     override def onReceive(context: Context, intent: Intent) {
@@ -103,7 +104,7 @@ class AndropilotService extends Service with AndroidLogger
   def assetToString(name: String) = Source.fromInputStream(getAssets().open(name)).
     getLines().mkString("\n")
 
-  def isSerialConnected = serial.isDefined
+  def isSerialConnected = !serial.isEmpty
   def isFollowMe = follower.isDefined
 
   // Are we talking to a device at all?
@@ -329,46 +330,57 @@ class AndropilotService extends Service with AndroidLogger
   }
 
   def serialAttached() {
-    AndroidSerial.getDevice.map { sdev =>
+    serial = AndroidSerial.getDevices.zipWithIndex.flatMap {
+      case (sdev, i) =>
 
-      info("Starting serial")
+        info(s"Starting serial $i")
 
-      val baudRate = if (AndroidSerial.isTelemetry(sdev))
-        baudWireless
-      else
-        baudDirect
+        val baudRate = if (AndroidSerial.isTelemetry(sdev))
+          baudWireless
+        else
+          baudDirect
 
-      try {
-        val port = MavlinkAndroid.create(baudRate)
+        try {
+          val sysIdOverride = if (i != 0)
+            Some(i + 1) // Renumber vehicles on later interfaces as 2, 3, etc...
+          else
+            None
 
-        // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-        val mavSerial = MockAkka.actorOf(port, "serrx")
-        serial = Some(mavSerial)
+          val port = MavlinkAndroid.create(sdev, baudRate, sysIdOverride)
 
-        // Anything coming from the controller app, forward it to the serial port
-        MavlinkEventBus.subscribe(mavSerial, groundControlId)
+          // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
+          val mavSerial = MockAkka.actorOf(port, "serrx")
 
-        // Also send anything from our active agent to the serial port
-        MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
+          // Anything coming from the controller app, forward it to the serial port
+          MavlinkEventBus.subscribe(mavSerial, groundControlId)
 
-        // Watch for failures - not needed , we watch in the activity with MyVehicleModel
-        // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
+          // Also send anything from our active agent to the serial port (FIXME, only send stuff destined for that interface)
+          MavlinkEventBus.subscribe(mavSerial, VehicleSimulator.andropilotId)
 
-        FlurryAgent.logEvent("serial_attached")
-        startHighValue()
+          // Watch for failures - not needed , we watch in the activity with MyVehicleModel
+          // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), arduPilotId)
 
-        // Find out when the device goes away
-        registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
-      } catch {
-        case ex: NoAcquirePortException => // Some crummy android devices do not allow device to be acquired
-          error("Can't acquire port")
-          usageEvent("serial_error", "message" -> ex.getMessage)
-        case ex: IOException =>
-          error("Error opening port: " + ex.getMessage)
-          usageEvent("serial_error", "message" -> ex.getMessage)
-      }
-    }.getOrElse {
-      warn("No serial port found by service")
+          FlurryAgent.logEvent("serial_attached")
+
+          Some(mavSerial)
+        } catch {
+          case ex: NoAcquirePortException => // Some crummy android devices do not allow device to be acquired
+            error("Can't acquire port")
+            usageEvent("serial_error", "message" -> ex.getMessage)
+            None
+          case ex: IOException =>
+            error("Error opening port: " + ex.getMessage)
+            usageEvent("serial_error", "message" -> ex.getMessage)
+            None
+        }
+    }.toSeq
+
+    if (!serial.isEmpty) {
+      startHighValue()
+
+      // Find out when the device goes away
+      // FIXME - work with multiple itnerfaces
+      registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
     }
   }
 
@@ -414,9 +426,9 @@ class AndropilotService extends Service with AndroidLogger
 
       a ! PoisonPill
 
-      serial = None
       stopHighValue()
     }
+    serial = Seq()
   }
 
   private def btDetached() {

@@ -19,7 +19,7 @@ trait AndroidSerial {
   def in: InputStream
 }
 
-class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends AndroidSerial with AndroidLogger {
+class USBAndroidSerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Context) extends AndroidSerial with AndroidLogger {
   //Get UsbManager from Android.
   info("Looking for USB service")
   val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]
@@ -35,7 +35,7 @@ class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends Android
     new AsyncSerial(d, toSkip)
   } // Give enough time for the port to open at startup
 
-  open()
+  open(rawDevice)
 
   val in = new InputStream {
 
@@ -142,15 +142,9 @@ class USBAndroidSerial(baudRate: Int)(implicit context: Context) extends Android
     }
   }
 
-  private def open() {
+  private def open(rawDevice: UsbDevice) {
 
     info("Acquiring")
-    val rawDeviceOpt = AndroidSerial.getDevice
-
-    if (!rawDeviceOpt.isDefined) // If the user unplugs the USB device at just the right time, the device might have gone away
-      throw new IOException("Device not found")
-
-    val rawDevice = rawDeviceOpt.get
     val d = UsbSerialProber.acquire(manager, rawDevice)
 
     if (d == null)
@@ -203,7 +197,7 @@ object AndroidSerial extends AndroidLogger {
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
   def isPX4(dvr: UsbDevice) = dvr.getVendorId == 0x26ac && dvr.getProductId == 0x0010
 
-  def getDevice(implicit context: Context) = {
+  def getDevices(implicit context: Context) = {
     val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]
     val devices = manager.getDeviceList.asScala.values
     info("Connected devices: " + devices.map { dvr =>
@@ -211,13 +205,7 @@ object AndroidSerial extends AndroidLogger {
     }.mkString(","))
 
     val filtered = devices.filter { dvr => isTelemetry(dvr) || isAPM(dvr) || isPX4(dvr) }
-    if (filtered.size == 0)
-      None
-    else if (filtered.size != 1) {
-      error("FIXME, multiple devices attached - not yet supported")
-      Some(filtered.head) // Just return the first one
-    } else
-      Some(filtered.head)
+    filtered
   }
 
   def requestAccess(device: UsbDevice, success: UsbDevice => Unit, failure: UsbDevice => Unit)(implicit context: Context) = {
