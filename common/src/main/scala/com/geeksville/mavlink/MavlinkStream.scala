@@ -18,8 +18,10 @@ import scala.concurrent._
 
 /**
  * Talks mavlink out a serial port
+ *
+ * @param sysIdOverride if set, we will replace any received sysIds with this alternative (useful for remapping sysId based on interface)
  */
-class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends MavlinkSender with MavlinkReceiver {
+class MavlinkStream(outgen: => OutputStream, ingen: => InputStream, val sysIdOverride: Option[Int] = None) extends MavlinkSender with MavlinkReceiver {
 
   log.debug("MavlinkStream starting")
   MavlinkStream.isIgnoreReceive = false
@@ -33,6 +35,9 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Mavl
 
   /// This skanky hack is to make sure that we only touch the inputstream if it has already been created
   private var isInstreamValid = false
+
+  /// The id we expect for vehicles on this port (possibly will be overridden)
+  val expectedSysId = 1
 
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 
@@ -83,12 +88,18 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream) extends Mavl
         var numPacket = 0L
         var prevSeq = -1
 
+        val overrideId = sysIdOverride.getOrElse(-1)
+
         while (!self.isTerminated) {
           try {
             //log.debug("Reading next packet")
             val msg = Option(reader.getNextMessage())
             msg.foreach { s =>
               numPacket += 1
+
+              // Reassign sysId if requested
+              if (overrideId != -1 && s.sysId == expectedSysId)
+                s.sysId = overrideId
 
               //log.debug("RxSer: " + s)
               if (reader.getLostBytes > lostBytes) {
