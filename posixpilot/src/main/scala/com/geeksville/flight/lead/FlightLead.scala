@@ -21,7 +21,7 @@ import com.geeksville.mavlink.LogIncomingMavlink
 
 object Main extends Logging {
 
-  val arduPilotId = Wingman.targetSystemId
+  val arduPilotId = 1
   val groundControlId = 255
   val wingmanId = Wingman.systemId
 

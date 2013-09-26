@@ -72,7 +72,7 @@ case class StatusText(str: String, severity: Int) {
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
-class VehicleModel extends VehicleClient with WaypointModel with FenceModel {
+class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) with WaypointModel with FenceModel {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)

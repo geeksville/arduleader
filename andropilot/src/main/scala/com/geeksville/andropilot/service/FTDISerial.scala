@@ -6,8 +6,9 @@ import scala.collection.JavaConverters._
 import java.io._
 import com.ftdi.j2xx.D2xxManager
 import com.ftdi.j2xx.FT_Device
+import android.hardware.usb.UsbDevice
 
-class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial with AndroidLogger {
+class FTDISerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Context) extends AndroidSerial with AndroidLogger {
 
   private var devOpt: Option[FT_Device] = None
 
@@ -91,17 +92,13 @@ class FTDISerial(baudRate: Int)(implicit context: Context) extends AndroidSerial
     }
   }
 
-  open()
+  open(rawDevice)
 
-  private def open() {
+  private def open(rawDevice: UsbDevice) {
     info("Opening FTDI device")
     val d2xx = D2xxManager.getInstance(context)
 
-    val numDev = d2xx.createDeviceInfoList(context);
-    if (numDev < 1)
-      throw new IOException("No FTDI devices")
-
-    val dev = d2xx.openByIndex(context, 0)
+    val dev = d2xx.openByUsbDevice(context, rawDevice)
 
     if (dev == null)
       throw new IOException("FTDI open failed")

@@ -50,7 +50,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSend
   MavlinkEventBus.subscribe(self, leaderId)
 
   // So we can see acks
-  MavlinkEventBus.subscribe(self, Wingman.targetSystemId)
+  MavlinkEventBus.subscribe(self, targetSystem)
 
   /**
    * Distance & bearing to our lead craft, or None
@@ -73,7 +73,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSend
         // log.debug("WRx" + msg.sysId + ": " + msg)
         leadLoc = Some(VehicleSimulator.decodePosition(msg))
         updateGoal()
-      } else if (msg.sysId == Wingman.targetSystemId) {
+      } else if (msg.sysId == targetSystem) {
         // We have a new update of our position
 
         ourLoc = Some(VehicleSimulator.decodePosition(msg))
@@ -110,7 +110,7 @@ class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSend
       l <- desiredLoc
     } yield {
       // Tell the plane we are controlling the new goal
-      sendMavlink(missionItem(0, l, current = 2, isRelativeAlt = false, targetSystem = Wingman.targetSystemId))
+      sendMavlink(missionItem(0, l, current = 2, isRelativeAlt = false))
 
       // Generate fake position updates for our systemId, so the 'goal' can be seen in QGroundControl
       sendMavlink(makePosition(l))
@@ -133,9 +133,4 @@ object Wingman {
    * The ID we use when sending our messages
    */
   val systemId = 254
-
-  /**
-   * The plane we should control
-   */
-  val targetSystemId = 1
 }

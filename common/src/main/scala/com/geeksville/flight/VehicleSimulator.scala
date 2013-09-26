@@ -58,7 +58,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   /**
    * The system we are trying to control
    */
-  val targetSystem = 1
+  def targetSystem: Int = 1
 
   def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
 

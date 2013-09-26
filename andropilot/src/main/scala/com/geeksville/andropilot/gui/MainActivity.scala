@@ -665,7 +665,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           requestAccess()
 
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
-          if (AndroidSerial.getDevice.isDefined) {
+          if (!AndroidSerial.getDevices.isEmpty) {
             // speak("Connected")
             toast(R.string.telem_connected, false)
           } else
@@ -923,8 +923,11 @@ class MainActivity extends FragmentActivity with TypedActivity
   /** Ask for permission to access our device */
   def requestAccess() {
     warn("Requesting USB access")
-    AndroidSerial.getDevice match {
-      case Some(device) =>
+    val devs = AndroidSerial.getDevices
+    if (devs.isEmpty)
+      toast(R.string.please_attach, true)
+    else
+      devs.foreach { device =>
         accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
 
           // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
@@ -949,10 +952,7 @@ class MainActivity extends FragmentActivity with TypedActivity
             toast(R.string.usb_access_denied, true)
           }
         }))
-      case None =>
-        toast(R.string.please_attach, true)
-      // showSplashDialog()
-    }
+      }
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
