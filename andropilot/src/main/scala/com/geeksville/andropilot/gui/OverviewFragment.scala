@@ -24,11 +24,11 @@ import com.geeksville.andropilot.AndropilotPrefs
  * Common behavior for both the overview and floating instruments
  */
 class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with AndroServiceFragment with AndropilotPrefs {
-  protected def altView = getView.findView(TR.altitude)
-  protected def airspeedView = getView.findView(TR.airspeed)
-  protected def batteryView = getView.findView(TR.battery_volt)
-  protected def numSatView = getView.findView(TR.gps_numsats)
-  protected def rssiLocalView = getView.findView(TR.rssi_local)
+  private final def altView = getView.findView(TR.altitude)
+  private final def airspeedView = getView.findView(TR.airspeed)
+  private final def batteryView = getView.findView(TR.battery_volt)
+  private final def numSatView = getView.findView(TR.gps_numsats)
+  private final def rssiLocalView = getView.findView(TR.rssi_local)
 
   override def onVehicleReceive = {
     case l: Location =>
@@ -55,13 +55,29 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
    * called in gui thread
    */
   protected def onStatusUpdate(v: VehicleModel) {
+    v.radio.foreach { n =>
+      val local = n.rssi - n.noise
+      val rem = n.remrssi - n.remnoise
 
+      rssiLocalView.setText(local.toString + "/" + rem.toString)
+    }
+
+    v.batteryVoltage.foreach { n =>
+      val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
+      batteryView.setText(n.toString + "V " + socStr)
+    }
   }
 
   protected def onLocationUpdate(v: VehicleModel, l: Location) {
+    altView.setText("%.1f".format(v.bestAltitude) + " m")
+    v.vfrHud.foreach { hud =>
+      airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
+    }
 
+    val numSats = v.numSats.getOrElse("?")
+    val hdop = v.hdop.getOrElse("?")
+    numSatView.setText("%s / %s".format(numSats, hdop))
   }
-
 }
 
 class OverviewFragment extends VehicleInfoFragment(R.layout.vehicle_overview) {
@@ -91,33 +107,21 @@ class OverviewFragment extends VehicleInfoFragment(R.layout.vehicle_overview) {
    * called in gui thread
    */
   override def onStatusUpdate(v: VehicleModel) {
-    v.radio.foreach { n =>
-      val local = n.rssi - n.noise
-      val rem = n.remrssi - n.remnoise
-
-      rssiLocalView.setText(local.toString + "/" + rem.toString)
-    }
-    v.batteryVoltage.foreach { n =>
-      val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
-      batteryView.setText(n.toString + "V " + socStr)
-    }
+    super.onStatusUpdate(v)
 
     // Show current state
     showDevInfo()
   }
 
   override def onLocationUpdate(v: VehicleModel, l: Location) {
+
+    super.onLocationUpdate(v, l)
     val degSymbol = "\u00B0"
     latView.setText("%.4f".format(l.lat) + degSymbol)
     lonView.setText("%.4f".format(l.lon) + degSymbol)
-    altView.setText("%.1f".format(v.bestAltitude) + " m")
     v.vfrHud.foreach { hud =>
-      airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
       groundspeedView.setText("%.1f".format(hud.groundspeed) + " m/s")
     }
-    val numSats = v.numSats.getOrElse("?")
-    val hdop = v.hdop.getOrElse("?")
-    numSatView.setText("%s / %s".format(numSats, hdop))
   }
 
   override def onVehicleReceive = ({
