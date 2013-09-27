@@ -8,6 +8,7 @@ import scala.collection.mutable.HashMap
 import android.graphics.Color
 import com.ridemission.scandroid.AndroidLogger
 import scala.collection.JavaConverters._
+import com.bugsense.trace.BugSenseHandler
 
 /**
  * A ducktype that adds a uniform API for maps drawable widgets (Polyline/Circle)
@@ -22,8 +23,13 @@ trait DrawableFactory {
   protected var drawn: Option[MapsTypes.Drawable] = None
 
   def remove() {
-    drawn.foreach(_.remove())
-    drawn = None
+    try {
+      drawn.foreach(_.remove())
+      drawn = None
+    } catch {
+      case ex: NullPointerException =>
+        BugSenseHandler.sendExceptionMessage("drawable_bug", "maps", ex)
+    }
   }
 
   def render(map: GoogleMap)
