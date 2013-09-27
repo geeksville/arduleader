@@ -11,7 +11,7 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop = "8dp"
-        android:background="@drawable/rounded_textbackground"
+        android:background="@drawable/square_textbackground"
         android:padding="4dp"
         android:text="Last Status Msg"
         android:textAppearance="?android:attr/textAppearanceMedium"
