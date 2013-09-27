@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Widgets that are designed to be placed just after the map in a relative layout - so we float over the map -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent" android:orientation="vertical"  >
 
     <fragment
         android:id="@+id/modal_fragment"
         android:name="com.geeksville.andropilot.gui.ModalFragment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_weight="0"
         />
 
     <include layout="@layout/joystick_overlay" />
 
-</RelativeLayout>
+</LinearLayout>

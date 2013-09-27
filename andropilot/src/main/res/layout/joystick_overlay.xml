@@ -5,7 +5,8 @@
     android:id="@+id/joysticks"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:alpha="0.6"
+    android:layout_weight="1"
+    android:layout_marginStart="4dp"
     android:visibility="invisible" >
 
     <com.geeksville.andropilot.gui.JoystickView
@@ -14,6 +15,7 @@
         android:layout_height="256dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
+        android:alpha="0.6"
         android:clickable="true" />
 
     <Button
@@ -22,6 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:background="@drawable/custombutton"
         android:text="Cancel RC override"
         android:visibility="invisible" />
 
@@ -31,6 +34,7 @@
         android:layout_height="256dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
+        android:alpha="0.6"
         android:clickable="true" />
     <!-- android:background="#880000" -->
 
