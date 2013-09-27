@@ -67,11 +67,11 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   /**
    * What RC channel # is used to provide the mode switch pwm data? (if known)
    */
-  def rcModeChannel = isCopterOpt.flatMap { isCopter =>
+  def rcModeChannel: Option[Int] = isCopterOpt.flatMap { isCopter =>
     if (isCopter)
       Some(5)
     else
-      parametersById(flightModePrefix + "_CH").getInt
+      parametersById.get(flightModePrefix + "_CH").flatMap(_.getInt)
   }
 
   /**
