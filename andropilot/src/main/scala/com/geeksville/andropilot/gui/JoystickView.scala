@@ -43,7 +43,7 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   private val labelPaint = new Paint {
     setColor(Color.GREEN)
     setStrokeWidth(1)
-    setTextSize(32)
+    setTextSize(20)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
