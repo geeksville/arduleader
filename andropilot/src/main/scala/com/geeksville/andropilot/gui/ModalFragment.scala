@@ -144,7 +144,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       val modenames = if (s.isConnected && v.hasHeartbeat)
         v.selectableModeNames
       else
-        testModeNames
+        Seq() // testModeNames
 
       modenames.foreach {
         case (name, confirm) =>
