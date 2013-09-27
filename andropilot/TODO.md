@@ -1,3 +1,8 @@
+* Mystery USB messages from new mechanism
+
+
+
+
 # General
 * turn on proguard warnings
 * Use gittip?  <iframe style="border: 0; margin: 0; padding: 0;"

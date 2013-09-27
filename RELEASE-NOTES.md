@@ -1,3 +1,11 @@
+# 1.8.01
+* Abort RC override if the user of the RC xmitter changes the flight mode switch (Luciano - would you mind confirming this works for you?)
+* First cut of new 'even simpler' UI
+* Misc improvements to the RC joysticks (I've been flying with only the tablet lately)
+* (Alpha) support for multiple vehicles (though not yet shown in most views) - No configuration needed, just attach multiple 3dr radios to a (POWERED) USB hub
+* Beginning of scripting support 
+* The sidebar pane is now dockable - just use the menu to turn it on/off
+
 # 1.7.13
 * Work around for hangs which could occur when sliding HUD into view (on some 4.3 devices): https://code.google.com/p/android/issues/detail?id=58385
 

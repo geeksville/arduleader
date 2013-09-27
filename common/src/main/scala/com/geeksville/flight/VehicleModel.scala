@@ -461,7 +461,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         }).getOrElse(true)
 
         if (throttleTooFast)
-          onStatusChanged("Failure to ARM - bad throttle", MsgStatusChanged.SEVERITY_HIGH)
+          onStatusChanged("Failure to arm - bad throttle", MsgStatusChanged.SEVERITY_HIGH)
         else
           sendMavlink(commandDoArm(true))
 

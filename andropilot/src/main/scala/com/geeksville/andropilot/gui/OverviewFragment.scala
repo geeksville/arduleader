@@ -20,16 +20,55 @@ import com.geeksville.flight.StatusText
 import android.widget.BaseAdapter
 import com.geeksville.andropilot.AndropilotPrefs
 
-class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with AndroServiceFragment with AndropilotPrefs {
+/**
+ * Common behavior for both the overview and floating instruments
+ */
+class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with AndroServiceFragment with AndropilotPrefs {
+  protected def altView = getView.findView(TR.altitude)
+  protected def airspeedView = getView.findView(TR.airspeed)
+  protected def batteryView = getView.findView(TR.battery_volt)
+  protected def numSatView = getView.findView(TR.gps_numsats)
+  protected def rssiLocalView = getView.findView(TR.rssi_local)
+
+  override def onVehicleReceive = {
+    case l: Location =>
+      //debug("Handling location: " + l)
+      handler.post { () =>
+        if (getView != null) {
+          myVehicle.foreach { v =>
+            onLocationUpdate(v, l)
+          }
+        }
+      }
+
+    case MsgSysStatusChanged =>
+      handler.post { () =>
+        if (getView != null) {
+          myVehicle.foreach { v =>
+            onStatusUpdate(v)
+          }
+        }
+      }
+  }
+
+  /**
+   * called in gui thread
+   */
+  protected def onStatusUpdate(v: VehicleModel) {
+
+  }
+
+  protected def onLocationUpdate(v: VehicleModel, l: Location) {
+
+  }
+
+}
+
+class OverviewFragment extends VehicleInfoFragment(R.layout.vehicle_overview) {
 
   private def latView = getView.findView(TR.latitude)
   private def lonView = getView.findView(TR.longitude)
-  private def altView = getView.findView(TR.altitude)
-  private def airspeedView = getView.findView(TR.airspeed)
   private def groundspeedView = getView.findView(TR.groundspeed)
-  private def numSatView = getView.findView(TR.gps_numsats)
-  private def rssiLocalView = getView.findView(TR.rssi_local)
-  private def batteryView = getView.findView(TR.battery_volt)
   private def devRowView = getView.findView(TR.dev_row)
   private def devInfoView = getView.findView(TR.dev_info)
 
@@ -48,50 +87,42 @@ class OverviewFragment extends LayoutFragment(R.layout.vehicle_overview) with An
     }
   }
 
-  override def onVehicleReceive = {
-    case l: Location =>
-      //debug("Handling location: " + l)
-      handler.post { () =>
-        if (getView != null) {
-          myVehicle.foreach { v =>
-            val degSymbol = "\u00B0"
-            latView.setText("%.4f".format(l.lat) + degSymbol)
-            lonView.setText("%.4f".format(l.lon) + degSymbol)
-            altView.setText("%.1f".format(v.bestAltitude) + " m")
-            v.vfrHud.foreach { hud =>
-              airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
-              groundspeedView.setText("%.1f".format(hud.groundspeed) + " m/s")
-            }
-            val numSats = v.numSats.getOrElse("?")
-            val hdop = v.hdop.getOrElse("?")
-            numSatView.setText("%s / %s".format(numSats, hdop))
-          }
-        }
-      }
+  /**
+   * called in gui thread
+   */
+  override def onStatusUpdate(v: VehicleModel) {
+    v.radio.foreach { n =>
+      val local = n.rssi - n.noise
+      val rem = n.remrssi - n.remnoise
 
+      rssiLocalView.setText(local.toString + "/" + rem.toString)
+    }
+    v.batteryVoltage.foreach { n =>
+      val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
+      batteryView.setText(n.toString + "V " + socStr)
+    }
+
+    // Show current state
+    showDevInfo()
+  }
+
+  override def onLocationUpdate(v: VehicleModel, l: Location) {
+    val degSymbol = "\u00B0"
+    latView.setText("%.4f".format(l.lat) + degSymbol)
+    lonView.setText("%.4f".format(l.lon) + degSymbol)
+    altView.setText("%.1f".format(v.bestAltitude) + " m")
+    v.vfrHud.foreach { hud =>
+      airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
+      groundspeedView.setText("%.1f".format(hud.groundspeed) + " m/s")
+    }
+    val numSats = v.numSats.getOrElse("?")
+    val hdop = v.hdop.getOrElse("?")
+    numSatView.setText("%s / %s".format(numSats, hdop))
+  }
+
+  override def onVehicleReceive = ({
     case MsgFSMChanged(_) =>
       handler.post(showDevInfo _)
-
-    case MsgSysStatusChanged =>
-      handler.post { () =>
-        if (getView != null) {
-          myVehicle.foreach { v =>
-            v.radio.foreach { n =>
-              val local = n.rssi - n.noise
-              val rem = n.remrssi - n.remnoise
-
-              rssiLocalView.setText(local.toString + "/" + rem.toString)
-            }
-            v.batteryVoltage.foreach { n =>
-              val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
-              batteryView.setText(n.toString + "V " + socStr)
-            }
-
-            // Show current state
-            showDevInfo()
-          }
-        }
-      }
-  }
+  }: PartialFunction[Any, Unit]).orElse(super.onVehicleReceive)
 
 }

@@ -123,7 +123,8 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
     val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
     lp.gravity = Gravity.CENTER
-    lp.setMarginStart(4)
+    lp.leftMargin = 6
+    //lp.setMarginStart(4) - not supported on older android builds
     modeButtonGroup.foreach(_.addView(button, lp))
     button
   }
