@@ -57,17 +57,17 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   private val maxNumAttempts = 10
   private var numAttemptsRemaining = maxNumAttempts
 
-  def hasParameters = !parametersById.isEmpty
+  final def hasParameters = !parametersById.isEmpty
 
   /**
    * Given a modeNum from 1 to 6, return the mode that is assigned to that position (if known)
    */
-  def getFlightMode(modeNum: Int) = parametersById(flightModePrefix + modeNum).getInt
+  final def getFlightMode(modeNum: Int): Option[Int] = parametersById.get(flightModePrefix + modeNum).flatMap(_.getInt)
 
   /**
    * What RC channel # is used to provide the mode switch pwm data? (if known)
    */
-  def rcModeChannel: Option[Int] = isCopterOpt.flatMap { isCopter =>
+  final def rcModeChannel: Option[Int] = isCopterOpt.flatMap { isCopter =>
     if (isCopter)
       Some(5)
     else
