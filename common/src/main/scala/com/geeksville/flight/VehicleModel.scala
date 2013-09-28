@@ -182,6 +182,13 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   }
 
   /**
+   * Does the user have a real RC radio, or just our rc_override based stuff, None for unknown
+   */
+  def hasRealRc: Option[Boolean] = {
+    Some(true)
+  }
+
+  /**
    * What mode does the RC transmitter want us to use?  (If known)
    */
   def rcRequestedMode =

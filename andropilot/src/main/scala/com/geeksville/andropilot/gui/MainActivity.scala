@@ -290,7 +290,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     myVehicle.foreach { v =>
       if (v.hasParameters)
-        initJoystickParams()
+        initAndShowJoystick()
     }
   }
 
@@ -568,11 +568,18 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onDestroy()
   }
 
+  def initAndShowJoystick() {
+    initJoystickParams()
+
+    // FIXME - show joystick based on user prefs or no RC
+    // FIXME - if rc status changes, possibly show joysticks
+  }
+
   /// If we are configured to upload, but have no username/psw tell user why we are ignoring them
   def shouldNagUser = dshareUpload && (dshareUsername.isEmpty || dsharePassword.isEmpty)
 
   private def handleParameters() {
-    initJoystickParams()
+    initAndShowJoystick()
 
     invalidateOptionsMenu()
 
