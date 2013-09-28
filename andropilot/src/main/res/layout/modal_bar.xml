@@ -20,13 +20,19 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="visible" />
 
-    <LinearLayout
-        android:id="@+id/mode_buttons"
+    <HorizontalScrollView
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
+        android:layout_height="fill_parent" 
         android:layout_gravity="center"
-        android:layout_weight="1"
-        android:orientation="horizontal" />
+        android:layout_weight="0">
+
+        <LinearLayout
+            android:id="@+id/mode_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_gravity="left"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
     <!-- android:layout_height="64dp" -->
 
@@ -37,6 +43,7 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="right|center_vertical"
         android:layout_weight="0"
+        android:singleLine="true"
         android:text="Upload Waypoints"
         android:visibility="gone" />
 
