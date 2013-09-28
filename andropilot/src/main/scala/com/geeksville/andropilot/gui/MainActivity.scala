@@ -509,13 +509,20 @@ class MainActivity extends FragmentActivity with TypedActivity
     handleIntent(i)
   }
 
+  /**
+   * If the user wants the screen always on or the joystick is up, keep the screen awake
+   */
+  private def setScreenOn() {
+    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown)
+  }
+
   override def onResume() {
     super.onResume()
 
     serviceOnResume()
 
     // Force the screen on if the user wants that 
-    viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
+    setScreenOn()
 
     //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
 
@@ -782,7 +789,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
       val joystickMenu = menu.findItem(R.id.menu_showjoystick)
       val hasJoystickView = joystickPanel.isDefined
-      joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
+      joystickMenu.setChecked(isJoystickShown)
       joystickMenu.setEnabled(hasJoystickView && joystickAvailable && svc.isConnected)
 
       val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
@@ -795,6 +802,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     true
   }
+  /**
+   * Are we currently showing the joystick?
+   */
+  private def isJoystickShown = joystickPanel.map(_.getVisibility == View.VISIBLE).getOrElse(false)
 
   /// Set a spinner selection without accidentally notifying ourselves
   private def setSpinnerNoNotify(s: Spinner, toSelect: Int) {
@@ -840,6 +851,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       stopOverrides()
 
     joystickPanel.foreach(_.setVisibility(if (show) View.VISIBLE else View.INVISIBLE))
+    setScreenOn() // We might need to turn screen sleep on/off
   }
 
   override def onOptionsItemSelected(item: MenuItem) = {
