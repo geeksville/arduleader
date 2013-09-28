@@ -117,6 +117,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private def makeButton(name: String) = {
     val button = new Button(getActivity)
     button.setText(name)
+    button.setSingleLine()
     fadeIn(button)
 
     val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
@@ -126,37 +127,39 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   }
 
   private def setButtons() {
-    for {
-      v <- myVehicle
-      s <- service
-      bgrp <- modeButtonGroup
-    } yield {
+    modeButtonGroup.foreach { bgrp =>
       bgrp.removeAllViews()
 
-      debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
+      for {
+        v <- myVehicle
+        s <- service
+      } yield {
 
-      // Show the vehicle mode buttons
-      if (s.isConnected && v.hasHeartbeat)
-        v.selectableModeNames.foreach {
-          case (name, confirm) =>
-            val b = makeButton(name)
+        debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
-            if (confirm)
-              confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
-            else
-              b.onClick { b => v ! DoSetMode(name) }
-        }
+        // Show the vehicle mode buttons
+        if (s.isConnected && v.hasHeartbeat)
+          v.selectableModeNames.foreach {
+            case (name, confirm) =>
+              val b = makeButton(name)
 
-      // Add a special button to turn bluetooth on/off
-      if (s.bluetoothAdapterPresent)
-        if (!s.isConnected)
-          makeButton("Bluetooth").onClick { b =>
-            s.connectToDevices()
+              if (confirm)
+                confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
+              else
+                b.onClick { b => v ! DoSetMode(name) }
           }
-        else if (!v.isArmed)
-          confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?") { () =>
-            s.forceBluetoothDisconnect()
-          }
+
+        // Add a special button to turn bluetooth on/off
+        if (s.bluetoothAdapterPresent)
+          if (!s.isConnected)
+            makeButton("Bluetooth").onClick { b =>
+              s.connectToDevices()
+            }
+          else if (!v.isArmed)
+            confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?") { () =>
+              s.forceBluetoothDisconnect()
+            }
+      }
     }
   }
 
