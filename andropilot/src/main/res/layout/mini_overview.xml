@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mini_overview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/my_border"
-    android:padding="2dip" >
+    android:background="@drawable/my_border_transparent"
+    android:padding="2dip"
+    android:visibility="invisible" >
 
     <TableRow
         android:layout_width="match_parent"
@@ -13,14 +15,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:text="Battery"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:layout_marginLeft="4dp"
+            android:text="Bat"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/battery_volt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
             android:layout_weight="1"
             android:gravity="right"
             android:singleLine="true"
@@ -32,17 +36,15 @@
         android:layout_height="wrap_content" >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:text="Altitude"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:text="Alt"
+            android:layout_marginLeft="4dp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/altitude"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
             android:layout_weight="1"
             android:gravity="right"
             android:singleLine="true"
@@ -54,17 +56,15 @@
         android:layout_height="wrap_content" >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:text="Airspeed"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:text="Speed"
+            android:layout_marginLeft="4dp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/airspeed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
             android:layout_weight="1"
             android:gravity="right"
             android:singleLine="true"
@@ -76,17 +76,15 @@
         android:layout_height="wrap_content" >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:text="GPS #sats / HDOP"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:text="GPS"
+            android:layout_marginLeft="4dp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/gps_numsats"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
             android:layout_weight="1"
             android:gravity="right"
             android:singleLine="true"
@@ -98,17 +96,15 @@
         android:layout_height="wrap_content" >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
             android:text="Rssi"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:layout_marginLeft="4dp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/rssi_local"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
             android:layout_weight="1"
             android:gravity="right"
             android:singleLine="true"

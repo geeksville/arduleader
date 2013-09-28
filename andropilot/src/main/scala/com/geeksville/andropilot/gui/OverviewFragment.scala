@@ -24,11 +24,11 @@ import com.geeksville.andropilot.AndropilotPrefs
  * Common behavior for both the overview and floating instruments
  */
 class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with AndroServiceFragment with AndropilotPrefs {
-  private final def altView = getView.findView(TR.altitude)
-  private final def airspeedView = getView.findView(TR.airspeed)
-  private final def batteryView = getView.findView(TR.battery_volt)
-  private final def numSatView = getView.findView(TR.gps_numsats)
-  private final def rssiLocalView = getView.findView(TR.rssi_local)
+  protected final def altView = getView.findView(TR.altitude)
+  protected final def airspeedView = getView.findView(TR.airspeed)
+  protected final def batteryView = getView.findView(TR.battery_volt)
+  protected final def numSatView = getView.findView(TR.gps_numsats)
+  protected final def rssiLocalView = getView.findView(TR.rssi_local)
 
   override def onVehicleReceive = {
     case l: Location =>
@@ -51,16 +51,26 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
       }
   }
 
-  /**
-   * called in gui thread
-   */
-  protected def onStatusUpdate(v: VehicleModel) {
+  protected def showRssi(v: VehicleModel) {
     v.radio.foreach { n =>
       val local = n.rssi - n.noise
       val rem = n.remrssi - n.remnoise
 
       rssiLocalView.setText(local.toString + "/" + rem.toString)
     }
+  }
+
+  protected def showGps(v: VehicleModel) {
+    val numSats = v.numSats.getOrElse("?")
+    val hdop = v.hdop.getOrElse("?")
+    numSatView.setText("%s / %s".format(numSats, hdop))
+  }
+
+  /**
+   * called in gui thread
+   */
+  protected def onStatusUpdate(v: VehicleModel) {
+    showRssi(v)
 
     v.batteryVoltage.foreach { n =>
       val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
@@ -74,13 +84,32 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
       airspeedView.setText("%.1f".format(hud.airspeed) + " m/s")
     }
 
-    val numSats = v.numSats.getOrElse("?")
-    val hdop = v.hdop.getOrElse("?")
-    numSatView.setText("%s / %s".format(numSats, hdop))
+    showGps(v)
   }
 }
 
 class MiniOverviewFragment extends VehicleInfoFragment(R.layout.mini_overview) {
+
+  /// We show ourselves once we get our first vehicle update
+  private def showMe() {
+    getView.findView(TR.mini_overview).setVisibility(View.VISIBLE)
+  }
+
+  override protected def showRssi(v: VehicleModel) {
+    showMe()
+    v.radio.foreach { n =>
+      val local = n.rssi - n.noise
+      val rem = n.remrssi - n.remnoise
+      val m = math.min(local, rem)
+      rssiLocalView.setText(rem.toString)
+    }
+  }
+
+  override protected def showGps(v: VehicleModel) {
+    showMe()
+    val hdop = v.hdop.getOrElse("?")
+    numSatView.setText(hdop.toString)
+  }
 
 }
 
