@@ -4,28 +4,36 @@
     android:layout_height="wrap_content" >
 
     <!-- Note: the alpha for this component is done only in the background -->
+
     <TextView
         android:id="@+id/mode_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop = "8dp"
+        android:layout_marginTop="8dp"
         android:background="@drawable/square_textbackground"
         android:padding="4dp"
         android:text="Last Status Msg"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="visible" />
 
-    <LinearLayout
-        android:id="@+id/mode_buttons"
+    <HorizontalScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop = "8dp"
-        android:padding="4dp"
         android:layout_below="@id/mode_text"
-        android:orientation="horizontal" />
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="8dp"
+        android:padding="4dp" >
+
+        <LinearLayout
+            android:id="@+id/mode_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_gravity="left"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
     <!-- android:layout_height="64dp" -->
 
@@ -33,12 +41,13 @@
         android:id="@+id/upload_waypoint_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_below="@id/mode_buttons"
-        android:layout_marginTop ="8dp"
-        android:text="Upload Waypoints"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
         android:background="@drawable/custombutton"
-        android:visibility="gone"
-         />
-<!--   style="style/TranslucentButton" -->
+        android:singleLine="true"
+        android:text="Upload Waypoints"
+        android:visibility="gone" />
+    <!-- style="style/TranslucentButton" -->
+
 </RelativeLayout>

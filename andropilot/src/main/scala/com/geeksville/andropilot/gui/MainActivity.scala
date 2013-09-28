@@ -74,6 +74,7 @@ import android.os.Debug
 import com.geeksville.flight.MsgReportBug
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.flight.MsgRCModeChanged
+import android.view.WindowManager
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -302,7 +303,23 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   private def screenWidthDp = try {
+    getResources.getConfiguration.screenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenSmallestWidthDp = try {
     getResources.getConfiguration.smallestScreenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenHeightDp = try {
+    getResources.getConfiguration.screenHeightDp
   } catch {
     case ex: NoSuchFieldError =>
       // Must be on an old version of android 
@@ -340,6 +357,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     warn("HW model " + Build.MODEL)
     warn("HW device " + Build.DEVICE)
     warn("HW product " + Build.PRODUCT)
+    warn(s"Smallest screen width $screenWidthDp")
+    warn(s"Screen height $screenHeightDp")
+    warn(s"Screen smallest width $screenSmallestWidthDp")
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
     val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
@@ -348,8 +368,13 @@ class MainActivity extends FragmentActivity with TypedActivity
     // Check for a 'long' screen as a hack to turn off this code for samsung note
     // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
     // Height: My galaxy nexus is 567, so say <600 means a phone...
-    if (screenWidthDp <= 360 && !screenIsLong)
+    if (screenSmallestWidthDp <= 360 && !screenIsLong)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
+    if (screenHeightDp < 360) { // Are we on a phone screen and in landscape - turn off the titlebar, cause we need all we can get
+      warn("Requesting full screen")
+      getWindow.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
 
     // The archos gamepad has joysticks on the side - it really only makes sense in landscape
     if (isArchosGamepad)
