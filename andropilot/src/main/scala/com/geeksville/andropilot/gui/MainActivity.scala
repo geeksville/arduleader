@@ -87,6 +87,12 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var oldArmed = false
 
   /**
+   * The first time we receive something that would make the mini overview appear, hide the sidebar - as a cue to the
+   * user we are ready to go in simple mode.
+   */
+  private var didAutohideSidebar = false
+
+  /**
    * If an intent arrives before our service is up, squirel it away until we can handle it
    */
   private var waitingForService: Option[Intent] = None
@@ -237,6 +243,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case MsgParametersDownloaded =>
       handler.post { () =>
+        autohideSidebar()
         setModeSpinner()
         handleParameters()
       }
@@ -861,6 +868,21 @@ class MainActivity extends FragmentActivity with TypedActivity
     setScreenOn() // We might need to turn screen sleep on/off
   }
 
+  /**
+   * We automatically hide the sidebar once the mini overview is showing valid data
+   */
+  private def autohideSidebar() {
+    if (!didAutohideSidebar) {
+      didAutohideSidebar = true
+      showSidebar(false)
+    }
+  }
+
+  private def showSidebar(shown: Boolean) {
+    if (isWide) // If we _only_ have the sidebar - don't hide it
+      viewPager.foreach(_.setVisibility(if (shown) View.VISIBLE else View.GONE))
+  }
+
   override def onOptionsItemSelected(item: MenuItem) = {
     item.getItemId match {
       case R.id.menu_settings =>
@@ -882,7 +904,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       case R.id.menu_showsidebar =>
         val n = !item.isChecked
         item.setChecked(n)
-        viewPager.foreach(_.setVisibility(if (item.isChecked) View.VISIBLE else View.GONE))
+        showSidebar(item.isChecked)
 
       case R.id.menu_tracing =>
         val n = !item.isChecked

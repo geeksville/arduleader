@@ -1,3 +1,9 @@
+# 1.8.03
+* Fix screen sleep problem reported by Luciano (thanks!)
+* The new simple UI is mostly finished - just some drawer stuff & art assets left
+* Info fields now float on top left of map view
+* Auto hide the sidebar once we are ready to fly
+
 # 1.8.01
 * Abort RC override if the user of the RC xmitter changes the flight mode switch (Luciano - would you mind confirming this works for you?)
 * First cut of new 'even simpler' UI

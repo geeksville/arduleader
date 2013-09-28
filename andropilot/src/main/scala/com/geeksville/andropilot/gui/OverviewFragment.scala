@@ -74,7 +74,7 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
 
     v.batteryVoltage.foreach { n =>
       val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
-      batteryView.setText(n.toString + "V " + socStr)
+      batteryView.setText("%.1f".format(n) + "V " + socStr)
     }
   }
 
@@ -107,8 +107,8 @@ class MiniOverviewFragment extends VehicleInfoFragment(R.layout.mini_overview) {
 
   override protected def showGps(v: VehicleModel) {
     showMe()
-    val hdop = v.hdop.getOrElse("?")
-    numSatView.setText(hdop.toString)
+    val hdop = v.hdop.map("%.1f".format(_)).getOrElse("?")
+    numSatView.setText(hdop)
   }
 
 }

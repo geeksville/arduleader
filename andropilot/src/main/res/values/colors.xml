@@ -9,4 +9,6 @@
    <color name="grey05">#ACA899</color>
    <color name="white1">#FFFFFF</color>
    <color name="white2">#DDDDDD</color>
+   
+   <color name="text_shadow">#000000</color>
 </resources>

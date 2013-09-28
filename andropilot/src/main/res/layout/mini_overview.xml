@@ -7,30 +7,34 @@
     android:padding="2dip"
     android:visibility="invisible" >
 
-    <TableRow >
+    <TableRow>
 
         <TextView
-            android:layout_weight="0"
             android:layout_marginLeft="4dp"
+            android:layout_weight="0"
             android:text="Bat"
             android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <!-- We use this view to set the width of all views based on our max len -->
 
         <TextView
             android:id="@+id/battery_volt"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right|fill_horizontal"
+            android:gravity="right"
             android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"
+            android:width="100dp" />
     </TableRow>
 
-    <TableRow >
+    <TableRow>
 
         <TextView
+            android:layout_marginLeft="4dp"
             android:layout_weight="0"
             android:text="Alt"
-            android:layout_marginLeft="4dp"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
@@ -38,17 +42,18 @@
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right|fill_horizontal"
+            android:gravity="right"
             android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
     </TableRow>
 
     <TableRow>
 
         <TextView
+            android:layout_marginLeft="4dp"
             android:layout_weight="0"
             android:text="Speed"
-            android:layout_marginLeft="4dp"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
@@ -56,17 +61,18 @@
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right|fill_horizontal"
+            android:gravity="right"
             android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
     </TableRow>
 
-    <TableRow >
+    <TableRow>
 
         <TextView
+            android:layout_marginLeft="4dp"
             android:layout_weight="0"
             android:text="GPS"
-            android:layout_marginLeft="4dp"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
@@ -74,17 +80,18 @@
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right|fill_horizontal"
+            android:gravity="right"
             android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
     </TableRow>
 
-    <TableRow >
+    <TableRow>
 
         <TextView
+            android:layout_marginLeft="4dp"
             android:layout_weight="0"
             android:text="Rssi"
-            android:layout_marginLeft="4dp"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
@@ -92,9 +99,10 @@
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right|fill_horizontal"
+            android:gravity="right"
             android:singleLine="true"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
     </TableRow>
 
 </TableLayout>
