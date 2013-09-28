@@ -80,6 +80,10 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
   }
 }
 
+class MiniOverviewFragment extends VehicleInfoFragment(R.layout.mini_overview) {
+
+}
+
 class OverviewFragment extends VehicleInfoFragment(R.layout.vehicle_overview) {
 
   private def latView = getView.findView(TR.latitude)
