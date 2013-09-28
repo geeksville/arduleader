@@ -805,6 +805,14 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+
+    // Set some defaults in case we don't have a service
+    val joystickMenu = menu.findItem(R.id.menu_showjoystick)
+    val armMenu = menu.findItem(R.id.menu_arm)
+    val hasJoystickView = joystickPanel.isDefined
+    joystickMenu.setEnabled(hasJoystickView && developerMode) // Let developer play with this
+    armMenu.setVisible(false) // If we don't know we have a copter leave this hidden
+
     service foreach { svc =>
       val follow = menu.findItem(R.id.menu_followme)
 
@@ -815,19 +823,14 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setChecked(svc.isFollowMe)
 
       myVehicle.foreach { v =>
-        val armMenu = menu.findItem(R.id.menu_arm)
-
         if (v.isCopter) {
           val armed = v.isArmed
           debug("Setting arm checkbox to " + armed)
           armMenu.setChecked(armed)
           armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
-        } else
-          armMenu.setVisible(false)
+        }
       }
 
-      val joystickMenu = menu.findItem(R.id.menu_showjoystick)
-      val hasJoystickView = joystickPanel.isDefined
       joystickMenu.setChecked(isJoystickShown)
       joystickMenu.setEnabled(hasJoystickView && joystickAvailable && svc.isConnected)
 
@@ -889,8 +892,23 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (!show)
       stopOverrides()
 
-    joystickPanel.foreach(_.setVisibility(if (show) View.VISIBLE else View.INVISIBLE))
-    setScreenOn() // We might need to turn screen sleep on/off
+    joystickPanel.foreach { panel =>
+      panel.setVisibility(if (show) View.VISIBLE else View.INVISIBLE)
+
+      if (show) {
+        // If the joysticks are filling our screen, we need to turn off the sidebar to make space
+        for {
+          l <- leftJoystickView
+          r <- rightJoystickView
+        } yield {
+          if (l.getWidth + r.getWidth >= panel.getWidth)
+            showSidebar(false)
+        }
+
+        // We might need to turn screen sleep on/off
+        setScreenOn()
+      }
+    }
   }
 
   /**
