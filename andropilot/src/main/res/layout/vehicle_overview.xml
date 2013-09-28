@@ -15,9 +15,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/my_border" >
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -33,9 +31,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow>
 
             <TextView
                 android:layout_weight="0"
@@ -52,9 +48,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -70,9 +64,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
         
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -88,9 +80,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>        
                 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -106,9 +96,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -124,9 +112,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow>
 
             <TextView
                 android:layout_weight="0"
@@ -142,9 +128,7 @@
                 android:textAppearance="?android:attr/textAppearanceLarge" />
         </TableRow>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+        <TableRow >
 
             <TextView
                 android:layout_weight="0"
@@ -162,8 +146,6 @@
         
         <TableRow
             android:id="@+id/dev_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" 
             android:visibility="gone">
 
             <TextView

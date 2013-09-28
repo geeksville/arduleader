@@ -7,106 +7,92 @@
     android:padding="2dip"
     android:visibility="invisible" >
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+    <TableRow >
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_weight="0"
             android:layout_marginLeft="4dp"
             android:text="Bat"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/battery_volt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right"
+            android:gravity="right|fill_horizontal"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge" />
     </TableRow>
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+    <TableRow >
 
         <TextView
             android:layout_weight="0"
             android:text="Alt"
             android:layout_marginLeft="4dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/altitude"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right"
+            android:gravity="right|fill_horizontal"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge" />
     </TableRow>
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+    <TableRow>
 
         <TextView
             android:layout_weight="0"
             android:text="Speed"
             android:layout_marginLeft="4dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/airspeed"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right"
+            android:gravity="right|fill_horizontal"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge" />
     </TableRow>
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+    <TableRow >
 
         <TextView
             android:layout_weight="0"
             android:text="GPS"
             android:layout_marginLeft="4dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/gps_numsats"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right"
+            android:gravity="right|fill_horizontal"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge" />
     </TableRow>
 
-    <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+    <TableRow >
 
         <TextView
             android:layout_weight="0"
             android:text="Rssi"
             android:layout_marginLeft="4dp"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView
             android:id="@+id/rssi_local"
             android:layout_gravity="right"
             android:layout_marginLeft="4dp"
             android:layout_weight="1"
-            android:gravity="right"
+            android:gravity="right|fill_horizontal"
             android:singleLine="true"
             android:textAppearance="?android:attr/textAppearanceLarge" />
     </TableRow>
