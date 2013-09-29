@@ -40,7 +40,7 @@
     <Button
         android:id="@+id/upload_waypoint_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
         android:layout_below="@id/mode_buttons_scroller"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"

@@ -5,6 +5,9 @@ import android.util.AttributeSet
 import android.graphics._
 import android.view._
 import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid.AndroidUtil
+import android.app.Activity
+import android.util.DisplayMetrics
 
 trait JoystickListener {
   def onMove(x: Float, y: Float) {}
@@ -12,7 +15,7 @@ trait JoystickListener {
   def onRelease() {}
 }
 
-class JoystickView(context: Context, attrs: AttributeSet) extends View(context, attrs) with AndroidLogger {
+class JoystickView(context: Activity, attrs: AttributeSet) extends View(context, attrs) with AndroidLogger {
 
   // center coords
   private var cX = 0
@@ -43,7 +46,13 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   private val labelPaint = new Paint {
     setColor(Color.GREEN)
     setStrokeWidth(1)
-    setTextSize(28)
+
+    // Converted from scaled pixel values to appropriate size for this platform
+    val dm = new DisplayMetrics()
+    context.getWindowManager().getDefaultDisplay().getMetrics(dm)
+    val pixelSize = 28 * dm.scaledDensity
+
+    setTextSize(pixelSize)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 

@@ -23,11 +23,11 @@
     <Button
         android:id="@+id/cancelOverride"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:background="@drawable/custombutton"
-        android:text="Cancel RC override"
+        android:text="Stop Override"
         android:visibility="invisible" />
 
     <com.geeksville.andropilot.gui.JoystickView

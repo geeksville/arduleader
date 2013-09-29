@@ -24,6 +24,8 @@ import android.view.Gravity
 import com.ridemission.scandroid.SimpleDialogClient
 import com.geeksville.mavlink.MsgArmChanged
 import com.geeksville.andropilot.AndropilotPrefs
+import com.ridemission.scandroid.AndroidUtil
+import android.util.TypedValue
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -118,15 +120,16 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private def makeButton(name: String) = {
     val button = new Button(getActivity)
     button.setText(name)
-    button.setTextSize(12.0f)
+    button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12)
     button.setSingleLine()
     button.setBackgroundResource(R.drawable.custombutton)
     fadeIn(button)
-    debug(s"************************************ Creating button $name")
+    debug(s"Creating button $name")
 
     val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
     lp.gravity = Gravity.CENTER
-    lp.leftMargin = 6
+    lp.height = dipPixel(32) // Use short buttons
+    lp.leftMargin = dipPixel(6)
     //lp.setMarginStart(4) - not supported on older android builds
     modeButtonGroup.foreach(_.addView(button, lp))
     button
