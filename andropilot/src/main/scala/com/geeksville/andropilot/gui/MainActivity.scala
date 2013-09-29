@@ -384,6 +384,9 @@ class MainActivity extends FragmentActivity with TypedActivity
       mainView = getLayoutInflater.inflate(R.layout.main, null)
       setContentView(mainView)
 
+      if (screenWidthDp < 600) // Screen is pretty narrow, default to no sidebar
+        showSidebar(false)
+
       // textView.setText("hello, world!")
 
       handler = new Handler
@@ -810,7 +813,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
     val armMenu = menu.findItem(R.id.menu_arm)
     val hasJoystickView = joystickPanel.isDefined
-    joystickMenu.setEnabled(hasJoystickView && developerMode && !isVehicleConnected) // For developer testing
     armMenu.setVisible(false) // If we don't know we have a copter leave this hidden
 
     service foreach { svc =>
@@ -829,10 +831,12 @@ class MainActivity extends FragmentActivity with TypedActivity
           armMenu.setChecked(armed)
           armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
         }
+
+        // Only possibly turn the joystick on if we have a vehicle
+        joystickMenu.setEnabled(hasJoystickView && (developerMode || (isVehicleConnected && joystickAvailable)))
       }
 
       joystickMenu.setChecked(isJoystickShown)
-      joystickMenu.setEnabled(hasJoystickView && joystickAvailable && svc.isConnected)
 
       val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
       gotoMenu.setEnabled(navToVehicleIntent.isDefined)

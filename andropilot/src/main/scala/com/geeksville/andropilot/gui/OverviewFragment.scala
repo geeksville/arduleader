@@ -98,6 +98,9 @@ class MiniOverviewFragment extends VehicleInfoFragment(R.layout.mini_overview) {
       showMe()
       altView.setText("213 m")
       batteryView.setText("11.1V (87%)")
+      airspeedView.setText("7.8 m/s")
+      numSatView.setText("1.9")
+      rssiLocalView.setText("103")
     }
   }
 

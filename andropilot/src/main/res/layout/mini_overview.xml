@@ -72,7 +72,7 @@
         <TextView
             android:layout_marginLeft="4dp"
             android:layout_weight="0"
-            android:text="GPS"
+            android:text="HDOP"
             android:textAppearance="?android:attr/textAppearanceSmall" />
 
         <TextView

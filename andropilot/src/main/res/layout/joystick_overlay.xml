@@ -11,34 +11,33 @@
 
     <com.geeksville.andropilot.gui.JoystickView
         android:id="@+id/leftStick"
-        android:layout_width="256dp"
-        android:layout_height="256dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_marginBottom="4dp"
         android:layout_marginLeft="4dp"
-        android:alpha="0.6"
         android:clickable="true" />
 
     <Button
         android:id="@+id/cancelOverride"
         android:layout_width="wrap_content"
-        android:layout_height="32dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:background="@drawable/custombutton"
-        android:text="Stop Override"
+        android:text="Stop\nOverride"
+        android:singleLine="false"
         android:visibility="invisible" />
 
     <com.geeksville.andropilot.gui.JoystickView
         android:id="@+id/rightStick"
-        android:layout_width="256dp"
-        android:layout_height="256dp"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="4dp"
         android:layout_marginRight="4dp"
-        android:alpha="0.6"
         android:clickable="true" />
     <!-- android:background="#880000" -->
 
