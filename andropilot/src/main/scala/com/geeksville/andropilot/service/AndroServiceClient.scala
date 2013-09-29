@@ -42,6 +42,9 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
   def isLowNumSats = (for { v <- myVehicle; n <- v.numSats } yield { v.hasHeartbeat && n < minNumSats }).getOrElse(false)
   def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
+  /// Are we talking to at least one vehicle
+  def isVehicleConnected = service.map(_.isConnected).getOrElse(false)
+
   /**
    * Override if you need to do stuff once the connection is up
    */

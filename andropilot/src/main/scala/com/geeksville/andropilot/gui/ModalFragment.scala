@@ -23,8 +23,9 @@ import android.widget.LinearLayout
 import android.view.Gravity
 import com.ridemission.scandroid.SimpleDialogClient
 import com.geeksville.mavlink.MsgArmChanged
+import com.geeksville.andropilot.AndropilotPrefs
 
-class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient {
+class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
   private def modeTextView = Option(getView).map(_.findView(TR.mode_text))
   private def modeButtonGroup = Option(getView).map(_.findView(TR.mode_buttons))
@@ -121,8 +122,9 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     button.setSingleLine()
     button.setBackgroundResource(R.drawable.custombutton)
     fadeIn(button)
+    debug(s"************************************ Creating button $name")
 
-    val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
+    val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
     lp.gravity = Gravity.CENTER
     lp.leftMargin = 6
     //lp.setMarginStart(4) - not supported on older android builds
@@ -130,11 +132,17 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     button
   }
 
-  private val testModeNames = Seq("RTL" -> false, "STABILIZE" -> false, "FISH" -> false, "Arm" -> false)
+  private val testModeNames = Seq("RTL", "STABILIZE", "FISH", "Arm", "LAUNDRY", "CARS", "CATS")
 
   private def setButtons() {
     modeButtonGroup.foreach { bgrp =>
       bgrp.removeAllViews()
+
+      // For testing - when offline
+      if (developerMode && !isVehicleConnected) {
+        testModeNames.foreach(makeButton _)
+        setWPUploadVisibility(true)
+      }
 
       for {
         v <- myVehicle
@@ -146,7 +154,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
         val modenames = if (s.isConnected && v.hasHeartbeat)
           v.selectableModeNames
         else
-          Seq() // testModeNames
+          Seq()
 
         modenames.foreach {
           case (name, confirm) =>

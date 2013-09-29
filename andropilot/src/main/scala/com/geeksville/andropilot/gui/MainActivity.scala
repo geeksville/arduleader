@@ -357,7 +357,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     warn("HW model " + Build.MODEL)
     warn("HW device " + Build.DEVICE)
     warn("HW product " + Build.PRODUCT)
-    warn(s"Smallest screen width $screenWidthDp")
+    warn(s"Screen width $screenWidthDp")
     warn(s"Screen height $screenHeightDp")
     warn(s"Screen smallest width $screenSmallestWidthDp")
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
@@ -810,7 +810,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
     val armMenu = menu.findItem(R.id.menu_arm)
     val hasJoystickView = joystickPanel.isDefined
-    joystickMenu.setEnabled(hasJoystickView && developerMode) // Let developer play with this
+    joystickMenu.setEnabled(hasJoystickView && developerMode && !isVehicleConnected) // For developer testing
     armMenu.setVisible(false) // If we don't know we have a copter leave this hidden
 
     service foreach { svc =>

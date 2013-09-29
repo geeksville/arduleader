@@ -19,19 +19,19 @@
         android:visibility="visible" />
 
     <HorizontalScrollView
+        android:id="@+id/mode_buttons_scroller"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/mode_text"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
-        android:padding="4dp" >
+        android:padding="4dp" > 
 
         <LinearLayout
             android:id="@+id/mode_buttons"
             android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_gravity="left"
+            android:layout_height="wrap_content"
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
@@ -41,7 +41,7 @@
         android:id="@+id/upload_waypoint_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/mode_buttons"
+        android:layout_below="@id/mode_buttons_scroller"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:background="@drawable/custombutton"

@@ -90,6 +90,17 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
 
 class MiniOverviewFragment extends VehicleInfoFragment(R.layout.mini_overview) {
 
+  override def onResume() {
+    super.onResume()
+
+    // Always show the panel while developing
+    if (developerMode && !isVehicleConnected) {
+      showMe()
+      altView.setText("213 m")
+      batteryView.setText("11.1V (87%)")
+    }
+  }
+
   /// We show ourselves once we get our first vehicle update
   private def showMe() {
     getView.findView(TR.mini_overview).setVisibility(View.VISIBLE)
