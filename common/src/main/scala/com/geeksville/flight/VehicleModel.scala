@@ -265,6 +265,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
    */
   def selectableModeNames = {
     var names = modeNames
+
     if (isCopter)
       if (!isArmed)
         names = names :+ "Arm"
@@ -284,8 +285,10 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     names.flatMap { name =>
       filter.get(name) match {
         case Some(confirm) =>
+          log.debug(s"allowed by filter: $name")
           Some(name -> confirm)
         case None =>
+          log.debug(s"denied by filter: $name")
           None
       }
     }
@@ -461,7 +464,8 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         // Temporary hackish safety check until AC can be updated (see https://github.com/diydrones/ardupilot/issues/553)
         val throttleTooFast = (for {
           rc <- rcChannels
-          minThrottle <- parametersById("RC3_MIN").getInt
+          minThrottleOpt <- parametersById.get("RC3_MIN")
+          minThrottle <- minThrottleOpt.getInt
         } yield {
           // If there is no radio AC will claim 0 for all RC channels - treat that as failure
           rc.chan3_raw > minThrottle * 1.10 || rc.chan3_raw == 0

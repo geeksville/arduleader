@@ -288,8 +288,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     //requestAccess()
 
     // If the menu is already up - update the set of options & selected mode
-    setModeOptions()
-    setModeSpinner()
+    invalidateOptionsMenu()
 
     waitingForService.foreach { intent =>
       handleIntent(intent)
@@ -828,6 +827,7 @@ class MainActivity extends FragmentActivity with TypedActivity
         if (v.isCopter) {
           val armed = v.isArmed
           debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
+          armMenu.setVisible(true)
           armMenu.setChecked(armed)
           armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
         }
