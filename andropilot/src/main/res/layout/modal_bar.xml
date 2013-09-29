@@ -26,7 +26,7 @@
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
         android:layout_marginTop="6dp"
-        android:padding="4dp" > 
+         > 
 
         <LinearLayout
             android:id="@+id/mode_buttons"

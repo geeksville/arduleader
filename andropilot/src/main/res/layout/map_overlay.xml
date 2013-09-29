@@ -17,8 +17,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp" />
+            android:layout_marginLeft="6dp"
+            android:layout_marginTop="6dp" />
 
         <fragment
             android:id="@+id/modal_fragment"

@@ -1,3 +1,8 @@
+# 1.8.04
+* Make a new UI that is optimized for small phone screens - it should look pretty nice (if cramped once you turn on screen joysticks) - thanks to Remigijus (in Lithuania!)
+* Allow the various SimpleUI buttons to scroll if necessary for small screens
+* Fix the problem of the service not exiting - introduced in the last release.  Thanks Gary and Luciano for the reports
+
 # 1.8.03
 * Fix screen sleep problem reported by Luciano (thanks!)
 * The new simple UI is mostly finished - just some drawer stuff & art assets left
