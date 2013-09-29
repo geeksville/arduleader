@@ -62,7 +62,7 @@ class CircleFactory(val circleOptions: CircleOptions) extends DrawableFactory {
  * A line between two SmartMarkers
  */
 case class Segment(endpoints: (SmartMarker, SmartMarker), color: Int) extends LineFactory {
-  final def lineOptions = (new PolylineOptions).color(color).add(endpoints._1.latLng).add(endpoints._2.latLng)
+  final def lineOptions = (new PolylineOptions).color(color).add(endpoints._1.latLng).add(endpoints._2.latLng).geodesic(true)
 
   /**
    * Move any drawables as we are dragged (if we care)

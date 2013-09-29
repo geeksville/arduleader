@@ -91,6 +91,7 @@ class AndropilotService extends Service with AndroidLogger
    */
   private val disconnectReceiver = new BroadcastReceiver {
     override def onReceive(context: Context, intent: Intent) {
+      warn("In disconnect receiver")
       if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
         serialDetached()
     }
@@ -411,6 +412,7 @@ class AndropilotService extends Service with AndroidLogger
   }
 
   private def stopHighValue() {
+    warn("In stopHighValue")
     if (!isConnected) {
       vehicle.foreach(_ ! OnInterfaceChanged(false))
 
@@ -426,14 +428,15 @@ class AndropilotService extends Service with AndroidLogger
   }
 
   private def serialDetached() {
+    warn("In serialDetached")
     serial.foreach { a =>
+      warn("dettaching one serial device")
       unregisterReceiver(disconnectReceiver)
 
       a ! PoisonPill
-
-      stopHighValue()
     }
     serial = Seq()
+    stopHighValue()
   }
 
   private def btDetached() {

@@ -827,7 +827,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       myVehicle.foreach { v =>
         if (v.isCopter) {
           val armed = v.isArmed
-          debug("Setting arm checkbox to " + armed)
+          debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
           armMenu.setChecked(armed)
           armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
         }
