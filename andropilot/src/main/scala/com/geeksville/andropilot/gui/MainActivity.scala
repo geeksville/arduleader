@@ -908,11 +908,11 @@ class MainActivity extends FragmentActivity with TypedActivity
           if (l.getWidth + r.getWidth >= panel.getWidth)
             showSidebar(false)
         }
-
-        // We might need to turn screen sleep on/off
-        setScreenOn()
       }
     }
+
+    // We might need to turn screen sleep on/off
+    setScreenOn()
   }
 
   /**
