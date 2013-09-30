@@ -17,7 +17,7 @@
         android:summary="Backup parameters to /sdcard/andropilot"
         android:title="Backup parameters" />
     <CheckBoxPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="force_screenon"
         android:summary="Don&apos;t let the screen dim when map is shown"
         android:title="Keep screen on" />
