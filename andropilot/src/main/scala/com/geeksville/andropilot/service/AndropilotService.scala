@@ -445,8 +445,8 @@ class AndropilotService extends Service with AndroidLogger
       a ! PoisonPill
 
       btStream = None
-      stopHighValue()
     }
+    stopHighValue()
   }
 
   override def onDestroy() {
