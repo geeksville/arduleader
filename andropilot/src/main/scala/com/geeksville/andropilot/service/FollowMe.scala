@@ -21,7 +21,7 @@ import com.geeksville.mavlink.MsgHeartbeatLost
  */
 class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedActor with AndroidLogger with AndropilotPrefs {
 
-  private val throttle = new Throttled(2000)
+  private val throttle = new Throttled((1000 * followMeInterval).toInt)
 
   private var userGpsLoc: Option[Location] = None
   private var orientation = Array(0.0f, 0.0f, 0.0f)

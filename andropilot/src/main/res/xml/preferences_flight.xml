@@ -57,7 +57,14 @@
         android:key="maxfollow_distance"
         android:summary="If greater than zero, tilting tablet will move vehicle"
         android:title="Lead-it Maximum distance" />
-
+    <EditTextPreference
+        android:defaultValue="2.0"
+        android:dialogTitle="Lead-it update interval"
+        android:inputType="number|numberSigned"
+        android:key="maxfollow_distance"
+        android:summary="How many seconds between each lead-it update"
+        android:title="Lead-it update interval" />
+    
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="follow_plane"

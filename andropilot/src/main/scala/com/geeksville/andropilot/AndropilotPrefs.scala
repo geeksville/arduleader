@@ -9,6 +9,9 @@ trait AndropilotPrefs extends UsesPreferences {
   def paramsToFile = boolPreference("params_to_file", false)
   def speechAltBucket = intPreference("speech_altbucket", 10)
 
+  /// Let user select follow me interval, but restrict to between 10 sec and 200ms
+  def followMeInterval = math.min(10.0f, math.max(0.2f, floatPreference("follow_interval", 2.0f)))
+
   def minVoltage = floatPreference("min_volt", 9.5f)
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
   def minRssiSpan = intPreference("min_rssi_span", 2)
