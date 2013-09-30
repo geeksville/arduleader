@@ -9,5 +9,12 @@ import com.ridemission.rest.JsonConverters._
  * See SmallAPI for the design philosophy of this object.
  */
 class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
-  def getters = Map("location" -> (() => "fish".asJson))
+  override def getters = Map(
+    "location" -> { () => v.location.asJson })
+}
+
+class GCSAdapter(gcs: GCSModel) extends SmallAdapter with HierarchicalAdapter {
+  val vadapter = new VehicleAdapter(gcs.vehicles(0))
+
+  def children = Map { "vehicle" -> vadapter }
 }

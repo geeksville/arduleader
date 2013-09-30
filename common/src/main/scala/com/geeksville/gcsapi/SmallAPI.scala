@@ -2,6 +2,7 @@ package com.geeksville.gcsapi
 
 import com.ridemission.rest.JValue
 import com.ridemission.rest.JArray
+import com.ridemission.rest.JObject
 
 /**
  * This is a 'small surface area' API which intended to be easy to expose through various different mechanisms (REST server, Android WebView scripting, etc...)
@@ -16,11 +17,14 @@ import com.ridemission.rest.JArray
  * about this simple interface.
  */
 trait SmallAPI {
-  def members: JArray
+  /**
+   * Expected to return a JObject with three JString array members, "getters", "setters" and "methods"
+   */
+  def members: JObject = throw new Exception("FIXME we might want to remove this")
 
   def get(memberName: String): JValue
-  def set(memberName: String, v: JValue)
+  def set(memberName: String, v: JValue) { throw new Exception("FIXME not implemented") }
 
-  def call(methodName: String, arguments: JArray): JValue
+  def call(methodName: String, arguments: JArray) = throw new Exception("FIXME not implemented")
 }
 
