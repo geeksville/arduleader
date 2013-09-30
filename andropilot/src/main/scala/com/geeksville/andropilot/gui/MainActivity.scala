@@ -383,6 +383,9 @@ class MainActivity extends FragmentActivity with TypedActivity
       mainView = getLayoutInflater.inflate(R.layout.main, null)
       setContentView(mainView)
 
+      // Hide the navigation bar at the bottom
+      //mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+
       if (screenWidthDp < 600) // Screen is pretty narrow, default to no sidebar
         showSidebar(false)
 
