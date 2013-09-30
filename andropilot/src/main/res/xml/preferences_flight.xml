@@ -61,7 +61,7 @@
         android:defaultValue="2.0"
         android:dialogTitle="Lead-it update interval"
         android:inputType="number|numberSigned"
-        android:key="maxfollow_distance"
+        android:key="follow_interval"
         android:summary="How many seconds between each lead-it update"
         android:title="Lead-it update interval" />
     
