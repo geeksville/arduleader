@@ -106,10 +106,11 @@ class AndropilotService extends Service with AndroidLogger
     getLines().mkString("\n")
 
   def isSerialConnected = !serial.isEmpty
+  def isBluetoothConnected = btStream.isDefined
   def isFollowMe = follower.isDefined
 
   // Are we talking to a device at all?
-  def isConnected = isSerialConnected || udp.isDefined || btStream.isDefined
+  def isConnected = isSerialConnected || udp.isDefined || isBluetoothConnected
 
   /**
    * A human readable description of our logging state

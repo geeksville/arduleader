@@ -170,15 +170,14 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
         }
 
         // Add a special button to turn bluetooth on/off
-        if (s.bluetoothAdapterPresent)
+        if (s.bluetoothAdapterPresent) {
           if (!s.isConnected)
             makeButton("Bluetooth").onClick { b =>
               s.connectToDevices()
             }
-          else if (!v.isArmed)
-            confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?") { () =>
-              s.forceBluetoothDisconnect()
-            }
+          else if (s.isBluetoothConnected && !v.isArmed)
+            confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?")(s.forceBluetoothDisconnect _)
+        }
       }
     }
   }
