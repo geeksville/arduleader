@@ -21,7 +21,8 @@ import com.geeksville.mavlink.MsgHeartbeatLost
  */
 class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedActor with AndroidLogger with AndropilotPrefs {
 
-  private val throttle = new Throttled((1000 * followMeInterval).toInt)
+  private val throttleInterval = (1000 * followMeInterval).toInt
+  private val throttle = new Throttled(throttleInterval)
 
   private var userGpsLoc: Option[Location] = None
   private var orientation = Array(0.0f, 0.0f, 0.0f)
@@ -37,7 +38,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
    */
   private val locListener = new LocationListener {
     private val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
-    locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 3, this)
+    locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, throttleInterval, 3, this)
 
     override def onLocationChanged(location: Location) {
       userGpsLoc = Some(location)
