@@ -11,14 +11,13 @@ import com.ridemission.rest.JsonConverters._
 class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
   override def getters = Map(
     "location" -> { () =>
-      val l = v.location
-      println(s"Location is $l")
-      l.asJson
+      v.location.asJson
     },
     "waypoints" -> { () =>
-      val l = v.waypoints
-      println(s"Waypoints are $l")
-      l.asJson
+      v.waypoints.asJson
+    },
+    "currentMode" -> { () =>
+      v.currentMode.asJson
     })
 }
 
