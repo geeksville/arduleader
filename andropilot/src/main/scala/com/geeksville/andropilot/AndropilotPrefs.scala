@@ -39,7 +39,8 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def developerMode = boolPreference("developer_mode", false)
 
-  def stayAwakeEnabled = boolPreference("stay_awake", true)
+  // This is now hidden in the UI - basically on all the time
+  def stayAwakeEnabled = boolPreference("stay_awake2", true)
 
   object UDPMode extends Enumeration {
     val Disabled = Value("Disabled")

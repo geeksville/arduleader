@@ -21,11 +21,11 @@
         android:key="force_screenon"
         android:summary="Don&apos;t let the screen dim when map is shown"
         android:title="Keep screen on" />
-    <CheckBoxPreference
+    <!--  <CheckBoxPreference
         android:defaultValue="true"
-        android:key="stay_awake"
+        android:key="stay_awake2"
         android:summary="Keeps CPU from sleeping when device is connected"
-        android:title="Stay awake when connected" />
+        android:title="Stay awake when connected" /> -->
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="use_flurry"
