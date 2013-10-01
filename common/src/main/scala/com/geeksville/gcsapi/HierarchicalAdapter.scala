@@ -31,11 +31,15 @@ trait HierarchicalAdapter extends SmallAPI {
     }
   }
 
-  abstract override def get(memberName: String): JValue = {
+  private def childInvoker[T](memberName: String)(ifFound: (SmallAPI, String) => T)(ifNotFound: (String) => T): T = {
     val p = getChild(memberName)
     p match {
-      case Some((rest, child)) => child.get(rest)
-      case None => super.get(memberName)
+      case Some((rest, child)) => ifFound(child, rest)
+      case None => ifNotFound(memberName)
     }
   }
+
+  abstract override def get(memberName: String): JValue = childInvoker(memberName) { case (child, rest) => child.get(rest) } { super.get }
+  abstract override def set(memberName: String, v: JValue) = childInvoker(memberName) { case (child, rest) => child.set(rest, v) } { n => super.set(n, v) }
+  abstract override def call(methodName: String, arguments: JArray) = childInvoker(methodName) { case (child, rest) => child.call(rest, arguments) } { n => super.call(n, arguments) }
 }

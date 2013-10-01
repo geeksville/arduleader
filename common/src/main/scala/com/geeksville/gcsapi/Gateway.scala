@@ -14,6 +14,11 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
       val l = v.location
       println(s"Location is $l")
       l.asJson
+    },
+    "waypoints" -> { () =>
+      val l = v.waypoints
+      println(s"Waypoints are $l")
+      l.asJson
     })
 }
 

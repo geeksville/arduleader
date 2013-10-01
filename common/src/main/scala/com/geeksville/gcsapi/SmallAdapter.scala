@@ -28,12 +28,13 @@ abstract class SmallAdapter extends SmallAPI {
   override def get(memberName: String): JValue = getters(memberName)()
   override def set(memberName: String, v: JValue) { setters(memberName)(v) }
 
-  override def call(methodName: String, arguments: JArray) = throw new Exception("FIXME not implemented")
+  override def call(methodName: String, arguments: JArray) = methods(methodName)(arguments)
 
   type Getter = () => JValue
   type Setter = (JValue) => Unit
+  type Method = (JArray) => JValue
 
   def getters: Map[String, Getter] = Map()
   def setters: Map[String, Setter] = Map()
-
+  def methods: Map[String, Method] = Map()
 }

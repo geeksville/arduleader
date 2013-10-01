@@ -25,6 +25,6 @@ trait SmallAPI {
   def get(memberName: String): JValue
   def set(memberName: String, v: JValue) { throw new Exception("FIXME not implemented") }
 
-  def call(methodName: String, arguments: JArray) = throw new Exception("FIXME not implemented")
+  def call(methodName: String, arguments: JArray): JValue = throw new Exception("FIXME not implemented")
 }
 
