@@ -13,3 +13,10 @@ trait GCSModel {
 
   // FIXME - add UI components/options
 }
+
+/**
+ * A placeholder version of the GCS model until something more real exists
+ */
+class TempGCSModel(v: VehicleModel) extends GCSModel {
+  val vehicles = Seq(v)
+}

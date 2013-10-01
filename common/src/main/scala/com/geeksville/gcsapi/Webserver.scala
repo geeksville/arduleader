@@ -1,4 +1,4 @@
-package com.geeksville.mavserve
+package com.geeksville.gcsapi
 
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight.VehicleModel
@@ -15,52 +15,24 @@ import com.ridemission.rest.JObject
 import com.ridemission.rest.JArray
 
 /**
- * A (demo) web server that serves up vehicle data (and static html/js/art content) to a web browser.  Intended to be a starting point for
- * a server meant for Mavelous.
- *
- * This server currently delivers data from the following HTTP GETable locations:
- *
- * /static (contains static content - i.e. FIXME, put your Mavelous files here)
- * /parameters (a json object with param names and values)
- * /vehicle (a json object with location/orientation data - intended to be repeatedly fetched by Mavelous)
+ * This exposes the GCS scripting API via a conventional REST web server
  */
-class MavServe(val v: VehicleModel) extends InstrumentedActor {
-
-  val subscription = v.eventStream.subscribe(this)
+class Webserver(val root: SmallAPI) extends InstrumentedActor {
 
   /**
    * Handles REST gets of vehicle params
    */
-  val paramHandler = new GETHandler("/parameters".r) {
+  val getterHandler = new GETHandler("/api/(.*)".r) {
 
     override protected def handleRequest(req: Request) = {
       // FIXME- use something like the following if you want to parse html path
       // use the following as the argument to the superclass constructor: "/vdata/gethtml/(.*)".r
       // (This makes a regex with one portion getting pulled out).  Then in the function you can reference
       // the matches in the regex as follows:
-      // val pattern = req.matches(0)
+      val pattern = req.matches(0)
+      val r = root.get(pattern)
 
-      // Note: I use flatMap here so that I can automatically collapse out any elements that are missing (the for comprehension will return None in that case)
-      val params = v.parameters.flatMap { p =>
-        for { id <- p.getId; pval <- p.getValue } yield { id -> pval }
-      }
-
-      new SimpleResponse(JObject(params: _*))
-    }
-  }
-
-  /**
-   * Handles REST gets of vehicle state
-   */
-  val vehicleHandler = new GETHandler("/vehicle".r) {
-
-    override protected def handleRequest(req: Request) = {
-
-      val vinfo = Seq(
-        v.location.map { l => "loc" -> JArray(l.lat, l.lon, l.alt) },
-        v.attitude.map { l => "attitude" -> JArray(l.pitch, l.yaw, l.roll) }).flatten
-
-      new SimpleResponse(JObject(vinfo: _*))
+      new SimpleResponse(r)
     }
   }
 
@@ -68,7 +40,6 @@ class MavServe(val v: VehicleModel) extends InstrumentedActor {
 
   override def postStop() {
     server.close()
-    v.eventStream.removeSubscription(subscription)
     super.postStop()
   }
 
@@ -81,13 +52,12 @@ class MavServe(val v: VehicleModel) extends InstrumentedActor {
   }
 
   private def startWebServer() = {
-    log.info("Starting MavServe")
+    log.info("Starting Webserver on http://localhost:4404")
 
     val server = new MicroRESTServer(4404)
     // FIXME - we currently assume the cwd is the default of 'posixpilot'
     server.addHandler(new FileHandler("/static", new File("../httpcontent")))
-    server.addHandler(paramHandler)
-    server.addHandler(vehicleHandler)
+    server.addHandler(getterHandler)
     server
   }
 }

@@ -37,7 +37,16 @@ abstract class RESTHandler(val pathRegex: Regex, val method: Method) {
   def canHandle(matches: List[String]) = true
 
   def replyToRequest(req: Request) {
-    val response = handleRequest(req)
+    val response = try {
+      handleRequest(req)
+    } catch {
+      case ex: Exception =>
+        println(s"Error handling request $req: $ex")
+        println(ex)
+        val json = JObject("server_error" -> ex.getMessage,
+          "stack_trace" -> ex.getStackTraceString)
+        new SimpleResponse(json)
+    }
     response.send(req.connection)
   }
 

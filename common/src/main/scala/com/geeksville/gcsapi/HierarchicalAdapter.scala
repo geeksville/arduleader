@@ -23,7 +23,7 @@ trait HierarchicalAdapter extends SmallAPI {
     else if (dotLoc == 0)
       throw new Exception(s"Invalid member name: $memberName")
     else {
-      val m = memberName.substring(dotLoc)
+      val m = memberName.substring(0, dotLoc)
       val rest = memberName.substring(dotLoc + 1, memberName.length())
 
       val child = children(m)

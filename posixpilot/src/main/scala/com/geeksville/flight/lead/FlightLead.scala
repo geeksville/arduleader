@@ -18,6 +18,9 @@ import com.geeksville.akka.MockAkka
 import java.io.File
 import com.geeksville.mavserve.MavServe
 import com.geeksville.mavlink.LogIncomingMavlink
+import com.geeksville.gcsapi.Webserver
+import com.geeksville.gcsapi.TempGCSModel
+import com.geeksville.gcsapi.GCSAdapter
 
 object Main extends Logging {
 
@@ -121,16 +124,16 @@ object Main extends Logging {
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false
     val startIncomingUDP = false
-    val startSerial = false
+    val startSerial = true
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
-    val startMonitor = false
-    val startMavServe = false
+    val startMonitor = true
+    val startMavServe = true
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = false
-    val startRadios = true
+    val startRadios = false
 
     if (startSerial)
       createSerial()
@@ -176,13 +179,15 @@ object Main extends Logging {
 
     if (startMonitor) {
       // Keep a complete model of the arduplane state
-      val model = MockAkka.actorOf(new VehicleModel)
+      val vehicle = MockAkka.actorOf(new VehicleModel)
 
       // That model wants to hear messages from id 1
-      MavlinkEventBus.subscribe(model, arduPilotId)
+      MavlinkEventBus.subscribe(vehicle, arduPilotId)
 
       if (startMavServe) {
-        new MavServe(model)
+        val gcs = new TempGCSModel(vehicle)
+        val adapter = new GCSAdapter(gcs)
+        MockAkka.actorOf(new Webserver(adapter))
       }
     }
 

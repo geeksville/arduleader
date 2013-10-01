@@ -72,7 +72,9 @@ object JsonConverters {
 object JsonTools {
 
   //// FIXME - need to properly backquote quotes inside str
-  def quoted(str: String) = "\"" + str + "\""
+  def quoted(str: String) = {
+    "\"" + str.replaceAllLiterally("\n", "\\n") + "\""
+  }
 
   def valueToJSON(s: Any): String = s match {
     case None => "null"

@@ -10,7 +10,11 @@ import com.ridemission.rest.JsonConverters._
  */
 class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
   override def getters = Map(
-    "location" -> { () => v.location.asJson })
+    "location" -> { () =>
+      val l = v.location
+      println(s"Location is $l")
+      l.asJson
+    })
 }
 
 class GCSAdapter(gcs: GCSModel) extends SmallAdapter with HierarchicalAdapter {
