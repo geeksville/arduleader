@@ -10,24 +10,28 @@ import com.ridemission.rest.JObject
  *
  * No GCS specific code here - someday I'd like to reuse this somewhere else
  */
-trait HierarchicalAdapter extends SmallAPI {
-  def children: Map[String, SmallAPI]
+trait HierarchicalAdapter extends SmallAdapter {
 
   /**
    * If the user wants something in a child, delegate it to the child - otherwise handle it here
    */
-  def getChild(memberName: String): Option[(String, SmallAPI)] = {
+  protected def getChild(memberName: String): Option[(String, SmallAPI)]
+
+  /**
+   * @return leftofdot, rightofdot (or empty string if no dot)
+   */
+  protected final def splitAtDot(memberName: String) = {
     val dotLoc = memberName.indexOf('.')
-    if (dotLoc < 0)
-      None
-    else if (dotLoc == 0)
+    if (dotLoc < 0) {
+      // No dot, try to find the child with this name and use "" for the rest
+      memberName -> ""
+    } else if (dotLoc == 0)
       throw new Exception(s"Invalid member name: $memberName")
     else {
       val m = memberName.substring(0, dotLoc)
       val rest = memberName.substring(dotLoc + 1, memberName.length())
 
-      val child = children(m)
-      Some(rest -> child)
+      m -> rest
     }
   }
 
@@ -39,7 +43,10 @@ trait HierarchicalAdapter extends SmallAPI {
     }
   }
 
-  abstract override def get(memberName: String): JValue = childInvoker(memberName) { case (child, rest) => child.get(rest) } { super.get }
-  abstract override def set(memberName: String, v: JValue) = childInvoker(memberName) { case (child, rest) => child.set(rest, v) } { n => super.set(n, v) }
-  abstract override def call(methodName: String, arguments: JArray) = childInvoker(methodName) { case (child, rest) => child.call(rest, arguments) } { n => super.call(n, arguments) }
+  abstract override def call(objName: String, methodName: String, arguments: Seq[Any]) = childInvoker(objName) {
+    case (child, rest) =>
+      child.call(rest, methodName, arguments)
+  } { n =>
+    super.call("_this", methodName, arguments)
+  }
 }

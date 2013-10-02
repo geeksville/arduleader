@@ -33,7 +33,7 @@ class MicroRESTServer(portNum: Int) {
   // Http req looks like GET /fish HTTP/1.1
   private val ReqRegex = "(.+) (.+) (.+)".r
   // headers look like Foo-Blah: somevalue
-  private val HeaderRegex = "(.+): (.+)".r
+  private val HeaderRegex = "(.+):\\s*(.+)".r
 
   listenerThread.start()
 
@@ -64,10 +64,11 @@ class MicroRESTServer(portNum: Int) {
       println("Request: " + firstLine)
       // Read headers till blank line
       val headerMap = Map(reqLines.takeWhile(_.length != 0).toSeq.map { line =>
+        //println(s"Considering: $line")
         val HeaderRegex(k, v) = line.trim
         k -> v
       }: _*)
-      // print(headerMap.mkString("Request headers:\n  ", "\n  ", "\n"))
+      print(headerMap.mkString("Request headers:\n  ", "\n  ", "\n"))
 
       val ReqRegex(methodStr, req, httpVer) = firstLine
       var reqURI = new URI(req)
@@ -76,8 +77,8 @@ class MicroRESTServer(portNum: Int) {
       // Loop until we find a handler and call it
       val handler = handlers.find { h =>
         val matches = h.pathRegex.unapplySeq(reqPath)
-        if (matches.isDefined && h.canHandle(matches.get)) {
-          val method = Method.withName(methodStr)
+        val method = Method.withName(methodStr)
+        if (matches.isDefined && h.canHandle(method, matches.get)) {
           val queryStr = reqURI.getQuery
           val params = MicroRESTServer.parseParams(queryStr)
 
@@ -87,7 +88,7 @@ class MicroRESTServer(portNum: Int) {
             new HeadInputStream(reqStream, contentLength)
           else
             reqStream
-          val req = Request(client, reqURI, matches.get, method, headStream, params)
+          val req = Request(client, reqURI, matches.get, headStream, params)
           h.replyToRequest(req)
 
           true // We just handled things
@@ -103,7 +104,8 @@ class MicroRESTServer(portNum: Int) {
       }
     } catch {
       case ex: MatchError =>
-        println("bad client request: " + firstLine)
+        println(s"malformed headers for: $firstLine $ex")
+        // ex.printStackTrace()
         client.close()
 
       case ex: Exception =>

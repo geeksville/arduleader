@@ -2,6 +2,9 @@ package com.geeksville.gcsapi
 
 import com.geeksville.flight.VehicleModel
 import com.ridemission.rest.JsonConverters._
+import com.ridemission.rest.JArray
+import com.ridemission.rest.JNull
+import com.geeksville.flight.DoGotoGuided
 
 /**
  * This is the singleton used to access vehicle and GCS state from javascript or other languages.
@@ -19,10 +22,26 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
     "currentMode" -> { () =>
       v.currentMode.asJson
     })
+
+  override def methods = Map(
+    "gotoGuided" -> { (args: Seq[Any]) =>
+      println(s"Got args $args: " + args.mkString(","))
+      val lat = args(0).asInstanceOf[Double]
+      val lon = args(1).asInstanceOf[Double]
+      val alt = args(2).asInstanceOf[Double]
+
+      val myloc = new com.geeksville.flight.Location(lat, lon, Some(alt))
+
+      // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
+      val msg = v.makeGuided(myloc)
+      v ! DoGotoGuided(msg, false)
+
+      JNull
+    })
 }
 
-class GCSAdapter(gcs: GCSModel) extends SmallAdapter with HierarchicalAdapter {
+class GCSAdapter(gcs: GCSModel) extends MapAdapter {
   val vadapter = new VehicleAdapter(gcs.vehicles(0))
 
-  def children = Map { "vehicle" -> vadapter }
+  override def children = Map { "vehicle" -> vadapter }
 }

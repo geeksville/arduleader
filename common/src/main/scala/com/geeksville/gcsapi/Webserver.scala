@@ -13,25 +13,50 @@ import com.ridemission.rest.HttpConstants
 import com.ridemission.rest.JsonTools
 import com.ridemission.rest.JObject
 import com.ridemission.rest.JArray
+import com.ridemission.rest.POSTHandler
 
 /**
  * This exposes the GCS scripting API via a conventional REST web server
  */
 class Webserver(val root: SmallAPI) extends InstrumentedActor {
 
+  val baseUrl = "/api/"
+  val readRegex = (baseUrl + "(.*)").r
+
+  // Second param is the name of the method to call
+  val callRegex = (baseUrl + "(.*)/(.*)").r
+
   /**
-   * Handles REST gets of vehicle params
+   * Handles REST gets of vehicle params.
+   * FIXME - this is just syntactic REST sugar for calling the obj._get method?
    */
-  val getterHandler = new GETHandler("/api/(.*)".r) {
+  val getterHandler = new GETHandler(readRegex) {
 
     override protected def handleRequest(req: Request) = {
+      println("In get handler")
+
       // FIXME- use something like the following if you want to parse html path
       // use the following as the argument to the superclass constructor: "/vdata/gethtml/(.*)".r
       // (This makes a regex with one portion getting pulled out).  Then in the function you can reference
       // the matches in the regex as follows:
-      val pattern = req.matches(0)
-      val r = root.get(pattern)
+      val p = req.matches(0)
+      val r = root.get(p)
+      new SimpleResponse(r)
+    }
+  }
 
+  /**
+   * Handles REST gets of vehicle params
+   */
+  val postHandler = new POSTHandler(callRegex) {
+
+    override protected def handleRequest(req: Request) = {
+      val obj = req.matches(0)
+      val method = req.matches(1)
+
+      val args = req.payloadAsJson.asInstanceOf[Seq[_]]
+      println("JSON arguments into post: " + args.mkString(","))
+      val r = root.call(obj, method, args)
       new SimpleResponse(r)
     }
   }
@@ -58,6 +83,7 @@ class Webserver(val root: SmallAPI) extends InstrumentedActor {
     // FIXME - we currently assume the cwd is the default of 'posixpilot'
     server.addHandler(new FileHandler("/static", new File("../httpcontent")))
     server.addHandler(getterHandler)
+    server.addHandler(postHandler)
     server
   }
 }
