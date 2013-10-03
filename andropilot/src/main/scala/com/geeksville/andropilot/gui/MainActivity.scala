@@ -98,7 +98,6 @@ class MainActivity extends FragmentActivity with TypedActivity
    */
   private var waitingForService: Option[Intent] = None
 
-  private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   private lazy val notifyManager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
@@ -143,17 +142,6 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)
-
-  /**
-   * We install this receiver only once we're connected to a device -
-   * only used to show a Toast about disconnection...
-   */
-  val disconnectReceiver = new BroadcastReceiver {
-    override def onReceive(context: Context, intent: Intent) {
-      if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
-        serialDetached()
-    }
-  }
 
   val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
     val warning = if (isLowVolt)
@@ -280,9 +268,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onServiceConnected(s)
 
     toast(s.serviceStatus)
-
-    // If we already had a serial port open start watching it
-    registerSerialReceiver()
 
     // Ask for any already connected serial devices
     //requestAccess()
@@ -593,8 +578,6 @@ class MainActivity extends FragmentActivity with TypedActivity
       accessGrantReceiver = None
     }
 
-    unregisterSerialReceiver()
-
     super.onPause()
   }
 
@@ -634,30 +617,6 @@ class MainActivity extends FragmentActivity with TypedActivity
             error("Can't write param file: " + ex.getMessage)
         }
       }
-  }
-
-  private def serialDetached() {
-    debug("Handling serial disconnect")
-    unregisterSerialReceiver()
-
-    toast(R.string.telem_disconnected, false)
-  }
-
-  private def unregisterSerialReceiver() {
-    if (watchingSerial) {
-      unregisterReceiver(disconnectReceiver)
-      watchingSerial = false
-    }
-  }
-
-  private def registerSerialReceiver() {
-    service.foreach { s =>
-      if (!watchingSerial && s.isSerialConnected) {
-        // Find out when the device goes away
-        registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
-        watchingSerial = true
-      }
-    }
   }
 
   private def handleFileOpen(uri: Uri) {
@@ -1028,7 +987,7 @@ class MainActivity extends FragmentActivity with TypedActivity
             service.foreach { s =>
               if (!s.isSerialConnected) {
                 toast(R.string.connecting_link, false)
-                s.serialAttached()
+                s.serialAttached(d)
               }
             }
           }

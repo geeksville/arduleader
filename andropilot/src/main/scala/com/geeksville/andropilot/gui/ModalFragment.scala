@@ -26,6 +26,8 @@ import com.geeksville.mavlink.MsgArmChanged
 import com.geeksville.andropilot.AndropilotPrefs
 import com.ridemission.scandroid.AndroidUtil
 import android.util.TypedValue
+import statemap.StateUndefinedException
+import com.bugsense.trace.BugSenseHandler
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -183,30 +185,36 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   }
 
   private def setModeFromVehicle() {
-    val (msg, color) = myVehicle match {
-      case Some(v) =>
-        v.fsm.getState.getName match {
-          case "VehicleFSM.WantInterface" =>
-            "Looking for radio" -> errColor
-          case "VehicleFSM.WantVehicle" =>
-            "Looking for vehicle" -> errColor
-          case "VehicleFSM.DownloadingWaypoints" =>
-            "Downloading waypoints..." -> warnColor
-          case "VehicleFSM.DownloadingParameters" =>
-            "Downloading parameters..." -> warnColor
-          case "VehicleFSM.DownloadedParameters" =>
-            "Downloaded params (BUG!)" -> errColor
-          case "VehicleFSM.Disarmed" =>
-            "Disarmed" -> errColor
-          case "VehicleFSM.Armed" =>
-            "Armed" -> warnColor
-          case "VehicleFSM.Flying" =>
-            v.currentMode -> okayColor
-        }
-      case None =>
-        "No vehicle (BUG!)" -> errColor
-    }
+    try {
+      val (msg, color) = myVehicle match {
+        case Some(v) =>
+          v.fsm.getState.getName match {
+            case "VehicleFSM.WantInterface" =>
+              "Looking for radio" -> errColor
+            case "VehicleFSM.WantVehicle" =>
+              "Looking for vehicle" -> errColor
+            case "VehicleFSM.DownloadingWaypoints" =>
+              "Downloading waypoints..." -> warnColor
+            case "VehicleFSM.DownloadingParameters" =>
+              "Downloading parameters..." -> warnColor
+            case "VehicleFSM.DownloadedParameters" =>
+              "Downloaded params (BUG!)" -> errColor
+            case "VehicleFSM.Disarmed" =>
+              "Disarmed" -> errColor
+            case "VehicleFSM.Armed" =>
+              "Armed" -> warnColor
+            case "VehicleFSM.Flying" =>
+              v.currentMode -> okayColor
+          }
+        case None =>
+          "No vehicle (BUG!)" -> errColor
+      }
 
-    setModeText(msg, color)
+      setModeText(msg, color)
+    } catch {
+      case ex: StateUndefinedException =>
+        BugSenseHandler.sendExceptionMessage("state_race", "fixthis", ex)
+    }
   }
+
 }
