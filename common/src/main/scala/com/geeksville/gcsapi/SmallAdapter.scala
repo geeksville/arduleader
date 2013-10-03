@@ -26,10 +26,24 @@ abstract class SmallAdapter extends SmallAPI {
     elems.asJson
   }
 
+  /**
+   * Return all readable members as a json object
+   */
+  private def getAll() = {
+    getters.map {
+      case (k, v) =>
+        k -> v()
+    }.asJson
+  }
+
   override def call(objName: String, methodName: String, arguments: Seq[Any]) = {
     methodName match {
       case GetMethod =>
-        val r = getters(objName)()
+        // Allow fetching an entire object as json
+        val r = if (objName.isEmpty)
+          getAll()
+        else
+          getters(objName)()
         println(s"getter for $objName returned $r")
         r
       case SetMethod =>

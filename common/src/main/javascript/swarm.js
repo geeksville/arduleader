@@ -5,6 +5,42 @@
 
 // Self-executing wrapper
 (function($){
+	
+	// From http://backbonetutorials.com/what-is-a-model/
+	var Vehicle = Backbone.Model.extend({
+		  urlRoot: 'http://localhost:4404/api/vehicle',
+		  /*
+		  initialize: function() {
+		    this.set({'title': 'a default title'});
+		  },
+		  give: function(user) {
+		    // gives book to a user
+		  },
+		  sell: function(user) {
+		    // sell a book to a user
+		  },
+		  clear: function() {
+		    this.destroy();     // #destroy is provided by Backbone.js
+		    this.view.remove(); // will explain in a few slides
+		  }
+		  */
+		});
+	
+	/*
+	var poller = (function worker() {
+  $.ajax({
+    url: 'ajax/test.html', 
+    success: function(data) {
+      $('.result').html(data);
+    },
+    complete: function() {
+      // Schedule the next request when the current one's complete
+      setTimeout(worker, 5000);
+    }
+  });
+});
+	*/
+	
   // **ListView class**: Our main app view.
   var ListView = Backbone.View.extend({
     el: $('body'), // attaches `this.el` to an existing element.

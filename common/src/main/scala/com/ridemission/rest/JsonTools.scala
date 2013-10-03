@@ -50,7 +50,7 @@ object JsonConverters {
   implicit def asJsonValConverter(i: AnyVal) = new AsJson(JScalar(i))
 
   implicit def asJsonMapConverter(i: Seq[(String, _)]) = new AsJson(JObject(i: _*))
-  // implicit def asJsonMapConverter(i: Map[String, _]) = new AsJson(JObject(i.toSeq: _*))
+  implicit def asJsonMapConverter(i: Map[String, _]) = new AsJson(JObject(i.toSeq: _*))
 
   implicit def asJsonSeqConverter(i: Seq[_]) = new AsJson(JArray(i: _*))
 
