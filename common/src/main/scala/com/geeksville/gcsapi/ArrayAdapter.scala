@@ -11,9 +11,7 @@ import com.ridemission.rest.JObject
  *
  * No GCS specific code here - someday I'd like to reuse this somewhere else
  */
-trait ArrayAdapter extends HierarchicalAdapter {
-
-  def children: IndexedSeq[SmallAPI] = IndexedSeq()
+class ArrayAdapter(val children: Seq[SmallAPI]) extends HierarchicalAdapter {
 
   /**
    * If the user wants something in a child, delegate it to the child - otherwise handle it here

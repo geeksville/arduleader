@@ -41,7 +41,9 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
 }
 
 class GCSAdapter(gcs: GCSModel) extends MapAdapter {
-  val vadapter = new VehicleAdapter(gcs.vehicles(0))
+  val vadapters = gcs.vehicles.map(new VehicleAdapter(_))
 
-  override def children = Map { "vehicle" -> vadapter }
+  // FIXME - make vehicle map to the currently selected vehicle
+  override def children = Map("vehicle" -> vadapters(0),
+    "vehicles" -> new ArrayAdapter(vadapters))
 }
