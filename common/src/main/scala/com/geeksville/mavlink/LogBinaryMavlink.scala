@@ -14,16 +14,23 @@ import java.io.BufferedOutputStream
 import java.io.FileOutputStream
 import com.geeksville.logback.Logging
 import com.geeksville.util.Throttled
+import org.mavlink.messages.MAV_TYPE
+import scala.collection.mutable.HashSet
 
 /**
  * Output a mission planner compatible tlog file
  *
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
-class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends InstrumentedActor {
+class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) extends InstrumentedActor {
 
   private val tempFile = new File(file.getCanonicalPath() + ".tmp")
   private val out = new BufferedOutputStream(new FileOutputStream(tempFile, true), 8192)
+
+  /**
+   * What sysIds have we seen while writing this file?  used to make a prettier file name
+   */
+  val vehiclesSeen = HashSet[Int]()
 
   val messageThrottle = new Throttled(60 * 1000)
   var oldNumPacket = 0L
@@ -41,6 +48,28 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
   private val buf = ByteBuffer.allocate(8)
   buf.order(ByteOrder.BIG_ENDIAN)
 
+  /**
+   * If possible, try to include vehicle sysid in filename
+   */
+  private def improveFilename() {
+    val newsuffix = if (vehiclesSeen.size < 1) {
+      log.error("Can't improve filename, no vehicles")
+      ""
+    } else if (vehiclesSeen.size == 1 && vehiclesSeen(0) == 1) {
+      log.warn("Not improving filename, sysId is 1")
+      ""
+    } else {
+      val r = vehiclesSeen.take(3).mkString("-ids-", "-", "")
+      log.warn(s"Not improving filename to $r")
+      r
+    }
+
+    if (!newsuffix.isEmpty) {
+      val fname = LogBinaryMavlink.dateFormat.format(new Date) + newsuffix + ".tlog"
+      file = new File(file.getParentFile, fname)
+    }
+  }
+
   override def postStop() {
     log.info("Closing log file...")
     out.close()
@@ -48,6 +77,7 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
       log.error("Deleting boring file " + file)
       tempFile.delete()
     } else {
+      improveFilename()
       log.info("Renaming to " + file)
       tempFile.renameTo(file)
     }
@@ -85,6 +115,12 @@ class LogBinaryMavlink(val file: File, val deleteIfBoring: Boolean) extends Inst
       if (vfr.groundspeed > 3)
         numMovingPoints += 1
       handleMessage(vfr)
+
+    case msg: msg_heartbeat ⇒
+      val typ = msg.`type`
+      if (typ != MAV_TYPE.MAV_TYPE_GCS)
+        vehiclesSeen += msg.sysId
+      handleMessage(msg)
 
     case msg: MAVLinkMessage ⇒
       handleMessage(msg)
