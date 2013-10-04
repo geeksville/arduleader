@@ -56,7 +56,6 @@ class AndropilotService extends Service with AndroidLogger
   /**
    * If we are logging the file is here
    */
-  var logfile: Option[File] = None
   private var logger: Option[LogBinaryMavlink] = None
   private var prefListeners: Seq[OnSharedPreferenceChangeListener] = Seq()
 
@@ -145,7 +144,7 @@ class AndropilotService extends Service with AndroidLogger
       }.getOrElse(S(R.string.no_link))
 
     val logmsg = if (loggingEnabled)
-      logfile.map { f => S(R.string.logging) }.getOrElse(S(R.string.no_sd_card))
+      logger.map { f => S(R.string.logging) }.getOrElse(S(R.string.no_sd_card))
     else
       S(R.string.no_logging)
 
@@ -287,8 +286,8 @@ class AndropilotService extends Service with AndroidLogger
       if (!logger.isDefined)
         logDirectory.foreach { d =>
           try {
-            logfile = Some(LogBinaryMavlink.getFilename(d))
-            val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile.get), "gclog")
+            val logfile = LogBinaryMavlink.getFilename(d)
+            val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile), "gclog")
             MavlinkEventBus.subscribe(l, -1)
             logger = Some(l)
           } catch {
@@ -296,7 +295,6 @@ class AndropilotService extends Service with AndroidLogger
               //BugSenseHandler.sendExceptionMessage("sdwrite", "exception", ex)
               error("Can't access sdcard")
               logger = None
-              logfile = None
           }
         }
     } else
@@ -310,7 +308,6 @@ class AndropilotService extends Service with AndroidLogger
         perhapsUpload()
 
         logger = None
-        logfile = None
       }
   }
 
