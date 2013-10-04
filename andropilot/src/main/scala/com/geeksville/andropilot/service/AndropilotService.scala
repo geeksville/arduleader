@@ -78,6 +78,8 @@ class AndropilotService extends Service with AndroidLogger
 
   private var pebbleListener: Option[PebbleVehicleListener] = None
 
+  private var errorMessage: Option[String] = None
+
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
@@ -131,7 +133,9 @@ class AndropilotService extends Service with AndroidLogger
    * A human readable description of our logging state
    */
   def serviceStatus = {
-    val linkMsg = if (isSerialConnected)
+    val linkMsg = if (errorMessage.isDefined)
+      errorMessage.get
+    else if (isSerialConnected)
       S(R.string.usb_link)
     else if (btStream.isDefined)
       S(R.string.bluetooth_link)
@@ -369,6 +373,7 @@ class AndropilotService extends Service with AndroidLogger
     val i = serial.size // Number based on what ports we've seen
 
     info(s"Starting serial $i")
+    errorMessage = None
 
     val baudRate = if (AndroidSerial.isTelemetry(sdev))
       baudWireless
@@ -403,6 +408,7 @@ class AndropilotService extends Service with AndroidLogger
     } catch {
       case ex: NoAcquirePortException => // Some crummy android devices do not allow device to be acquired
         error("Can't acquire port")
+        errorMessage = Some("Please approve USB access for Andropilot")
         usageEvent("serial_error", "message" -> ex.getMessage)
 
       case ex: IOException =>

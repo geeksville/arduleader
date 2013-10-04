@@ -65,7 +65,6 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
 
   override def onVehicleReceive = {
     case MsgParametersDownloaded =>
-      haveInitialParams = true
       handler.post(updateParameters _)
 
     case MsgParameterDownloadProgress(primary, secondary) =>
@@ -77,8 +76,12 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
       }
 
     case MsgParameterReceived(index) =>
-      if (haveInitialParams) // Don't bother with every little update when we haven't received our big squirt
+      if (haveInitialParams) { // Don't bother with every little update when we haven't received our big squirt
+        debug(s"fragment applying update for $index")
         handler.post { () => updateParameter(index) }
+      } else {
+        //debug(s"ignoring pre-update for $index")
+      }
   }
 
   /**
@@ -147,6 +150,7 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
 
   private def makeAdapter() =
     for (v <- myVehicle if !v.parameters.isEmpty) yield {
+      haveInitialParams = true
       debug("Setting parameter list to " + v.parameters.size + " items")
 
       setAdapter(v.parameters)

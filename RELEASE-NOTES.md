@@ -1,3 +1,8 @@
+# 1.8.14
+* Fix bug where parameter updates wouldn't show up until you moved at least two tabs away from the parameters
+tab.  This bug was introduced in 1.8.01, much thanks to Brendan O'Reilly for the great 'steps to reproduce'.
+* More support for javascript vehicle control (no UI yet)
+
 # 1.8.04
 * Make a new UI that is optimized for small phone screens - it should look pretty nice (if cramped once you turn on screen joysticks) - thanks to Remigijus (in Lithuania!)
 * Allow the various SimpleUI buttons to scroll if necessary for small screens
