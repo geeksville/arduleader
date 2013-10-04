@@ -29,6 +29,7 @@ trait AndropilotPrefs extends UsesPreferences {
   def fenceMode = intPreference("fence_action", 1)
 
   def useFlurry = boolPreference("use_flurry", true)
+  def useOldArducopter = boolPreference("use_old_ac", false)
 
   def loggingKeepBoring = boolPreference("log_keep_boring", false)
 

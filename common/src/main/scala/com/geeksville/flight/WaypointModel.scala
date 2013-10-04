@@ -211,6 +211,11 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     self ! StartWaypointDownload
   }
 
+  override protected def onHeartbeatFound() {
+    hasRequestedWaypoints = false // Force new fetch of waypoints
+    super.onHeartbeatFound()
+  }
+
   private def startWaypointDownload() {
     log.info("Downloading waypoints")
     hasRequestedWaypoints = true

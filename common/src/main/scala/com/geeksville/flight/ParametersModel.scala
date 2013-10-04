@@ -44,6 +44,11 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   var parameters = new Array[ParamValue](0)
   var parametersById = Map[String, ParamValue]()
 
+  /**
+   * If we just connected to a vehicle it might be still sending stale param messages from some previous session.  Ignore them.
+   */
+  private var hasRequestedParameters = false
+
   private var retryingParameters = false
   var unsortedParameters = new Array[ParamValue](0)
 
@@ -52,7 +57,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   /**
    * This feature is not supported on older arducopter builds
    */
-  private val useRequestById = false
+  var useRequestById = true
 
   private val maxNumAttempts = 10
   private var numAttemptsRemaining = maxNumAttempts
@@ -112,6 +117,26 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     eventStream.publish(MsgParameterDownloadProgress(primary, secondary))
   }
 
+  override protected def onHeartbeatFound() {
+    resetParameters()
+    super.onHeartbeatFound()
+  }
+
+  /**
+   * Reinit state (FIXME - yucky)
+   */
+  private def resetParameters() {
+    hasRequestedParameters = false // Ignore any stale params
+    parameters = Array.empty
+    parametersById = Map.empty
+    retryingParameters = false
+    unsortedParameters = Array.empty
+    numAttemptsRemaining = maxNumAttempts
+
+    finisher.foreach(_.cancel())
+    finisher = None
+  }
+
   protected def onParametersDownloaded() {
     setStreamEnable(true) // Turn streaming back on
 
@@ -145,52 +170,10 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     // Messages for downloading parameters from vehicle
 
     case msg: msg_param_value =>
-      // log.debug("Receive: " + msg)
-      restartFinisher()
-      checkRetryReply(msg)
-      if (msg.param_count != unsortedParameters.size) {
-        // Resize for new parameter count
-        unsortedParameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
-      }
-
-      log.debug("Received param: " + msg)
-
-      var index = msg.param_index
-      if (index == 65535) { // Apparently means unknown index, so look up by id
-        val idstr = msg.getParam_id
-        index = unsortedParameters.find { p =>
-          p.getId.getOrElse("") == idstr
-        }.get.raw.get.param_index
-
-        // We now know where this param belongs
-        msg.param_index = index
-      }
-
-      if (unsortedParameters(index).raw == None) {
-        unsortedParameters(index).raw = Some(msg)
-        sendProgress(100 * index / (numParametersDesired - 1))
-      }
-
-      // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
-      if (retryingParameters) {
-        readNextParameter()
-      } else {
-        // Are we done with our initial download early?  If so, we can publish done right now
-        if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
-          log.info("Sending early finish")
-          finisher.foreach(_.cancel())
-          finisher = None
-          self ! FinishParameters
-        }
-
-        // After we have a sorted param list, we will start publishing updates for individual parameters
-        val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
-
-        if (paramNum != -1) {
-          log.debug("publishing param " + paramNum)
-          eventStream.publish(MsgParameterReceived(paramNum))
-        }
-      }
+      if (hasRequestedParameters)
+        handleParameterMessage(msg)
+      else
+        log.error(s"Ignoring stale parameter message: $msg")
 
     case FinishParameters =>
       log.info("Handling finish parameters")
@@ -198,6 +181,55 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
         readNextParameter()
       else
         perhapsDownloadParameters()
+  }
+
+  private def handleParameterMessage(msg: msg_param_value) {
+    // log.debug("Receive: " + msg)
+    restartFinisher()
+    checkRetryReply(msg)
+    if (msg.param_count != unsortedParameters.size) {
+      // Resize for new parameter count
+      unsortedParameters = ArrayBuffer.fill(msg.param_count)(new ParamValue).toArray
+    }
+
+    log.debug("Received param: " + msg)
+
+    var index = msg.param_index
+    if (index == 65535) { // Apparently means unknown index, so look up by id
+      val idstr = msg.getParam_id
+      index = unsortedParameters.find { p =>
+        p.getId.getOrElse("") == idstr
+      }.get.raw.get.param_index
+
+      // We now know where this param belongs
+      msg.param_index = index
+    }
+
+    if (unsortedParameters(index).raw == None) {
+      unsortedParameters(index).raw = Some(msg)
+      sendProgress(100 * index / (numParametersDesired - 1))
+    }
+
+    // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
+    if (retryingParameters) {
+      readNextParameter()
+    } else {
+      // Are we done with our initial download early?  If so, we can publish done right now
+      if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
+        log.info("Sending early finish")
+        finisher.foreach(_.cancel())
+        finisher = None
+        self ! FinishParameters
+      }
+
+      // After we have a sorted param list, we will start publishing updates for individual parameters
+      val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
+
+      if (paramNum != -1) {
+        log.debug("publishing param " + paramNum)
+        eventStream.publish(MsgParameterReceived(paramNum))
+      }
+    }
   }
 
   protected def startParameterDownload() {
@@ -218,6 +250,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    */
   private def restartParameterDownload() {
     log.info("Requesting vehicle parameters")
+    hasRequestedParameters = true
     sendWithRetry(paramRequestList(), classOf[msg_param_value])
     restartFinisher()
   }
@@ -263,20 +296,20 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    * If we are still missing parameters, try to read again (only used if we are reading params by id)
    */
   private def readNextParameter() {
-    val isMissing = unsortedParameters.zipWithIndex.find {
+    val firstMissing = unsortedParameters.zipWithIndex.find {
       case (v, i) =>
         val hasData = v.raw.isDefined
-        if (!hasData)
-          requestParameterByIndex(i)
-
         !hasData // Stop here?
-    }.isDefined
+    }
 
-    log.info(s"In readNextParameter missing=$isMissing")
+    log.info(s"In readNextParameter firstMissing=$firstMissing")
 
-    retryingParameters = isMissing
-    if (!isMissing) {
-      perhapsParametersDownloaded() // Yay - we have everything!
+    retryingParameters = firstMissing.isDefined
+    firstMissing match {
+      case Some((_, i)) =>
+        requestParameterByIndex(i)
+      case None =>
+        perhapsParametersDownloaded() // Yay - we have everything!
     }
   }
 }

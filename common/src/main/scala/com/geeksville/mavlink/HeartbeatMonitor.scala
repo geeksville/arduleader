@@ -78,9 +78,11 @@ class HeartbeatMonitor extends InstrumentedActor {
    */
   protected def forceLostHeartbeat() {
     cancelWatchdog()
-    mySysId.foreach { id => eventStream.publish(MsgHeartbeatLost(id)) }
-    mySysId = None
-    onHeartbeatLost()
+    mySysId.foreach { id =>
+      eventStream.publish(MsgHeartbeatLost(id))
+      mySysId = None
+      onHeartbeatLost()
+    }
   }
 
   override def postStop() {

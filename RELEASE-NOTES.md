@@ -1,3 +1,8 @@
+# 1.8.15
+* Use param by value to fetch params (I had turned this off a long time ago because old AC builds didn't support this).  Now that those old <2.93 builds are gone I can turn this back on - MUCH FASTER PARAMETER DOWNLOADS - especially for bluetooth!  (Thanks to Stefan and Peter for asking for this)
+* Fix problems where new state machine would get confused if you attached to a vehicle that was already
+half way through downloading parameters.
+
 # 1.8.14
 * Fix bug where parameter updates wouldn't show up until you moved at least two tabs away from the parameters
 tab.  This bug was introduced in 1.8.01, much thanks to Brendan O'Reilly for the great 'steps to reproduce'.

@@ -64,11 +64,16 @@
         android:key="follow_interval"
         android:summary="How many seconds between each lead-it update"
         android:title="Lead-it update interval" />
-    
+
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="follow_plane"
         android:summary="Try to keep vehicle centered in map"
         android:title="Center on map" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="use_old_ac"
+        android:summary="Turn this on to work with AC builds older than 3.0 (slower)"
+        android:title="Support old arducopter builds" />
 
 </PreferenceScreen>

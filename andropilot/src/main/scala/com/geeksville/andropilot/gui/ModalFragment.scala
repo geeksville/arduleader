@@ -177,7 +177,8 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
             makeButton("Bluetooth").onClick { b =>
               s.connectToDevices()
             }
-          else if (s.isBluetoothConnected && !v.isArmed)
+          // Plane is always armed, so always show the disconnect button
+          else if (s.isBluetoothConnected && (!v.isArmed || !v.isCopter))
             confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?")(s.forceBluetoothDisconnect _)
         }
       }

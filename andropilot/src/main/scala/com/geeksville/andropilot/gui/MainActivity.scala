@@ -473,7 +473,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (joystickAvailable && !isOverriding) {
       leftJoystickView.foreach { v =>
         val thro = -axis(throttleAxisNum).unscale(x.chan3_raw)
-        debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
+        //debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
         v.setReceived(axis(rudderAxisNum).unscale(x.chan4_raw), thro)
       }
 
