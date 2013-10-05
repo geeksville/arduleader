@@ -33,9 +33,9 @@ class SunspotDetectorTask(val context: FragmentActivity) extends AsyncVoidTask w
         toast("Solar radiation data not found (via internet) - no warnings available")
       case Some(lvl) =>
         if (lvl >= SunspotClient.criticalThreshold)
-          showDialog(0, "Solar activity: Severe. Check for low GPS acccuracy.")
+          showDialog(0, "Solar activity: Severe. Check for low GPS accuracy.")
         else if (lvl >= SunspotClient.warnThreshold)
-          showDialog(0, "Solar activity: Extreme. Check for low GPS acccuracy.")
+          showDialog(0, "Solar activity: Extreme. Check for low GPS accuracy.")
         else
           toast("Solar radiation levels acceptable")
     }
