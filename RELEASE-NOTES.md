@@ -1,3 +1,7 @@
+# 1.8.17
+* Warn about periods of high solar activity (thanks to NOAA for the data and ligi@ligi.de for a reference implementation).  The app will warn when first launched, or if you choose the new "Solar activity check" menu item.
+* Include sysid for up to three vehicles in the tlog filename
+
 # 1.8.15
 * Use param by value to fetch params (I had turned this off a long time ago because old AC builds didn't support this).  Now that those old <2.93 builds are gone I can turn this back on - MUCH FASTER PARAMETER DOWNLOADS - especially for bluetooth!  (Thanks to Stefan and Peter for asking for this)
 * Fix problems where new state machine would get confused if you attached to a vehicle that was already

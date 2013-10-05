@@ -55,12 +55,12 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
     val newsuffix = if (vehiclesSeen.size < 1) {
       log.error("Can't improve filename, no vehicles")
       ""
-    } else if (vehiclesSeen.size == 1 && vehiclesSeen(0) == 1) {
+    } else if (vehiclesSeen.size == 1 && vehiclesSeen.head == 1) {
       log.warn("Not improving filename, sysId is 1")
       ""
     } else {
       val r = vehiclesSeen.take(3).mkString("-ids-", "-", "")
-      log.warn(s"Not improving filename to $r")
+      log.warn(s"Improving filename to $r")
       r
     }
 

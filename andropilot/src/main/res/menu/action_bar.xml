@@ -51,6 +51,11 @@
     -->
 
     <item
+        android:id="@+id/check_sun"
+        android:showAsAction="never"
+        android:title="Solar radiation check"/>
+    
+    <item
         android:id="@+id/menu_settings"
         android:showAsAction="never"
         android:title="Settings"/>

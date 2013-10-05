@@ -73,7 +73,7 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
     showRssi(v)
 
     v.batteryVoltage.foreach { n =>
-      val socStr = v.batteryPercent.map { pct => " (%d%%)".format((pct * 100).toInt) }.getOrElse("")
+      val socStr = v.batteryPercent.map { pct => " %d%%".format((pct * 100).toInt) }.getOrElse("")
       batteryView.setText("%.1f".format(n) + "V " + socStr)
     }
   }

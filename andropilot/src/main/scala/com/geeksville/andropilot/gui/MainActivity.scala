@@ -418,6 +418,25 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  def application = getApplication.asInstanceOf[MyApplication]
+
+  def checkSunspots() {
+    val t = new SunspotDetectorTask(this) {
+      override protected def didSunspot(curLevel: Option[Int]) {
+        application.lastSunspotCheck = System.currentTimeMillis()
+      }
+    }
+    t.execute()
+  }
+
+  def perhapsCheckSunspots() {
+    val now = System.currentTimeMillis()
+
+    val expireTime = application.lastSunspotCheck + 60 * 60 * 1000
+    if (now > expireTime)
+      checkSunspots()
+  }
+
   override def startOverride() {
     super.startOverride()
     cancelOverrideButton.foreach { v =>
@@ -562,6 +581,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       notifyManager.notify(NotificationIds.setupDroneshareId, nBuilder.build)
     } else
       notifyManager.cancel(NotificationIds.setupDroneshareId)
+
+    perhapsCheckSunspots()
   }
 
   def showSplashDialog() {
@@ -902,6 +923,9 @@ class MainActivity extends FragmentActivity with TypedActivity
         debug("Toggle speech, newmode " + n)
         isSpeechEnabled = n
         item.setChecked(n)
+
+      case R.id.check_sun =>
+        checkSunspots()
 
       case R.id.menu_arm =>
         val n = !item.isChecked
