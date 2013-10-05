@@ -43,94 +43,100 @@ class TransitionUndefinedException(reason: String) extends RuntimeException(reas
 }
 
 abstract class FSMContext[State] extends Serializable {
-    private var _state: State = _
-    private var _stateStack: Stack[State] = new Stack[State]
-    protected var _transition: String = ""
-    private var _debugFlag: Boolean = false
-    private var _debugStream: PrintStream = System.err
-    private var _listeners: PropertyChangeSupport = new PropertyChangeSupport(this)
-    private var _isInTransaction: Boolean = true
+  private var _state: State = _
+  private var _lastState = _state
+  private var _stateStack: Stack[State] = new Stack[State]
+  protected var _transition: String = ""
+  private var _debugFlag: Boolean = false
+  private var _debugStream: PrintStream = System.err
+  private var _listeners: PropertyChangeSupport = new PropertyChangeSupport(this)
+  private var _isInTransaction: Boolean = true
 
-    def enterStartState(): Unit
+  def enterStartState(): Unit
 
-    def getDebugFlag(): Boolean = _debugFlag
+  def getDebugFlag(): Boolean = _debugFlag
 
-    def setDebugFlag(flag: Boolean): Unit = {
-        _debugFlag = flag
+  def setDebugFlag(flag: Boolean): Unit = {
+    _debugFlag = flag
+  }
+
+  def getDebugStream(): PrintStream = _debugStream
+
+  def setDebugStream(stream: PrintStream): Unit = {
+    _debugStream = stream
+  }
+
+  def getTransition(): String = _transition
+
+  // Is this state machine in a transition? If state is null,
+  // then true; otherwise, false.
+  def isInTransition(): Boolean = _isInTransaction
+
+  def setState(state: State): Unit = {
+    val previousState = _state
+    if (_debugFlag)
+      _debugStream.println("ENTER STATE     : " + state)
+    _state = state
+    _lastState = state
+    _isInTransaction = false
+    // Inform all listeners about this state change
+    _listeners.firePropertyChange("State", previousState, _state)
+  }
+
+  def getLastState(): State = {
+    return _lastState
+  }
+
+  def getState(): State = {
+    if (_isInTransaction)
+      throw new StateUndefinedException()
+    return _state
+  }
+
+  def clearState(): Unit = {
+    _isInTransaction = true
+  }
+
+  def pushState(state: State): Unit = {
+    val previousState = _state
+    if (_state == null)
+      throw new NullPointerException("uninitialized state")
+    if (_isInTransaction)
+      throw new StateUndefinedException()
+    if (_debugFlag)
+      _debugStream.println("PUSH TO STATE   : " + state)
+    _stateStack.push(_state)
+    _state = state
+    // Inform all listeners about this state change
+    _listeners.firePropertyChange("State", previousState, _state)
+  }
+
+  def popState(): Unit = {
+    if (_stateStack.length == 0) {
+      if (_debugFlag)
+        _debugStream.println("POPPING ON EMPTY STATE STACK.")
+      throw new NoSuchElementException("empty state stack")
     }
+    val previousState = _state
+    _state = _stateStack.pop()
+    _isInTransaction = false
+    if (_debugFlag)
+      _debugStream.println("POP TO STATE    : " + _state)
+    // Inform all listeners about this state change
+    _listeners.firePropertyChange("State", previousState, _state)
+  }
 
-    def getDebugStream(): PrintStream = _debugStream
+  def emptyStateStack(): Unit = {
+    _stateStack = new Stack[State]
+  }
 
-    def setDebugStream(stream: PrintStream): Unit = {
-        _debugStream = stream
-    }
+  def addStateChangeListener(listener: PropertyChangeListener): Unit = {
+    _listeners.addPropertyChangeListener("State", listener)
+  }
 
-    def getTransition(): String = _transition
-
-    // Is this state machine in a transition? If state is null,
-    // then true; otherwise, false.
-    def isInTransition(): Boolean = _isInTransaction
-
-    def setState(state: State): Unit = {
-        val previousState = _state
-        if (_debugFlag)
-            _debugStream.println("ENTER STATE     : " + state)
-        _state = state
-        _isInTransaction = false
-        // Inform all listeners about this state change
-        _listeners.firePropertyChange("State", previousState, _state)
-    }
-
-    def getState(): State = {
-        if (_isInTransaction)
-            throw new StateUndefinedException()
-        return _state
-    }
-
-    def clearState(): Unit = {
-        _isInTransaction = true
-    }
-
-    def pushState(state: State): Unit = {
-        val previousState = _state
-        if (_state == null)
-            throw new NullPointerException("uninitialized state")
-        if (_isInTransaction)
-            throw new StateUndefinedException()
-        if (_debugFlag)
-            _debugStream.println("PUSH TO STATE   : " + state)
-        _stateStack.push(_state)
-        _state = state
-        // Inform all listeners about this state change
-        _listeners.firePropertyChange("State", previousState, _state)
-    }
-
-    def popState(): Unit = {
-        if (_stateStack.length == 0) {
-            if (_debugFlag)
-                _debugStream.println("POPPING ON EMPTY STATE STACK.")
-            throw new NoSuchElementException("empty state stack")
-        }
-        val previousState = _state
-        _state = _stateStack.pop()
-        _isInTransaction = false
-        if (_debugFlag)
-            _debugStream.println("POP TO STATE    : " + _state)
-        // Inform all listeners about this state change
-        _listeners.firePropertyChange("State", previousState, _state)
-    }
-
-    def emptyStateStack(): Unit = {
-        _stateStack = new Stack[State]
-    }
-
-    def addStateChangeListener(listener: PropertyChangeListener): Unit = {
-        _listeners.addPropertyChangeListener("State", listener)
-    }
-
-    def removeStateChangeListener(listener: PropertyChangeListener): Unit = {
-        _listeners.removePropertyChangeListener("State", listener)
-    }
+  def removeStateChangeListener(listener: PropertyChangeListener): Unit = {
+    _listeners.removePropertyChangeListener("State", listener)
+  }
 }
 
 //

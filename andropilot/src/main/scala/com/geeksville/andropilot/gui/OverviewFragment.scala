@@ -144,7 +144,7 @@ class OverviewFragment extends VehicleInfoFragment(R.layout.vehicle_overview) {
   private def showDevInfo() {
     // Show current state
     myVehicle.foreach { v =>
-      val stateName = v.fsm.getState.getName.split('.')(1)
+      val stateName = v.fsm.getLastState.getName.split('.')(1)
       val status = v.systemStatus.getOrElse(-1)
       Option(devInfoView).foreach(_.setText(s"$stateName/$status"))
     }
