@@ -72,37 +72,6 @@ class MyMapFragment extends SupportMapFragment
 
   private var actionMode: Option[ActionMode] = None
 
-  /**
-   * Add an android location listener
-   */
-  /*
-  private lazy val location = new LocationListener {
-
-    var userGpsLoc: Option[Location] = None
-
-    private val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
-
-    override def onLocationChanged(location: Location) {
-      userGpsLoc = Some(location)
-      handler.post { () =>
-        redrawMarker()
-      }
-    }
-
-    override def onProviderDisabled(provider: String) {}
-    override def onProviderEnabled(provider: String) {}
-    override def onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-
-    def open() {
-      locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30 * 1000, 20, this)
-    }
-
-    def close() {
-      locManager.removeUpdates(this)
-    }
-  }
-*/
-
   private lazy val contextMenuCallback = new WaypointActionMode(getActivity) with ActionModeCallback {
 
     override def shouldShowMenu = myVehicle.map(_.hasHeartbeat).getOrElse(false)

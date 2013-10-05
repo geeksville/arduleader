@@ -405,9 +405,9 @@ class AndropilotService extends Service with AndroidLogger
 
       startHighValue()
     } catch {
-      case ex: NoAcquirePortException => // Some crummy android devices do not allow device to be acquired
+      case ex: NoAcquirePortException =>
         error("Can't acquire port")
-        errorMessage = Some("Please approve USB access for Andropilot")
+        errorMessage = Some("Some other application has crashed without releasing the USB port.")
         usageEvent("serial_error", "message" -> ex.getMessage)
 
       case ex: IOException =>

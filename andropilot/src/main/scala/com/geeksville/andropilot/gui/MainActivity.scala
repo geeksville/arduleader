@@ -420,6 +420,20 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   def application = getApplication.asInstanceOf[MyApplication]
 
+  /**
+   * Ask our map view to center on a particular location (allows other views to push the map around)
+   */
+  def zoomMapTo(mappos: LatLng) {
+    debug(s"map $mapFragment")
+    for {
+      mapf <- mapFragment
+      gmap <- mapf.mapOpt
+    } yield {
+      debug(s"Zooming to $mappos")
+      gmap.animateCamera(CameraUpdateFactory.newLatLng(mappos))
+    }
+  }
+
   def checkSunspots() {
     val t = new SunspotDetectorTask(this) {
       override protected def didSunspot(curLevel: Option[Int]) {

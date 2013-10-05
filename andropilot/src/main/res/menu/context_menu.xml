@@ -2,12 +2,12 @@
 
     <item
         android:id="@+id/menu_goto"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="Goto"
         android:visible="false"/>
     <item
         android:id="@+id/menu_add"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="Add"
         android:visible="false"/>
     <item
@@ -46,7 +46,7 @@
         android:showAsAction="always"
         android:title="Param4"
         android:visible="false"/>
-        
+
     <!-- Checkbox won't show if in action bar, so never go there -->
     <item
         android:id="@+id/menu_autocontinue"
@@ -54,8 +54,23 @@
         android:showAsAction="never"
         android:title="Continue"/>
     <item
+        android:id="@+id/menu_moveup"
+        android:showAsAction="never"
+        android:title="Move up"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_movedown"
+        android:showAsAction="never"
+        android:title="Move down"
+        android:visible="false"/>
+    <item
+        android:id="@+id/menu_showonmap"
+        android:showAsAction="ifRoom"
+        android:title="Show on map"
+        android:visible="false"/>
+    <item
         android:id="@+id/menu_delete"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="Delete"
         android:visible="false"/>
 

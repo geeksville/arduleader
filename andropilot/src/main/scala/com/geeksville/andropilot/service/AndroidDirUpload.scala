@@ -52,10 +52,11 @@ class AndroidDirUpload extends IntentService("Uploader")
 
     toSend match {
       case Some(n) =>
-        NetworkStateReceiver.register(this) // We now want to find out about network connectivity changes
-
         // We have a candidate for uploading, is the network good and user prefs entered?
         if (!isUploading && canUpload) { // If an upload is in progress wait for it to finish
+
+          NetworkStateReceiver.register(this) // We now want to find out about network connectivity changes
+
           //toast(R.string.starting_upload, false)
           curUpload = Some(new AndroidUpload(n))
         }

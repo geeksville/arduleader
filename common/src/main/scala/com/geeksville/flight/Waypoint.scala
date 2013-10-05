@@ -52,6 +52,8 @@ case class Waypoint(val msg: msg_mission_item) {
 
   def isNavCommand = !Waypoint.nonNavCommands.contains(msg.command)
 
+  def isValidLatLng = msg.x != 0 || msg.y != 0
+
   /**
    * Allows access to params using a civilized index
    */
