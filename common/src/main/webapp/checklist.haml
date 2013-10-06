@@ -7,29 +7,81 @@
     / Bootstrap
     %link(href="css/bootstrap.min.css" rel="stylesheet" media="screen")
   %body
-    %h1 Preflight Check
-    .alert.alert-warning Preflight not yet complete, please confirm the following steps
+    / Top level container for bootstrap CSS
+    .wrap
 
-    %button.btn.btn-primary(type="button")Reset
-    .checkbox 
-      %input(type="checkbox") Check camera on
-    .checkbox 
-      %input(type="checkbox") Turn on transmitter
-    / FIXME - indent this
-    .checkbox 
-      %input(type="checkbox") Mode manual
-    .checkbox 
-      %input(type="checkbox") Connect telemetry
-    .checkbox 
-      %input(type="checkbox") Check 3D GPS fix
-    .checkbox 
-      %input(type="checkbox") Check home altitude
-    / FIXME - make the following text look pretty
-    .checkbox 
-      %input(type="checkbox") Check moving surfaces [Manual]
-    / FIXME - show current mode and arm status
-    .checkbox 
-      %input(type="checkbox") ARM
+      / Fixed navbar at top of window
+      .navbar.navbar-default.navbar-fixed-top
+        .container
+          .navbar-header
+            %button.navbar-toggle( type="button" data-toggle="collapse" data-target=".navbar-collapse")
+              %span.icon-bar
+              %span.icon-bar
+              %span.icon-bar
+            %a.navbar-brand(href="#") GCS Script
+          .collapse.navbar-collapse
+            %ul.nav.navbar-nav
+              %li.active
+                %a(href="#") Home
+              %li
+                %a(href="#about") About
+              %li
+                %a(href="#contact") Contact
+              %li.dropdown
+                %a.dropdown-toggle(href="#" data-toggle="dropdown") Dropdown
+                %ul.dropdown-menu
+                  %li
+                    %a(href="#") Action
+                  %li
+                    %a(href="#") Another action
+                  %li.divider
+                  %li.dropdown-header Nav header
+                  %li
+                    %a(href="#") Action
+                  %li
+                    %a(href="#") Another action
+
+      / Begin page content 
+      .container
+        .page-header
+          %h1 Preflight Check
+          .lead A combination of automated and manual preflight steps...
+
+          .alert.alert-warning Preflight not yet complete, please confirm the following steps
+
+          %button.btn.btn-primary(type="button")Reset
+          .checkbox 
+            %input(type="checkbox") Check camera on
+          .checkbox 
+            %input(type="checkbox") Turn on transmitter
+          / FIXME - indent this
+          .checkbox 
+            %input(type="checkbox") Mode manual
+          / NOTE: x2717 is the unicode symbol for X (opposited of checkmark)
+          / NOTE: x2713 is the unicode symbol for checkmark
+          .alert.alert-danger
+            &#x2717; Telemetry <b>not</b> connected
+          .alert.alert-success
+            &#x2713; Have 3D GPS fix
+          .alert.alert-info
+            .checkbox 
+              %input(type="checkbox") Check home altitude
+
+          / FIXME - make the following text look pretty
+          .checkbox 
+            %input(type="checkbox") Check moving surfaces [Manual]
+
+          / FIXME - show current mode and arm status
+          .checkbox 
+            %input(type="checkbox") ARM
+
+    .footer
+      .container
+        .text-muted.credit 
+          A diydrones prototype UI proposed by 
+          %a(href="https://github.com/wunderlins") Simon Wunderlin
+          please check it out on github and help us extend it...
+
     %script(src="js/jquery.js")
     %script(src="js/bootstrap.min.js")
 
