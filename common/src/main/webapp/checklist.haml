@@ -6,82 +6,95 @@
     %meta(name="viewport" content="width=device-width, initial-scale=1.0")
     / Bootstrap
     %link(href="css/bootstrap.min.css" rel="stylesheet" media="screen")
+    %link(href="css/custom.css" rel="stylesheet")
   %body
     / Top level container for bootstrap CSS
-    .wrap
+    .container
 
       / Fixed navbar at top of window
-      .navbar.navbar-default.navbar-fixed-top
-        .container
-          .navbar-header
-            %button.navbar-toggle( type="button" data-toggle="collapse" data-target=".navbar-collapse")
-              %span.icon-bar
-              %span.icon-bar
-              %span.icon-bar
-            %a.navbar-brand(href="#") GCS Script
-          .collapse.navbar-collapse
-            %ul.nav.navbar-nav
-              %li.active
-                %a(href="#") Home
-              %li
-                %a(href="#about") About
-              %li
-                %a(href="#contact") Contact
-              %li.dropdown
-                %a.dropdown-toggle(href="#" data-toggle="dropdown") Dropdown
-                %ul.dropdown-menu
-                  %li
-                    %a(href="#") Action
-                  %li
-                    %a(href="#") Another action
-                  %li.divider
-                  %li.dropdown-header Nav header
-                  %li
-                    %a(href="#") Action
-                  %li
-                    %a(href="#") Another action
+      .header
+        %ul.nav.nav-pills.pull-right
+          %li.active
+            %a(href="#") Preflight
+          %li
+            %a(href="README.html") About
+          %li
+            %a(href="https://github.com/arthurbenemann/droidplanner/issues/330") Contact
+          / %h3.text-muted GCS Script
 
-      / Begin page content 
-      .container
-        .page-header
+      / Big text at top
+      .row.marketing
+        .col-lg-6
           %h1 Preflight Check
-          .lead A combination of automated and manual preflight steps...
+          %p.lead A combination of automated and manual preflight steps...
+          %p 
+            The general way I've adapted Simon's proposal was to make things be a little more
+            htmlish.  Using red boxes for any problems, green for steps that are completed and blue
+            for steps that need manual assistance/confirmation.  I'm by no means a web designer,
+            so please check out this file and edit it per the hints in the README (click on About
+            above if you are looking at the 'live' site).
+          %p
+            Over time we can tweak the CSS to make the layout look nicer, and remove some of this
+            whitespace.
 
+      /
+      / BEGINING OF AREA YOU MIGHT WANT TO CHANGE IF YOU WANT TO EXTEND THIS CHECKLIST
+      / (Currently this content is static, in a few days it will be updated to dynamically interact
+      / with the GCS api)
+      /
+      .row.marketing
+        .col-lg-6
           .alert.alert-warning Preflight not yet complete, please confirm the following steps
 
-          %button.btn.btn-primary(type="button")Reset
-          .checkbox 
-            %input(type="checkbox") Check camera on
-          .checkbox 
-            %input(type="checkbox") Turn on transmitter
-          / FIXME - indent this
-          .checkbox 
-            %input(type="checkbox") Mode manual
+          %button.btn.btn-primary(type="button") Reset
+
+          %p
+
+          .alert.alert-info
+            .checkbox 
+              %input(type="checkbox") Check camera on
+
           / NOTE: x2717 is the unicode symbol for X (opposited of checkmark)
           / NOTE: x2713 is the unicode symbol for checkmark
+          .alert.alert-success
+            &#x2713; Telemetry connected
+
+          .alert.alert-success
+            &#x2713; Transmitter is on (auto detected by GCS)
+
           .alert.alert-danger
-            &#x2717; Telemetry <b>not</b> connected
+            &#x2717; Transmitter is <b>not</b> in manual mode
+
           .alert.alert-success
             &#x2713; Have 3D GPS fix
           .alert.alert-info
             .checkbox 
-              %input(type="checkbox") Check home altitude
+              %input(type="checkbox") 
+                Check home altitude
+                %span.badge Vehicle reports 23m
 
           / FIXME - make the following text look pretty
-          .checkbox 
-            %input(type="checkbox") Check moving surfaces [Manual]
+          .alert.alert-info
+            .checkbox 
+              %input(type="checkbox") 
+                Check moving surfaces
+                %a.btn.btn-default.btn-sm(href="http://www.youtube.com/watch?v=vPc2sN0CVQc")
+                  %span.glyphicon.glyphicon-hd-video
+                  Tutorial
 
           / FIXME - show current mode and arm status
-          .checkbox 
-            %input(type="checkbox") ARM
+          .alert.alert-danger
+            &#x2717; Vehicle <b>not</b> armed
+            %button.btn.btn-danger(type="button") Arm
 
     .footer
       .container
         .text-muted.credit 
-          A diydrones prototype UI proposed by 
+          A diydrones prototype UI <a href="http://www.diydrones.com/profiles/blogs/interactive-checklists-proposal">proposed</a> by 
           %a(href="https://github.com/wunderlins") Simon Wunderlin
           please check it out on github and help us extend it...
 
+    %span.glyphicon.glyphicon-search
     %script(src="js/jquery.js")
     %script(src="js/bootstrap.min.js")
 

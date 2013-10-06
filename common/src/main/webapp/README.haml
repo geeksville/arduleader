@@ -1,4 +1,59 @@
+!!!! 5
+/ Proof of concept for the checklist UI
+%html
+  %head
+    %title Drone Checklist
+    %meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    / Bootstrap
+    %link(href="css/bootstrap.min.css" rel="stylesheet" media="screen")
+    %link(href="css/custom.css" rel="stylesheet")
+  %body
+    / Top level container for bootstrap CSS
+    .container
 
-I used HAML to generate these HTML files - but feel free to just edit/extend the HTML files as needed.  HAML is a tool for easily generating
-maintainable web pages: http://haml.info/about.html.  It is easy to install HAML for pretty much any OS: http://haml.info/download.html
+      / Fixed navbar at top of window
+      .header
+        %ul.nav.nav-pills.pull-right
+          %li
+            %a(href="checklist.html") Preflight
+          %li.active
+            %a(href="README.html") About
+          %li
+            %a(href="https://github.com/arthurbenemann/droidplanner/issues/330") Contact
+          / %h3.text-muted GCS Script
+
+      / Big text at top
+      .row.marketing
+        .col-lg-6
+          %h1 GCS Scripting README
+          %p.lead An introduction to editing these files
+          %p
+            The idea of scripted/semi-automated checklists is still being refined, so comments
+            are quite welcome - just clicking on the contact link at the top of this page.  However, is
+            is <b>very</b> easy to edit the source HTML.  If you would like to help with is effort
+            it would be great if you could edit checklist.html and add examples of checklist steps you think
+            would be useful.
+          %p
+            If you've never developed for the web before, most of the look and feel for these web pages
+            comes from a popular toolkit called <a href="http://getbootstrap.com/css/">bootstrap</a>.
+            The best way to get started is to probably 'view source' in your web browser and then refer
+            to the bootstrap site (or ask others in the shared bug) when you have questions.
+          %p
+            If you are familar hand editing html, you can edit the html directly.  However, if you are interested
+            in checking in to the github source (for the time being located <a href="">here</a>.
+            It would be preferable if you edit checklist.haml instead.  Haml is a much less verbose representation
+            of HTML used by many web applications - it allows us to more easily maintain one source file and use it
+            in many different platforms.  For a one page tutorial on HAML (including the installer for the tool) you
+            can visit this <a href="http://haml.info/about.html">link</a>.
+
+    .footer
+      .container
+        .text-muted.credit 
+          A diydrones prototype UI <a href="http://www.diydrones.com/profiles/blogs/interactive-checklists-proposal">proposed</a> by 
+          %a(href="https://github.com/wunderlins") Simon Wunderlin
+          please check it out on github and help us extend it...
+
+    %span.glyphicon.glyphicon-search
+    %script(src="js/jquery.js")
+    %script(src="js/bootstrap.min.js")
 
