@@ -83,12 +83,18 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
      * Check this parameter to see if it is within the range expected by the documentation, if not in range return false
      */
     def isInRange = (for {
-      doc <- docs
-      range <- doc.range
+      range <- rangeOpt
       v <- raw
     } yield {
       v.param_value >= range._1 && v.param_value <= range._2
     }).getOrElse(true)
+
+    def rangeOpt = for {
+      doc <- docs
+      range <- doc.range
+    } yield {
+      range
+    }
 
     /**
      * Should this parameter be shared with others (or is it so instance specific it should not be passed around)
