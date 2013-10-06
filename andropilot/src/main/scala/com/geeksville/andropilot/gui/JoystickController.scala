@@ -226,7 +226,7 @@ trait JoystickController extends Activity
   def sendOverride() {
     //debug("sendOverride")
     for {
-      v <- myVehicle;
+      v <- myVehicle
       curRc <- v.rcChannels
     } yield {
       // FIXME - if min/max has not already been set by someone else, they may not have a regular controller - so just pick something

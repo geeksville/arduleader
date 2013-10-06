@@ -20,6 +20,7 @@ import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
 import java.io.InputStream
 import scala.io.Source
+import com.geeksville.mavlink.SendYoungest
 
 //
 // Messages we publish on our event bus when something happens
@@ -210,6 +211,11 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     self ! StartWaypointDownload
   }
 
+  override protected def onHeartbeatFound() {
+    hasRequestedWaypoints = false // Force new fetch of waypoints
+    super.onHeartbeatFound()
+  }
+
   private def startWaypointDownload() {
     log.info("Downloading waypoints")
     hasRequestedWaypoints = true
@@ -294,7 +300,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
     if (withRetry)
       sendWithRetry(m, classOf[msg_mission_ack])
     else
-      sendMavlink(m)
+      sendMavlink(SendYoungest(m))
     guidedDest = Some(Waypoint(m))
     onWaypointsChanged()
   }

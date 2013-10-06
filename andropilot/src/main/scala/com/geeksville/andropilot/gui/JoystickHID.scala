@@ -183,7 +183,7 @@ trait JoystickHID extends JoystickController {
     try {
       myVehicle.foreach { v =>
         val favoriteModes = (1 to 6).map { i =>
-          val modeInt = v.parametersById(v.flightModePrefix + i).getInt.getOrElse(0)
+          val modeInt = v.getFlightMode(i).getOrElse(0)
           v.modeToString(modeInt)
         }
 

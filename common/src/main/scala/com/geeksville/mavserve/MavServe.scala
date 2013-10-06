@@ -15,7 +15,7 @@ import com.ridemission.rest.JObject
 import com.ridemission.rest.JArray
 
 /**
- * A web server that serves up vehicle data (and static html/js/art content) to a web browser.  Intended to be a starting point for
+ * A (demo) web server that serves up vehicle data (and static html/js/art content) to a web browser.  Intended to be a starting point for
  * a server meant for Mavelous.
  *
  * This server currently delivers data from the following HTTP GETable locations:

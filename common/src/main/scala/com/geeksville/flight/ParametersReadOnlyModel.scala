@@ -35,10 +35,10 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
    * A set of modes that are selectable when the vehicle is flying in simple mode
    */
   protected val simpleFlightModes = Map("LAND" -> true, "RTL" -> false,
-    "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "FBW_B" -> false)
+    "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "FBW_B" -> false, "Disarm" -> true)
 
   // FIXME - add support for a takeoff waypoint set
-  protected val simpleGroundModes = Map("Arm" -> false, "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "Disarm" -> false)
+  protected val simpleGroundModes = Map("Arm" -> true, "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "Disarm" -> false)
 
   // Modes to allow while downloading wpts or params
   protected val initializingModes = Map("Disarm" -> false)
@@ -149,9 +149,15 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     "ArduPlane"
 
   def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
-  def isCopter = vehicleType.map { t =>
+
+  /**
+   * Are we on a copter? or None if not sure
+   */
+  def isCopterOpt = vehicleType.map { t =>
     (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
-  }.getOrElse(true)
+  }
+
+  def isCopter = isCopterOpt.getOrElse(true)
   def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 
   // Rover uses a different mode prefix than the other vehicle types

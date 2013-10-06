@@ -9,6 +9,10 @@
         android:id="@+id/menu_speech"
         android:checkable="true"
         android:title="Speech"/>
+    <item
+        android:id="@+id/menu_showsidebar"
+        android:checkable="true"
+        android:title="Show Sidebar"/>
 
     <!-- FIXME - move this into the action bar for the map -->
     <item
@@ -46,6 +50,11 @@
 		android:title="Set Home" />
     -->
 
+    <item
+        android:id="@+id/check_sun"
+        android:showAsAction="never"
+        android:title="Solar radiation check"/>
+    
     <item
         android:id="@+id/menu_settings"
         android:showAsAction="never"

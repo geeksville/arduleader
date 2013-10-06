@@ -9,11 +9,14 @@ trait AndropilotPrefs extends UsesPreferences {
   def paramsToFile = boolPreference("params_to_file", false)
   def speechAltBucket = intPreference("speech_altbucket", 10)
 
+  /// Let user select follow me interval, but restrict to between 10 sec and 200ms
+  def followMeInterval = math.min(10.0f, math.max(0.2f, floatPreference("follow_interval", 2.0f)))
+
   def minVoltage = floatPreference("min_volt", 9.5f)
   def minBatPercent = intPreference("min_batpct", 25) / 100.0f
   def minRssiSpan = intPreference("min_rssi_span", 2)
   def minNumSats = intPreference("min_numsats", 5)
-  def isKeepScreenOn = boolPreference("force_screenon", false)
+  def isKeepScreenOn = boolPreference("force_screenon", true)
   def followPlane = boolPreference("follow_plane", false)
   def guideAlt = intPreference("guide_alt", 50)
 
@@ -26,6 +29,7 @@ trait AndropilotPrefs extends UsesPreferences {
   def fenceMode = intPreference("fence_action", 1)
 
   def useFlurry = boolPreference("use_flurry", true)
+  def useOldArducopter = boolPreference("use_old_ac", false)
 
   def loggingKeepBoring = boolPreference("log_keep_boring", false)
 
@@ -36,7 +40,8 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def developerMode = boolPreference("developer_mode", false)
 
-  def stayAwakeEnabled = boolPreference("stay_awake", true)
+  // This is now hidden in the UI - basically on all the time
+  def stayAwakeEnabled = boolPreference("stay_awake2", true)
 
   object UDPMode extends Enumeration {
     val Disabled = Value("Disabled")

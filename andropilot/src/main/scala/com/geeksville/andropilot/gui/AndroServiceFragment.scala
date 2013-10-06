@@ -11,6 +11,8 @@ import android.view.ActionMode
 import com.ridemission.scandroid.PagerPage
 import com.geeksville.andropilot.FlurryClient
 import android.content.Context
+import android.util.TypedValue
+import com.ridemission.scandroid.AndroidUtil
 
 /**
  * Mixin for common behavior for all our fragments that depend on data from the andropilot service.
@@ -25,6 +27,11 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
   protected final var handler: Handler = null
 
   private var actionMode: Option[ActionMode] = None
+
+  /**
+   * A utility to convert dipPixels to values the android API understands (FIXME - move someplace better)
+   */
+  def dipPixel(sz: Float) = AndroidUtil.dipPixel(context, sz)
 
   override def onCreate(saved: Bundle) {
     super.onCreate(saved)

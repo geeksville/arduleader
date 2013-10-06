@@ -5,6 +5,9 @@ import android.util.AttributeSet
 import android.graphics._
 import android.view._
 import com.ridemission.scandroid.AndroidLogger
+import com.ridemission.scandroid.AndroidUtil
+import android.app.Activity
+import android.util.DisplayMetrics
 
 trait JoystickListener {
   def onMove(x: Float, y: Float) {}
@@ -37,25 +40,35 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
   private val bgPaint = new Paint {
     setColor(Color.DKGRAY)
     setStrokeWidth(1)
+    setAlpha(144)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
   private val labelPaint = new Paint {
     setColor(Color.GREEN)
     setStrokeWidth(1)
-    setTextSize(48)
+
+    // Converted from scaled pixel values to appropriate size for this platform
+    val dm = new DisplayMetrics()
+    context.asInstanceOf[Activity].getWindowManager().getDefaultDisplay().getMetrics(dm)
+    val pixelSize = 20 * dm.scaledDensity
+
+    setAntiAlias(true)
+    setTextSize(pixelSize)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
   private val handlePaint = new Paint {
     setColor(Color.WHITE)
     setStrokeWidth(6)
+    setAntiAlias(true)
     setStyle(Paint.Style.STROKE)
   }
 
   private val selectedPaint = new Paint {
     setColor(Color.YELLOW)
     setStrokeWidth(1)
+    setAntiAlias(true)
     setStyle(Paint.Style.FILL_AND_STROKE)
   }
 
@@ -65,13 +78,13 @@ class JoystickView(context: Context, attrs: AttributeSet) extends View(context, 
 
   private def drawLabels(canvas: Canvas) {
     {
-      val l = "<- " + xLabel + " ->"
-      canvas.drawText(l, cX - labelPaint.measureText(l) / 2, getMeasuredHeight - 40, labelPaint)
+      val l = xLabel // "<- " + xLabel + " ->"
+      canvas.drawText(l, cX - labelPaint.measureText(l) / 2, getMeasuredHeight - 20, labelPaint)
     }
 
     canvas.save()
-    val l = "<- " + yLabel + " ->"
-    val x = 30
+    val l = yLabel // "<- " + yLabel + " ->"
+    val x = 20
     val y = cY - labelPaint.measureText(l) / 2
     canvas.rotate(90, x, y)
     canvas.drawText(l, x, y, labelPaint)

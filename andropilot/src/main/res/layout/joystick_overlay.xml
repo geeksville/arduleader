@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widgets that are designed to be placed just after the map in a relative layout - so we float over the map -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/joysticks"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_marginTop="4dp"
+    android:layout_weight="1"
+    android:visibility="invisible" >
+
+    <com.geeksville.andropilot.gui.JoystickView
+        android:id="@+id/leftStick"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="4dp"
+        android:layout_marginLeft="4dp"
+        android:clickable="true" />
+
+    <Button
+        android:id="@+id/cancelOverride"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/custombutton"
+        android:text="Stop\nOverride"
+        android:singleLine="false"
+        android:visibility="invisible" />
+
+    <com.geeksville.andropilot.gui.JoystickView
+        android:id="@+id/rightStick"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="4dp"
+        android:layout_marginRight="4dp"
+        android:clickable="true" />
+    <!-- android:background="#880000" -->
+
+</RelativeLayout>

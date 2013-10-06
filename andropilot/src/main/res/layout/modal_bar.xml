@@ -1,66 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:orientation="horizontal" >
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content" >
+
+    <!-- Note: the alpha for this component is done only in the background -->
 
     <TextView
         android:id="@+id/mode_text"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:layout_gravity="left|center_vertical"
-        android:layout_marginBottom="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="0"
-        android:background="@drawable/rounded_textbackground"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/square_textbackground"
         android:padding="4dp"
         android:text="Last Status Msg"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="visible" />
 
-    <LinearLayout
-        android:id="@+id/mode_buttons"
+    <HorizontalScrollView
+        android:id="@+id/mode_buttons_scroller"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mode_text"
+        android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_weight="1"
-        android:orientation="horizontal" />
+        android:layout_marginTop="6dp"
+         > 
+
+        <LinearLayout
+            android:id="@+id/mode_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
     <!-- android:layout_height="64dp" -->
 
     <Button
         android:id="@+id/upload_waypoint_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="32dp"
+        android:layout_below="@id/mode_buttons_scroller"
         android:layout_centerHorizontal="true"
-        android:layout_gravity="right|center_vertical"
-        android:layout_weight="0"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/custombutton"
+        android:singleLine="true"
         android:text="Upload Waypoints"
         android:visibility="gone" />
+    <!-- style="style/TranslucentButton" -->
 
-    <!--
-    <Button
-        android:id="@+id/arm_mode_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Arm"
-        android:visibility="visible" />
-
-    <Button
-        android:id="@+id/takeoff_mode_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Takeoff"
-        android:visibility="gone" />
-
-    <Button
-        android:id="@+id/land_mode_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Land"
-        android:visibility="gone" />
-    -->
-
-</LinearLayout>
+</RelativeLayout>

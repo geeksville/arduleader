@@ -1,3 +1,36 @@
+# 1.8.17
+* Warn about periods of high solar activity (thanks to NOAA for the data and ligi@ligi.de for a reference implementation).  The app will warn when first launched, or if you choose the new "Solar activity check" menu item.
+* Include sysid for up to three vehicles in the tlog filename
+
+# 1.8.15
+* Use param by value to fetch params (I had turned this off a long time ago because old AC builds didn't support this).  Now that those old <2.93 builds are gone I can turn this back on - MUCH FASTER PARAMETER DOWNLOADS - especially for bluetooth!  (Thanks to Stefan and Peter for asking for this)
+* Fix problems where new state machine would get confused if you attached to a vehicle that was already
+half way through downloading parameters.
+
+# 1.8.14
+* Fix bug where parameter updates wouldn't show up until you moved at least two tabs away from the parameters
+tab.  This bug was introduced in 1.8.01, much thanks to Brendan O'Reilly for the great 'steps to reproduce'.
+* More support for javascript vehicle control (no UI yet)
+
+# 1.8.04
+* Make a new UI that is optimized for small phone screens - it should look pretty nice (if cramped once you turn on screen joysticks) - thanks to Remigijus (in Lithuania!)
+* Allow the various SimpleUI buttons to scroll if necessary for small screens
+* Fix the problem of the service not exiting - introduced in the last release.  Thanks Gary and Luciano for the reports
+
+# 1.8.03
+* Fix screen sleep problem reported by Luciano (thanks!)
+* The new simple UI is mostly finished - just some drawer stuff & art assets left
+* Info fields now float on top left of map view
+* Auto hide the sidebar once we are ready to fly
+
+# 1.8.01
+* Abort RC override if the user of the RC xmitter changes the flight mode switch (Luciano - would you mind confirming this works for you?)
+* First cut of new 'even simpler' UI
+* Misc improvements to the RC joysticks (I've been flying with only the tablet lately)
+* (Alpha) support for multiple vehicles (though not yet shown in most views) - No configuration needed, just attach multiple 3dr radios to a (POWERED) USB hub
+* Beginning of scripting support 
+* The sidebar pane is now dockable - just use the menu to turn it on/off
+
 # 1.7.13
 * Work around for hangs which could occur when sliding HUD into view (on some 4.3 devices): https://code.google.com/p/android/issues/detail?id=58385
 

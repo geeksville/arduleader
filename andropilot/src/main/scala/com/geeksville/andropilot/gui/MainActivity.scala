@@ -73,6 +73,8 @@ import com.geeksville.flight.StatusText
 import android.os.Debug
 import com.geeksville.flight.MsgReportBug
 import com.bugsense.trace.BugSenseHandler
+import com.geeksville.flight.MsgRCModeChanged
+import android.view.WindowManager
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -86,11 +88,16 @@ class MainActivity extends FragmentActivity with TypedActivity
   private var oldArmed = false
 
   /**
+   * The first time we receive something that would make the mini overview appear, hide the sidebar - as a cue to the
+   * user we are ready to go in simple mode.
+   */
+  private var didAutohideSidebar = false
+
+  /**
    * If an intent arrives before our service is up, squirel it away until we can handle it
    */
   private var waitingForService: Option[Intent] = None
 
-  private var watchingSerial = false
   private var accessGrantReceiver: Option[BroadcastReceiver] = None
 
   private lazy val notifyManager = getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
@@ -135,17 +142,6 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)
-
-  /**
-   * We install this receiver only once we're connected to a device -
-   * only used to show a Toast about disconnection...
-   */
-  val disconnectReceiver = new BroadcastReceiver {
-    override def onReceive(context: Context, intent: Intent) {
-      if (intent.getAction == UsbManager.ACTION_USB_DEVICE_DETACHED)
-        serialDetached()
-    }
-  }
 
   val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
     val warning = if (isLowVolt)
@@ -203,6 +199,11 @@ class MainActivity extends FragmentActivity with TypedActivity
         speak("Waypoint " + n)
       }
 
+    case MsgRCModeChanged(_) =>
+      handler.post { () =>
+        stopOverrides()
+      }
+
     case MsgModeChanged(_) =>
       handler.post { () =>
         debug("modeChanged received")
@@ -231,6 +232,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     case MsgParametersDownloaded =>
       handler.post { () =>
+        autohideSidebar()
         setModeSpinner()
         handleParameters()
       }
@@ -243,7 +245,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     debug("Status changed: " + s)
     if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE) {
       val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
-      toast(s, isImportant)
+      // toast(s, isImportant) - we show this on the map view now
 
       if (isImportant)
         speak(s)
@@ -267,15 +269,11 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     toast(s.serviceStatus)
 
-    // If we already had a serial port open start watching it
-    registerSerialReceiver()
-
     // Ask for any already connected serial devices
     //requestAccess()
 
     // If the menu is already up - update the set of options & selected mode
-    setModeOptions()
-    setModeSpinner()
+    invalidateOptionsMenu()
 
     waitingForService.foreach { intent =>
       handleIntent(intent)
@@ -284,12 +282,28 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     myVehicle.foreach { v =>
       if (v.hasParameters)
-        initJoystickParams()
+        initAndShowJoystick()
     }
   }
 
   private def screenWidthDp = try {
+    getResources.getConfiguration.screenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenSmallestWidthDp = try {
     getResources.getConfiguration.smallestScreenWidthDp
+  } catch {
+    case ex: NoSuchFieldError =>
+      // Must be on an old version of android 
+      0
+  }
+
+  private def screenHeightDp = try {
+    getResources.getConfiguration.screenHeightDp
   } catch {
     case ex: NoSuchFieldError =>
       // Must be on an old version of android 
@@ -327,6 +341,9 @@ class MainActivity extends FragmentActivity with TypedActivity
     warn("HW model " + Build.MODEL)
     warn("HW device " + Build.DEVICE)
     warn("HW product " + Build.PRODUCT)
+    warn(s"Screen width $screenWidthDp")
+    warn(s"Screen height $screenHeightDp")
+    warn(s"Screen smallest width $screenSmallestWidthDp")
     // warn("GooglePlayServices = " + GooglePlayServicesUtil.isGooglePlayServicesAvailable(this))
 
     val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
@@ -335,66 +352,89 @@ class MainActivity extends FragmentActivity with TypedActivity
     // Check for a 'long' screen as a hack to turn off this code for samsung note
     // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
     // Height: My galaxy nexus is 567, so say <600 means a phone...
-    if (screenWidthDp <= 360 && !screenIsLong)
+    if (screenSmallestWidthDp <= 360 && !screenIsLong)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
+
+    if (screenHeightDp < 360) { // Are we on a phone screen and in landscape - turn off the titlebar, cause we need all we can get
+      warn("Requesting full screen")
+      getWindow.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
 
     // The archos gamepad has joysticks on the side - it really only makes sense in landscape
     if (isArchosGamepad)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
 
-    mainView = getLayoutInflater.inflate(R.layout.main, null)
-    setContentView(mainView)
+    try {
+      mainView = getLayoutInflater.inflate(R.layout.main, null)
+      setContentView(mainView)
 
-    // textView.setText("hello, world!")
+      // Hide the navigation bar at the bottom
+      //mainView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
 
-    handler = new Handler
+      if (screenWidthDp < 600) // Screen is pretty narrow, default to no sidebar
+        showSidebar(false)
 
-    // Set up the ViewPager with the sections adapter (if it is present on this layout)
-    viewPager.foreach { v =>
-      //val adapter = Option(v.getAdapter.asInstanceOf[ScalaPagerAdapter])
+      // textView.setText("hello, world!")
 
-      // warn("Need to set pager adapter")
-      v.setAdapter(sectionsPagerAdapter)
+      handler = new Handler
 
-      // We want to suppress drag gestures when on the map view
-      /* doesn't work
-      v.setOnTouchListener(new View.OnTouchListener {
-        override def onTouch(v2: View, event: MotionEvent) = {
-          val disableSwipe = !isWide && v.getCurrentItem == 0
+      // Set up the ViewPager with the sections adapter (if it is present on this layout)
+      viewPager.foreach { v =>
+        v.setAdapter(sectionsPagerAdapter)
+      }
 
-          disableSwipe
-        }
-      }) */
-    }
-
-    val hasPlay = PlayTools.checkForServices(this)
-    if (hasPlay) {
-      // Did the user just plug something in?
-      Option(getIntent).foreach(handleIntent)
-    } else {
-      Option(findView(TR.maps_error)).map { v =>
-        val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
-        val msg = if (probe == ConnectionResult.SERVICE_INVALID)
-          """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
+      val hasPlay = PlayTools.checkForServices(this)
+      if (hasPlay) {
+        // Did the user just plug something in?
+        Option(getIntent).foreach(handleIntent)
+      } else {
+        Option(findView(TR.maps_error)).map { v =>
+          val probe = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this)
+          val msg = if (probe == ConnectionResult.SERVICE_INVALID)
+            """|Google Maps can not be embedded - Google reports that 'Google Play Services' is not authentic.
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they made a mistake repackaging the service)""".stripMargin
-        else
-          """|Google Maps V2 is not installed (code=%d) - you will not be able to run this application... 
+          else
+            """|Google Maps V2 is not installed (code=%d) - you will not be able to run this application... 
              |(If you are seeing this message and using a 'hobbyist' ROM, check with the
              |person who made that ROM - it seems like they forgot to include a working version of 'Google
              |Play Services')""".stripMargin.format(probe)
-        v.setText(msg)
-        v.setVisibility(View.VISIBLE)
+          v.setText(msg)
+          v.setVisibility(View.VISIBLE)
 
-        // Alas - this seems to not work
-        // GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
-      }.getOrElse {
-        error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
+          // Alas - this seems to not work
+          // GooglePlayServicesUtil.getErrorDialog(probe, this, 1).show()
+        }.getOrElse {
+          error("Some chinese WonderMe device is out there failing to find google maps, sorry - you are out of luck")
+        }
+        for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
       }
-      for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
+      initScreenJoysticks()
+      initSpeech()
+    } catch {
+      case ex: NoSuchFieldError =>
+        toast("Your tablet has a pirated/old version of google play - Andropilot can not start")
+        BugSenseHandler.sendExceptionMessage("play-failure", "exception", new Exception(ex))
     }
-    initScreenJoysticks()
-    initSpeech()
+  }
+
+  def application = getApplication.asInstanceOf[MyApplication]
+
+  def checkSunspots() {
+    val t = new SunspotDetectorTask(this) {
+      override protected def didSunspot(curLevel: Option[Int]) {
+        application.lastSunspotCheck = System.currentTimeMillis()
+      }
+    }
+    t.execute()
+  }
+
+  def perhapsCheckSunspots() {
+    val now = System.currentTimeMillis()
+
+    val expireTime = application.lastSunspotCheck + 60 * 60 * 1000
+    if (now > expireTime)
+      checkSunspots()
   }
 
   override def startOverride() {
@@ -452,7 +492,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (joystickAvailable && !isOverriding) {
       leftJoystickView.foreach { v =>
         val thro = -axis(throttleAxisNum).unscale(x.chan3_raw)
-        debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
+        //debug(axis(throttleAxisNum) + " thro " + x.chan3_raw + " to " + thro)
         v.setReceived(axis(rudderAxisNum).unscale(x.chan4_raw), thro)
       }
 
@@ -510,13 +550,20 @@ class MainActivity extends FragmentActivity with TypedActivity
     handleIntent(i)
   }
 
+  /**
+   * If the user wants the screen always on or the joystick is up, keep the screen awake
+   */
+  private def setScreenOn() {
+    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown)
+  }
+
   override def onResume() {
     super.onResume()
 
     serviceOnResume()
 
     // Force the screen on if the user wants that 
-    viewPager.foreach(_.setKeepScreenOn(isKeepScreenOn))
+    setScreenOn()
 
     //toast("Screen layout=" + getResources.getConfiguration.screenLayout, isLong = true)
 
@@ -534,6 +581,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       notifyManager.notify(NotificationIds.setupDroneshareId, nBuilder.build)
     } else
       notifyManager.cancel(NotificationIds.setupDroneshareId)
+
+    perhapsCheckSunspots()
   }
 
   def showSplashDialog() {
@@ -550,8 +599,6 @@ class MainActivity extends FragmentActivity with TypedActivity
       accessGrantReceiver = None
     }
 
-    unregisterSerialReceiver()
-
     super.onPause()
   }
 
@@ -562,11 +609,18 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onDestroy()
   }
 
+  def initAndShowJoystick() {
+    initJoystickParams()
+
+    // FIXME - show joystick based on user prefs or no RC
+    // FIXME - if rc status changes, possibly show joysticks
+  }
+
   /// If we are configured to upload, but have no username/psw tell user why we are ignoring them
   def shouldNagUser = dshareUpload && (dshareUsername.isEmpty || dsharePassword.isEmpty)
 
   private def handleParameters() {
-    initJoystickParams()
+    initAndShowJoystick()
 
     invalidateOptionsMenu()
 
@@ -584,30 +638,6 @@ class MainActivity extends FragmentActivity with TypedActivity
             error("Can't write param file: " + ex.getMessage)
         }
       }
-  }
-
-  private def serialDetached() {
-    debug("Handling serial disconnect")
-    unregisterSerialReceiver()
-
-    toast(R.string.telem_disconnected, false)
-  }
-
-  private def unregisterSerialReceiver() {
-    if (watchingSerial) {
-      unregisterReceiver(disconnectReceiver)
-      watchingSerial = false
-    }
-  }
-
-  private def registerSerialReceiver() {
-    service.foreach { s =>
-      if (!watchingSerial && s.isSerialConnected) {
-        // Find out when the device goes away
-        registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
-        watchingSerial = true
-      }
-    }
   }
 
   private def handleFileOpen(uri: Uri) {
@@ -666,7 +696,7 @@ class MainActivity extends FragmentActivity with TypedActivity
           requestAccess()
 
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
-          if (AndroidSerial.getDevice.isDefined) {
+          if (!AndroidSerial.getDevices.isEmpty) {
             // speak("Connected")
             toast(R.string.telem_connected, false)
           } else
@@ -754,8 +784,19 @@ class MainActivity extends FragmentActivity with TypedActivity
     setModeOptions()
     setModeSpinner()
 
+    val showSidebarMenu = menu.findItem(R.id.menu_showsidebar)
+    showSidebarMenu.setVisible(isWide)
+    showSidebarMenu.setChecked(viewPager.map(_.isShown).getOrElse(false))
+
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+
+    // Set some defaults in case we don't have a service
+    val joystickMenu = menu.findItem(R.id.menu_showjoystick)
+    val armMenu = menu.findItem(R.id.menu_arm)
+    val hasJoystickView = joystickPanel.isDefined
+    armMenu.setVisible(false) // If we don't know we have a copter leave this hidden
+
     service foreach { svc =>
       val follow = menu.findItem(R.id.menu_followme)
 
@@ -766,21 +807,19 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setChecked(svc.isFollowMe)
 
       myVehicle.foreach { v =>
-        val armMenu = menu.findItem(R.id.menu_arm)
-
         if (v.isCopter) {
           val armed = v.isArmed
-          debug("Setting arm checkbox to " + armed)
+          debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
+          armMenu.setVisible(true)
           armMenu.setChecked(armed)
           armMenu.setEnabled(v.hasHeartbeat && svc.isConnected)
-        } else
-          armMenu.setVisible(false)
+        }
+
+        // Only possibly turn the joystick on if we have a vehicle
+        joystickMenu.setEnabled(hasJoystickView && (developerMode || (isVehicleConnected && joystickAvailable)))
       }
 
-      val joystickMenu = menu.findItem(R.id.menu_showjoystick)
-      val hasJoystickView = joystickPanel.isDefined
-      joystickMenu.setChecked(hasJoystickView && joystickPanel.get.getVisibility == View.VISIBLE)
-      joystickMenu.setEnabled(hasJoystickView && joystickAvailable && svc.isConnected)
+      joystickMenu.setChecked(isJoystickShown)
 
       val gotoMenu = menu.findItem(R.id.menu_gotovehicle)
       gotoMenu.setEnabled(navToVehicleIntent.isDefined)
@@ -792,6 +831,10 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     true
   }
+  /**
+   * Are we currently showing the joystick?
+   */
+  private def isJoystickShown = joystickPanel.map(_.getVisibility == View.VISIBLE).getOrElse(false)
 
   /// Set a spinner selection without accidentally notifying ourselves
   private def setSpinnerNoNotify(s: Spinner, toSelect: Int) {
@@ -836,7 +879,38 @@ class MainActivity extends FragmentActivity with TypedActivity
     if (!show)
       stopOverrides()
 
-    joystickPanel.foreach(_.setVisibility(if (show) View.VISIBLE else View.INVISIBLE))
+    joystickPanel.foreach { panel =>
+      panel.setVisibility(if (show) View.VISIBLE else View.INVISIBLE)
+
+      if (show) {
+        // If the joysticks are filling our screen, we need to turn off the sidebar to make space
+        for {
+          l <- leftJoystickView
+          r <- rightJoystickView
+        } yield {
+          if (l.getWidth + r.getWidth >= panel.getWidth)
+            showSidebar(false)
+        }
+      }
+    }
+
+    // We might need to turn screen sleep on/off
+    setScreenOn()
+  }
+
+  /**
+   * We automatically hide the sidebar once the mini overview is showing valid data
+   */
+  private def autohideSidebar() {
+    if (!didAutohideSidebar) {
+      didAutohideSidebar = true
+      showSidebar(false)
+    }
+  }
+
+  private def showSidebar(shown: Boolean) {
+    if (isWide) // If we _only_ have the sidebar - don't hide it
+      viewPager.foreach(_.setVisibility(if (shown) View.VISIBLE else View.GONE))
   }
 
   override def onOptionsItemSelected(item: MenuItem) = {
@@ -850,12 +924,20 @@ class MainActivity extends FragmentActivity with TypedActivity
         isSpeechEnabled = n
         item.setChecked(n)
 
+      case R.id.check_sun =>
+        checkSunspots()
+
       case R.id.menu_arm =>
         val n = !item.isChecked
         myVehicle.foreach { v =>
           v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
+
+      case R.id.menu_showsidebar =>
+        val n = !item.isChecked
+        item.setChecked(n)
+        showSidebar(item.isChecked)
 
       case R.id.menu_tracing =>
         val n = !item.isChecked
@@ -915,8 +997,11 @@ class MainActivity extends FragmentActivity with TypedActivity
   /** Ask for permission to access our device */
   def requestAccess() {
     warn("Requesting USB access")
-    AndroidSerial.getDevice match {
-      case Some(device) =>
+    val devs = AndroidSerial.getDevices
+    if (devs.isEmpty)
+      toast(R.string.please_attach, true)
+    else
+      devs.foreach { device =>
         accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
 
           // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
@@ -926,7 +1011,7 @@ class MainActivity extends FragmentActivity with TypedActivity
             service.foreach { s =>
               if (!s.isSerialConnected) {
                 toast(R.string.connecting_link, false)
-                s.serialAttached()
+                s.serialAttached(d)
               }
             }
           }
@@ -941,10 +1026,7 @@ class MainActivity extends FragmentActivity with TypedActivity
             toast(R.string.usb_access_denied, true)
           }
         }))
-      case None =>
-        toast(R.string.please_attach, true)
-      // showSplashDialog()
-    }
+      }
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)

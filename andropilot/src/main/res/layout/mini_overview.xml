@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mini_overview"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/my_border_transparent"
+    android:padding="2dip"
+    android:visibility="invisible" >
+
+    <TableRow>
+
+        <TextView
+            android:layout_marginLeft="4dp"
+            android:layout_weight="0"
+            android:text="Bat"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <!-- We use this view to set the width of all views based on our max len -->
+
+        <TextView
+            android:id="@+id/battery_volt"
+            android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold"
+            android:width="100dp" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_marginLeft="4dp"
+            android:layout_weight="0"
+            android:text="Alt"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/altitude"
+            android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_marginLeft="4dp"
+            android:layout_weight="0"
+            android:text="Speed"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/airspeed"
+            android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_marginLeft="4dp"
+            android:layout_weight="0"
+            android:text="HDOP"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/gps_numsats"
+            android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:layout_marginLeft="4dp"
+            android:layout_weight="0"
+            android:text="Rssi"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+        <TextView
+            android:id="@+id/rssi_local"
+            android:layout_gravity="right"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:gravity="right"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </TableRow>
+
+</TableLayout>

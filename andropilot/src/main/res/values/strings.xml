@@ -4,11 +4,11 @@
 		developer to help fix the issue! Thanks for testing this alpha
 		release.</string>
 	<string name="parameters_backed_up">Parameters backed up to %s</string>
-	<string name="telem_disconnected">3DR Telemetry disconnected...</string>
+	<string name="telem_disconnected">Telemetry disconnected...</string>
 	<string name="fence_not_avail">Fence not yet available, try back later...</string>
 	<string name="uploading_fence">Uploading fence: %s</string>
 	<string name="uploading_waypoint">Uploading waypoints: %s</string>
-	<string name="telem_connected">3DR Telemetry connected...</string>
+	<string name="telem_connected">Telemetry connected...</string>
 	<string name="lead_it">Lead it</string>
 	<string name="follow_me">Follow me</string>
 	<string name="please_attach">Please attach telemetry or APM</string>

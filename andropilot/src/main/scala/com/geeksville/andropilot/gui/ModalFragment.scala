@@ -23,8 +23,13 @@ import android.widget.LinearLayout
 import android.view.Gravity
 import com.ridemission.scandroid.SimpleDialogClient
 import com.geeksville.mavlink.MsgArmChanged
+import com.geeksville.andropilot.AndropilotPrefs
+import com.ridemission.scandroid.AndroidUtil
+import android.util.TypedValue
+import statemap.StateUndefinedException
+import com.bugsense.trace.BugSenseHandler
 
-class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient {
+class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
   private def modeTextView = Option(getView).map(_.findView(TR.mode_text))
   private def modeButtonGroup = Option(getView).map(_.findView(TR.mode_buttons))
@@ -117,27 +122,46 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private def makeButton(name: String) = {
     val button = new Button(getActivity)
     button.setText(name)
+    button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12)
+    button.setSingleLine()
+    button.setBackgroundResource(R.drawable.custombutton)
     fadeIn(button)
+    debug(s"Creating button $name")
 
-    val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f)
+    val lp = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
     lp.gravity = Gravity.CENTER
+    lp.height = dipPixel(32) // Use short buttons
+    lp.leftMargin = dipPixel(6)
+    //lp.setMarginStart(4) - not supported on older android builds
     modeButtonGroup.foreach(_.addView(button, lp))
     button
   }
 
+  private val testModeNames = Seq("RTL", "STABILIZE", "FISH", "Arm", "LAUNDRY", "CARS", "CATS")
+
   private def setButtons() {
-    for {
-      v <- myVehicle
-      s <- service
-      bgrp <- modeButtonGroup
-    } yield {
+    modeButtonGroup.foreach { bgrp =>
       bgrp.removeAllViews()
 
-      debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
+      // For testing - when offline
+      if (developerMode && !isVehicleConnected) {
+        testModeNames.foreach(makeButton _)
+        setWPUploadVisibility(true)
+      }
 
-      // Show the vehicle mode buttons
-      if (s.isConnected && v.hasHeartbeat)
-        v.selectableModeNames.foreach {
+      for {
+        v <- myVehicle
+        s <- service
+      } yield {
+        debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
+
+        // Show the vehicle mode buttons
+        val modenames = if (s.isConnected && v.hasHeartbeat)
+          v.selectableModeNames
+        else
+          Seq()
+
+        modenames.foreach {
           case (name, confirm) =>
             val b = makeButton(name)
 
@@ -147,44 +171,51 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               b.onClick { b => v ! DoSetMode(name) }
         }
 
-      // Add a special button to turn bluetooth on/off
-      if (s.bluetoothAdapterPresent)
-        if (!s.isConnected)
-          makeButton("Bluetooth").onClick { b =>
-            s.connectToDevices()
-          }
-        else if (!v.isArmed)
-          confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?") { () =>
-            s.forceBluetoothDisconnect()
-          }
+        // Add a special button to turn bluetooth on/off
+        if (s.bluetoothAdapterPresent) {
+          if (!s.isConnected)
+            makeButton("Bluetooth").onClick { b =>
+              s.connectToDevices()
+            }
+          // Plane is always armed, so always show the disconnect button
+          else if (s.isBluetoothConnected && (!v.isArmed || !v.isCopter))
+            confirmButtonPress(makeButton("Disconnect"), "Disconnect bluetooth?")(s.forceBluetoothDisconnect _)
+        }
+      }
     }
   }
 
   private def setModeFromVehicle() {
-    val (msg, color) = myVehicle match {
-      case Some(v) =>
-        v.fsm.getState.getName match {
-          case "VehicleFSM.WantInterface" =>
-            "Looking for interface" -> errColor
-          case "VehicleFSM.WantVehicle" =>
-            "Looking for vehicle" -> errColor
-          case "VehicleFSM.DownloadingWaypoints" =>
-            "Downloading waypoints..." -> warnColor
-          case "VehicleFSM.DownloadingParameters" =>
-            "Downloading parameters..." -> warnColor
-          case "VehicleFSM.DownloadedParameters" =>
-            "Downloaded params (BUG!)" -> errColor
-          case "VehicleFSM.Disarmed" =>
-            "Disarmed" -> errColor
-          case "VehicleFSM.Armed" =>
-            "Armed" -> warnColor
-          case "VehicleFSM.Flying" =>
-            v.currentMode -> okayColor
-        }
-      case None =>
-        "No vehicle (BUG!)" -> errColor
-    }
+    try {
+      val (msg, color) = myVehicle match {
+        case Some(v) =>
+          v.fsm.getState.getName match {
+            case "VehicleFSM.WantInterface" =>
+              "Looking for radio" -> errColor
+            case "VehicleFSM.WantVehicle" =>
+              "Looking for vehicle" -> errColor
+            case "VehicleFSM.DownloadingWaypoints" =>
+              "Downloading waypoints..." -> warnColor
+            case "VehicleFSM.DownloadingParameters" =>
+              "Downloading parameters..." -> warnColor
+            case "VehicleFSM.DownloadedParameters" =>
+              "Downloaded params (BUG!)" -> errColor
+            case "VehicleFSM.Disarmed" =>
+              "Disarmed" -> errColor
+            case "VehicleFSM.Armed" =>
+              "Armed" -> warnColor
+            case "VehicleFSM.Flying" =>
+              v.currentMode -> okayColor
+          }
+        case None =>
+          "No vehicle (BUG!)" -> errColor
+      }
 
-    setModeText(msg, color)
+      setModeText(msg, color)
+    } catch {
+      case ex: StateUndefinedException =>
+        BugSenseHandler.sendExceptionMessage("state_race", "fixthis", ex)
+    }
   }
+
 }

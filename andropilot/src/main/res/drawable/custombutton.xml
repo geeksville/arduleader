@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="#ff118811" />
+
+            <stroke android:width="2dp" android:color="#cc888888" />
+
+            <corners android:radius="6dp" />
+
+            <padding android:bottom="0dp" android:left="2dp" android:right="2dp" android:top="0dp" />
+        </shape></item>
+        
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="#ff114411" />
+
+            <stroke android:width="2dp" android:color="#cc888888" />
+
+            <corners android:radius="6dp" />
+
+            <padding android:bottom="0dp" android:left="2dp" android:right="2dp" android:top="0dp" />
+        </shape></item>
+    <item>
+        <shape>
+        
+
+            <!-- 003300 is green -->
+            <!--
+                 <gradient
+                android:endColor="#cc111111"
+                android:startColor="#cc111111"
+                android:angle="270" />
+            -->
+            <solid android:color="#cc112211" />
+
+            <stroke android:width="2dp" android:color="#ccaaaaaa" />
+
+            <corners android:radius="6dp" />
+
+            <padding android:bottom="0dp" android:left="2dp" android:right="2dp" android:top="0dp" />
+        </shape></item>
+
+</selector>

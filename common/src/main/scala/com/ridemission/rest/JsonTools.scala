@@ -42,13 +42,24 @@ case class JBestGuess(s: Any) extends JValue {
  * Import JsonConverters._ if you want to have "asJson" pimpped methods added to all the simple types
  */
 object JsonConverters {
-  class AsJson(op: => JValue) {
+  class AsJson[JTyp](op: => JTyp) {
     def asJson = op
   }
 
-  implicit def asJsonStringConverter[A](i: String) = new AsJson(JString(i))
-  implicit def asJsonValConverter[A](i: AnyVal) = new AsJson(JScalar(i))
-  implicit def asJsonOptionConverter[A](i: Option[_]) = new AsJson(
+  implicit def asJsonStringConverter(i: String) = new AsJson(JString(i))
+  implicit def asJsonValConverter(i: AnyVal) = new AsJson(JScalar(i))
+
+  implicit def asJsonMapConverter(i: Seq[(String, _)]) = new AsJson(JObject(i: _*))
+  implicit def asJsonMapConverter(i: Map[String, _]) = new AsJson(JObject(i.toSeq: _*))
+
+  implicit def asJsonSeqConverter(i: Seq[_]) = new AsJson(JArray(i: _*))
+
+  /// To convert case classes
+  implicit def asJsonProductConverter(i: Product) = new AsJson {
+    JArray(i.productIterator.toSeq: _*)
+  }
+
+  implicit def asJsonOptionConverter(i: Option[_]) = new AsJson(
     i match {
       case Some(s) => JBestGuess(s)
       case None => JNull
@@ -61,7 +72,9 @@ object JsonConverters {
 object JsonTools {
 
   //// FIXME - need to properly backquote quotes inside str
-  def quoted(str: String) = "\"" + str + "\""
+  def quoted(str: String) = {
+    "\"" + str.replaceAllLiterally("\n", "\\n") + "\""
+  }
 
   def valueToJSON(s: Any): String = s match {
     case None => "null"
@@ -77,6 +90,7 @@ object JsonTools {
     case x: Boolean => x.toString
 
     case x: Seq[_] => JArray(x: _*).toString // Let's give this a shot if we can
+    case x: Product => JArray(x.productIterator.toSeq: _*).toString
 
     case x @ _ => quoted(x.toString)
   }

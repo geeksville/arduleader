@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- include this to get a map with our spiffy widgets -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/com.geeksville.andropilot"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_weight="1"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
+
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            class="com.geeksville.andropilot.gui.MyMapFragment"
+            map:mapType="satellite"
+            map:uiCompass="true"
+            map:uiRotateGestures="false"
+            map:uiScrollGestures="false"
+            map:uiTiltGestures="false"
+            map:uiZoomControls="true"
+            map:uiZoomGestures="true" />
+
+        <TextView
+            android:id="@+id/maps_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <include layout="@layout/map_overlay" />
+
+</RelativeLayout>
