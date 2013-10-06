@@ -7,7 +7,30 @@
     / Bootstrap
     %link(href="css/bootstrap.min.css" rel="stylesheet" media="screen")
   %body
-    %h1 Hello, world!
+    %h1 Preflight Check
+    .alert.alert-warning Preflight not yet complete, please confirm the following steps
+
+    %button.btn.btn-primary(type="button")Reset
+    .checkbox 
+      %input(type="checkbox") Check camera on
+    .checkbox 
+      %input(type="checkbox") Turn on transmitter
+    / FIXME - indent this
+    .checkbox 
+      %input(type="checkbox") Mode manual
+    .checkbox 
+      %input(type="checkbox") Connect telemetry
+    .checkbox 
+      %input(type="checkbox") Check 3D GPS fix
+    .checkbox 
+      %input(type="checkbox") Check home altitude
+    / FIXME - make the following text look pretty
+    .checkbox 
+      %input(type="checkbox") Check moving surfaces [Manual]
+    / FIXME - show current mode and arm status
+    .checkbox 
+      %input(type="checkbox") ARM
     %script(src="js/jquery.js")
     %script(src="js/bootstrap.min.js")
+
 
