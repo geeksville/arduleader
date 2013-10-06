@@ -139,7 +139,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   }
 
   def isGCSInitializing = {
-    fsm.getState.getName match {
+    fsm.getLastState.getName match {
       case "VehicleFSM.WantInterface" =>
         true
       case "VehicleFSM.WantVehicle" =>

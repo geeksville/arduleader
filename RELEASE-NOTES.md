@@ -1,3 +1,7 @@
+# 1.8.19
+* Some non andropilot service crashes frequently without releasing the USB port.  If we find the tablet in that state, we warn the user and suggest a workaround.
+* Add support for 'show on map' for big waypoint lists
+
 # 1.8.17
 * Warn about periods of high solar activity (thanks to NOAA for the data and ligi@ligi.de for a reference implementation).  The app will warn when first launched, or if you choose the new "Solar activity check" menu item.
 * Include sysid for up to three vehicles in the tlog filename

@@ -17,6 +17,9 @@ import android.view.LayoutInflater
 import com.geeksville.andropilot.TypedResource._
 import com.geeksville.andropilot.TR
 import com.geeksville.flight.MsgWaypointCurrentChanged
+import android.view.Menu
+import android.view.MenuItem
+import com.google.android.gms.maps.model.LatLng
 
 class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
 
@@ -116,6 +119,9 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     }
   }
 
+  /**
+   * The action mode customize for list view
+   */
   private lazy val contextMenuCallback = new WaypointActionMode(getActivity) with ActionModeCallback {
 
     selectedMarker = Some(menuAdapter)
@@ -127,6 +133,44 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
       super.onDestroyActionMode(mode)
 
       setSelection(None)
+    }
+
+    override def onPrepareActionMode(mode: ActionMode, menu: Menu) = {
+      val movedown = menu.findItem(R.id.menu_movedown)
+      val moveup = menu.findItem(R.id.menu_moveup)
+      val showmap = menu.findItem(R.id.menu_showonmap)
+
+      // Allow some extra features when using list view
+      val isNav = selected.map { i => i.isNavCommand && i.isValidLatLng }.getOrElse(false)
+      showmap.setVisible(isNav)
+      //Seq( /* movedown, moveup, */ showmap).foreach(_.setVisible(true))
+
+      super.onPrepareActionMode(mode, menu)
+    }
+
+    // Called when the user selects a contextual menu item
+    override def onActionItemClicked(mode: ActionMode, item: MenuItem) = {
+      debug("In list item clicked")
+      selected.map { marker =>
+        item.getItemId match {
+
+          case R.id.menu_movedown =>
+            true
+
+          case R.id.menu_moveup =>
+            true
+
+          case R.id.menu_showonmap =>
+            val activity = context.asInstanceOf[MainActivity]
+            val l = marker.location
+            debug(s"zooming to $l")
+            activity.zoomMapTo(new LatLng(l.lat, l.lon))
+            true
+
+          case _ =>
+            super.onActionItemClicked(mode, item)
+        }
+      }.getOrElse(super.onActionItemClicked(mode, item))
     }
   }
 

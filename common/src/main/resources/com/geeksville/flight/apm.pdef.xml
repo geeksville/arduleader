@@ -61,6 +61,12 @@
 <value code="1">Enabled</value>
 </values>
 </param>
+<param humanName="Use FBWA steering in AUTO" name="ArduPlane:AUTO_FBW_STEER" documentation="When enabled this option gives FBWA navigation and steering in AUTO mode. This can be used to allow manual stabilised piloting with waypoint logic for triggering payloads. With this enabled the pilot has the same control over the plane as in FBWA mode, and the normal AUTO navigation is completely disabled. This option is not recommended for normal use." user="Advanced">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
 <param humanName="Takeoff throttle min speed" name="ArduPlane:TKOFF_THR_MINSPD" documentation="Minimum GPS ground speed in m/s used by the speed check that un-suppresses throttle in auto-takeoff. This can be be used for catapult launches where you want the motor to engage only after the plane leaves the catapult, but it is preferable to use the TKOFF_THR_MINACC and TKOFF_THR_DELAY parameters for cvatapult launches due to the errors associated with GPS measurements. For hand launches with a pusher prop it is strongly advised that this parameter be set to a value no less than 4 m/s to provide additional protection against premature motor start. Note that the GPS velocity will lag the real velocity by about 0.5 seconds. The ground speed check is delayed by the TKOFF_THR_DELAY parameter." user="User">
 <field name="Range">0 30</field>
 <field name="Increment">0.1</field>
@@ -122,8 +128,13 @@
 <param humanName="Current mission command index" name="ArduPlane:CMD_INDEX" documentation="The index of the currently running mission item. Do not change this manually." user="Advanced">
 <field name="Range">1 255</field>
 </param>
-<param humanName="Waypoint Radius" name="ArduPlane:WP_RADIUS" documentation="Defines the distance from a waypoint, that when crossed indicates the wp has been hit." user="Standard">
+<param humanName="Waypoint Radius" name="ArduPlane:WP_RADIUS" documentation='Defines the distance from a waypoint that when crossed indicates the waypoint has been completed. To avoid the aircraft looping around the waypoint in case it misses by more than the WP_RADIUS an additional check is made to see if the aircraft has crossed a "finish line" passing through the waypoint and perpendicular to the flight path from the previous waypoint. If that finish line is crossed then the waypoint is considered complete.' user="Standard">
 <field name="Range">1 32767</field>
+<field name="Increment">1</field>
+<field name="Units">Meters</field>
+</param>
+<param humanName="Waypoint Maximum Radius" name="ArduPlane:WP_MAX_RADIUS" documentation='Sets the maximum distance to a waypoint for the waypoint to be considered complete. This overrides the "cross the finish line" logic that is normally used to consider a waypoint complete. For normal AUTO behaviour this parameter should be set to zero. Using a non-zero value is only recommended when it is critical that the aircraft does approach within the given radius, and should loop around until it has done so. This can cause the aircraft to loop forever if its turn radius is greater than the maximum radius set.' user="Standard">
+<field name="Range">0 32767</field>
 <field name="Increment">1</field>
 <field name="Units">Meters</field>
 </param>
@@ -132,14 +143,15 @@
 <field name="Increment">1</field>
 <field name="Units">Meters</field>
 </param>
-<param humanName="Action on geofence breach" name="ArduPlane:FENCE_ACTION" documentation="What to do on fence breach" user="Standard">
+<param humanName="Action on geofence breach" name="ArduPlane:FENCE_ACTION" documentation="What to do on fence breach. If this is set to 0 then no action is taken, and geofencing is disabled. If this is set to 1 then the plane will enter GUIDED mode, with the target waypoint as the fence return point. If this is set to 2 then the fence breach is reported to the ground station, but no other action is taken. If set to 3 then the plane enters guided mode but the pilot retains manual throttle control." user="Standard">
 <values>
 <value code="0">None</value>
 <value code="1">GuidedMode</value>
 <value code="2">ReportOnly</value>
+<value code="3">GuidedModeThrPass</value>
 </values>
 </param>
-<param humanName="Fence Total" name="ArduPlane:FENCE_TOTAL" documentation="Number of geofence points currently loaded" user="Standard">
+<param humanName="Fence Total" name="ArduPlane:FENCE_TOTAL" documentation="Number of geofence points currently loaded" user="Advanced">
 </param>
 <param humanName="Fence Channel" name="ArduPlane:FENCE_CHANNEL" documentation="RC Channel to use to enable geofence. PWM input above 1750 enables the geofence" user="Standard">
 </param>
@@ -152,6 +164,8 @@
 <field name="Range">0 32767</field>
 <field name="Increment">1</field>
 <field name="Units">meters</field>
+</param>
+<param humanName="Rally Total" name="ArduPlane:RALLY_TOTAL" documentation="Number of rally points currently loaded" user="Advanced">
 </param>
 <param humanName="Fly By Wire Minimum Airspeed" name="ArduPlane:ARSPD_FBW_MIN" documentation="Airspeed corresponding to minimum throttle in auto throttle modes (FBWB, CRUISE, AUTO, GUIDED, LOITER, CIRCLE and RTL). This is a calibrated (apparent) airspeed." user="Standard">
 <field name="Range">5 50</field>
@@ -221,10 +235,11 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Short failsafe action" name="ArduPlane:FS_SHORT_ACTN" documentation="The action to take on a short (FS_SHORT_TIMEOUT) failsafe event in AUTO, GUIDED or LOITER modes. A short failsafe event in stabilization modes will always cause an immediate change to CIRCLE mode. In AUTO mode you can choose whether it will enter CIRCLE mode or continue with the mission. If FS_SHORT_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter CIRCLE mode, and then enter RTL if the failsafe condition persists for FS_LONG_TIMEOUT seconds." user="Standard">
+<param humanName="Short failsafe action" name="ArduPlane:FS_SHORT_ACTN" documentation="The action to take on a short (FS_SHORT_TIMEOUT) failsafe event in AUTO, GUIDED or LOITER modes. A short failsafe event in stabilization modes will always cause an immediate change to CIRCLE mode. In AUTO mode you can choose whether it will enter CIRCLE mode or continue with the mission. If FS_SHORT_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter CIRCLE mode, and then enter RTL if the failsafe condition persists for FS_LONG_TIMEOUT seconds. If it is set to 2 then the plane will enter FBWA mode with zero throttle and level attitude to glide in." user="Standard">
 <values>
 <value code="0">Continue</value>
 <value code="1">Circle/ReturnToLaunch</value>
+<value code="2">Glide</value>
 </values>
 </param>
 <param humanName="Short failsafe timeout" name="ArduPlane:FS_SHORT_TIMEOUT" documentation="The time in seconds that a failsafe condition has to persist before a short failsafe event will occor. This defaults to 1.5 seconds" user="Standard">
@@ -232,10 +247,11 @@
 <field name="Increment">0.5</field>
 <field name="Units">seconds</field>
 </param>
-<param humanName="Long failsafe action" name="ArduPlane:FS_LONG_ACTN" documentation="The action to take on a long (FS_LONG_TIMEOUT seconds) failsafe event in AUTO, GUIDED or LOITER modes. A long failsafe event in stabilization modes will always cause an RTL (ReturnToLaunch). In AUTO modes you can choose whether it will RTL or continue with the mission. If FS_LONG_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter RTL mode. Note that if FS_SHORT_ACTN is 1, then the aircraft will enter CIRCLE mode after FS_SHORT_TIMEOUT seconds of failsafe, and will always enter RTL after FS_LONG_TIMEOUT seconds of failsafe, regardless of the FS_LONG_ACTN setting." user="Standard">
+<param humanName="Long failsafe action" name="ArduPlane:FS_LONG_ACTN" documentation="The action to take on a long (FS_LONG_TIMEOUT seconds) failsafe event in AUTO, GUIDED or LOITER modes. A long failsafe event in stabilization modes will always cause an RTL (ReturnToLaunch). In AUTO modes you can choose whether it will RTL or continue with the mission. If FS_LONG_ACTN is 0 then it will continue with the mission, if it is 1 then it will enter RTL mode. Note that if FS_SHORT_ACTN is 1, then the aircraft will enter CIRCLE mode after FS_SHORT_TIMEOUT seconds of failsafe, and will always enter RTL after FS_LONG_TIMEOUT seconds of failsafe, regardless of the FS_LONG_ACTN setting. If FS_LONG_ACTN is set to 2 then instead of using RTL it will enter a FBWA glide with zero throttle." user="Standard">
 <values>
 <value code="0">Continue</value>
 <value code="1">ReturnToLaunch</value>
+<value code="2">Glide</value>
 </values>
 </param>
 <param humanName="Long failsafe timeout" name="ArduPlane:FS_LONG_TIMEOUT" documentation="The time in seconds that a failsafe condition has to persist before a long failsafe event will occor. This defaults to 20 seconds" user="Standard">
@@ -378,6 +394,22 @@
 <field name="Increment">1</field>
 <field name="Units">degrees/second</field>
 </param>
+<param humanName="ACRO mode attitude locking" name="ArduPlane:ACRO_LOCKING" documentation="Enable attitude locking when sticks are released" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
+</param>
+<param humanName="Ground steer altitude" name="ArduPlane:GROUND_STEER_ALT" documentation="Altitude at which to use the ground steering controller on the rudder. If non-zero then the STEER2SRV controller will be used to control the rudder for altitudes within this limit of the home altitude." user="Standard">
+<field name="Range">-100 100</field>
+<field name="Increment">0.1</field>
+<field name="Units">Meters</field>
+</param>
+<param humanName="Ground steer rate" name="ArduPlane:GROUND_STEER_DPS" documentation="Ground steering rate in degrees per second for full rudder stick deflection" user="Advanced">
+<field name="Range">10 360</field>
+<field name="Increment">1</field>
+<field name="Units">Meters</field>
+</param>
 <param humanName="Automatic trim adjustment" name="ArduPlane:TRIM_AUTO" documentation="Set RC trim PWM levels to current levels when switching away from manual mode. When this option is enabled and you change from MANUAL to any other mode then the APM will take the current position of the control sticks as the trim values for aileron, elevator and rudder. It will use those to set RC1_TRIM, RC2_TRIM and RC4_TRIM. This option is disabled by default as if a pilot is not aware of this option and changes from MANUAL to another mode while control inputs are not centered then the trim could be changed to a dangerously bad value. You can enable this option to assist with trimming your plane, by enabling it before takeoff then switching briefly to MANUAL in flight, and seeing how the plane reacts. You can then switch back to FBWA, trim the surfaces then again test MANUAL mode. Each time you switch from MANUAL the APM will take your control inputs as the new trim. After you have good trim on your aircraft you can disable TRIM_AUTO for future flights." user="Standard">
 <values>
 <value code="0">Disabled</value>
@@ -484,42 +516,6 @@
 <field name="Increment">1</field>
 <field name="Units">m/s</field>
 </param>
-<param humanName="Battery monitoring" name="ArduPlane:BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
-<values>
-<value code="0">Disabled</value>
-<value code="3">Voltage Only</value>
-<value code="4">Voltage and Current</value>
-</values>
-</param>
-<param humanName="Voltage Divider" name="ArduPlane:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
-</param>
-<param humanName="Apms per volt" name="ArduPlane:APM_PER_VOLT" documentation="Number of amps that a 1V reading on the current sensor corresponds to" user="Standard">
-<field name="Units">A/V</field>
-</param>
-<param humanName="AMP offset" name="ArduPlane:AMP_OFFSET" documentation="Voltage offset at zero current on current sensor" user="Standard">
-<field name="Units">Volts</field>
-</param>
-<param humanName="Battery capacity" name="ArduPlane:BATT_CAPACITY" documentation="Capacity of the battery in mAh when full" user="Standard">
-<field name="Units">mAh</field>
-</param>
-<param humanName="Battery Voltage sensing pin" name="ArduPlane:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 0">A0</value>
-<value code=" 1">A1</value>
-<value code=" 13">A13</value>
-<value code=" 100">PX4</value>
-</values>
-</param>
-<param humanName="Battery Current sensing pin" name="ArduPlane:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 1">A1</value>
-<value code=" 2">A2</value>
-<value code=" 12">A12</value>
-<value code=" 101">PX4</value>
-</values>
-</param>
 <param humanName="Receiver RSSI sensing pin" name="ArduPlane:RSSI_PIN" documentation="This selects an analog pin for the receiver RSSI voltage. It assumes the voltage is 5V for max rssi, 0V for minimum" user="Standard">
 <values>
 <value code="-1">Disabled</value>
@@ -598,18 +594,17 @@
 <field name="Range">0.01 0.5</field>
 <field name="Increment">0.01</field>
 </param>
-<param humanName="Battery monitoring" name="ArduCopter:BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
-<values>
-<value code="0">Disabled</value>
-<value code="3">Voltage Only</value>
-<value code="4">Voltage and Current</value>
-</values>
-</param>
 <param humanName="Battery Failsafe Enable" name="ArduCopter:FS_BATT_ENABLE" documentation="Controls whether failsafe will be invoked when battery voltage or current runs low" user="Standard">
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
 </values>
+</param>
+<param humanName="Failsafe battery voltage" name="ArduCopter:FS_BATT_VOLTAGE" documentation="Battery voltage to trigger failsafe. Set to 0 to disable battery voltage failsafe. If the battery voltage drops below this voltage then the plane will RTL" user="Standard">
+<field name="Units">Volts</field>
+</param>
+<param humanName="Failsafe battery milliAmpHours" name="ArduCopter:FS_BATT_MAH" documentation="Battery capacity remaining to trigger failsafe. Set to 0 to disable battery remaining failsafe. If the battery remaining drops below this level then the plane will RTL" user="Standard">
+<field name="Units">mAh</field>
 </param>
 <param humanName="GPS Failsafe Enable" name="ArduCopter:FS_GPS_ENABLE" documentation="Controls whether failsafe will be invoked when gps signal is lost" user="Standard">
 <values>
@@ -627,13 +622,6 @@
 <param humanName="GPS Hdop Good" name="ArduCopter:GPS_HDOP_GOOD" documentation="GPS Hdop value below which represent a good position.  Used for pre-arm checks" user="Advanced">
 <field name="Range">100 900</field>
 </param>
-<param humanName="Voltage Divider" name="ArduCopter:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
-</param>
-<param humanName="Current Amps per volt" name="ArduCopter:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )" user="Advanced">
-</param>
-<param humanName="Battery Capacity" name="ArduCopter:BATT_CAPACITY" documentation="Battery capacity in milliamp-hours (mAh)" user="Standard">
-<field name="Units">mAh</field>
-</param>
 <param humanName="Enable Compass" name="ArduCopter:MAG_ENABLE" documentation="Setting this to Enabled(1) will enable the compass. Setting this to Disabled(0) will disable the compass" user="Standard">
 <values>
 <value code="0">Disabled</value>
@@ -646,38 +634,78 @@
 <value code="1">Enabled</value>
 </values>
 </param>
-<param humanName="Low Voltage" name="ArduCopter:LOW_VOLT" documentation="Set this to the voltage you want to represent low voltage" user="Standard">
-<field name="Range">0 20</field>
-<field name="Increment">0.1</field>
-</param>
-<param humanName="Enable Super Simple Mode" name="ArduCopter:SUPER_SIMPLE" documentation="Setting this to Enabled(1) will enable Super Simple Mode. Setting this to Disabled(0) will disable Super Simple Mode" user="Standard">
+<param humanName="Enable Super Simple Mode" name="ArduCopter:SUPER_SIMPLE" documentation="Enabling this turn on one of the Super Simple Mode variants. Setting this to Disabled(0) will disable Super Simple Mode" user="Standard">
 <values>
 <value code="0">Disabled</value>
-<value code="1">Enabled</value>
+<value code="1">Mode1</value>
+<value code="2">Mode2</value>
+<value code="3">Mode1+2</value>
+<value code="4">Mode3</value>
+<value code="5">Mode1+3</value>
+<value code="6">Mode2+3</value>
+<value code="7">Mode1+2+3</value>
+<value code="8">Mode4</value>
+<value code="9">Mode1+4</value>
+<value code="10">Mode2+4</value>
+<value code="11">Mode1+2+4</value>
+<value code="12">Mode3+4</value>
+<value code="13">Mode1+3+4</value>
+<value code="14">Mode2+3+4</value>
+<value code="15">Mode1+2+3+4</value>
+<value code="16">Mode5</value>
+<value code="17">Mode1+5</value>
+<value code="18">Mode2+5</value>
+<value code="19">Mode1+2+5</value>
+<value code="20">Mode3+5</value>
+<value code="21">Mode1+3+5</value>
+<value code="22">Mode2+3+5</value>
+<value code="23">Mode1+2+3+5</value>
+<value code="24">Mode4+5</value>
+<value code="25">Mode1+4+5</value>
+<value code="26">Mode2+4+5</value>
+<value code="27">Mode1+2+4+5</value>
+<value code="28">Mode3+4+5</value>
+<value code="29">Mode1+3+4+5</value>
+<value code="30">Mode2+3+4+5</value>
+<value code="31">Mode1+2+3+4+5</value>
+<value code="32">Mode6</value>
+<value code="33">Mode1+6</value>
+<value code="34">Mode2+6</value>
+<value code="35">Mode1+2+6</value>
+<value code="36">Mode3+6</value>
+<value code="37">Mode1+3+6</value>
+<value code="38">Mode2+3+6</value>
+<value code="39">Mode1+2+3+6</value>
+<value code="40">Mode4+6</value>
+<value code="41">Mode1+4+6</value>
+<value code="42">Mode2+4+6</value>
+<value code="43">Mode1+2+4+6</value>
+<value code="44">Mode3+4+6</value>
+<value code="45">Mode1+3+4+6</value>
+<value code="46">Mode2+3+4+6</value>
+<value code="47">Mode1+2+3+4+6</value>
+<value code="48">Mode5+6</value>
+<value code="49">Mode1+5+6</value>
+<value code="50">Mode2+5+6</value>
+<value code="51">Mode1+2+5+6</value>
+<value code="52">Mode3+5+6</value>
+<value code="53">Mode1+3+5+6</value>
+<value code="54">Mode2+3+5+6</value>
+<value code="55">Mode1+2+3+5+6</value>
+<value code="56">Mode4+5+6</value>
+<value code="57">Mode1+4+5+6</value>
+<value code="58">Mode2+4+5+6</value>
+<value code="59">Mode1+2+4+5+6</value>
+<value code="60">Mode3+4+5+6</value>
+<value code="61">Mode1+3+4+5+6</value>
+<value code="62">Mode2+3+4+5+6</value>
+<value code="63">Mode1+2+3+4+5+6</value>
 </values>
 </param>
 <param humanName="RTL Final Altitude" name="ArduCopter:RTL_ALT_FINAL" documentation="This is the altitude the vehicle will move to as the final stage of Returning to Launch or after completing a mission.  Set to zero to land." user="Standard">
 <field name="Range">-1 1000</field>
 <field name="Increment">1</field>
 <field name="Units">Centimeters</field>
-</param>
-<param humanName="Battery Voltage sensing pin" name="ArduCopter:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 0">A0</value>
-<value code=" 1">A1</value>
-<value code=" 13">A13</value>
-<value code=" 100">PX4</value>
-</values>
-</param>
-<param humanName="Battery Current sensing pin" name="ArduCopter:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 1">A1</value>
-<value code=" 2">A2</value>
-<value code=" 12">A12</value>
-<value code=" 101">PX4</value>
-</values>
 </param>
 <param humanName="Receiver RSSI sensing pin" name="ArduCopter:RSSI_PIN" documentation="This selects an analog pin for the receiver RSSI voltage. It assumes the voltage is 5V for max rssi, 0V for minimum" user="Standard">
 <values>
@@ -726,7 +754,7 @@
 <field name="Units">Centimeters/Second</field>
 </param>
 <param humanName="Minimum Throttle" name="ArduCopter:THR_MIN" documentation="The minimum throttle that will be sent to the motors to keep them spinning" user="Standard">
-<field name="Range">0 1000</field>
+<field name="Range">0 300</field>
 <field name="Increment">1</field>
 <field name="Units">ms</field>
 </param>
@@ -950,6 +978,7 @@
 <value code=" 13">Super Simple Mode</value>
 <value code=" 14">Acro Trainer</value>
 <value code=" 16">Auto</value>
+<value code=" 17">AutoTune</value>
 </values>
 </param>
 <param humanName="Channel 8 option" name="ArduCopter:CH8_OPT" documentation="Select which function if performed when CH8 is above 1800 pwm" user="Standard">
@@ -968,6 +997,7 @@
 <value code=" 13">Super Simple Mode</value>
 <value code=" 14">Acro Trainer</value>
 <value code=" 16">Auto</value>
+<value code=" 17">AutoTune</value>
 </values>
 </param>
 <param humanName="Arming check" name="ArduCopter:ARMING_CHECK" documentation="Allows enabling or disabling of pre-arming checks of receiver, accelerometer, barometer and compass" user="Standard">
@@ -1015,12 +1045,12 @@
 <values>
 <value code="0">Disabled</value>
 <value code="1">Enable</value>
-<value code="2">GPS On</value>
+<value code="3">GPS On</value>
 <value code="4">Aux</value>
-<value code="8">Buzzer</value>
-<value code="16">Oscillate</value>
-<value code="32">Nav Blink</value>
-<value code="64">GPS Nav Blink</value>
+<value code="9">Buzzer</value>
+<value code="17">Oscillate</value>
+<value code="33">Nav Blink</value>
+<value code="65">GPS Nav Blink</value>
 </values>
 </param>
 <param humanName="Roll axis rate controller P gain" name="ArduCopter:RATE_RLL_P" documentation="Roll axis rate controller P gain.  Converts the difference between desired roll rate and actual roll rate into a motor speed output" user="Standard">
@@ -1250,24 +1280,6 @@
 <value code=" 13">A13</value>
 </values>
 </param>
-<param humanName="Battery Voltage sensing pin" name="APMrover2:BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100." user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 0">A0</value>
-<value code=" 1">A1</value>
-<value code=" 13">A13</value>
-<value code=" 100">PX4</value>
-</values>
-</param>
-<param humanName="Battery Current sensing pin" name="APMrover2:BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. " user="Standard">
-<values>
-<value code="-1">Disabled</value>
-<value code=" 1">A1</value>
-<value code=" 2">A2</value>
-<value code=" 12">A12</value>
-<value code=" 101">PX4</value>
-</values>
-</param>
 <param humanName="MAVLink system ID" name="APMrover2:SYSID_THIS_MAV" documentation="ID used in MAVLink protocol to identify this vehicle" user="Advanced">
 </param>
 <param humanName="MAVLink ground station ID" name="APMrover2:SYSID_MYGCS" documentation="ID used in MAVLink protocol to identify the controlling ground station" user="Advanced">
@@ -1308,29 +1320,6 @@
 <value code="0">Disabled</value>
 <value code="1">Enabled</value>
 </values>
-</param>
-<param humanName="Battery monitoring" name="APMrover2:BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
-<values>
-<value code="0">Disabled</value>
-<value code="3">Voltage Only</value>
-<value code="4">Voltage and Current</value>
-</values>
-</param>
-<param humanName="Voltage Divider" name="APMrover2:VOLT_DIVIDER" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_DIVIDER). For the 3DR Power brick, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
-</param>
-<param humanName="Current Amps per volt" name="APMrover2:AMP_PER_VOLT" documentation="Used to convert the voltage on the current sensing pin (BATT_CURR_PIN) to the actual current being consumed in amps (curr pin voltage * INPUT_VOLTS/1024 * AMP_PER_VOLT )" user="Advanced">
-</param>
-<param humanName="Battery Capacity" name="APMrover2:BATT_CAPACITY" documentation="Battery capacity in milliamp-hours (mAh)" user="Standard">
-<field name="Units">mAh</field>
-</param>
-<param humanName="Crosstrack Gain" name="APMrover2:XTRK_GAIN_SC" documentation="This controls how hard the Rover tries to follow the lines between waypoints, as opposed to driving directly to the next waypoint. The value is the scale between distance off the line and angle to meet the line (in Degrees * 100)" user="Standard">
-<field name="Range">0 2000</field>
-<field name="Increment">1</field>
-</param>
-<param humanName="Crosstrack Entry Angle" name="APMrover2:XTRK_ANGLE_CD" documentation="Maximum angle used to correct for track following." user="Standard">
-<field name="Range">0 9000</field>
-<field name="Increment">1</field>
-<field name="Units">centi-Degrees</field>
 </param>
 <param humanName="Auto mode trigger pin" name="APMrover2:AUTO_TRIGGER_PIN" documentation="pin number to use to enable the throttle in auto mode. If set to -1 then don't use a trigger, otherwise this is a pin number which if held low in auto mode will enable the motor to run. If the switch is released while in AUTO then the motor will stop again. This can be used in combination with INITIAL_MODE to give a 'press button to start' rover with no receiver." user="standard">
 <values>
@@ -1515,6 +1504,11 @@
 <field name="Range">0 1000</field>
 <field name="Increment">0.1</field>
 <field name="Units">meters</field>
+</param>
+<param humanName="Turning maximum G force" name="APMrover2:TURN_MAX_G" documentation="The maximum turning acceleration (in units of gravities) that the rover can handle while remaining stable. The navigation code will keep the lateral acceleration below this level to avoid rolling over or slipping the wheels in turns" user="Standard">
+<field name="Range">0.2 10</field>
+<field name="Increment">0.1</field>
+<field name="Units">gravities</field>
 </param>
 </parameters>
 </vehicles><libraries><parameters name="GND_">
@@ -2073,7 +2067,7 @@
 </param>
 </parameters>
 <parameters name="RLL2SRV_">
-<param humanName="Pitch Time Constant" name="RLL2SRV_T_CONST" documentation="This controls the time constant in seconds from demanded to achieved bank angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
+<param humanName="Roll Time Constant" name="RLL2SRV_T_CONST" documentation="This controls the time constant in seconds from demanded to achieved bank angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
 <field name="Range">0.4 1.0</field>
 <field name="Increment">0.1</field>
 <field name="Units">seconds</field>
@@ -2082,7 +2076,7 @@
 <field name="Range">0.1 2.0</field>
 <field name="Increment">0.1</field>
 </param>
-<param humanName="Damping Gain" name="RLL2SRV_D" documentation="This is the gain from roll rate to aileron. This adjusts the damping of the roll control loop. It has the same effect as RLL2SRV_D in the old PID controller but without the spikes in servo demands. This gain helps to reduce rolling in turbulence. It should be increased in 0.01 increments as too high a value can lead to a high frequency pitch oscillation that could overstress the airframe." user="User">
+<param humanName="Damping Gain" name="RLL2SRV_D" documentation="This is the gain from roll rate to aileron. This adjusts the damping of the roll control loop. It has the same effect as RLL2SRV_D in the old PID controller but without the spikes in servo demands. This gain helps to reduce rolling in turbulence. It should be increased in 0.01 increments as too high a value can lead to a high frequency roll oscillation that could overstress the airframe." user="User">
 <field name="Range">0 0.1</field>
 <field name="Increment">0.01</field>
 </param>
@@ -2095,7 +2089,7 @@
 <field name="Increment">1</field>
 <field name="Units">degrees/second</field>
 </param>
-<param humanName="Integrator limit" name="RLL2SRV_IMAX" documentation="This limits the number of degrees of aileron in centi-dgrees over which the integrator will operate. At the default setting of 1500 centi-degrees, the integrator will be limited to +- 15 degrees of servo travel. The maximum servo deflection is +- 45 centi-degrees, so the default value represents a 1/3rd of the total control throw which is adequate unless the aircraft is severely out of trim." user="Advanced">
+<param humanName="Integrator limit" name="RLL2SRV_IMAX" documentation="This limits the number of degrees of aileron in centi-degrees over which the integrator will operate. At the default setting of 1500 centi-degrees, the integrator will be limited to +- 15 degrees of servo travel. The maximum servo deflection is +- 45 centi-degrees, so the default value represents a 1/3rd of the total control throw which is adequate unless the aircraft is severely out of trim." user="Advanced">
 <field name="Range">0 4500</field>
 <field name="Increment">1</field>
 </param>
@@ -2157,6 +2151,34 @@
 <param humanName="Integrator limit" name="YAW2SRV_IMAX" documentation="This limits the number of centi-degrees of rudder over which the integrator will operate. At the default setting of 1500 centi-degrees, the integrator will be limited to +- 15 degrees of servo travel. The maximum servo deflection is +- 45 degrees, so the default value represents a 1/3rd of the total control throw which is adequate for most aircraft unless they are severely out of trim or have very limited rudder control effectiveness." user="Advanced">
 <field name="Range">0 4500</field>
 <field name="Increment">1</field>
+</param>
+</parameters>
+<parameters name="STEER2SRV_">
+<param humanName="Steering Time Constant" name="STEER2SRV_T_CONST" documentation="This controls the time constant in seconds from demanded to achieved bank angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
+<field name="Range">0.4 1.0</field>
+<field name="Increment">0.1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="Steering turning gain" name="STEER2SRV_P" documentation="The proportional gain for steering. This should be approximately equal to the diameter of the turning circle of the vehicle at low speed and maximum steering angle" user="User">
+<field name="Range">0.1 10.0</field>
+<field name="Increment">0.1</field>
+</param>
+<param humanName="Integrator Gain" name="STEER2SRV_I" documentation="This is the gain from the integral of steering angle. Increasing this gain causes the controller to trim out steady offsets due to an out of trim vehicle." user="User">
+<field name="Range">0 1.0</field>
+<field name="Increment">0.05</field>
+</param>
+<param humanName="Damping Gain" name="STEER2SRV_D" documentation="This adjusts the damping of the steering control loop. This gain helps to reduce steering jitter with vibration. It should be increased in 0.01 increments as too high a value can lead to a high frequency steering oscillation that could overstress the vehicle." user="User">
+<field name="Range">0 0.1</field>
+<field name="Increment">0.01</field>
+</param>
+<param humanName="Integrator limit" name="STEER2SRV_IMAX" documentation="This limits the number of degrees of steering in centi-degrees over which the integrator will operate. At the default setting of 1500 centi-degrees, the integrator will be limited to +- 15 degrees of servo travel. The maximum servo deflection is +- 45 centi-degrees, so the default value represents a 1/3rd of the total control throw which is adequate unless the vehicle is severely out of trim." user="Advanced">
+<field name="Range">0 4500</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Minimum speed" name="STEER2SRV_MINSPD" documentation="This is the minimum assumed ground speed in meters/second for steering. Having a minimum speed prevents osciallations when the vehicle first starts moving. The vehicle can still driver slower than this limit, but the steering calculations will be done based on this minimum speed." user="User">
+<field name="Range">0 5</field>
+<field name="Increment">0.1</field>
+<field name="Units">m/s</field>
 </param>
 </parameters>
 <parameters name="COMPASS_">
@@ -2445,7 +2467,7 @@
 <param humanName="Airspeed ratio" name="ARSPD_RATIO" documentation="Airspeed calibration ratio">
 <field name="Increment">0.1</field>
 </param>
-<param humanName="Airspeed pin" name="ARSPD_PIN" documentation="The analog pin number that the airspeed sensor is connected to. Set this to 0..9 for the APM2 analog pins. Set to 64 on an APM1 for the dedicated airspeed port on the end of the board. Set to 11 on PX4 for the analog airspeed port. Set to 65 on the PX4 for an EagleTree or MEAS I2C airspeed sensor." user="Advanced">
+<param humanName="Airspeed pin" name="ARSPD_PIN" documentation="The analog pin number that the airspeed sensor is connected to. Set this to 0..9 for the APM2 analog pins. Set to 64 on an APM1 for the dedicated airspeed port on the end of the board. Set to 11 on PX4 for the analog airspeed port. Set to 15 on the Pixhawk for the analog airspeed port. Set to 65 on the PX4 or Pixhawk for an EagleTree or MEAS I2C airspeed sensor." user="Advanced">
 </param>
 <param humanName="Automatic airspeed ratio calibration" name="ARSPD_AUTOCAL" documentation="If this is enabled then the APM will automatically adjust the ARSPD_RATIO during flight, based upon an estimation filter using ground speed and true airspeed. The automatic calibration will save the new ratio to EEPROM every 2 minutes if it changes by more than 5%" user="Advanced">
 </param>
@@ -2764,6 +2786,46 @@
 <param humanName="mount joystick speed" name="MNT2_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second." user="Standard">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
+</param>
+</parameters>
+<parameters name="BATT_">
+<param humanName="Battery monitoring" name="BATT_BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="3">Voltage Only</value>
+<value code="4">Voltage and Current</value>
+</values>
+</param>
+<param humanName="Battery Voltage sensing pin" name="BATT_BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100. On the Pixhawk powered from the PM connector it should be set to 2." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 0">A0</value>
+<value code=" 1">A1</value>
+<value code=" 2">Pixhawk</value>
+<value code=" 13">A13</value>
+<value code=" 100">PX4</value>
+</values>
+</param>
+<param humanName="Battery Current sensing pin" name="BATT_BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. On the Pixhawk powered from the PM connector it should be set to 3." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 1">A1</value>
+<value code=" 2">A2</value>
+<value code=" 3">Pixhawk</value>
+<value code=" 12">A12</value>
+<value code=" 101">PX4</value>
+</values>
+</param>
+<param humanName="Voltage Multiplier" name="BATT_BATT_VOLT_MULT" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_MULT). For the 3DR Power brick on APM2 or Pixhawk, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
+</param>
+<param humanName="Apms per volt" name="BATT_BATT_APM_PERVOLT" documentation="Number of amps that a 1V reading on the current sensor corresponds to. On the APM2 or Pixhawk using the 3DR Power brick this should be set to 17." user="Standard">
+<field name="Units">A/V</field>
+</param>
+<param humanName="AMP offset" name="BATT_BATT_AMP_OFFSET" documentation="Voltage offset at zero current on current sensor" user="Standard">
+<field name="Units">Volts</field>
+</param>
+<param humanName="Battery capacity" name="BATT_BATT_CAPACITY" documentation="Capacity of the battery in mAh when full" user="Standard">
+<field name="Units">mAh</field>
 </param>
 </parameters>
 <parameters name="HS1_">
@@ -3603,70 +3665,6 @@
 <field name="Units">cm/s/s</field>
 </param>
 </parameters>
-<parameters name="SR0_">
-<param humanName="Waypoint Horizontal Speed Target" name="SR0_SPEED" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain horizontally during a WP mission" user="Standard">
-<field name="Range">0 2000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Radius" name="SR0_RADIUS" documentation="Defines the distance from a waypoint, that when crossed indicates the wp has been hit." user="Standard">
-<field name="Range">100 1000</field>
-<field name="Increment">1</field>
-<field name="Units">cm</field>
-</param>
-<param humanName="Waypoint Climb Speed Target" name="SR0_SPEED_UP" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain while climbing during a WP mission" user="Standard">
-<field name="Range">0 1000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Descent Speed Target" name="SR0_SPEED_DN" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain while descending during a WP mission" user="Standard">
-<field name="Range">0 1000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Loiter Horizontal Maximum Speed" name="SR0_LOIT_SPEED" documentation="Defines the maximum speed in cm/s which the aircraft will travel horizontally while in loiter mode" user="Standard">
-<field name="Range">0 2000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Acceleration " name="SR0_ACCEL" documentation="Defines the horizontal acceleration in cm/s/s used during missions" user="Standard">
-<field name="Range">0 980</field>
-<field name="Increment">10</field>
-<field name="Units">cm/s/s</field>
-</param>
-</parameters>
-<parameters name="SR3_">
-<param humanName="Waypoint Horizontal Speed Target" name="SR3_SPEED" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain horizontally during a WP mission" user="Standard">
-<field name="Range">0 2000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Radius" name="SR3_RADIUS" documentation="Defines the distance from a waypoint, that when crossed indicates the wp has been hit." user="Standard">
-<field name="Range">100 1000</field>
-<field name="Increment">1</field>
-<field name="Units">cm</field>
-</param>
-<param humanName="Waypoint Climb Speed Target" name="SR3_SPEED_UP" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain while climbing during a WP mission" user="Standard">
-<field name="Range">0 1000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Descent Speed Target" name="SR3_SPEED_DN" documentation="Defines the speed in cm/s which the aircraft will attempt to maintain while descending during a WP mission" user="Standard">
-<field name="Range">0 1000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Loiter Horizontal Maximum Speed" name="SR3_LOIT_SPEED" documentation="Defines the maximum speed in cm/s which the aircraft will travel horizontally while in loiter mode" user="Standard">
-<field name="Range">0 2000</field>
-<field name="Increment">50</field>
-<field name="Units">cm/s</field>
-</param>
-<param humanName="Waypoint Acceleration " name="SR3_ACCEL" documentation="Defines the horizontal acceleration in cm/s/s used during missions" user="Standard">
-<field name="Range">0 980</field>
-<field name="Increment">10</field>
-<field name="Units">cm/s/s</field>
-</param>
-</parameters>
 <parameters name="AHRS_">
 <param humanName="AHRS GPS gain" name="AHRS_GPS_GAIN" documentation="This controls how how much to use the GPS to correct the attitude. This should never be set to zero for a plane as it would result in the plane losing control in turns. For a plane please use the default value of 1.0.">
 <field name="Range">0.0 1.0</field>
@@ -4012,6 +4010,46 @@
 <field name="Increment">1</field>
 </param>
 </parameters>
+<parameters name="BATT_">
+<param humanName="Battery monitoring" name="BATT_BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="3">Voltage Only</value>
+<value code="4">Voltage and Current</value>
+</values>
+</param>
+<param humanName="Battery Voltage sensing pin" name="BATT_BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100. On the Pixhawk powered from the PM connector it should be set to 2." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 0">A0</value>
+<value code=" 1">A1</value>
+<value code=" 2">Pixhawk</value>
+<value code=" 13">A13</value>
+<value code=" 100">PX4</value>
+</values>
+</param>
+<param humanName="Battery Current sensing pin" name="BATT_BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. On the Pixhawk powered from the PM connector it should be set to 3." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 1">A1</value>
+<value code=" 2">A2</value>
+<value code=" 3">Pixhawk</value>
+<value code=" 12">A12</value>
+<value code=" 101">PX4</value>
+</values>
+</param>
+<param humanName="Voltage Multiplier" name="BATT_BATT_VOLT_MULT" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_MULT). For the 3DR Power brick on APM2 or Pixhawk, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
+</param>
+<param humanName="Apms per volt" name="BATT_BATT_APM_PERVOLT" documentation="Number of amps that a 1V reading on the current sensor corresponds to. On the APM2 or Pixhawk using the 3DR Power brick this should be set to 17." user="Standard">
+<field name="Units">A/V</field>
+</param>
+<param humanName="AMP offset" name="BATT_BATT_AMP_OFFSET" documentation="Voltage offset at zero current on current sensor" user="Standard">
+<field name="Units">Volts</field>
+</param>
+<param humanName="Battery capacity" name="BATT_BATT_CAPACITY" documentation="Capacity of the battery in mAh when full" user="Standard">
+<field name="Units">mAh</field>
+</param>
+</parameters>
 <parameters name="SPRAYER_">
 <param humanName="Sprayer enable/disable" name="SPRAYER_ENABLE" documentation="Allows you to enable (1) or disable (0) the sprayer" user="Standard">
 <values>
@@ -4030,6 +4068,10 @@
 <param humanName="Speed minimum" name="SPRAYER_SPEED_MIN" documentation="Speed minimum at which we will begin spraying" user="Standard">
 <field name="Range">0 1000</field>
 <field name="Units">cm/s</field>
+</param>
+<param humanName="Pump speed minimum" name="SPRAYER_PUMP_MIN" documentation="Minimum pump speed expressed as a percentage" user="Standard">
+<field name="Range">0 100</field>
+<field name="Units">percentage</field>
 </param>
 </parameters>
 <parameters name="GND_">
@@ -4087,6 +4129,14 @@
 <param humanName="Fence Margin" name="FENCE_MARGIN" documentation="Distance that autopilot's should maintain from the fence to avoid a breach" user="Standard">
 <field name="Range">1 10</field>
 <field name="Units">Meters</field>
+</param>
+</parameters>
+<parameters name="GPSGLITCH_">
+<param humanName="GPS Glitch protection enable/disable" name="GPSGLITCH_ENABLE" documentation="Allows you to enable (1) or disable (0) gps glitch protection" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="1">Enabled</value>
+</values>
 </param>
 </parameters>
 <parameters name="H_">
@@ -4196,12 +4246,13 @@
 <param humanName="Thrust Curve max thrust percentage" name="MOT_TCRV_MAXPCT" documentation="Set to the lowest pwm position that produces the maximum thrust of the motors.  Most motors produce maximum thrust below the maximum pwm value that they accept.">
 <field name="Range">20 80</field>
 </param>
-<param humanName="Motors always spin when armed" name="MOT_SPIN_ARMED" documentation="Controls whether motors always spin when armed">
+<param humanName="Motors always spin when armed" name="MOT_SPIN_ARMED" documentation="Controls whether motors always spin when armed (must be below THR_MIN)">
 <values>
 <value code="0">Do Not Spin</value>
-<value code="50">Slow</value>
-<value code="85">Medium</value>
-<value code="120">Fast</value>
+<value code="70">VerySlow</value>
+<value code="100">Slow</value>
+<value code="130">Medium</value>
+<value code="150">Fast</value>
 </values>
 </param>
 </parameters>
@@ -4627,6 +4678,34 @@
 </values>
 </param>
 </parameters>
+<parameters name="STEER2SRV_">
+<param humanName="Steering Time Constant" name="STEER2SRV_T_CONST" documentation="This controls the time constant in seconds from demanded to achieved bank angle. A value of 0.5 is a good default and will work with nearly all models. Advanced users may want to reduce this time to obtain a faster response but there is no point setting a time less than the aircraft can achieve." user="Advanced">
+<field name="Range">0.4 1.0</field>
+<field name="Increment">0.1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="Steering turning gain" name="STEER2SRV_P" documentation="The proportional gain for steering. This should be approximately equal to the diameter of the turning circle of the vehicle at low speed and maximum steering angle" user="User">
+<field name="Range">0.1 10.0</field>
+<field name="Increment">0.1</field>
+</param>
+<param humanName="Integrator Gain" name="STEER2SRV_I" documentation="This is the gain from the integral of steering angle. Increasing this gain causes the controller to trim out steady offsets due to an out of trim vehicle." user="User">
+<field name="Range">0 1.0</field>
+<field name="Increment">0.05</field>
+</param>
+<param humanName="Damping Gain" name="STEER2SRV_D" documentation="This adjusts the damping of the steering control loop. This gain helps to reduce steering jitter with vibration. It should be increased in 0.01 increments as too high a value can lead to a high frequency steering oscillation that could overstress the vehicle." user="User">
+<field name="Range">0 0.1</field>
+<field name="Increment">0.01</field>
+</param>
+<param humanName="Integrator limit" name="STEER2SRV_IMAX" documentation="This limits the number of degrees of steering in centi-degrees over which the integrator will operate. At the default setting of 1500 centi-degrees, the integrator will be limited to +- 15 degrees of servo travel. The maximum servo deflection is +- 45 centi-degrees, so the default value represents a 1/3rd of the total control throw which is adequate unless the vehicle is severely out of trim." user="Advanced">
+<field name="Range">0 4500</field>
+<field name="Increment">1</field>
+</param>
+<param humanName="Minimum speed" name="STEER2SRV_MINSPD" documentation="This is the minimum assumed ground speed in meters/second for steering. Having a minimum speed prevents osciallations when the vehicle first starts moving. The vehicle can still driver slower than this limit, but the steering calculations will be done based on this minimum speed." user="User">
+<field name="Range">0 5</field>
+<field name="Increment">0.1</field>
+<field name="Units">m/s</field>
+</param>
+</parameters>
 <parameters name="COMPASS_">
 <param humanName="Compass offsets on the X axis" name="COMPASS_OFS_X" documentation="Offset to be added to the compass x-axis values to compensate for metal in the frame">
 <field name="Range">-400 400</field>
@@ -4774,6 +4853,17 @@
 <param humanName="Yaw channel" name="RCMAP_YAW" documentation="Yaw channel number. This is useful when you have a RC transmitter that can't change the channel order easily. Yaw (also known as rudder) is normally on channel 4, but you can move it to any channel with this parameter." user="Advanced">
 <field name="Range">1 8</field>
 <field name="Increment">1</field>
+</param>
+</parameters>
+<parameters name="NAVL1_">
+<param humanName="L1 control period" name="NAVL1_PERIOD" documentation="Period in seconds of L1 tracking loop. This needs to be larger for less responsive airframes. The default of 30 is very conservative, and for most RC aircraft will lead to slow and lazy turns. For smaller more agile aircraft a value closer to 20 is appropriate. When tuning, change this value in small increments, as a value that is much too small (say 5 or 10 below the right value) can lead to very radical turns, and a risk of stalling.">
+<field name="Range">1-60</field>
+<field name="Increment">1</field>
+<field name="Units">seconds</field>
+</param>
+<param humanName="L1 control damping ratio" name="NAVL1_DAMPING" documentation="Damping ratio for L1 control. Increase this in increments of 0.05 if you are getting overshoot in path tracking. You should not need a value below 0.7 or above 0.85.">
+<field name="Range">0.6-1.0</field>
+<field name="Increment">0.05</field>
 </param>
 </parameters>
 <parameters name="SONAR_">
@@ -5133,6 +5223,46 @@
 <param humanName="mount joystick speed" name="MNT_JSTICK_SPD" documentation="0 for position control, small for low speeds, 100 for max speed. A good general value is 10 which gives a movement speed of 3 degrees per second." user="Standard">
 <field name="Range">0 100</field>
 <field name="Increment">1</field>
+</param>
+</parameters>
+<parameters name="BATT_">
+<param humanName="Battery monitoring" name="BATT_BATT_MONITOR" documentation="Controls enabling monitoring of the battery's voltage and current" user="Standard">
+<values>
+<value code="0">Disabled</value>
+<value code="3">Voltage Only</value>
+<value code="4">Voltage and Current</value>
+</values>
+</param>
+<param humanName="Battery Voltage sensing pin" name="BATT_BATT_VOLT_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 13. On the PX4 it should be set to 100. On the Pixhawk powered from the PM connector it should be set to 2." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 0">A0</value>
+<value code=" 1">A1</value>
+<value code=" 2">Pixhawk</value>
+<value code=" 13">A13</value>
+<value code=" 100">PX4</value>
+</values>
+</param>
+<param humanName="Battery Current sensing pin" name="BATT_BATT_CURR_PIN" documentation="Setting this to 0 ~ 13 will enable battery current sensing on pins A0 ~ A13. For the 3DR power brick on APM2.5 it should be set to 12. On the PX4 it should be set to 101. On the Pixhawk powered from the PM connector it should be set to 3." user="Standard">
+<values>
+<value code="-1">Disabled</value>
+<value code=" 1">A1</value>
+<value code=" 2">A2</value>
+<value code=" 3">Pixhawk</value>
+<value code=" 12">A12</value>
+<value code=" 101">PX4</value>
+</values>
+</param>
+<param humanName="Voltage Multiplier" name="BATT_BATT_VOLT_MULT" documentation="Used to convert the voltage of the voltage sensing pin (BATT_VOLT_PIN) to the actual battery's voltage (pin_voltage * VOLT_MULT). For the 3DR Power brick on APM2 or Pixhawk, this should be set to 10.1. For the PX4 using the PX4IO power supply this should be set to 1." user="Advanced">
+</param>
+<param humanName="Apms per volt" name="BATT_BATT_APM_PERVOLT" documentation="Number of amps that a 1V reading on the current sensor corresponds to. On the APM2 or Pixhawk using the 3DR Power brick this should be set to 17." user="Standard">
+<field name="Units">A/V</field>
+</param>
+<param humanName="AMP offset" name="BATT_BATT_AMP_OFFSET" documentation="Voltage offset at zero current on current sensor" user="Standard">
+<field name="Units">Volts</field>
+</param>
+<param humanName="Battery capacity" name="BATT_BATT_CAPACITY" documentation="Capacity of the battery in mAh when full" user="Standard">
+<field name="Units">mAh</field>
 </param>
 </parameters>
 </libraries></paramfile>
