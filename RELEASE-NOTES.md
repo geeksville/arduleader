@@ -1,3 +1,9 @@
+# 1.9.0
+* Fix bug that broke loading waypoints from files (thanks to Antonio Alfaro)
+* Include new scripting API (not yet documented - off by default)
+* Fix a couple of rare autobugs
+* Fix a bug where the new radiation warning could fail on screen rotation of certain tablet types (non fatal - but ugh)
+
 # 1.8.19
 * Some non andropilot service crashes frequently without releasing the USB port.  If we find the tablet in that state, we warn the user and suggest a workaround.
 * Add support for 'show on map' for big waypoint lists
