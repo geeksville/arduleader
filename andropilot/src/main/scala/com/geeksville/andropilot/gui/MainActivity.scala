@@ -658,46 +658,72 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
   }
 
-  private def handleFileOpen(uri: Uri) {
-    // FIXME - show a dialog asking for confirmation
+  /**
+   * Do our file loading in a background thread - but do the associate UI in the UI thread
+   */
+  class FileLoadTask(val uri: Uri) extends AsyncVoidTask {
     val filename = uri.getLastPathSegment
-    future { // Don't do this in the main thread - because it might try to touch network
+    private var message: Option[String] = None
+
+    override protected def inBackground() {
+
       debug("Handling fileOpen (in background thread)")
 
-      using(AndroidJUtil.getFromURI(this, uri)) { s =>
+      using(AndroidJUtil.getFromURI(context, uri)) { s =>
+        debug("Opened fileOpen (in background thread)")
         myVehicle.foreach { v =>
-          if (filename.toLowerCase.endsWith(".param")) {
-            toast("Parameter file reading not yet supported")
-          }
+          debug("Got vehicle in fileOpen (in background thread)")
 
-          if (filename.toLowerCase.endsWith(".fen")) {
-            if (!v.isFenceAvailable)
-              toast(R.string.fence_not_avail, true)
-            else {
-              usageEvent("fence_uploaded", "url" -> uri.toString)
-              toast(S(R.string.uploading_fence).format(filename))
-              val pts = FenceModel.pointsFromStream(s)
+          val vehicleReady = v.hasHeartbeat && !v.waypoints.isEmpty
 
-              v ! DoSetFence(pts, fenceMode)
+          if (!vehicleReady) {
+            message = Some("Vehicle not yet initialized, please try again.")
+          } else {
+            if (filename.toLowerCase.endsWith(".param")) {
+              message = Some("Parameter file reading not yet supported")
             }
-          }
 
-          if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
-            usageEvent("waypoint_uploaded", "url" -> uri.toString)
+            if (filename.toLowerCase.endsWith(".fen")) {
+              if (!v.isFenceAvailable)
+                toast(R.string.fence_not_avail, true)
+              else {
+                usageEvent("fence_uploaded", "url" -> uri.toString)
+                message = Some(S(R.string.uploading_fence).format(filename))
+                val pts = FenceModel.pointsFromStream(s)
 
-            try {
-              val pts = v.pointsFromStream(s)
-              toast(S(R.string.uploading_waypoint).format(filename))
-              v ! DoLoadWaypoints(pts)
-              v ! SendWaypoints
-            } catch {
-              case ex: Exception =>
-                toast(ex.getMessage) // Error reading from file (probably not a waypoint file)
+                v ! DoSetFence(pts, fenceMode)
+              }
+            }
+
+            if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
+              debug("Doing upload")
+
+              usageEvent("waypoint_uploaded", "url" -> uri.toString)
+
+              try {
+                val pts = v.pointsFromStream(s)
+                debug(s"Loaded ${pts.size} waypoints")
+
+                message = Some(s"Loaded waypoints from $filename, please click to upload")
+                v ! DoLoadWaypoints(pts)
+                // v ! SendWaypoints
+              } catch {
+                case ex: Exception =>
+                  message = Some(ex.getMessage) // Error reading from file (probably not a waypoint file)
+              }
             }
           }
         }
       }
     }
+
+    protected override def onPostExecute(unused: Void) {
+      message.foreach { s => toast(s) }
+    }
+  }
+
+  private def handleFileOpen(uri: Uri) {
+    (new FileLoadTask(uri)).execute()
   }
 
   private def handleIntent(intent: Intent) {

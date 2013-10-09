@@ -334,6 +334,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       log.info("loading waypoints: " + wpts.size)
       val home = waypoints.head
       waypoints = IndexedSeq(home) ++ wpts.filter(!_.isHome)
+      setDirty(true)
+      onWaypointsChanged()
     }
   }
 
