@@ -15,23 +15,22 @@ import com.ridemission.scandroid._
 class RcChannelsFragment extends SimpleListFragment with UsesResources {
 
   override def onVehicleReceive = {
-    case MsgRcChannelsChanged(_) =>
+    case MsgRcChannelsChanged =>
       if (isVisible) {
         //debug("Received Rc channels")
         handler.post(updateList _)
       }
   }
 
-  private def rcToSeq(m: msg_rc_channels_raw) =
-    Seq(m.chan1_raw, m.chan2_raw, m.chan3_raw, m.chan4_raw,
-      m.chan5_raw, m.chan6_raw, m.chan7_raw, m.chan8_raw).zipWithIndex.map {
-        case (a, i) =>
-          S(R.string.channel).format(i + 1) -> a
-      }
+  private def rcToSeq(m: Seq[Int]) =
+    m.zipWithIndex.map {
+      case (a, i) =>
+        S(R.string.channel).format(i + 1) -> a
+    }
 
   protected def makeAdapter(): Option[SimpleAdapter] = {
-    for { v <- myVehicle; rc <- v.rcChannels } yield {
-      seqToAdapter(rcToSeq(rc))
+    for { v <- myVehicle } yield {
+      seqToAdapter(rcToSeq(v.rcChannels))
     }
   }
 }

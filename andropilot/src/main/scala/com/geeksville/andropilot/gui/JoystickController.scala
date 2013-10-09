@@ -187,7 +187,7 @@ trait JoystickController extends Activity
       isOverriding = true
 
       // Pull over current throttle setting
-      for (v <- myVehicle; rc <- v.rcChannels) yield {
+      for (v <- myVehicle; rc <- v.rcChannelsRaw) yield {
         val oldthrottle = rc.chan3_raw
         throttle = axis(throttleAxisNum).unscale(oldthrottle)
       }
@@ -227,7 +227,6 @@ trait JoystickController extends Activity
     //debug("sendOverride")
     for {
       v <- myVehicle
-      curRc <- v.rcChannels
     } yield {
       // FIXME - if min/max has not already been set by someone else, they may not have a regular controller - so just pick something
 

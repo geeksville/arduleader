@@ -39,7 +39,7 @@ object MsgStatusChanged {
 }
 
 case object MsgSysStatusChanged
-case class MsgRcChannelsChanged(m: msg_rc_channels_raw)
+case object MsgRcChannelsChanged
 case class MsgServoOutputChanged(m: msg_servo_output_raw)
 
 /**
@@ -112,7 +112,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
    * Horizontal position precision in meters
    */
   var hdop: Option[Float] = None
-  var rcChannels: Option[msg_rc_channels_raw] = None
+  var rcChannelsRaw: Option[msg_rc_channels_raw] = None
   var servoOutputRaw: Option[msg_servo_output_raw] = None
   var attitude: Option[msg_attitude] = None
   var vfrHud: Option[msg_vfr_hud] = None
@@ -121,6 +121,17 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
+
+  /**
+   * The rc channels the vehicle is currently receiving
+   */
+  def rcChannels = rcChannelsRaw match {
+    case Some(m) =>
+      Seq(m.chan1_raw, m.chan2_raw, m.chan3_raw, m.chan4_raw,
+        m.chan5_raw, m.chan6_raw, m.chan7_raw, m.chan8_raw)
+    case None =>
+      Seq()
+  }
 
   /**
    * We can only detect flight modes in copter currently
@@ -196,7 +207,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     // Use a for comprehension - if any of the following steps generate None the result will be None
     for {
       ch <- rcModeChannel
-      rc <- rcChannels
+      rc <- rcChannelsRaw
 
       modeNum <- {
         // Using constants per AC/AP code
@@ -336,7 +347,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
 
     case m: msg_rc_channels_raw =>
       val oldMode = rcRequestedMode
-      rcChannels = Some(m)
+      rcChannelsRaw = Some(m)
       val newMode = rcRequestedMode
       if (newMode.isDefined && oldMode != newMode) {
         val s = modeToString(newMode.get)
@@ -344,7 +355,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         eventStream.publish(MsgRCModeChanged(s))
       }
 
-      rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged(m)) }
+      rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged) }
 
     case m: msg_servo_output_raw =>
       servoOutputRaw = Some(m)
@@ -463,7 +474,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       case "Arm" =>
         // Temporary hackish safety check until AC can be updated (see https://github.com/diydrones/ardupilot/issues/553)
         val throttleTooFast = (for {
-          rc <- rcChannels
+          rc <- rcChannelsRaw
           minThrottleOpt <- parametersById.get("RC3_MIN")
           minThrottle <- minThrottleOpt.getInt
         } yield {

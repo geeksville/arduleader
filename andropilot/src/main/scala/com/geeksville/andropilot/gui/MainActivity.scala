@@ -237,8 +237,12 @@ class MainActivity extends FragmentActivity with TypedActivity
         handleParameters()
       }
 
-    case MsgRcChannelsChanged(x) =>
-      handleRCChannels(x)
+    case MsgRcChannelsChanged =>
+      handler.post { () =>
+        myVehicle.foreach { v =>
+          v.rcChannelsRaw.foreach(handleRCChannels)
+        }
+      }
   }
 
   private def handleStatus(s: String, severity: Int) {
