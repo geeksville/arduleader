@@ -30,6 +30,8 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def useFlurry = boolPreference("use_flurry", true)
   def useOldArducopter = boolPreference("use_old_ac", false)
+  def runWebserver = boolPreference("run_webserver", false)
+  def allowOtherHosts = boolPreference("allow_otherhosts", false)
 
   def loggingKeepBoring = boolPreference("log_keep_boring", false)
 

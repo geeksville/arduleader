@@ -30,4 +30,15 @@
         android:summary="Port number to send to on destination machine"
         android:title="Outbound port number" />
 
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="run_webserver"
+        android:summary="GCS scripting API (currently in alpha test)"
+        android:title="Provide GCS-API" />
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="allow_otherhosts"
+        android:summary="Allow other computers to script this GCS (not recommended)"
+        android:title="Remote GCS-API" />
+        
 </PreferenceScreen>

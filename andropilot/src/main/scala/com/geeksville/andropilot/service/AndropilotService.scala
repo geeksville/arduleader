@@ -44,6 +44,9 @@ import com.geeksville.andropilot.UsesDirectories
 import com.geeksville.flight.OnInterfaceChanged
 import android.hardware.usb.UsbDevice
 import scala.collection.mutable.HashMap
+import com.geeksville.gcsapi.GCSAdapter
+import com.geeksville.gcsapi.TempGCSModel
+import com.geeksville.gcsapi.Webserver
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -78,6 +81,8 @@ class AndropilotService extends Service with AndroidLogger
   private var pebbleListener: Option[PebbleVehicleListener] = None
 
   private var errorMessage: Option[String] = None
+
+  private var webServer: Option[InstrumentedActor] = None
 
   implicit val context = this
 
@@ -199,6 +204,13 @@ class AndropilotService extends Service with AndroidLogger
     // FIXME - somehow direct by port id instead
     MavlinkEventBus.subscribe(actor, actor.targetSystem)
     vehicle = Some(actor)
+
+    if (runWebserver) {
+      warn("Starting web server")
+      val gcs = new TempGCSModel(actor)
+      val adapter = new GCSAdapter(gcs)
+      webServer = Some(MockAkka.actorOf(new Webserver(adapter, !allowOtherHosts)))
+    }
 
     val dumpSerialRx = false
     if (dumpSerialRx) {
@@ -490,6 +502,8 @@ class AndropilotService extends Service with AndroidLogger
     prefListeners = Seq()
     udp.foreach(_ ! PoisonPill)
     udp = None
+    webServer.foreach(_ ! PoisonPill)
+    webServer = None
     serialDetachAll()
     unregisterReceiver(disconnectReceiver)
     btDetached()
