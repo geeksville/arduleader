@@ -227,7 +227,7 @@ class AndropilotService extends Service with AndroidLogger
     if (PebbleClient.hasPebble(this))
       pebbleListener = Some(MockAkka.actorOf(new PebbleVehicleListener(this), "pebble"))
 
-    setLogging()
+    setLogging(true)
     serialAttachToExisting()
     startUDP()
     // We now do this only on user input
@@ -291,9 +291,9 @@ class AndropilotService extends Service with AndroidLogger
       stopHighValue()
   }
 
-  def setLogging() {
+  def setLogging(enable: Boolean) {
     // Generate log files mission control would understand
-    if (loggingEnabled) {
+    if (loggingEnabled && enable) {
       // If already logging ignore
       if (!logger.isDefined)
         logDirectory.foreach { d =>
@@ -460,6 +460,9 @@ class AndropilotService extends Service with AndroidLogger
         wakeLock.release()
       stopForeground(true) // Get rid of our notification
 
+      // Finish any log files
+      setLogging(false)
+
       warn("Stopping our service, because no serial means not useful...")
       stopSelf()
     }
@@ -493,6 +496,8 @@ class AndropilotService extends Service with AndroidLogger
 
   override def onDestroy() {
     warn("in onDestroy ******************************")
+
+    setLogging(false)
 
     pebbleListener.foreach(_ ! PoisonPill)
     pebbleListener = None
