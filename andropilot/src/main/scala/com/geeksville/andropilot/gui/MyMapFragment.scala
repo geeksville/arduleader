@@ -420,7 +420,7 @@ class MyMapFragment extends SupportMapFragment
     planeMarker
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case l: Location =>
       // log.debug("Handling location: " + l)
       handler.post { () =>

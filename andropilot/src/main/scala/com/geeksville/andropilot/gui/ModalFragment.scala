@@ -28,6 +28,7 @@ import com.ridemission.scandroid.AndroidUtil
 import android.util.TypedValue
 import statemap.StateUndefinedException
 import com.bugsense.trace.BugSenseHandler
+import com.geeksville.akka.InstrumentedActor
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -45,7 +46,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     }
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
 
     case MsgWaypointDirty(dirty) =>
       handler.post { () =>

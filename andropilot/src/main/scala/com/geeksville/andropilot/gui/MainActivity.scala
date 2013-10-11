@@ -161,7 +161,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
 
     case l: Location =>
       myVehicle.foreach { v =>

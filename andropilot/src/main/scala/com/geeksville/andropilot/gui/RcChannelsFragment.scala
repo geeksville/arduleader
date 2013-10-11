@@ -11,10 +11,11 @@ import android.support.v4.app.ListFragment
 import com.geeksville.andropilot.R
 import com.geeksville.andropilot.service._
 import com.ridemission.scandroid._
+import com.geeksville.akka.InstrumentedActor
 
 class RcChannelsFragment extends SimpleListFragment with UsesResources {
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case MsgRcChannelsChanged =>
       if (isVisible) {
         //debug("Received Rc channels")

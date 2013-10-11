@@ -345,6 +345,8 @@ class AndropilotService extends Service with AndroidLogger
 
     val port = new MavlinkStream(out, in)
 
+    //port.simulateUnreliable = true
+
     btInputStream = Some(in)
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
     val mavSerial = MockAkka.actorOf(port, "btrx")

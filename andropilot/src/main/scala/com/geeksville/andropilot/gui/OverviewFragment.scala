@@ -19,6 +19,7 @@ import com.ridemission.scandroid.ObservableAdapter
 import com.geeksville.flight.StatusText
 import android.widget.BaseAdapter
 import com.geeksville.andropilot.AndropilotPrefs
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * Common behavior for both the overview and floating instruments
@@ -30,7 +31,7 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
   protected final def numSatView = getView.findView(TR.gps_numsats)
   protected final def rssiLocalView = getView.findView(TR.rssi_local)
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case l: Location =>
       //debug("Handling location: " + l)
       handler.post { () =>

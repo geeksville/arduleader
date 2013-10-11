@@ -13,6 +13,7 @@ import com.geeksville.logback.Logging
 import com.geeksville.akka.PoisonPill
 import java.net.ConnectException
 import scala.concurrent._
+import scala.util.Random
 
 // with SerialPortEventListener
 
@@ -41,11 +42,20 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream, val sysIdOve
 
   val rxThread = ThreadTools.createDaemon("streamRx")(rxWorker)
 
+  /**
+   * If true we will pretend to drop many packets
+   */
+  var simulateUnreliable = false
+
+  private val rand = new Random(System.currentTimeMillis)
+
   //rxThread.setPriority(Thread.MAX_PRIORITY)
   rxThread.start()
 
   // Mission control does this, seems to be necessary to keep device from hanging up on us
   //out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
+
+  private def shouldDrop = simulateUnreliable && rand.nextInt(10) < 2
 
   protected def doSendMavlink(bytes: Array[Byte]) {
     //log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))
@@ -130,7 +140,8 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream, val sysIdOve
 
               // Dups are normal, the 3dr radio will duplicate packets if it has nothing better to do
               if (s.sequence != prevSeq && !MavlinkStream.isIgnoreReceive) //  for profiling
-                handlePacket(s)
+                if (!shouldDrop)
+                  handlePacket(s)
 
               prevSeq = s.sequence
             }

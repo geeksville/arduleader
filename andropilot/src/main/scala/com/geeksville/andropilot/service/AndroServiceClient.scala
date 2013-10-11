@@ -104,7 +104,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
     override def onReceive = onVehicleReceive
   }
 
-  def onVehicleReceive: MyVehicleListener#Receiver
+  def onVehicleReceive: InstrumentedActor.Receiver
 
   private def stopVehicleModel() {
     myVListener.foreach { v =>

@@ -9,12 +9,15 @@ object Context {
 
 object PoisonPill
 
+object InstrumentedActor {
+  type Receiver = PartialFunction[Any, Unit]
+}
+
 /**
  * Try to make scala actors look as much like akka actors as possible
  */
 trait InstrumentedActor extends Actor with Logging {
-
-  type Receiver = PartialFunction[Any, Unit]
+  import InstrumentedActor._
 
   private var isDead = false
 

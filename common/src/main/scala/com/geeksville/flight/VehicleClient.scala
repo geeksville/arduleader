@@ -19,6 +19,7 @@ import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
 import com.geeksville.mavlink.MavlinkConstants
+import com.geeksville.akka.InstrumentedActor
 
 /**
  * An endpoint client that talks to a vehicle (adds message retries etc...)
@@ -33,7 +34,7 @@ class VehicleClient(override val targetSystem: Int = 1) extends HeartbeatMonitor
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
-  private def mReceive: Receiver = {
+  private def mReceive: InstrumentedActor.Receiver = {
 
     case RetryExpired(ctx) =>
       ctx.doRetry()

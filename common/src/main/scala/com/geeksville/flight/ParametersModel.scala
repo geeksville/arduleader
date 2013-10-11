@@ -18,6 +18,7 @@ import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
 import com.geeksville.util.ThrottledActor
+import com.geeksville.akka.InstrumentedActor
 
 //
 // Messages we publish on our event bus when something happens
@@ -164,7 +165,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
-  private def mReceive: Receiver = {
+  private def mReceive: InstrumentedActor.Receiver = {
 
     //
     // Messages for downloading parameters from vehicle
@@ -210,18 +211,16 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
       sendProgress(100 * index / (numParametersDesired - 1))
     }
 
-    // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
-    if (retryingParameters) {
+    // Are we done with our initial download early?  If so, we can publish done right now
+    if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
+      log.info("Sending early finish")
+      finisher.foreach(_.cancel())
+      finisher = None
+      self ! FinishParameters
+    } else if (retryingParameters) {
+      // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
       readNextParameter()
     } else {
-      // Are we done with our initial download early?  If so, we can publish done right now
-      if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
-        log.info("Sending early finish")
-        finisher.foreach(_.cancel())
-        finisher = None
-        self ! FinishParameters
-      }
-
       // After we have a sorted param list, we will start publishing updates for individual parameters
       val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
 
@@ -304,11 +303,12 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
     log.info(s"In readNextParameter firstMissing=$firstMissing")
 
-    retryingParameters = firstMissing.isDefined
     firstMissing match {
       case Some((_, i)) =>
+        retryingParameters = true
         requestParameterByIndex(i)
       case None =>
+        retryingParameters = false
         perhapsParametersDownloaded() // Yay - we have everything!
     }
   }

@@ -1,6 +1,9 @@
 # 1.9.1
+* Cope nicely with radios that are dropping many packets (thanks to Glenn McLelland for in depth debugging on this)
 * Promptly send files to droneshare (if so configured)
 * Static content is now served for the beginnings of user runnable checkists and vehicle control scripts.  If you turn this feature on and go to http://localhost:4404/static/README.html you should get an interesting response ;-)
+* Add support for simulating very high error rate links (crappy rctimer radios ;-))
+
 
 # 1.9.0
 * Fix bug that broke loading waypoints from files (thanks to Antonio Alfaro)

@@ -25,6 +25,7 @@ import scala.collection.mutable.ObservableBuffer
 import scala.collection.mutable.SynchronizedBuffer
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
+import com.geeksville.akka.InstrumentedActor
 
 //
 // Messages we publish on our event bus when something happens
@@ -327,7 +328,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
-  private def mReceive: Receiver = {
+  private def mReceive: InstrumentedActor.Receiver = {
 
     case OnInterfaceChanged(c) =>
       hasInterface = c

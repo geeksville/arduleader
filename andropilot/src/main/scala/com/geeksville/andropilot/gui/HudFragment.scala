@@ -13,6 +13,7 @@ import com.geeksville.flight._
 import org.mavlink.messages.ardupilotmega.msg_attitude
 import com.geeksville.andropilot.R
 import com.bvcode.ncopter.widgets.HUD
+import com.geeksville.akka.InstrumentedActor
 
 class HudFragment extends Fragment with AndroServicePage {
 
@@ -44,7 +45,7 @@ class HudFragment extends Fragment with AndroServicePage {
     hud.foreach(initView _)
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case msg: msg_attitude =>
       //debug(msg.toString)
       handler.post { () =>

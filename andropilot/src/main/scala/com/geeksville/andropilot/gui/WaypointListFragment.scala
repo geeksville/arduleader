@@ -20,6 +20,7 @@ import com.geeksville.flight.MsgWaypointCurrentChanged
 import android.view.Menu
 import android.view.MenuItem
 import com.google.android.gms.maps.model.LatLng
+import com.geeksville.akka.InstrumentedActor
 
 class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
 
@@ -188,7 +189,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     getListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE)
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
 
     case MsgWaypointsChanged =>
       handler.post(handleWaypoints _)
