@@ -79,9 +79,13 @@ class Webserver(val root: SmallAPI, localonly: Boolean = true) extends Instrumen
   private def startWebServer() = {
     log.info("Starting Webserver on http://localhost:4404")
 
-    val server = new MicroRESTServer(4404, localonly)
+    val server = new MicroRESTServer(Webserver.portNumber, localonly)
     server.addHandler(getterHandler)
     server.addHandler(postHandler)
     server
   }
+}
+
+object Webserver {
+  val portNumber = 4404
 }

@@ -135,6 +135,11 @@ class AndropilotService extends Service with AndroidLogger
   def isConnected = isSerialConnected || udp.isDefined || isBluetoothConnected
 
   /**
+   * The USB device ids of any connected serial adapter
+   */
+  def serialDevices = serial.keySet
+
+  /**
    * A human readable description of our logging state
    */
   def serviceStatus = {

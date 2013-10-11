@@ -75,6 +75,8 @@ import com.geeksville.flight.MsgReportBug
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.flight.MsgRCModeChanged
 import android.view.WindowManager
+import com.geeksville.gcsapi.WebActivity
+import com.geeksville.gcsapi.Webserver
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -274,7 +276,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     toast(s.serviceStatus)
 
     // Ask for any already connected serial devices
-    //requestAccess()
+    requestAccess()
 
     // If the menu is already up - update the set of options & selected mode
     invalidateOptionsMenu()
@@ -834,6 +836,9 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+    val checklist = menu.findItem(R.id.menu_checklist)
+    checklist.setVisible(runWebserver)
+    checklist.setEnabled(false)
 
     // Set some defaults in case we don't have a service
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
@@ -851,6 +856,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setChecked(svc.isFollowMe)
 
       myVehicle.foreach { v =>
+        checklist.setEnabled(v.hasHeartbeat)
+
         if (v.isCopter) {
           val armed = v.isArmed
           debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
@@ -1004,6 +1011,9 @@ class MainActivity extends FragmentActivity with TypedActivity
           startActivity(intent)
         }
 
+      case R.id.menu_checklist =>
+        WebActivity.showURL(context, "http://localhost:%s/static/checklist.html".format(Webserver.portNumber))
+
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
           debug("Toggle followme")
@@ -1041,36 +1051,39 @@ class MainActivity extends FragmentActivity with TypedActivity
   /** Ask for permission to access our device */
   def requestAccess() {
     warn("Requesting USB access")
-    val devs = AndroidSerial.getDevices
-    if (devs.isEmpty)
-      toast(R.string.please_attach, true)
-    else
-      devs.foreach { device =>
-        accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
+    service.foreach { s =>
+      val devs = AndroidSerial.getDevices
+      if (!s.isConnected && devs.isEmpty)
+        toast(R.string.please_attach, true)
+      else
+        // We only ask for access to devices we don't already have
+        devs.filter { dev => !s.serialDevices.contains(dev.getDeviceId) }.foreach { device =>
+          accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
 
-          // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
-          warn("USB access received")
+            // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
+            warn("USB access received")
 
-          handler.post { () =>
-            service.foreach { s =>
+            handler.post { () =>
+
               if (!s.isSerialConnected) {
                 toast(R.string.connecting_link, false)
                 s.serialAttached(d)
               }
+
             }
-          }
-        }, { d =>
+          }, { d =>
 
-          // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
-          // our GUI thread
-          // requestAccess is not called until the service is up, so we can safely access this
-          // If we are already talking to the serial device ignore this
+            // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
+            // our GUI thread
+            // requestAccess is not called until the service is up, so we can safely access this
+            // If we are already talking to the serial device ignore this
 
-          handler.post { () =>
-            toast(R.string.usb_access_denied, true)
-          }
-        }))
-      }
+            handler.post { () =>
+              toast(R.string.usb_access_denied, true)
+            }
+          }))
+        }
+    }
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)
