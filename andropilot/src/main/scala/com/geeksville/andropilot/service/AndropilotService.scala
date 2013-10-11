@@ -393,7 +393,7 @@ class AndropilotService extends Service with AndroidLogger
   def serialAttached(sdev: UsbDevice) {
     val i = serial.size // Number based on what ports we've seen
 
-    info(s"Starting serial $i")
+    info(s"Starting serial $i $sdev")
     errorMessage = None
 
     val baudRate = if (AndroidSerial.isTelemetry(sdev))

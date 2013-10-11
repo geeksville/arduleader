@@ -1063,14 +1063,11 @@ class MainActivity extends FragmentActivity with TypedActivity
             // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
             warn("USB access received")
 
-            handler.post { () =>
-
+            handler.post(() =>
               if (!s.isSerialConnected) {
-                toast(R.string.connecting_link, false)
+                // toast(R.string.connecting_link, false)
                 s.serialAttached(d)
-              }
-
-            }
+              })
           }, { d =>
 
             // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 

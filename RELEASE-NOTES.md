@@ -1,3 +1,7 @@
+# 1.9.2
+* The new style 3dr radios (shipped with Iris) would not be auto recognized by Andropilot on the first plug attempt (you had to plug them in a second time).  Fixed.
+* If you enable GCS scripting (alpha test) in the settings, you will now have a spiffy new user extensible checklist window (Simon's proposed layout - but most code not hooked up)
+
 # 1.9.1
 * Cope nicely with radios that are dropping many packets (thanks to Glenn McLelland for in depth debugging on this)
 * Promptly send files to droneshare (if so configured)

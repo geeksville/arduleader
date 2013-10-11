@@ -95,10 +95,12 @@ class FTDISerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Context)
   open(rawDevice)
 
   private def open(rawDevice: UsbDevice) {
-    info("Opening FTDI device")
+    info(s"Opening FTDI device $rawDevice")
     val d2xx = D2xxManager.getInstance(context)
 
-    val dev = d2xx.openByUsbDevice(context, rawDevice)
+    d2xx.addUsbDevice(rawDevice)
+
+    var dev = d2xx.openByUsbDevice(context, rawDevice)
 
     if (dev == null)
       throw new IOException("FTDI open failed")
