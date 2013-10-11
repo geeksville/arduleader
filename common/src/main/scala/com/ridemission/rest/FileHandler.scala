@@ -29,6 +29,8 @@ trait HttpFileSystem {
  * Just reads files from a file system
  */
 class JavaFileSystem(val rootDir: File) extends HttpFileSystem with Logging {
+  println("Exposing java filesystem at " + rootDir.getAbsolutePath)
+
   private def makeFile(name: String) = new File(rootDir, name)
 
   def exists(name: String) = {

@@ -47,6 +47,7 @@ import scala.collection.mutable.HashMap
 import com.geeksville.gcsapi.GCSAdapter
 import com.geeksville.gcsapi.TempGCSModel
 import com.geeksville.gcsapi.Webserver
+import com.geeksville.gcsapi.AndroidWebserver
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -209,7 +210,7 @@ class AndropilotService extends Service with AndroidLogger
       warn("Starting web server")
       val gcs = new TempGCSModel(actor)
       val adapter = new GCSAdapter(gcs)
-      webServer = Some(MockAkka.actorOf(new Webserver(adapter, !allowOtherHosts)))
+      webServer = Some(MockAkka.actorOf(new AndroidWebserver(this, adapter, !allowOtherHosts)))
     }
 
     val dumpSerialRx = false
@@ -234,7 +235,7 @@ class AndropilotService extends Service with AndroidLogger
     // connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
-    val handlers = Seq("log_to_file" -> setLogging _,
+    val handlers = Seq("log_to_file" -> setLoggingOn _,
       "udp_mode" -> startUDP _, "outbound_udp_host" -> startUDP _, "inbound_port" -> startUDP _, "outbound_port" -> startUDP _)
     prefListeners = prefListeners ++ handlers.map { p => registerOnPreferenceChanged(p._1)(p._2) }
 
@@ -291,7 +292,9 @@ class AndropilotService extends Service with AndroidLogger
       stopHighValue()
   }
 
-  def setLogging(enable: Boolean) {
+  private def setLoggingOn() = setLogging(true)
+
+  private def setLogging(enable: Boolean) {
     // Generate log files mission control would understand
     if (loggingEnabled && enable) {
       // If already logging ignore

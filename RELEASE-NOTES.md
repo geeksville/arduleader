@@ -1,3 +1,7 @@
+# 1.9.1
+* Promptly send files to droneshare (if so configured)
+* Static content is now served for the beginnings of user runnable checkists and vehicle control scripts.  If you turn this feature on and go to http://localhost:4404/static/README.html you should get an interesting response ;-)
+
 # 1.9.0
 * Fix bug that broke loading waypoints from files (thanks to Antonio Alfaro)
 * Include new scripting API (not yet documented - off by default)

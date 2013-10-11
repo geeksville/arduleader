@@ -666,6 +666,7 @@ class MyMapFragment extends SupportMapFragment
         var destMarker: Option[MyMarker] = None
 
         debug("Handling new waypoints")
+        //Thread.dumpStack()
         waypointMarkers.foreach(_.remove())
 
         scene.clearSegments() // FIXME - shouldn't touch this
