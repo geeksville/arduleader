@@ -145,7 +145,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       bgrp.removeAllViews()
 
       // For testing - when offline
-      if (developerMode && !isVehicleConnected) {
+      if (false && developerMode && !isVehicleConnected) {
         testModeNames.foreach(makeButton _)
         setWPUploadVisibility(true)
       }
