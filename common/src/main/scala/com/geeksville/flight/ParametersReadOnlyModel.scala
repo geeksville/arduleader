@@ -9,7 +9,11 @@ import com.geeksville.mavlink.MavlinkConstants
  * Parameter access, but only read-only (so it can work at log playback time)
  */
 trait ParametersReadOnlyModel extends MavlinkConstants {
-  lazy val paramDocs = (new ParameterDocFile).forVehicle(vehicleTypeName)
+  // Load this at start
+  val docFile = new ParameterDocFile
+
+  // Parse it later
+  lazy val paramDocs = docFile.forVehicle(vehicleTypeName)
 
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     3 -> "TRAINING",
