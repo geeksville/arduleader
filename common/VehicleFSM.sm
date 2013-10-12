@@ -29,6 +29,11 @@ WantInterface
   OnLostHeartbeat
     nil
     {}
+  
+  // Likewise for old have heartbeat msgs
+  OnHasHeartbeat
+    nil
+    {}    
 }
 
 WantVehicle

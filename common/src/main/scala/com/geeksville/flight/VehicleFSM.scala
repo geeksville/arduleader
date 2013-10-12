@@ -173,6 +173,10 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
+    override def OnHasHeartbeat(context: VehicleFSM): Unit = {
+
+    }
+
     override def OnHasInterface(context: VehicleFSM): Unit = {
 
         context.getState().Exit(context)
