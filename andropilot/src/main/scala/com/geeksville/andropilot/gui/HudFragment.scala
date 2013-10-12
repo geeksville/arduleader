@@ -14,6 +14,8 @@ import org.mavlink.messages.ardupilotmega.msg_attitude
 import com.geeksville.andropilot.R
 import com.bvcode.ncopter.widgets.HUD
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.andropilot.service.AndropilotService
+import com.geeksville.flight.MsgSetAhrsFreq
 
 class HudFragment extends Fragment with AndroServicePage {
 
@@ -43,6 +45,20 @@ class HudFragment extends Fragment with AndroServicePage {
     super.onResume()
 
     hud.foreach(initView _)
+  }
+
+  /**
+   * Lower AHRS rate when HUD is not up (to save battery and bandwidth)
+   */
+  override def onPause() {
+    super.onPause()
+
+    myVehicle.foreach(_ ! MsgSetAhrsFreq(1)) // 1hz
+  }
+
+  override protected def onServiceConnected(s: AndropilotService) {
+    super.onServiceConnected(s)
+    myVehicle.foreach(_ ! MsgSetAhrsFreq(10)) // 10hz
   }
 
   override def onVehicleReceive: InstrumentedActor.Receiver = {

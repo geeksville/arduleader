@@ -28,6 +28,10 @@ class VehicleClient(override val targetSystem: Int = 1) extends HeartbeatMonitor
 
   case class RetryExpired(ctx: RetryContext)
 
+  private var defaultStreamFreq = 1
+  private var positionStreamFreq = 3
+  private var ahrsStreamFreq = 1
+
   private val retries = HashSet[RetryContext]()
 
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
@@ -125,6 +129,22 @@ class VehicleClient(override val targetSystem: Int = 1) extends HeartbeatMonitor
       None
   }
 
+  private def setFreq(dest: Int, fIn: Int, enabled: Boolean) {
+    val f = if (VehicleClient.isUsbBusted) 1 else fIn
+    sendMavlink(requestDataStream(dest, f, enabled))
+    sendMavlink(requestDataStream(dest, f, enabled))
+  }
+
+  protected def setAhrsFreq(fIn: Int) {
+    ahrsStreamFreq = fIn
+    setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1, fIn, true)
+  }
+
+  protected def setPositionFreq(fIn: Int) {
+    positionStreamFreq = fIn
+    setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION, fIn, true)
+  }
+
   /**
    * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
    */
@@ -132,20 +152,17 @@ class VehicleClient(override val targetSystem: Int = 1) extends HeartbeatMonitor
 
     log.info("Setting stream enable: " + enabled)
 
-    val defaultFreq = 1
-    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultFreq,
+    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultStreamFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultStreamFreq,
       MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> 10, // faster AHRS display use a bigger #
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultFreq)
+      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> positionStreamFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> ahrsStreamFreq, // faster AHRS display use a bigger #
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultStreamFreq,
+      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultStreamFreq)
 
     interestingStreams.foreach {
       case (id, freqHz) =>
-        val f = if (VehicleClient.isUsbBusted) 1 else freqHz
-        sendMavlink(requestDataStream(id, f, enabled))
-        sendMavlink(requestDataStream(id, f, enabled))
+        setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1, freqHz, enabled)
     }
   }
 }

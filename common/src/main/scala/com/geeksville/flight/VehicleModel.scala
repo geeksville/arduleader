@@ -59,6 +59,9 @@ case class MsgFSMChanged(stateName: String)
 /// A non fatal bug has occurred
 case class MsgReportBug(m: String)
 
+case class MsgSetAhrsFreq(freq: Int)
+case class MsgSetPositionFreq(freq: Int)
+
 //
 // Messages we expect from others
 //
@@ -366,6 +369,12 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       //log.info("Received radio from " + m.sysId + ": " + m)
       radio = Some(m)
       onSysStatusChanged()
+
+    case MsgSetAhrsFreq(f) =>
+      setAhrsFreq(f)
+
+    case MsgSetPositionFreq(f) =>
+      setPositionFreq(f)
 
     case m: msg_statustext =>
       log.info("Received status: " + m.getText)
