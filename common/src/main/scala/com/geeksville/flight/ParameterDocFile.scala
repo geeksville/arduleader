@@ -145,20 +145,22 @@ object ParameterDocFile {
    * Pull the latest copy of apm.pdef.xml from the server
    */
   private def updateCache(cacheFile: File) {
-    try {
-      val url = "http://autotest.diydrones.com/Parameters/apm.pdef.xml"
-      println(s"Looking for pdef at $url")
-      Option((new URL(url)).openStream).foreach {
-        using(_) { src =>
-          FileTools.atomicOutputFile(cacheFile) { dest =>
-            FileTools.copy(src, dest)
+    pdefFilename synchronized {
+      try {
+        val url = "http://autotest.diydrones.com/Parameters/apm.pdef.xml"
+        println(s"Looking for pdef at $url")
+        Option((new URL(url)).openStream).foreach {
+          using(_) { src =>
+            FileTools.atomicOutputFile(cacheFile) { dest =>
+              FileTools.copy(src, dest)
+            }
+            println("Downloaded new pdef from diydrones")
           }
-          println("Downloaded new pdef from diydrones")
         }
+      } catch {
+        case ex: Exception =>
+          AnalyticsService.reportException("pdef_failed", ex)
       }
-    } catch {
-      case ex: Exception =>
-        AnalyticsService.reportException("pdef_failed", ex)
     }
   }
 
@@ -205,23 +207,25 @@ object ParameterDocFile {
   private var _xml: Option[Elem] = None
 
   /// Return our XML pdef representation - contacting servers/updating caches as needed
-  def xml = _xml match {
-    case Some(x) if !needsUpdate =>
-      println("Reusing cached pdef xml")
-      x
-    case _ =>
-      try {
-        println("Fetching new XML")
-        using(openPdefStream()) { stream =>
-          _xml = Some(XML.load(stream))
-          _xml.get
+  def xml = synchronized {
+    _xml match {
+      case Some(x) if !needsUpdate =>
+        println("Reusing cached pdef xml")
+        x
+      case _ =>
+        try {
+          println("Fetching new XML")
+          using(openPdefStream()) { stream =>
+            _xml = Some(XML.load(stream))
+            _xml.get
+          }
+        } catch {
+          case ex: Exception =>
+            // No matter what - we must return a valid stream - and apparently something about the cached file is corruped
+            AnalyticsService.reportException("pdef_badparse", ex)
+            XML.load(openBuiltinPdefStream())
         }
-      } catch {
-        case ex: Exception =>
-          // No matter what - we must return a valid stream - and apparently something about the cached file is corruped
-          AnalyticsService.reportException("pdef_badparse", ex)
-          XML.load(openBuiltinPdefStream())
-      }
+    }
   }
 
   def main(args: Array[String]) {
