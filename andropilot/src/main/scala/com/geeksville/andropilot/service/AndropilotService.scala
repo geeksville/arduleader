@@ -48,6 +48,8 @@ import com.geeksville.gcsapi.GCSAdapter
 import com.geeksville.gcsapi.TempGCSModel
 import com.geeksville.gcsapi.Webserver
 import com.geeksville.gcsapi.AndroidWebserver
+import com.geeksville.flight.ParameterDocFile
+import com.geeksville.util.ThreadTools
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -177,6 +179,10 @@ class AndropilotService extends Service with AndroidLogger
     super.onCreate()
 
     info("Creating service")
+
+    // Not really ideal - but good enough for now
+    ParameterDocFile.cacheDir = Some(getFilesDir)
+    ThreadTools.start("docupdate")(ParameterDocFile.updateParamDocs)
 
     // Send any previously spooled files
     perhapsUpload()

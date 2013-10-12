@@ -1,3 +1,10 @@
+* FIXME - try using not for embedded java in mavlink lib
+
+* We now fetch the current param documentation from the diydrones servers
+* Lower AHRS data download rate when HUD is not up - to save battery & bandwidth
+* Use a higher position download rate - for higher resolution tlogs/map view
+* Support the new MAV_CMD_DO_SET_CAM_TRIGG_DIST command
+
 # 1.9.2
 * The new style 3dr radios (shipped with Iris) would not be auto recognized by Andropilot on the first plug attempt (you had to plug them in a second time).  Fixed.
 * If you enable GCS scripting (alpha test) in the settings, you will now have a spiffy new user extensible checklist window (Simon's proposed layout - but most code not hooked up)

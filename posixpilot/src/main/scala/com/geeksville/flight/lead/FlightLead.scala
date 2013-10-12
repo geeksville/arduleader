@@ -110,6 +110,9 @@ object Main extends Logging {
     logger.info("FlightLead running...")
     logger.debug("CWD is " + System.getProperty("user.dir"))
 
+    // Not really ideal - but good enough for now
+    ParameterDocFile.cacheDir = Some(new File(System.getProperty("user.home")))
+
     // Needed for rxtx native code
     //val libprop = "java.library.path"
     System.setProperty("gnu.io.rxtx.SerialPorts", "/dev/ttyACM0:/dev/ttyUSB0")
