@@ -131,7 +131,13 @@ class ParameterDocFile {
 }
 
 object ParameterDocFile {
-  var cacheDir: Option[File] = None
+  var cacheDir: Option[File] = {
+    // Not really ideal - but good enough for now
+    if (OSTools.isAndroid)
+      None
+    else
+      Some(new File(System.getProperty("user.home")))
+  }
 
   private val pdefFilename = "apm.pdef.xml"
 
