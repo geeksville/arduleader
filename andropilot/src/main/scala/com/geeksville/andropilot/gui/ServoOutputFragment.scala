@@ -11,10 +11,11 @@ import com.geeksville.andropilot.service._
 import com.geeksville.flight.MsgServoOutputChanged
 import org.mavlink.messages.ardupilotmega.msg_servo_output_raw
 import com.ridemission.scandroid._
+import com.geeksville.akka.InstrumentedActor
 
 class ServoOutputFragment extends SimpleListFragment with UsesResources {
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case MsgServoOutputChanged(_) =>
       if (isVisible) {
         //debug("Received Rc channels")

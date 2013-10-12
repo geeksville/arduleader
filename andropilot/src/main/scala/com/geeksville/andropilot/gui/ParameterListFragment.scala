@@ -20,6 +20,7 @@ import com.geeksville.flight.MsgParameterReceived
 import android.support.v4.app.Fragment
 import com.geeksville.flight.ParametersModel
 import com.geeksville.flight.MsgParameterDownloadProgress
+import com.geeksville.akka.InstrumentedActor
 
 class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue] with ProgressList with AndroServiceFragment {
   private var selected = -1
@@ -63,7 +64,7 @@ class ParameterListFragment extends ListAdapterHelper[ParametersModel#ParamValue
     })
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case MsgParametersDownloaded =>
       handler.post(updateParameters _)
 

@@ -36,6 +36,24 @@ object FileTools {
     // Source.fromInputStream(src).foreach(dest.write(_))
   }
 
+  /**
+   * Open a file for writing, but call it filename.tmp until we've successfully completed the inner block.
+   * After that block completes delete whatever file currently exists at filename and move filename.tmp to the
+   * correct location
+   */
+  def atomicOutputFile[T](file: File)(block: OutputStream => T) =
+    {
+      val tmpFile = new File(file.getAbsolutePath + ".tmp")
+      using(new BufferedOutputStream(new FileOutputStream(tmpFile))) { tmpOut =>
+        block(tmpOut)
+      }
+
+      // If we made it this far without throwing, the file is good
+      println(s"Renaming $tmpFile to $file")
+      file.delete()
+      tmpFile.renameTo(file)
+    }
+
   /// Return a list of filtered filenames
   /// FIXME Play with add-on methods
   def list(dir: File, filter: (File, String) => Boolean): Array[String] = {

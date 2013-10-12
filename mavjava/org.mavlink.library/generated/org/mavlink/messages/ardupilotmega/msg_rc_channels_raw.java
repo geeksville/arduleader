@@ -29,43 +29,43 @@ public class msg_rc_channels_raw extends MAVLinkMessage {
    */
   public long time_boot_ms;
   /**
-   * RC channel 1 value, in microseconds
+   * RC channel 1 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan1_raw;
   /**
-   * RC channel 2 value, in microseconds
+   * RC channel 2 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan2_raw;
   /**
-   * RC channel 3 value, in microseconds
+   * RC channel 3 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan3_raw;
   /**
-   * RC channel 4 value, in microseconds
+   * RC channel 4 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan4_raw;
   /**
-   * RC channel 5 value, in microseconds
+   * RC channel 5 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan5_raw;
   /**
-   * RC channel 6 value, in microseconds
+   * RC channel 6 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan6_raw;
   /**
-   * RC channel 7 value, in microseconds
+   * RC channel 7 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan7_raw;
   /**
-   * RC channel 8 value, in microseconds
+   * RC channel 8 value, in microseconds. A value of UINT16_MAX implies the channel is unused.
    */
   public int chan8_raw;
   /**
-   * Servo output port (set of 8 outputs = 1 port). Most MAVs will just use one, but this allows to encode more than 8 servos.
+   * Servo output port (set of 8 outputs = 1 port). Most MAVs will just use one, but this allows for more than 8 servos.
    */
   public int port;
   /**
-   * Receive signal strength indicator, 0: 0%, 255: 100%
+   * Receive signal strength indicator, 0: 0%, 100: 100%, 255: invalid/unknown.
    */
   public int rssi;
 /**

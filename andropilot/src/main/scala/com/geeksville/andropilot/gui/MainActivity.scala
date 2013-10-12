@@ -75,6 +75,8 @@ import com.geeksville.flight.MsgReportBug
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.flight.MsgRCModeChanged
 import android.view.WindowManager
+import com.geeksville.gcsapi.WebActivity
+import com.geeksville.gcsapi.Webserver
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -161,7 +163,7 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
 
     case l: Location =>
       myVehicle.foreach { v =>
@@ -237,8 +239,12 @@ class MainActivity extends FragmentActivity with TypedActivity
         handleParameters()
       }
 
-    case MsgRcChannelsChanged(x) =>
-      handleRCChannels(x)
+    case MsgRcChannelsChanged =>
+      handler.post { () =>
+        myVehicle.foreach { v =>
+          v.rcChannelsRaw.foreach(handleRCChannels)
+        }
+      }
   }
 
   private def handleStatus(s: String, severity: Int) {
@@ -270,7 +276,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     toast(s.serviceStatus)
 
     // Ask for any already connected serial devices
-    //requestAccess()
+    requestAccess()
 
     // If the menu is already up - update the set of options & selected mode
     invalidateOptionsMenu()
@@ -654,46 +660,72 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
   }
 
-  private def handleFileOpen(uri: Uri) {
-    // FIXME - show a dialog asking for confirmation
+  /**
+   * Do our file loading in a background thread - but do the associate UI in the UI thread
+   */
+  class FileLoadTask(val uri: Uri) extends AsyncVoidTask {
     val filename = uri.getLastPathSegment
-    future { // Don't do this in the main thread - because it might try to touch network
+    private var message: Option[String] = None
+
+    override protected def inBackground() {
+
       debug("Handling fileOpen (in background thread)")
 
-      using(AndroidJUtil.getFromURI(this, uri)) { s =>
+      using(AndroidJUtil.getFromURI(context, uri)) { s =>
+        debug("Opened fileOpen (in background thread)")
         myVehicle.foreach { v =>
-          if (filename.toLowerCase.endsWith(".param")) {
-            toast("Parameter file reading not yet supported")
-          }
+          debug("Got vehicle in fileOpen (in background thread)")
 
-          if (filename.toLowerCase.endsWith(".fen")) {
-            if (!v.isFenceAvailable)
-              toast(R.string.fence_not_avail, true)
-            else {
-              usageEvent("fence_uploaded", "url" -> uri.toString)
-              toast(S(R.string.uploading_fence).format(filename))
-              val pts = FenceModel.pointsFromStream(s)
+          val vehicleReady = v.hasHeartbeat && !v.waypoints.isEmpty
 
-              v ! DoSetFence(pts, fenceMode)
+          if (!vehicleReady) {
+            message = Some("Vehicle not yet initialized, please try again.")
+          } else {
+            if (filename.toLowerCase.endsWith(".param")) {
+              message = Some("Parameter file reading not yet supported")
             }
-          }
 
-          if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
-            usageEvent("waypoint_uploaded", "url" -> uri.toString)
+            if (filename.toLowerCase.endsWith(".fen")) {
+              if (!v.isFenceAvailable)
+                toast(R.string.fence_not_avail, true)
+              else {
+                usageEvent("fence_uploaded", "url" -> uri.toString)
+                message = Some(S(R.string.uploading_fence).format(filename))
+                val pts = FenceModel.pointsFromStream(s)
 
-            try {
-              val pts = v.pointsFromStream(s)
-              toast(S(R.string.uploading_waypoint).format(filename))
-              v ! DoLoadWaypoints(pts)
-              v ! SendWaypoints
-            } catch {
-              case ex: Exception =>
-                toast(ex.getMessage) // Error reading from file (probably not a waypoint file)
+                v ! DoSetFence(pts, fenceMode)
+              }
+            }
+
+            if (filename.toLowerCase.endsWith(".txt") || filename.toLowerCase.endsWith(".wpt")) {
+              debug("Doing upload")
+
+              usageEvent("waypoint_uploaded", "url" -> uri.toString)
+
+              try {
+                val pts = v.pointsFromStream(s)
+                debug(s"Loaded ${pts.size} waypoints")
+
+                message = Some(s"Loaded waypoints from $filename, please click to upload")
+                v ! DoLoadWaypoints(pts)
+                // v ! SendWaypoints
+              } catch {
+                case ex: Exception =>
+                  message = Some(ex.getMessage) // Error reading from file (probably not a waypoint file)
+              }
             }
           }
         }
       }
     }
+
+    protected override def onPostExecute(unused: Void) {
+      message.foreach { s => toast(s) }
+    }
+  }
+
+  private def handleFileOpen(uri: Uri) {
+    (new FileLoadTask(uri)).execute()
   }
 
   private def handleIntent(intent: Intent) {
@@ -804,6 +836,9 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+    val checklist = menu.findItem(R.id.menu_checklist)
+    checklist.setVisible(runWebserver)
+    checklist.setEnabled(false)
 
     // Set some defaults in case we don't have a service
     val joystickMenu = menu.findItem(R.id.menu_showjoystick)
@@ -821,6 +856,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setChecked(svc.isFollowMe)
 
       myVehicle.foreach { v =>
+        checklist.setEnabled(v.hasHeartbeat)
+
         if (v.isCopter) {
           val armed = v.isArmed
           debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
@@ -974,6 +1011,9 @@ class MainActivity extends FragmentActivity with TypedActivity
           startActivity(intent)
         }
 
+      case R.id.menu_checklist =>
+        WebActivity.showURL(context, "http://localhost:%s/static/checklist.html".format(Webserver.portNumber))
+
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
           debug("Toggle followme")
@@ -1011,36 +1051,36 @@ class MainActivity extends FragmentActivity with TypedActivity
   /** Ask for permission to access our device */
   def requestAccess() {
     warn("Requesting USB access")
-    val devs = AndroidSerial.getDevices
-    if (devs.isEmpty)
-      toast(R.string.please_attach, true)
-    else
-      devs.foreach { device =>
-        accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
+    service.foreach { s =>
+      val devs = AndroidSerial.getDevices
+      if (!s.isConnected && devs.isEmpty)
+        toast(R.string.please_attach, true)
+      else
+        // We only ask for access to devices we don't already have
+        devs.filter { dev => !s.serialDevices.contains(dev.getDeviceId) }.foreach { device =>
+          accessGrantReceiver = Some(AndroidSerial.requestAccess(device, { d =>
 
-          // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
-          warn("USB access received")
+            // Do nothing in here - we will receive a USB attached event.  Only need to post a message if the user _denyed_ access
+            warn("USB access received")
 
-          handler.post { () =>
-            service.foreach { s =>
+            handler.post(() =>
               if (!s.isSerialConnected) {
-                toast(R.string.connecting_link, false)
+                // toast(R.string.connecting_link, false)
                 s.serialAttached(d)
-              }
+              })
+          }, { d =>
+
+            // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
+            // our GUI thread
+            // requestAccess is not called until the service is up, so we can safely access this
+            // If we are already talking to the serial device ignore this
+
+            handler.post { () =>
+              toast(R.string.usb_access_denied, true)
             }
-          }
-        }, { d =>
-
-          // This gets called from inside our broadcast receiver - apparently the device is not ready yet, so queue some work for 
-          // our GUI thread
-          // requestAccess is not called until the service is up, so we can safely access this
-          // If we are already talking to the serial device ignore this
-
-          handler.post { () =>
-            toast(R.string.usb_access_denied, true)
-          }
-        }))
-      }
+          }))
+        }
+    }
   }
 
   private def viewHtmlIntent(url: Uri) = new Intent(Intent.ACTION_VIEW, url)

@@ -50,11 +50,16 @@
 		android:title="Set Home" />
     -->
 
+
+    <!-- FIXME - merge this into the checklist -->
     <item
         android:id="@+id/check_sun"
         android:showAsAction="never"
         android:title="Solar radiation check"/>
-    
+    <item
+        android:id="@+id/menu_checklist"
+        android:showAsAction="never"
+        android:title="Checklist"/>
     <item
         android:id="@+id/menu_settings"
         android:showAsAction="never"

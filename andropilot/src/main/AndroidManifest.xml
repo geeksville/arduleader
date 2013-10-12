@@ -142,6 +142,8 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+            <activity android:name="com.geeksville.gcsapi.WebActivity" >
+        </activity>
 
         <service android:name=".service.AndropilotService" />
         <service android:name=".service.AndroidDirUpload" />

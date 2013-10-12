@@ -21,6 +21,7 @@ import com.geeksville.util.ThrottledActor
 import java.io.InputStream
 import scala.io.Source
 import com.geeksville.mavlink.SendYoungest
+import com.geeksville.akka.InstrumentedActor
 
 //
 // Messages we publish on our event bus when something happens
@@ -90,7 +91,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   def isDirty = dirty
 
-  private def mReceive: Receiver = {
+  private def mReceive: InstrumentedActor.Receiver = {
     case DoMarkDirty =>
       setDirty(true)
 
@@ -334,6 +335,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       log.info("loading waypoints: " + wpts.size)
       val home = waypoints.head
       waypoints = IndexedSeq(home) ++ wpts.filter(!_.isHome)
+      setDirty(true)
+      onWaypointsChanged()
     }
   }
 

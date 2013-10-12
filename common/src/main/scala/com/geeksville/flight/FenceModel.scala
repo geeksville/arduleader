@@ -19,6 +19,7 @@ import com.geeksville.util.ThrottledActor
 import org.mavlink.messages.FENCE_ACTION
 import java.io.InputStream
 import scala.io.Source
+import com.geeksville.akka.InstrumentedActor
 
 //
 // Messages we publish on our event bus when something happens
@@ -53,7 +54,7 @@ trait FenceModel extends ParametersModel {
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
-  private def mReceive: Receiver = {
+  private def mReceive: InstrumentedActor.Receiver = {
 
     case DoSetFence(pts, newMode) =>
       uploadFence(pts, newMode)

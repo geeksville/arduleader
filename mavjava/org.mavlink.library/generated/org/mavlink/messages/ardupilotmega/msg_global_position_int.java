@@ -58,7 +58,7 @@ public class msg_global_position_int extends MAVLinkMessage {
    */
   public int vz;
   /**
-   * Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown, set to: 65535
+   * Compass heading in degrees * 100, 0.0..359.99 degrees. If unknown, set to: UINT16_MAX
    */
   public int hdg;
 /**

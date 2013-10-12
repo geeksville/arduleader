@@ -29,15 +29,15 @@ public class msg_attitude extends MAVLinkMessage {
    */
   public long time_boot_ms;
   /**
-   * Roll angle (rad)
+   * Roll angle (rad, -pi..+pi)
    */
   public float roll;
   /**
-   * Pitch angle (rad)
+   * Pitch angle (rad, -pi..+pi)
    */
   public float pitch;
   /**
-   * Yaw angle (rad)
+   * Yaw angle (rad, -pi..+pi)
    */
   public float yaw;
   /**

@@ -44,6 +44,12 @@ import com.geeksville.andropilot.UsesDirectories
 import com.geeksville.flight.OnInterfaceChanged
 import android.hardware.usb.UsbDevice
 import scala.collection.mutable.HashMap
+import com.geeksville.gcsapi.GCSAdapter
+import com.geeksville.gcsapi.TempGCSModel
+import com.geeksville.gcsapi.Webserver
+import com.geeksville.gcsapi.AndroidWebserver
+import com.geeksville.flight.ParameterDocFile
+import com.geeksville.util.ThreadTools
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -78,6 +84,8 @@ class AndropilotService extends Service with AndroidLogger
   private var pebbleListener: Option[PebbleVehicleListener] = None
 
   private var errorMessage: Option[String] = None
+
+  private var webServer: Option[InstrumentedActor] = None
 
   implicit val context = this
 
@@ -129,6 +137,11 @@ class AndropilotService extends Service with AndroidLogger
   def isConnected = isSerialConnected || udp.isDefined || isBluetoothConnected
 
   /**
+   * The USB device ids of any connected serial adapter
+   */
+  def serialDevices = serial.keySet
+
+  /**
    * A human readable description of our logging state
    */
   def serviceStatus = {
@@ -167,6 +180,10 @@ class AndropilotService extends Service with AndroidLogger
 
     info("Creating service")
 
+    // Not really ideal - but good enough for now
+    ParameterDocFile.cacheDir = Some(getFilesDir)
+    ThreadTools.start("docupdate")(ParameterDocFile.updateParamDocs)
+
     // Send any previously spooled files
     perhapsUpload()
 
@@ -200,6 +217,13 @@ class AndropilotService extends Service with AndroidLogger
     MavlinkEventBus.subscribe(actor, actor.targetSystem)
     vehicle = Some(actor)
 
+    if (runWebserver) {
+      warn("Starting web server")
+      val gcs = new TempGCSModel(actor)
+      val adapter = new GCSAdapter(gcs)
+      webServer = Some(MockAkka.actorOf(new AndroidWebserver(this, adapter, !allowOtherHosts)))
+    }
+
     val dumpSerialRx = false
     if (dumpSerialRx) {
       info("Starting packet log")
@@ -215,14 +239,14 @@ class AndropilotService extends Service with AndroidLogger
     if (PebbleClient.hasPebble(this))
       pebbleListener = Some(MockAkka.actorOf(new PebbleVehicleListener(this), "pebble"))
 
-    setLogging()
+    setLogging(true)
     serialAttachToExisting()
     startUDP()
     // We now do this only on user input
     // connectToDevices()
 
     // If preferences change, automatically toggle logging as needed
-    val handlers = Seq("log_to_file" -> setLogging _,
+    val handlers = Seq("log_to_file" -> setLoggingOn _,
       "udp_mode" -> startUDP _, "outbound_udp_host" -> startUDP _, "inbound_port" -> startUDP _, "outbound_port" -> startUDP _)
     prefListeners = prefListeners ++ handlers.map { p => registerOnPreferenceChanged(p._1)(p._2) }
 
@@ -279,9 +303,11 @@ class AndropilotService extends Service with AndroidLogger
       stopHighValue()
   }
 
-  def setLogging() {
+  private def setLoggingOn() = setLogging(true)
+
+  private def setLogging(enable: Boolean) {
     // Generate log files mission control would understand
-    if (loggingEnabled) {
+    if (loggingEnabled && enable) {
       // If already logging ignore
       if (!logger.isDefined)
         logDirectory.foreach { d =>
@@ -330,6 +356,8 @@ class AndropilotService extends Service with AndroidLogger
 
     val port = new MavlinkStream(out, in)
 
+    //port.simulateUnreliable = true
+
     btInputStream = Some(in)
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
     val mavSerial = MockAkka.actorOf(port, "btrx")
@@ -371,7 +399,7 @@ class AndropilotService extends Service with AndroidLogger
   def serialAttached(sdev: UsbDevice) {
     val i = serial.size // Number based on what ports we've seen
 
-    info(s"Starting serial $i")
+    info(s"Starting serial $i $sdev")
     errorMessage = None
 
     val baudRate = if (AndroidSerial.isTelemetry(sdev))
@@ -448,6 +476,9 @@ class AndropilotService extends Service with AndroidLogger
         wakeLock.release()
       stopForeground(true) // Get rid of our notification
 
+      // Finish any log files
+      setLogging(false)
+
       warn("Stopping our service, because no serial means not useful...")
       stopSelf()
     }
@@ -482,6 +513,8 @@ class AndropilotService extends Service with AndroidLogger
   override def onDestroy() {
     warn("in onDestroy ******************************")
 
+    setLogging(false)
+
     pebbleListener.foreach(_ ! PoisonPill)
     pebbleListener = None
 
@@ -490,6 +523,8 @@ class AndropilotService extends Service with AndroidLogger
     prefListeners = Seq()
     udp.foreach(_ ! PoisonPill)
     udp = None
+    webServer.foreach(_ ! PoisonPill)
+    webServer = None
     serialDetachAll()
     unregisterReceiver(disconnectReceiver)
     btDetached()

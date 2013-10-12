@@ -18,7 +18,7 @@ import com.ridemission.rest.POSTHandler
 /**
  * This exposes the GCS scripting API via a conventional REST web server
  */
-class Webserver(val root: SmallAPI) extends InstrumentedActor {
+class Webserver(val root: SmallAPI, localonly: Boolean = true) extends InstrumentedActor {
 
   val baseUrl = "/api/"
   val readRegex = (baseUrl + "(.*)").r
@@ -79,11 +79,13 @@ class Webserver(val root: SmallAPI) extends InstrumentedActor {
   private def startWebServer() = {
     log.info("Starting Webserver on http://localhost:4404")
 
-    val server = new MicroRESTServer(4404)
-    // FIXME - we currently assume the cwd is the default of 'posixpilot'
-    server.addHandler(new FileHandler("/static", new File("../httpcontent")))
+    val server = new MicroRESTServer(Webserver.portNumber, localonly)
     server.addHandler(getterHandler)
     server.addHandler(postHandler)
     server
   }
+}
+
+object Webserver {
+  val portNumber = 4404
 }

@@ -70,7 +70,7 @@ abstract class SmartMarker extends AndroidLogger {
     title.foreach { t => r = r.title(t) }
     snippet.foreach { t => r = r.snippet(t) }
 
-    debug("Create marker %s, draggable=%s".format(this, draggable))
+    //debug("Create marker %s, draggable=%s".format(this, draggable))
     r
   }
 

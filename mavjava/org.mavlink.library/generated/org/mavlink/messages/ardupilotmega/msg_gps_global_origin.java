@@ -25,15 +25,15 @@ public class msg_gps_global_origin extends MAVLinkMessage {
 }
 
   /**
-   * Latitude (WGS84), expressed as * 1E7
+   * Latitude (WGS84), in degrees * 1E7
    */
   public long latitude;
   /**
-   * Longitude (WGS84), expressed as * 1E7
+   * Longitude (WGS84), in degrees * 1E7
    */
   public long longitude;
   /**
-   * Altitude(WGS84), expressed as * 1000
+   * Altitude (WGS84), in meters * 1000 (positive for up)
    */
   public long altitude;
 /**

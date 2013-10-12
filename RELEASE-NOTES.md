@@ -1,3 +1,27 @@
+* FIXME - try using not for embedded java in mavlink lib
+
+* We now fetch the current param documentation from the diydrones servers
+* Lower AHRS data download rate when HUD is not up - to save battery & bandwidth
+* Use a higher position download rate - for higher resolution tlogs/map view
+* Support the new MAV_CMD_DO_SET_CAM_TRIGG_DIST command
+
+# 1.9.2
+* The new style 3dr radios (shipped with Iris) would not be auto recognized by Andropilot on the first plug attempt (you had to plug them in a second time).  Fixed.
+* If you enable GCS scripting (alpha test) in the settings, you will now have a spiffy new user extensible checklist window (Simon's proposed layout - but most code not hooked up)
+
+# 1.9.1
+* Cope nicely with radios that are dropping many packets (thanks to Glenn McLelland for in depth debugging on this)
+* Promptly send files to droneshare (if so configured)
+* Static content is now served for the beginnings of user runnable checkists and vehicle control scripts.  If you turn this feature on and go to http://localhost:4404/static/README.html you should get an interesting response ;-)
+* Add support for simulating very high error rate links (crappy rctimer radios ;-))
+
+
+# 1.9.0
+* Fix bug that broke loading waypoints from files (thanks to Antonio Alfaro)
+* Include new scripting API (not yet documented - off by default)
+* Fix a couple of rare autobugs
+* Fix a bug where the new radiation warning could fail on screen rotation of certain tablet types (non fatal - but ugh)
+
 # 1.8.19
 * Some non andropilot service crashes frequently without releasing the USB port.  If we find the tablet in that state, we warn the user and suggest a workaround.
 * Add support for 'show on map' for big waypoint lists

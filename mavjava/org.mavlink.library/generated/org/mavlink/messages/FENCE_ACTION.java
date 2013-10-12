@@ -20,4 +20,8 @@ public interface FENCE_ACTION {
      * Report fence breach, but don't take action
      */
     public final static int FENCE_ACTION_REPORT = 2;
+    /**
+     * Switched to guided mode to return point (fence point 0) with manual throttle control
+     */
+    public final static int FENCE_ACTION_GUIDED_THR_PASS = 3;
 }

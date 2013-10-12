@@ -12,7 +12,7 @@ import org.mavlink.io.LittleEndianDataInputStream;
 import org.mavlink.io.LittleEndianDataOutputStream;
 /**
  * Class msg_set_gps_global_origin
- * As local MISSIONs exist, the global MISSION reference allows to transform between the local coordinate frame and the global (GPS) coordinate frame. This can be necessary when e.g. in- and outdoor settings are connected and the MAV should move from in- to outdoor.
+ * As local waypoints exist, the global MISSION reference allows to transform between the local coordinate frame and the global (GPS) coordinate frame. This can be necessary when e.g. in- and outdoor settings are connected and the MAV should move from in- to outdoor.
  **/
 public class msg_set_gps_global_origin extends MAVLinkMessage {
   public static final int MAVLINK_MSG_ID_SET_GPS_GLOBAL_ORIGIN = 48;
@@ -25,15 +25,15 @@ public class msg_set_gps_global_origin extends MAVLinkMessage {
 }
 
   /**
-   * global position * 1E7
+   * Latitude (WGS84), in degrees * 1E7
    */
   public long latitude;
   /**
-   * global position * 1E7
+   * Longitude (WGS84, in degrees * 1E7
    */
   public long longitude;
   /**
-   * global position * 1000
+   * Altitude (WGS84), in meters * 1000 (positive for up)
    */
   public long altitude;
   /**

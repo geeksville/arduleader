@@ -19,6 +19,7 @@ import android.view.View
 import com.ridemission.scandroid.ObservableAdapter
 import com.geeksville.flight.StatusText
 import android.widget.BaseAdapter
+import com.geeksville.akka.InstrumentedActor
 
 case object NeverSent
 
@@ -54,7 +55,7 @@ class StatusMsgFragment extends LayoutFragment(R.layout.statusmsg_fragment) with
         debug("new adapter not needed")
     }
   }
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case NeverSent =>
   }
 }

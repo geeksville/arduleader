@@ -420,7 +420,7 @@ class MyMapFragment extends SupportMapFragment
     planeMarker
   }
 
-  override def onVehicleReceive = {
+  override def onVehicleReceive: InstrumentedActor.Receiver = {
     case l: Location =>
       // log.debug("Handling location: " + l)
       handler.post { () =>
@@ -666,6 +666,7 @@ class MyMapFragment extends SupportMapFragment
         var destMarker: Option[MyMarker] = None
 
         debug("Handling new waypoints")
+        //Thread.dumpStack()
         waypointMarkers.foreach(_.remove())
 
         scene.clearSegments() // FIXME - shouldn't touch this

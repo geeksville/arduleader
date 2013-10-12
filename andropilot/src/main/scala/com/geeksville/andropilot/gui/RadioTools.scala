@@ -20,6 +20,6 @@ object RadioTools extends AndroidLogger {
     val localFadeDb = math.max((n.rssi - n.noise) / 2.0f - fadeMargin, 0.0f)
     val remFadeDb = math.max((n.remrssi - n.remnoise) / 2.0f - fadeMargin, 0.0f)
 
-    estimateRange(localFadeDb, curDist) -> estimateRange(remFadeDb, curDist)
+    estimateRange(localFadeDb, curDist).toInt -> estimateRange(remFadeDb, curDist).toInt
   }
 }
