@@ -51,9 +51,9 @@ class HudFragment extends Fragment with AndroServicePage {
    * Lower AHRS rate when HUD is not up (to save battery and bandwidth)
    */
   override def onPause() {
-    super.onPause()
-
     myVehicle.foreach(_ ! MsgSetAhrsFreq(1)) // 1hz
+
+    super.onPause()
   }
 
   override protected def onServiceConnected(s: AndropilotService) {
