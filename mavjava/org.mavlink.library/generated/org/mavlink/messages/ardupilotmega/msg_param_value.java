@@ -37,7 +37,7 @@ public class msg_param_value extends MAVLinkMessage {
    */
   public int param_index;
   /**
-   * Onboard parameter id, terminated by NUL if the length is less than 16 human-readable chars and WITHOUT null termination (NUL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
+   * Onboard parameter id, terminated by NULL if the length is less than 16 human-readable chars and WITHOUT null termination (NULL) byte if the length is exactly 16 chars - applications have to provide 16+1 bytes storage if the ID is stored as string
    */
   public char[] param_id = new char[16];
   public void setParam_id(String tmp) {
@@ -57,7 +57,7 @@ public class msg_param_value extends MAVLinkMessage {
     return result;
   }
   /**
-   * Onboard parameter type: see MAVLINK_TYPE enum in mavlink/mavlink_types.h
+   * Onboard parameter type: see the MAV_PARAM_TYPE enum for supported data types.
    */
   public int param_type;
 /**

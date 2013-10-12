@@ -25,7 +25,7 @@ public class msg_vicon_position_estimate extends MAVLinkMessage {
 }
 
   /**
-   * Timestamp (milliseconds)
+   * Timestamp (microseconds, synced to UNIX time or since system boot)
    */
   public long usec;
   /**

@@ -17,7 +17,7 @@ public interface FENCE_BREACH {
      */
     public final static int FENCE_BREACH_MINALT = 1;
     /**
-     * Breached minimum altitude
+     * Breached maximum altitude
      */
     public final static int FENCE_BREACH_MAXALT = 2;
     /**

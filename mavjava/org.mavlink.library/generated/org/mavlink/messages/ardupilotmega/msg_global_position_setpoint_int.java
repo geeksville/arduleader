@@ -25,15 +25,15 @@ public class msg_global_position_setpoint_int extends MAVLinkMessage {
 }
 
   /**
-   * WGS84 Latitude position in degrees * 1E7
+   * Latitude (WGS84), in degrees * 1E7
    */
   public long latitude;
   /**
-   * WGS84 Longitude position in degrees * 1E7
+   * Longitude (WGS84), in degrees * 1E7
    */
   public long longitude;
   /**
-   * WGS84 Altitude in meters * 1000 (positive for up)
+   * Altitude (WGS84), in meters * 1000 (positive for up)
    */
   public long altitude;
   /**

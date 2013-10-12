@@ -12,7 +12,7 @@ import org.mavlink.io.LittleEndianDataInputStream;
 import org.mavlink.io.LittleEndianDataOutputStream;
 /**
  * Class msg_rc_channels_override
- * The RAW values of the RC channels sent to the MAV to override info received from the RC radio. A value of -1 means no change to that channel. A value of 0 means control of that channel should be released back to the RC radio. The standard PPM modulation is as follows: 1000 microseconds: 0%, 2000 microseconds: 100%. Individual receivers/transmitters might violate this specification.
+ * The RAW values of the RC channels sent to the MAV to override info received from the RC radio. A value of UINT16_MAX means no change to that channel. A value of 0 means control of that channel should be released back to the RC radio. The standard PPM modulation is as follows: 1000 microseconds: 0%, 2000 microseconds: 100%. Individual receivers/transmitters might violate this specification.
  **/
 public class msg_rc_channels_override extends MAVLinkMessage {
   public static final int MAVLINK_MSG_ID_RC_CHANNELS_OVERRIDE = 70;
@@ -25,35 +25,35 @@ public class msg_rc_channels_override extends MAVLinkMessage {
 }
 
   /**
-   * RC channel 1 value, in microseconds
+   * RC channel 1 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan1_raw;
   /**
-   * RC channel 2 value, in microseconds
+   * RC channel 2 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan2_raw;
   /**
-   * RC channel 3 value, in microseconds
+   * RC channel 3 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan3_raw;
   /**
-   * RC channel 4 value, in microseconds
+   * RC channel 4 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan4_raw;
   /**
-   * RC channel 5 value, in microseconds
+   * RC channel 5 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan5_raw;
   /**
-   * RC channel 6 value, in microseconds
+   * RC channel 6 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan6_raw;
   /**
-   * RC channel 7 value, in microseconds
+   * RC channel 7 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan7_raw;
   /**
-   * RC channel 8 value, in microseconds
+   * RC channel 8 value, in microseconds. A value of UINT16_MAX means to ignore this field.
    */
   public int chan8_raw;
   /**

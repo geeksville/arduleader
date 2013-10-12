@@ -61,13 +61,13 @@ public class msg_simstate extends MAVLinkMessage {
    */
   public float zgyro;
   /**
-   * Latitude in degrees
+   * Latitude in degrees * 1E7
    */
-  public float lat;
+  public long lat;
   /**
-   * Longitude in degrees
+   * Longitude in degrees * 1E7
    */
-  public float lng;
+  public long lng;
 /**
  * Decode message with raw data
  */
@@ -81,8 +81,8 @@ public void decode(LittleEndianDataInputStream dis) throws IOException {
   xgyro = (float)dis.readFloat();
   ygyro = (float)dis.readFloat();
   zgyro = (float)dis.readFloat();
-  lat = (float)dis.readFloat();
-  lng = (float)dis.readFloat();
+  lat = (int)dis.readInt();
+  lng = (int)dis.readInt();
 }
 /**
  * Encode message with raw data and other informations
@@ -105,8 +105,8 @@ public byte[] encode() throws IOException {
   dos.writeFloat(xgyro);
   dos.writeFloat(ygyro);
   dos.writeFloat(zgyro);
-  dos.writeFloat(lat);
-  dos.writeFloat(lng);
+  dos.writeInt((int)(lat&0x00FFFFFFFF));
+  dos.writeInt((int)(lng&0x00FFFFFFFF));
   dos.flush();
   byte[] tmp = dos.toByteArray();
   for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];

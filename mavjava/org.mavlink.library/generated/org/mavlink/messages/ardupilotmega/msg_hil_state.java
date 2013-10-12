@@ -12,7 +12,7 @@ import org.mavlink.io.LittleEndianDataInputStream;
 import org.mavlink.io.LittleEndianDataOutputStream;
 /**
  * Class msg_hil_state
- * Sent from simulation to autopilot. This packet is useful for high throughput applications such as hardware in the loop simulations.
+ * DEPRECATED PACKET! Suffers from missing airspeed fields and singularities due to Euler angles. Please use HIL_STATE_QUATERNION instead. Sent from simulation to autopilot. This packet is useful for high throughput applications such as hardware in the loop simulations.
  **/
 public class msg_hil_state extends MAVLinkMessage {
   public static final int MAVLINK_MSG_ID_HIL_STATE = 90;
@@ -41,15 +41,15 @@ public class msg_hil_state extends MAVLinkMessage {
    */
   public float yaw;
   /**
-   * Roll angular speed (rad/s) in body frame
+   * Body frame roll / phi angular speed (rad/s)
    */
   public float rollspeed;
   /**
-   * Pitch angular speed (rad/s) in body frame
+   * Body frame pitch / theta angular speed (rad/s)
    */
   public float pitchspeed;
   /**
-   * Yaw angular speed (rad/s) in body frame
+   * Body frame yaw / psi angular speed (rad/s)
    */
   public float yawspeed;
   /**
@@ -73,19 +73,19 @@ public class msg_hil_state extends MAVLinkMessage {
    */
   public int vy;
   /**
-   * Ground Z Speed (Altitude), expressed as m/s * 100 (+ve down)
+   * Ground Z Speed (Altitude), expressed as m/s * 100
    */
   public int vz;
   /**
-   * X acceleration (mg) in body frame (+ve forward)
+   * X acceleration (mg)
    */
   public int xacc;
   /**
-   * Y acceleration (mg) in body frame (+ve right)
+   * Y acceleration (mg)
    */
   public int yacc;
   /**
-   * Z acceleration (mg) in body frame (+ve down)
+   * Z acceleration (mg)
    */
   public int zacc;
 /**

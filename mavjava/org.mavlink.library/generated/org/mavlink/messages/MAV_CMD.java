@@ -284,6 +284,17 @@ public interface MAV_CMD {
      */
     public final static int MAV_CMD_DO_CONTROL_VIDEO = 200;
     /**
+     * Sets the region of interest (ROI) for a sensor set or the vehicle itself. This can then be used by the vehicles control system to control the vehicle attitude and the attitude of various sensors such as cameras.
+     * PARAM 1 : Region of intereset mode. (see MAV_ROI enum)
+     * PARAM 2 : MISSION index/ target ID. (see MAV_ROI enum)
+     * PARAM 3 : ROI index (allows a vehicle to manage multiple ROI's)
+     * PARAM 4 : Empty
+     * PARAM 5 : x the location of the fixed ROI (see MAV_FRAME)
+     * PARAM 6 : y
+     * PARAM 7 : z
+     */
+    public final static int MAV_CMD_DO_SET_ROI = 201;
+    /**
      * NOP - This command is only used to mark the upper limit of the DO commands in the enumeration
      * PARAM 1 : Empty
      * PARAM 2 : Empty
@@ -300,7 +311,7 @@ public interface MAV_CMD {
      * PARAM 2 : Magnetometer calibration: 0: no, 1: yes
      * PARAM 3 : Ground pressure: 0: no, 1: yes
      * PARAM 4 : Radio calibration: 0: no, 1: yes
-     * PARAM 5 : Empty
+     * PARAM 5 : Accelerometer calibration: 0: no, 1: yes
      * PARAM 6 : Empty
      * PARAM 7 : Empty
      */
@@ -404,4 +415,15 @@ public interface MAV_CMD {
      * PARAM 7 : Empty
      */
     public final static int MAV_CMD_DO_MOUNT_CONTROL = 205;
+    /**
+     * Mission command to set CAM_TRIGG_DIST for this flight
+     * PARAM 1 : Camera trigger distance (meters)
+     * PARAM 2 : Empty
+     * PARAM 3 : Empty
+     * PARAM 4 : Empty
+     * PARAM 5 : Empty
+     * PARAM 6 : Empty
+     * PARAM 7 : Empty
+     */
+    public final static int MAV_CMD_DO_SET_CAM_TRIGG_DIST = 206;
 }

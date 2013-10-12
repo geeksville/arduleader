@@ -12,7 +12,7 @@ import org.mavlink.io.LittleEndianDataInputStream;
 import org.mavlink.io.LittleEndianDataOutputStream;
 /**
  * Class msg_mission_request_partial_list
- * Request the overall list of MISSIONs from the system/component. http://qgroundcontrol.org/mavlink/waypoint_protocol
+ * Request a partial list of mission items from the system/component. http://qgroundcontrol.org/mavlink/waypoint_protocol. If start and end index are the same, just send one waypoint.
  **/
 public class msg_mission_request_partial_list extends MAVLinkMessage {
   public static final int MAVLINK_MSG_ID_MISSION_REQUEST_PARTIAL_LIST = 37;

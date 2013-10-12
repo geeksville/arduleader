@@ -56,4 +56,16 @@ public interface MAV_AUTOPILOT {
      * FlexiPilot
      */
     public final static int MAV_AUTOPILOT_FP = 11;
+    /**
+     * PX4 Autopilot - http://pixhawk.ethz.ch/px4/
+     */
+    public final static int MAV_AUTOPILOT_PX4 = 12;
+    /**
+     * SMACCMPilot - http://smaccmpilot.org
+     */
+    public final static int MAV_AUTOPILOT_SMACCMPILOT = 13;
+    /**
+     * AutoQuad -- http://autoquad.org
+     */
+    public final static int MAV_AUTOPILOT_AUTOQUAD = 14;
 }
