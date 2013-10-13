@@ -72,6 +72,8 @@ class HeartbeatMonitor extends InstrumentedActor {
           onSystemStatusChanged(systemStatus.get)
       }
 
+    //case msg: MAVLinkMessage => log.warn(s"Unknown mavlink msg: ${msg.messageType} $msg")
+
     case WatchdogExpired =>
       forceLostHeartbeat()
   }
