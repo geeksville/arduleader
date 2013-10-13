@@ -1,9 +1,11 @@
 * FIXME - try using not for embedded java in mavlink lib
 
-* We now fetch the current param documentation from the diydrones servers
+# 1.9.3
+* We now fetch the current param documentation from the diydrones servers (in both Droneshare and Andropilot)
 * Lower AHRS data download rate when HUD is not up - to save battery & bandwidth
 * Use a higher position download rate - for higher resolution tlogs/map view
 * Support the new MAV_CMD_DO_SET_CAM_TRIGG_DIST command
+* If the vehicle has never been armed, don't show the home icon until it has been so armed... (prevent user confusion with arducopter)
 
 # 1.9.2
 * The new style 3dr radios (shipped with Iris) would not be auto recognized by Andropilot on the first plug attempt (you had to plug them in a second time).  Fixed.

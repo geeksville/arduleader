@@ -34,6 +34,9 @@ class HeartbeatMonitor extends InstrumentedActor {
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
 
+  /// Has the vehicle been armed (ever) during this session
+  var hasBeenArmed = false
+
   def isArmed: Boolean = baseMode.map(isArmed).getOrElse(false)
 
   /// Parse a baseMode to see if we are armed
@@ -92,6 +95,9 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   protected def onArmedChanged(armed: Boolean) {
     log.info("Armed changed: " + armed)
+    if (armed)
+      hasBeenArmed = true
+
     eventStream.publish(MsgArmChanged(armed))
   }
 

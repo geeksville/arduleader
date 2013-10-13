@@ -479,6 +479,7 @@ class MyMapFragment extends SupportMapFragment
       debug("heartbeat found")
       handler.post { () =>
         redrawMarker()
+        handleWaypoints() // We might need to draw the home icon now
         invalidateContextMenu()
       }
 
@@ -672,14 +673,19 @@ class MyMapFragment extends SupportMapFragment
         scene.clearSegments() // FIXME - shouldn't touch this
 
         if (!wpts.isEmpty) {
-          waypointMarkers = wpts.map { w =>
-            val r = new DraggableWaypointMarker(w)
-            scene.addMarker(r)
+          waypointMarkers = wpts.flatMap { w =>
 
-            if (isAuto && r.isCurrent)
-              destMarker = Some(r)
+            // If the vehicle has never been armed, then the home location is of low quality - don't show it
+            if (!w.isHome || v.hasBeenArmed) {
+              val r = new DraggableWaypointMarker(w)
+              scene.addMarker(r)
 
-            r
+              if (isAuto && r.isCurrent)
+                destMarker = Some(r)
+
+              Some(r)
+            } else
+              None
           }
 
           createWaypointSegments()
