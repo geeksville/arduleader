@@ -162,7 +162,7 @@ class VehicleClient(override val targetSystem: Int = 1) extends HeartbeatMonitor
 
     interestingStreams.foreach {
       case (id, freqHz) =>
-        setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1, freqHz, enabled)
+        setFreq(id, freqHz, enabled)
     }
   }
 }
