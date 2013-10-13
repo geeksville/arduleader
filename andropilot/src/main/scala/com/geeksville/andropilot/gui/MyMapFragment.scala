@@ -595,16 +595,18 @@ class MyMapFragment extends SupportMapFragment
       scene.foreach { scene =>
 
         def createWaypointSegments() {
-          // Generate drawables going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-          val pairs = waypointMarkers.zip(waypointMarkers.tail)
-          scene.drawables.appendAll(pairs.map { p =>
-            val color = if (p._1.isAutocontinue)
-              Color.GREEN
-            else
-              Color.GRAY
+          if (!waypointMarkers.isEmpty) {
+            // Generate drawables going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+            val pairs = waypointMarkers.zip(waypointMarkers.tail)
+            scene.drawables.appendAll(pairs.map { p =>
+              val color = if (p._1.isAutocontinue)
+                Color.GREEN
+              else
+                Color.GRAY
 
-            Segment(p, color)
-          })
+              Segment(p, color)
+            })
+          }
         }
 
         def createFenceSegments() = {
