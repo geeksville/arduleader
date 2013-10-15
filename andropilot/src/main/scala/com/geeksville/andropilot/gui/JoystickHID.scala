@@ -17,6 +17,7 @@ import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.aspeech.TTSClient
 import com.geeksville.andropilot.R
 import android.content.ActivityNotFoundException
+import android.os.Bundle
 
 /**
  * Provides joystick control through a bluetooth joystick
@@ -37,9 +38,20 @@ trait JoystickHID extends JoystickController {
 
   private var throttleTimer: Option[Cancellable] = None
 
+  private var oldHatX = 0.0f
+  private var oldHatY = 0.0f
+
+  override def onCreate(b: Bundle) {
+    super.onCreate(b)
+
+    // I think Nvidia shield might have hooked this to find apps that are joystick aware...
+    InputDevice.getDeviceIds.foreach(InputDevice.getDevice)
+  }
+
   override def onGenericMotionEvent(ev: MotionEvent) = {
     val isJoystick = ((ev.getSource & InputDevice.SOURCE_JOYSTICK) != 0) || ((ev.getSource & InputDevice.SOURCE_GAMEPAD) != 0)
-    debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
+    if (debugOutput)
+      debug("Received %s from %s, action %s".format(ev, ev.getSource, ev.getAction))
 
     val devId = ev.getDeviceId
     if (isJoystick && devId != 0 && joystickAvailable) {
@@ -65,6 +77,24 @@ trait JoystickHID extends JoystickController {
           elevator = getAxisValue(MotionEvent.AXIS_RZ)
           aileron = getAxisValue(MotionEvent.AXIS_Z)
           throttleStickPos = getAxisValue(MotionEvent.AXIS_Y)
+
+          val hatx = getAxisValue(MotionEvent.AXIS_HAT_X)
+          val haty = getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+          if (hatx != oldHatX)
+            if (hatx < -0.5f)
+              selectNextPage(false) // left
+            else if (hatx > 0.5f)
+              selectNextPage(true)
+
+          if (haty != oldHatY)
+            if (haty < -0.5f)
+              doNextMode(false) // up
+            else if (haty > 0.5f)
+              doNextMode(true) // down
+
+          oldHatX = hatx
+          oldHatY = haty
 
           /// Is the specified joystick axis moved away from center?
           def isMoved(axisNum: Int) = math.abs(getAxisValue(axisNum)) > dev.getMotionRange(axisNum, ev.getSource).getFlat
@@ -165,6 +195,7 @@ trait JoystickHID extends JoystickController {
           true
         case KeyEvent.KEYCODE_BUTTON_START =>
           speak(S(R.string.spk_joystick_off), true)
+          toast("Joystick off")
           stopOverrides()
           true
         case x @ _ =>
@@ -179,7 +210,11 @@ trait JoystickHID extends JoystickController {
     myVehicle.foreach(_ ! DoSetMode("RTL"))
   }
 
+  protected def showSidebar(shown: Boolean)
+
   private def doNextMode(isNext: Boolean) {
+    showSidebar(true)
+
     try {
       myVehicle.foreach { v =>
         val favoriteModes = (1 to 6).map { i =>

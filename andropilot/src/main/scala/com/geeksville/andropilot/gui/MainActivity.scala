@@ -574,7 +574,7 @@ class MainActivity extends FragmentActivity with TypedActivity
    * If the user wants the screen always on or the joystick is up, keep the screen awake
    */
   private def setScreenOn() {
-    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown)
+    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown || isOverriding)
   }
 
   override def onResume() {
@@ -959,7 +959,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
-  private def showSidebar(shown: Boolean) {
+  override protected def showSidebar(shown: Boolean) {
     if (isWide) // If we _only_ have the sidebar - don't hide it
       viewPager.foreach(_.setVisibility(if (shown) View.VISIBLE else View.GONE))
   }

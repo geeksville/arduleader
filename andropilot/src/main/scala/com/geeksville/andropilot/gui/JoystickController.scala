@@ -213,6 +213,12 @@ trait JoystickController extends Activity
     if (fenceChannel != 0) {
       fenceOverridden = true
       fenceEnabled = !fenceEnabled
+      val msg = if (fenceEnabled)
+        "Fence enabled"
+      else
+        "Fence disabled"
+      toast(msg)
+      speak(msg)
       debug("new fence state: " + fenceEnabled)
       startOverride()
       sendOverride()
