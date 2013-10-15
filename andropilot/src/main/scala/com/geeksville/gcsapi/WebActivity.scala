@@ -2,7 +2,6 @@ package com.geeksville.gcsapi
 
 import com.geeksville.andropilot._
 import com.ridemission.scandroid._
-
 import android.app._
 import android.webkit._
 import android.view._
@@ -10,6 +9,8 @@ import android.os._
 import android.preference._
 import android.content._
 import android.net._
+import java.util.Timer
+import java.util.TimerTask
 
 class WebActivity extends Activity with TypedActivity with AndroidLogger {
   override def onCreate(saved: Bundle) {
@@ -58,8 +59,18 @@ class WebActivity extends Activity with TypedActivity with AndroidLogger {
   override def onDestroy() {
     // work around for http://stackoverflow.com/questions/7156420/how-can-i-destroy-the-webview-activity-and-the-video-in-webview
     val view = findView(TR.web_main)
-    println("Destroying webkit")
-    view.destroy()
+
+    // Better work around
+    // http://stackoverflow.com/questions/5267639/how-to-safely-turn-webview-zooming-on-and-off-as-needed
+    println("Scheduling webkit destroy")
+    val timeout = ViewConfiguration.getZoomControlsTimeout
+    (new Timer).schedule(new TimerTask() {
+      def run() {
+        println("Destroying webkit")
+        view.destroy()
+      }
+    }, timeout)
+
     super.onDestroy()
   }
 
