@@ -1,5 +1,9 @@
 * FIXME - try using not for embedded java in mavlink lib
 
+# 1.9.5
+* Better support for nvidia shield 
+* Prompt for arm & disarm in the menu  (thanks Edgar)
+
 # 1.9.3
 * We now fetch the current param documentation from the diydrones servers (in both Droneshare and Andropilot)
 * Lower AHRS data download rate when HUD is not up - to save battery & bandwidth

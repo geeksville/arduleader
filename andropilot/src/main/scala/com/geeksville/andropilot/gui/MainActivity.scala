@@ -981,7 +981,13 @@ class MainActivity extends FragmentActivity with TypedActivity
       case R.id.menu_arm =>
         val n = !item.isChecked
         myVehicle.foreach { v =>
-          v ! DoSetMode(if (n) "Arm" else "Disarm")
+          val isFlying = v.isFlying.getOrElse(true)
+          if (isFlying && !n) {
+            val newFragment = new SimpleYesNoDialog("Are you sure you want to disarm?", { () => v ! DoSetMode("Disarm") })
+
+            AlertUtil.show(this, newFragment, "disconf")
+          } else
+            v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
 

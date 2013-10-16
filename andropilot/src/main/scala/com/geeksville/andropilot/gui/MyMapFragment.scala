@@ -639,15 +639,29 @@ class MyMapFragment extends SupportMapFragment
           }
         }
 
+        def androidDistance(a: Location, b: Location) = {
+          val results = new Array[Float](1)
+          android.location.Location.distanceBetween(a.lat, a.lon, b.lat, b.lon, results)
+          results(0)
+        }
+
         def createRangeCircles() = {
+          // For testing with bluetooth at my desk
+          val fakeData = developerMode && !v.radio.isDefined
+
           for {
-            r <- v.radio // fakeRadio 
-            vLoc <- v.location
+            r <- if (fakeData) fakeRadio else v.radio
             map <- mapOpt
             gcsAndroidLoc <- Option(map.getMyLocation)
+            gcsLoc <- Some(Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude))
+            vLoc <- if (fakeData) {
+              val fakeV = Location(gcsLoc.lat + 0.0005, gcsLoc.lon)
+              Option(fakeV)
+            } else
+              v.location
           } yield {
-            val gcsLoc = Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude)
-            val curDist = vLoc.distance(gcsLoc).toFloat
+            // Android version is apparently better
+            val curDist = androidDistance(vLoc, gcsLoc) // vLoc.distance(gcsLoc).toFloat
             val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)
             val maxRangeMeters = 50 * 1000 // 50km limit - If we have bogus location for one of the nodes we can get _really_ huge ranges reported
 
