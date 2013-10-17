@@ -3,6 +3,7 @@
 # 1.9.5
 * Better support for nvidia shield 
 * Prompt for arm & disarm in the menu  (thanks Edgar)
+* Do not allow arming (from andropilot only) if the vehicle is not level (thanks Craig Baldwin for the idea)
 
 # 1.9.3
 * We now fetch the current param documentation from the diydrones servers (in both Droneshare and Andropilot)

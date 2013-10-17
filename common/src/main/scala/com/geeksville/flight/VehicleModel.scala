@@ -492,7 +492,17 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
           rc.chan3_raw > minThrottle * 1.10 || rc.chan3_raw == 0
         }).getOrElse(true)
 
-        if (throttleTooFast)
+        val isLevel = (for {
+          att <- attitude
+        } yield {
+          val rdeg = math.abs(att.roll) * 180 / math.Pi
+          val pdeg = math.abs(att.pitch) * 180 / math.Pi
+          (rdeg > 15 || pdeg > 15)
+        }).getOrElse(false)
+
+        if (!isLevel)
+          onStatusChanged("Failure to arm - not level", MsgStatusChanged.SEVERITY_HIGH)
+        else if (throttleTooFast)
           onStatusChanged("Failure to arm - bad throttle", MsgStatusChanged.SEVERITY_HIGH)
         else
           sendMavlink(commandDoArm(true))
