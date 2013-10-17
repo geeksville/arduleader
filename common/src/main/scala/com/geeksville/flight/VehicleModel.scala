@@ -497,7 +497,8 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         } yield {
           val rdeg = math.abs(att.roll) * 180 / math.Pi
           val pdeg = math.abs(att.pitch) * 180 / math.Pi
-          (rdeg > 15 || pdeg > 15)
+          log.warn(s"ARM check roll=$rdeg, pitch=$pdeg")
+          (rdeg < 30 && pdeg < 30)
         }).getOrElse(false)
 
         if (!isLevel)
