@@ -1,6 +1,7 @@
 * FIXME - try using not for embedded java in mavlink lib
 
 # 1.9.5
+*  FIXME TEST Support VERY small screens (320x240) with a special UI (move bluetooth options into menu etc...)
 * Better support for nvidia shield 
 * Prompt for arm & disarm in the menu  (thanks Edgar)
 * Do not allow arming (from andropilot only) if the vehicle is not level (thanks Craig Baldwin for the idea)

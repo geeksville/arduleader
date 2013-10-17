@@ -339,6 +339,11 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  // Check for a 'long' screen as a hack to turn off this code for samsung note
+  // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
+  // Height: My galaxy nexus is 567, so say <600 means a phone...
+  def isSmallScreen = screenSmallestWidthDp <= 360 && !screenIsLong
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
@@ -355,10 +360,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
 
     // If we are on a phone sized device disallow landscape mode (our panes become too small)
-    // Check for a 'long' screen as a hack to turn off this code for samsung note
-    // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
-    // Height: My galaxy nexus is 567, so say <600 means a phone...
-    if (screenSmallestWidthDp <= 360 && !screenIsLong)
+    if (isSmallScreen)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     if (screenHeightDp < 360) { // Are we on a phone screen and in landscape - turn off the titlebar, cause we need all we can get
@@ -834,6 +836,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     showSidebarMenu.setVisible(isWide)
     showSidebarMenu.setChecked(viewPager.map(_.isShown).getOrElse(false))
 
+    // Only show the 'bluetooth' menu item on tiny devices that can't really use the modal bar
+    val btMenu = menu.findItem(R.id.menu_bluetoothconnect)
+    btMenu.setVisible(isSmallScreen)
+
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
     val checklist = menu.findItem(R.id.menu_checklist)
@@ -854,6 +860,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       val isLeading = minDistance != 0.0f || maxDistance != 0.0f
       follow.setTitle(if (isLeading) R.string.lead_it else R.string.follow_me)
       follow.setChecked(svc.isFollowMe)
+
+      btMenu.setChecked(svc.isBluetoothConnected)
 
       myVehicle.foreach { v =>
         checklist.setEnabled(v.hasHeartbeat)
@@ -1011,6 +1019,14 @@ class MainActivity extends FragmentActivity with TypedActivity
         val n = !item.isChecked
         item.setChecked(n)
         setShowJoystick(n)
+
+      case R.id.menu_bluetoothconnect =>
+        service.foreach { s =>
+          if (s.isBluetoothConnected)
+            s.forceBluetoothDisconnect()
+          else
+            s.connectToDevices()
+        }
 
       case R.id.menu_gotovehicle =>
         navToVehicleIntent.map { intent =>

@@ -23,6 +23,10 @@
         android:id="@+id/menu_arm"
         android:checkable="true"
         android:title="Arm"/>
+        <item
+        android:id="@+id/menu_bluetoothconnect"
+        android:checkable="true"
+        android:title="Bluetooth"/>
     <item
         android:id="@+id/menu_showjoystick"
         android:checkable="true"
