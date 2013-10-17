@@ -35,7 +35,7 @@ class Scheduler extends Logging {
       dest ! msg
     }
 
-    scheduleOnce(d)(run)
+    scheduleOnce(d)(run _)
   }
 
   def scheduleOnce(d: Duration)(cb: () => Unit): Cancellable = {
