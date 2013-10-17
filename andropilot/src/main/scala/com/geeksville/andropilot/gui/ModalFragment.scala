@@ -29,6 +29,7 @@ import android.util.TypedValue
 import statemap.StateUndefinedException
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.mavlink.MsgSystemStatusChanged
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -60,6 +61,9 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       postModeChange()
 
     case MsgFSMChanged(_) =>
+      postModeChange()
+
+    case MsgSystemStatusChanged(_) =>
       postModeChange()
 
     case StatusText(s, severity) =>
