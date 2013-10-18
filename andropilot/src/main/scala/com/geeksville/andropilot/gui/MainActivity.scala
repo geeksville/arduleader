@@ -77,6 +77,7 @@ import com.geeksville.flight.MsgRCModeChanged
 import android.view.WindowManager
 import com.geeksville.gcsapi.WebActivity
 import com.geeksville.gcsapi.Webserver
+import com.geeksville.akka.EventStream
 
 class MainActivity extends FragmentActivity with TypedActivity
   with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
@@ -125,6 +126,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   // Also - might not always be present, so we make it an option
   def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
   def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
+  def modalFragment = Option(getFragmentManager.findFragmentById(R.id.modal_fragment).asInstanceOf[ModalFragment])
 
   lazy val joystickPanel = Option(findViewById(R.id.joysticks))
   lazy val leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
@@ -866,6 +868,8 @@ class MainActivity extends FragmentActivity with TypedActivity
       myVehicle.foreach { v =>
         checklist.setEnabled(v.hasHeartbeat)
 
+        menu.findItem(R.id.menu_spectator).setChecked(v.listenOnly)
+
         if (v.isCopter) {
           val armed = v.isArmed
           debug(s"Setting arm checkbox to $armed, hb ${v.hasHeartbeat} / conn ${svc.isConnected}")
@@ -982,6 +986,19 @@ class MainActivity extends FragmentActivity with TypedActivity
         debug("Toggle speech, newmode " + n)
         isSpeechEnabled = n
         item.setChecked(n)
+
+      case R.id.menu_spectator =>
+        val n = !item.isChecked
+
+        myVehicle.foreach { v =>
+          debug("Toggle specator, newmode " + n)
+          v.listenOnly = n
+
+          // hack to remove warning from modal bar
+          v.eventStream.publish(StatusText(if (n) "Read only mode" else "Normal mode"))
+
+          item.setChecked(n)
+        }
 
       case R.id.check_sun =>
         checkSunspots()

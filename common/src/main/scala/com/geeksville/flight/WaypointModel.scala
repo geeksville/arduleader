@@ -218,9 +218,12 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   }
 
   private def startWaypointDownload() {
-    log.info("Downloading waypoints")
-    hasRequestedWaypoints = true
-    sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
+    if (!listenOnly) {
+      log.info("Downloading waypoints")
+      hasRequestedWaypoints = true
+      sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
+    } else
+      log.warn("Listen only mode - not downloading waypoints")
   }
 
   protected def onWaypointDownloadFailed() {
@@ -229,7 +232,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private def perhapsRequestWaypoints() {
     // First contact, download any waypoints from the vehicle and get params
-    if (!hasRequestedWaypoints)
+    if (!hasRequestedWaypoints && !listenOnly)
       self ! StartWaypointDownload
   }
 

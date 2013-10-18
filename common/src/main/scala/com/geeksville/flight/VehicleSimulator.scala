@@ -60,9 +60,27 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
    */
   def targetSystem: Int = 1
 
-  def sendMavlink(m: MAVLinkMessage) = MavlinkEventBus.publish(m)
+  /**
+   * In special cases (spectator mode, or a RX only radio, we want to suppress _any_ packet sends to the vehicle)
+   */
+  var listenOnly = false
 
-  def sendMavlink(m: SendYoungest) = MavlinkEventBus.publish(m)
+  def sendMavlink(m: MAVLinkMessage) {
+    if (!listenOnly)
+      MavlinkEventBus.publish(m)
+  }
+
+  /**
+   * Send packets even if we are supposed to only listen (useful for GCS heartbeat)
+   */
+  protected def sendMavlinkAlways(m: MAVLinkMessage) {
+    MavlinkEventBus.publish(m)
+  }
+
+  def sendMavlink(m: SendYoungest) {
+    if (!listenOnly)
+      MavlinkEventBus.publish(m)
+  }
 
   /**
    * Set by ardupilot custom modes

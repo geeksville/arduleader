@@ -1,5 +1,9 @@
 * FIXME - try using not for embedded java in mavlink lib
 
+# 1.9.6
+* Support 'spectator mode'
+* FIXME - do speech from service
+
 # 1.9.5
 * Support the new px4 USB device IDs (reenables direct USB connection to Pixhawk) (Thanks for the report Tridge)
 * Support VERY small screens (320x240) with a special UI (move bluetooth options into menu etc...) (Thanks Rory San Miguel)

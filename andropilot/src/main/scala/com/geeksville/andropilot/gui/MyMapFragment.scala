@@ -562,12 +562,14 @@ class MyMapFragment extends SupportMapFragment
     mapOpt.foreach { map =>
       // FIXME Allow altitude choice (by adding altitude to provisional marker)
       myVehicle.foreach { v =>
-        removeProvisionalMarker()
-        val marker = new ProvisionalMarker(l, guideAlt)
-        val m = scene.get.addMarker(marker)
-        m.showInfoWindow()
-        provisionalMarker = Some(marker)
-        selectMarker(marker)
+        if (!v.listenOnly) {
+          removeProvisionalMarker()
+          val marker = new ProvisionalMarker(l, guideAlt)
+          val m = scene.get.addMarker(marker)
+          m.showInfoWindow()
+          provisionalMarker = Some(marker)
+          selectMarker(marker)
+        }
       }
     }
   }

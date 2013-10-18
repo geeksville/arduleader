@@ -69,7 +69,7 @@ case class MsgSetPositionFreq(freq: Int)
 /// Sent from the app layer when a new interface is plugged in
 case class OnInterfaceChanged(connected: Boolean)
 
-case class StatusText(str: String, severity: Int) {
+case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MEDIUM) {
   override def toString = str // So ObservableAdapter can get nice strings
 }
 
@@ -458,7 +458,9 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     super.onParametersDownloaded()
 
     fsm.OnParametersDownloaded()
+  }
 
+  def handleStartupComplete() {
     /// Select correct next state (because we are guaranteed to already be in one of these states)
     if (isArmed && isFlying.getOrElse(false))
       fsm.HBSaysFlying()

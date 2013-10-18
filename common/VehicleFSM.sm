@@ -38,9 +38,14 @@ WantInterface
 
 WantVehicle
 {
-  OnHasHeartbeat
-    DownloadingWaypoints
+  OnHasHeartbeat [ !ctxt.listenOnly ]
+    DownloadingWaypoints 
     {}
+  
+  // Skip wp/param download if we can't xmit to vehicle
+  OnHasHeartbeat [ ctxt.listenOnly ]
+    DownloadedParameters 
+    {}    
 }
 
 DownloadingWaypoints
@@ -87,6 +92,7 @@ Exit { setStreamEnable(true); } */
 }
 
 DownloadedParameters
+Entry { handleStartupComplete(); }
 {
   HBSaysArmed
     Armed
@@ -133,6 +139,11 @@ Flying
   HBSaysDisarmed
     Disarmed
     {}
+    
+  // Ignore stale notice
+  HBSaysArmed
+    nil
+    {}    
     
   // Just stay in this state for redundant notifies
   HBSaysFlying

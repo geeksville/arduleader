@@ -18,6 +18,20 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:visibility="visible" />
 
+    <TextView
+        android:id="@+id/spectator_warning"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="6dp"
+        android:layout_marginLeft="6dp"
+        android:layout_toRightOf="@id/mode_text"
+        android:background="@drawable/square_textbackground"
+        android:padding="4dp"
+        android:text="READ ONLY"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:visibility="visible" />
+
     <HorizontalScrollView
         android:id="@+id/mode_buttons_scroller"
         android:layout_width="wrap_content"
@@ -25,8 +39,7 @@
         android:layout_below="@id/mode_text"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
-        android:layout_marginTop="6dp"
-         > 
+        android:layout_marginTop="6dp" >
 
         <LinearLayout
             android:id="@+id/mode_buttons"

@@ -19,7 +19,7 @@ trait HeartbeatSender extends VehicleSimulator {
   // Send a heartbeat every few seconds 
   val heartbeatSender = acontext.system.scheduler.schedule(1 seconds, 3 seconds) { () =>
     //self.log.debug("Sending heartbeat")
-    sendMavlink(heartbeat)
+    sendMavlinkAlways(heartbeat)
   }
 
   override def postStop() {
