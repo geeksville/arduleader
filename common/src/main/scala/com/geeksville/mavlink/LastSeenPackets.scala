@@ -17,7 +17,7 @@ class LastSeenPackets(sysId: Int) extends InstrumentedActor {
   def toLongString = recent.values.mkString("Recent packets:\n", "\n", "\n")
 
   def onReceive = {
-    case msg: MAVLinkMessage ⇒
+    case msg: MAVLinkMessage =>
       recent(msg.messageType) = msg
   }
 }

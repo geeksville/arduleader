@@ -34,7 +34,7 @@ trait MavlinkSender extends InstrumentedActor {
     case SendYoungest(msg) =>
       doSendMavlink(assignSequence(findYoungest(msg).get).encode())
 
-    case msg: MAVLinkMessage ⇒
+    case msg: MAVLinkMessage =>
       //log.debug("UDPSend: " + msg)
       doSendMavlink(assignSequence(msg).encode())
   }

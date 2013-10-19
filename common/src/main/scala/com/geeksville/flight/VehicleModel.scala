@@ -399,7 +399,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         onLocationChanged(loc)
       }
 
-    case msg: msg_global_position_int ⇒
+    case msg: msg_global_position_int =>
       globalPos = Some(msg)
       val loc = VehicleSimulator.decodePosition(msg)
       //log.debug("Received location: " + loc)

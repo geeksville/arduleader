@@ -116,13 +116,13 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
         numMovingPoints += 1
       handleMessage(vfr)
 
-    case msg: msg_heartbeat ⇒
+    case msg: msg_heartbeat =>
       val typ = msg.`type`
       if (typ != MAV_TYPE.MAV_TYPE_GCS)
         vehiclesSeen += msg.sysId
       handleMessage(msg)
 
-    case msg: MAVLinkMessage ⇒
+    case msg: MAVLinkMessage =>
       handleMessage(msg)
   }
 }

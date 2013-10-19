@@ -12,7 +12,7 @@ class LogIncomingMavlink(sysId: Int, allow: MAVLinkMessage => Boolean = allowDef
     case msg: msg_statustext =>
       log.info("Rcv" + msg.sysId + ": " + msg.getText)
 
-    case msg: MAVLinkMessage ⇒
+    case msg: MAVLinkMessage =>
       def str = "Rcv" + msg.sysId + ": " + msg
       if (allow(msg))
         log.info(str)
