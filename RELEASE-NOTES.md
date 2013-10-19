@@ -1,8 +1,8 @@
 * FIXME - try using not for embedded java in mavlink lib
+* FIXME - do speech from service
 
 # 1.9.6
-* Support 'spectator mode'
-* FIXME - do speech from service
+* Support 'spectator/read-only mode'.  The new 'Read Only' menu item will switch Andropilot into a mode where it _never_ sends packets to the vehicle.  This is useful for vehicles that only have a one-way radio link
 
 # 1.9.5
 * Support the new px4 USB device IDs (reenables direct USB connection to Pixhawk) (Thanks for the report Tridge)

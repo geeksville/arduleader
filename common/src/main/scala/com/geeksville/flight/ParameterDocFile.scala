@@ -160,7 +160,7 @@ object ParameterDocFile {
         }
       } catch {
         case ex: IOException =>
-          error(s"Can't download new pdef due to: $ex")
+          println(s"Can't download new pdef due to: $ex")
 
         case ex: Exception =>
           AnalyticsService.reportException("pdef_failed", ex)
