@@ -89,7 +89,6 @@ class HeartbeatMonitor extends InstrumentedActor {
       mySysId = None
       systemStatus = None
       onHeartbeatLost()
-      onSystemStatusChanged(systemStatus.get)
     }
   }
 
