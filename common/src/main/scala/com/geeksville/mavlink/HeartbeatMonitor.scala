@@ -14,7 +14,7 @@ import org.mavlink.messages.MAV_MODE_FLAG
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
 case class MsgArmChanged(armed: Boolean)
-case class MsgSystemStatusChanged(stat: Int)
+case class MsgSystemStatusChanged(stat: Option[Int])
 
 /**
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
@@ -70,7 +70,7 @@ class HeartbeatMonitor extends InstrumentedActor {
         if (oldArmed != isArmed)
           onArmedChanged(isArmed)
         if (systemStatus != oldStatus)
-          onSystemStatusChanged(systemStatus.get)
+          onSystemStatusChanged(systemStatus)
       }
 
     //case msg: MAVLinkMessage => log.warn(s"Unknown mavlink msg: ${msg.messageType} $msg")
@@ -89,6 +89,7 @@ class HeartbeatMonitor extends InstrumentedActor {
       mySysId = None
       systemStatus = None
       onHeartbeatLost()
+      onSystemStatusChanged(systemStatus)
     }
   }
 
@@ -109,7 +110,7 @@ class HeartbeatMonitor extends InstrumentedActor {
     log.error("Received new mode: " + m)
   }
 
-  protected def onSystemStatusChanged(m: Int) {
+  protected def onSystemStatusChanged(m: Option[Int]) {
     log.error("Received new status: " + m)
     eventStream.publish(MsgSystemStatusChanged(m))
   }
