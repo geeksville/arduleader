@@ -415,7 +415,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     eventStream.publish(MsgModeChanged(currentMode))
   }
 
-  override protected def onSystemStatusChanged(m: Int) {
+  override protected def onSystemStatusChanged(m: Option[Int]) {
     super.onSystemStatusChanged(m)
 
     if (isArmed && isFlying.getOrElse(false))
