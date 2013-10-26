@@ -53,16 +53,23 @@ trait FlurryClient extends AndropilotPrefs {
 
 /// scala glue to make for easy use of the Flurry API
 trait FlurryContext extends Context with FlurryClient {
+  import FlurryContext._
 
   protected def startFlurry() {
-    if (useFlurry)
+    count += 1
+    if (useFlurry && count == 1)
       FlurryAgent.onStartSession(this, "V27VCXPK295XWGZCQG85")
   }
 
   protected def endFlurry() {
-    if (useFlurry)
+    count -= 1
+    if (useFlurry && count == 0)
       FlurryAgent.onEndSession(this)
   }
+}
+
+object FlurryContext {
+  private var count = 0
 }
 
 /// A mixin to add Flurry support to Activities 
