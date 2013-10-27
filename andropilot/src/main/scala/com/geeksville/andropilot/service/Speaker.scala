@@ -55,7 +55,10 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
 
     if (warning != -1 && handler != null)
       handler.post { () =>
-        context.speak(S(warning), true)
+        v.sysStatusFaults.foreach { f =>
+          context.speak(f + " failure")
+        }
+        context.speak(S(warning))
       }
   }
 

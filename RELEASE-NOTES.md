@@ -1,6 +1,18 @@
 * FIXME - try using not for embedded java in mavlink lib
 * FIXME - do speech from service
 
+# 1.9.10
+* ac3.1rc5 now reports gps, magnetometer and rc radio faults - Speak announce such faults (thx Randy)
+* Run speech daemon in the background - this allows speech notifications while
+phone is asleep in your pocket.
+* Spend a bit more time with power profiling.  Using a more efficient version
+of the mavlink code saves a lot of battery.  A Nexus 7 should now be able to
+log for almost 2 hours per charge.
+* Fix more minor autobugs
+
+# 1.9.09
+* Fix a couple of minor/rare autobugs
+
 # 1.9.6
 * Support 'spectator/read-only mode'.  The new 'Read Only' menu item will switch Andropilot into a mode where it _never_ sends packets to the vehicle.  This is useful for vehicles that only have a one-way radio link
 

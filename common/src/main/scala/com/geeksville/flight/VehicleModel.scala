@@ -26,6 +26,7 @@ import scala.collection.mutable.SynchronizedBuffer
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 import com.geeksville.akka.InstrumentedActor
+import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
 
 //
 // Messages we publish on our event bus when something happens
@@ -108,6 +109,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   var batteryVoltage: Option[Float] = None
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
+  var sysStatus: Option[msg_sys_status] = None
 
   /// Are we connected to any sort of interface hardware
   var hasInterface = false
@@ -167,6 +169,30 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
         false
     }
   }
+
+  private val sensors = Map(MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_3D_MAG -> "Magnotometer",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_GPS -> "GPS",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS -> "Motor Output",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_RC_RECEIVER -> "RC Receiver")
+
+  /**
+   * Currently pending hardware faults
+   */
+  def sysStatusFaults = sysStatus.map { s =>
+    val faults = s.onboard_control_sensors_present & ~s.onboard_control_sensors_health
+
+    val r = sensors.flatMap {
+      case (k, v) =>
+        if ((faults & k) != 0)
+          Some(v)
+        else
+          None
+    }.toSeq
+
+    log.debug(s"Checking faults p=${s.onboard_control_sensors_present} h=${s.onboard_control_sensors_health} => $faults / $r")
+
+    r
+  }.getOrElse(Seq())
 
   private def onLocationChanged(l: Location) {
     location = Some(l)
@@ -384,6 +410,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       onStatusChanged(s, m.severity)
 
     case msg: msg_sys_status =>
+      sysStatus = Some(msg)
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
       batteryPercent = if (msg.battery_remaining == -1) None else Some(msg.battery_remaining / 100.0f)
       onSysStatusChanged()
