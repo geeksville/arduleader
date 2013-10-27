@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_omnidirectional_flow
  * Optical flow from an omnidirectional flow sensor (e.g. PX4FLOW with wide angle lens)
@@ -51,43 +51,40 @@ public class msg_omnidirectional_flow extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  time_usec = (long)dis.readLong();
-  front_distance_m = (float)dis.readFloat();
+public void decode(ByteBuffer dis) throws IOException {
+  time_usec = (long)dis.getLong();
+  front_distance_m = (float)dis.getFloat();
   for (int i=0; i<10; i++) {
-    left[i] = (int)dis.readShort();
+    left[i] = (int)dis.getShort();
   }
   for (int i=0; i<10; i++) {
-    right[i] = (int)dis.readShort();
+    right[i] = (int)dis.getShort();
   }
-  sensor_id = (int)dis.readUnsignedByte()&0x00FF;
-  quality = (int)dis.readUnsignedByte()&0x00FF;
+  sensor_id = (int)dis.get()&0x00FF;
+  quality = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+54];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeLong(time_usec);
-  dos.writeFloat(front_distance_m);
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putLong(time_usec);
+  dos.putFloat(front_distance_m);
   for (int i=0; i<10; i++) {
-    dos.writeShort(left[i]&0x00FFFF);
+    dos.putShort((short)(left[i]&0x00FFFF));
   }
   for (int i=0; i<10; i++) {
-    dos.writeShort(right[i]&0x00FFFF);
+    dos.putShort((short)(right[i]&0x00FFFF));
   }
-  dos.writeByte(sensor_id&0x00FF);
-  dos.writeByte(quality&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+  dos.put((byte)(sensor_id&0x00FF));
+  dos.put((byte)(quality&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 54);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

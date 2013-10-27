@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_sys_status
  * The general system state. If the system is following the MAVLink standard, the system state is mainly defined by three orthogonal states/modes: The system mode, which is either LOCKED (motors shut down and locked), MANUAL (system under RC control), GUIDED (system with autonomous position control, position setpoint controlled manually) or AUTO (system guided by path/waypoint planner). The NAV_MODE defined the current flight state: LIFTOFF (often an open-loop maneuver), LANDING, WAYPOINTS or VECTOR. This represents the internal navigation state machine. The system status shows wether the system is currently active or not and if an emergency occured. During the CRITICAL and EMERGENCY states the MAV is still considered to be active, but should start emergency procedures autonomously. After a failure occured it should first move from active to critical to allow manual intervention and then move to emergency after a certain timeout.
@@ -79,49 +79,46 @@ public class msg_sys_status extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  onboard_control_sensors_present = (int)dis.readInt()&0x00FFFFFFFF;
-  onboard_control_sensors_enabled = (int)dis.readInt()&0x00FFFFFFFF;
-  onboard_control_sensors_health = (int)dis.readInt()&0x00FFFFFFFF;
-  load = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_battery = (int)dis.readUnsignedShort()&0x00FFFF;
-  current_battery = (int)dis.readShort();
-  drop_rate_comm = (int)dis.readUnsignedShort()&0x00FFFF;
-  errors_comm = (int)dis.readUnsignedShort()&0x00FFFF;
-  errors_count1 = (int)dis.readUnsignedShort()&0x00FFFF;
-  errors_count2 = (int)dis.readUnsignedShort()&0x00FFFF;
-  errors_count3 = (int)dis.readUnsignedShort()&0x00FFFF;
-  errors_count4 = (int)dis.readUnsignedShort()&0x00FFFF;
-  battery_remaining = (int)dis.readByte();
+public void decode(ByteBuffer dis) throws IOException {
+  onboard_control_sensors_present = (int)dis.getInt()&0x00FFFFFFFF;
+  onboard_control_sensors_enabled = (int)dis.getInt()&0x00FFFFFFFF;
+  onboard_control_sensors_health = (int)dis.getInt()&0x00FFFFFFFF;
+  load = (int)dis.getShort()&0x00FFFF;
+  voltage_battery = (int)dis.getShort()&0x00FFFF;
+  current_battery = (int)dis.getShort();
+  drop_rate_comm = (int)dis.getShort()&0x00FFFF;
+  errors_comm = (int)dis.getShort()&0x00FFFF;
+  errors_count1 = (int)dis.getShort()&0x00FFFF;
+  errors_count2 = (int)dis.getShort()&0x00FFFF;
+  errors_count3 = (int)dis.getShort()&0x00FFFF;
+  errors_count4 = (int)dis.getShort()&0x00FFFF;
+  battery_remaining = (int)dis.get();
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+31];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeInt((int)(onboard_control_sensors_present&0x00FFFFFFFF));
-  dos.writeInt((int)(onboard_control_sensors_enabled&0x00FFFFFFFF));
-  dos.writeInt((int)(onboard_control_sensors_health&0x00FFFFFFFF));
-  dos.writeShort(load&0x00FFFF);
-  dos.writeShort(voltage_battery&0x00FFFF);
-  dos.writeShort(current_battery&0x00FFFF);
-  dos.writeShort(drop_rate_comm&0x00FFFF);
-  dos.writeShort(errors_comm&0x00FFFF);
-  dos.writeShort(errors_count1&0x00FFFF);
-  dos.writeShort(errors_count2&0x00FFFF);
-  dos.writeShort(errors_count3&0x00FFFF);
-  dos.writeShort(errors_count4&0x00FFFF);
-  dos.write(battery_remaining&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putInt((int)(onboard_control_sensors_present&0x00FFFFFFFF));
+  dos.putInt((int)(onboard_control_sensors_enabled&0x00FFFFFFFF));
+  dos.putInt((int)(onboard_control_sensors_health&0x00FFFFFFFF));
+  dos.putShort((short)(load&0x00FFFF));
+  dos.putShort((short)(voltage_battery&0x00FFFF));
+  dos.putShort((short)(current_battery&0x00FFFF));
+  dos.putShort((short)(drop_rate_comm&0x00FFFF));
+  dos.putShort((short)(errors_comm&0x00FFFF));
+  dos.putShort((short)(errors_count1&0x00FFFF));
+  dos.putShort((short)(errors_count2&0x00FFFF));
+  dos.putShort((short)(errors_count3&0x00FFFF));
+  dos.putShort((short)(errors_count4&0x00FFFF));
+  dos.put((byte)(battery_remaining&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 31);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

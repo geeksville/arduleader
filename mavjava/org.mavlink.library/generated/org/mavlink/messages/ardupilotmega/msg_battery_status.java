@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_battery_status
  * Transmitte battery informations for a accu pack.
@@ -63,41 +63,38 @@ public class msg_battery_status extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  voltage_cell_1 = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_cell_2 = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_cell_3 = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_cell_4 = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_cell_5 = (int)dis.readUnsignedShort()&0x00FFFF;
-  voltage_cell_6 = (int)dis.readUnsignedShort()&0x00FFFF;
-  current_battery = (int)dis.readShort();
-  accu_id = (int)dis.readUnsignedByte()&0x00FF;
-  battery_remaining = (int)dis.readByte();
+public void decode(ByteBuffer dis) throws IOException {
+  voltage_cell_1 = (int)dis.getShort()&0x00FFFF;
+  voltage_cell_2 = (int)dis.getShort()&0x00FFFF;
+  voltage_cell_3 = (int)dis.getShort()&0x00FFFF;
+  voltage_cell_4 = (int)dis.getShort()&0x00FFFF;
+  voltage_cell_5 = (int)dis.getShort()&0x00FFFF;
+  voltage_cell_6 = (int)dis.getShort()&0x00FFFF;
+  current_battery = (int)dis.getShort();
+  accu_id = (int)dis.get()&0x00FF;
+  battery_remaining = (int)dis.get();
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+16];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeShort(voltage_cell_1&0x00FFFF);
-  dos.writeShort(voltage_cell_2&0x00FFFF);
-  dos.writeShort(voltage_cell_3&0x00FFFF);
-  dos.writeShort(voltage_cell_4&0x00FFFF);
-  dos.writeShort(voltage_cell_5&0x00FFFF);
-  dos.writeShort(voltage_cell_6&0x00FFFF);
-  dos.writeShort(current_battery&0x00FFFF);
-  dos.writeByte(accu_id&0x00FF);
-  dos.write(battery_remaining&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putShort((short)(voltage_cell_1&0x00FFFF));
+  dos.putShort((short)(voltage_cell_2&0x00FFFF));
+  dos.putShort((short)(voltage_cell_3&0x00FFFF));
+  dos.putShort((short)(voltage_cell_4&0x00FFFF));
+  dos.putShort((short)(voltage_cell_5&0x00FFFF));
+  dos.putShort((short)(voltage_cell_6&0x00FFFF));
+  dos.putShort((short)(current_battery&0x00FFFF));
+  dos.put((byte)(accu_id&0x00FF));
+  dos.put((byte)(battery_remaining&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 16);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

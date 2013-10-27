@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_safety_allowed_area
  * Read out the safety zone the MAV currently assumes.
@@ -55,37 +55,34 @@ public class msg_safety_allowed_area extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  p1x = (float)dis.readFloat();
-  p1y = (float)dis.readFloat();
-  p1z = (float)dis.readFloat();
-  p2x = (float)dis.readFloat();
-  p2y = (float)dis.readFloat();
-  p2z = (float)dis.readFloat();
-  frame = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  p1x = (float)dis.getFloat();
+  p1y = (float)dis.getFloat();
+  p1z = (float)dis.getFloat();
+  p2x = (float)dis.getFloat();
+  p2y = (float)dis.getFloat();
+  p2z = (float)dis.getFloat();
+  frame = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+25];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(p1x);
-  dos.writeFloat(p1y);
-  dos.writeFloat(p1z);
-  dos.writeFloat(p2x);
-  dos.writeFloat(p2y);
-  dos.writeFloat(p2z);
-  dos.writeByte(frame&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(p1x);
+  dos.putFloat(p1y);
+  dos.putFloat(p1z);
+  dos.putFloat(p2x);
+  dos.putFloat(p2y);
+  dos.putFloat(p2z);
+  dos.put((byte)(frame&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 25);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

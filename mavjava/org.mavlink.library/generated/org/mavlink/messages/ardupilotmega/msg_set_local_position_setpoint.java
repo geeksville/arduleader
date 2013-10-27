@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_set_local_position_setpoint
  * Set the setpoint for a local position controller. This is the position in local coordinates the MAV should fly to. This message is sent by the path/MISSION planner to the onboard position controller. As some MAVs have a degree of freedom in yaw (e.g. all helicopters/quadrotors), the desired yaw angle is part of the message.
@@ -55,37 +55,34 @@ public class msg_set_local_position_setpoint extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  x = (float)dis.readFloat();
-  y = (float)dis.readFloat();
-  z = (float)dis.readFloat();
-  yaw = (float)dis.readFloat();
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  target_component = (int)dis.readUnsignedByte()&0x00FF;
-  coordinate_frame = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  x = (float)dis.getFloat();
+  y = (float)dis.getFloat();
+  z = (float)dis.getFloat();
+  yaw = (float)dis.getFloat();
+  target_system = (int)dis.get()&0x00FF;
+  target_component = (int)dis.get()&0x00FF;
+  coordinate_frame = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+19];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(x);
-  dos.writeFloat(y);
-  dos.writeFloat(z);
-  dos.writeFloat(yaw);
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(target_component&0x00FF);
-  dos.writeByte(coordinate_frame&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(x);
+  dos.putFloat(y);
+  dos.putFloat(z);
+  dos.putFloat(yaw);
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(target_component&0x00FF));
+  dos.put((byte)(coordinate_frame&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 19);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

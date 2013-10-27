@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_global_position_int
  * The filtered global position (e.g. fused GPS and accelerometers). The position is in GPS-frame (right-handed, Z-up). It
@@ -64,41 +64,38 @@ public class msg_global_position_int extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  time_boot_ms = (int)dis.readInt()&0x00FFFFFFFF;
-  lat = (int)dis.readInt();
-  lon = (int)dis.readInt();
-  alt = (int)dis.readInt();
-  relative_alt = (int)dis.readInt();
-  vx = (int)dis.readShort();
-  vy = (int)dis.readShort();
-  vz = (int)dis.readShort();
-  hdg = (int)dis.readUnsignedShort()&0x00FFFF;
+public void decode(ByteBuffer dis) throws IOException {
+  time_boot_ms = (int)dis.getInt()&0x00FFFFFFFF;
+  lat = (int)dis.getInt();
+  lon = (int)dis.getInt();
+  alt = (int)dis.getInt();
+  relative_alt = (int)dis.getInt();
+  vx = (int)dis.getShort();
+  vy = (int)dis.getShort();
+  vz = (int)dis.getShort();
+  hdg = (int)dis.getShort()&0x00FFFF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+28];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeInt((int)(time_boot_ms&0x00FFFFFFFF));
-  dos.writeInt((int)(lat&0x00FFFFFFFF));
-  dos.writeInt((int)(lon&0x00FFFFFFFF));
-  dos.writeInt((int)(alt&0x00FFFFFFFF));
-  dos.writeInt((int)(relative_alt&0x00FFFFFFFF));
-  dos.writeShort(vx&0x00FFFF);
-  dos.writeShort(vy&0x00FFFF);
-  dos.writeShort(vz&0x00FFFF);
-  dos.writeShort(hdg&0x00FFFF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putInt((int)(time_boot_ms&0x00FFFFFFFF));
+  dos.putInt((int)(lat&0x00FFFFFFFF));
+  dos.putInt((int)(lon&0x00FFFFFFFF));
+  dos.putInt((int)(alt&0x00FFFFFFFF));
+  dos.putInt((int)(relative_alt&0x00FFFFFFFF));
+  dos.putShort((short)(vx&0x00FFFF));
+  dos.putShort((short)(vy&0x00FFFF));
+  dos.putShort((short)(vz&0x00FFFF));
+  dos.putShort((short)(hdg&0x00FFFF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 28);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_param_request_read
  * Request to read the onboard parameter with the param_id string id. Onboard parameters are stored as key[const char*] -> value[float]. This allows to send a parameter to any other component (such as the GCS) without the need of previous knowledge of possible parameter names. Thus the same GCS can store different parameters for different autopilots. See also http://qgroundcontrol.org/parameter_interface for a full documentation of QGroundControl and IMU code.
@@ -59,12 +59,12 @@ public class msg_param_request_read extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  param_index = (int)dis.readShort();
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  target_component = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  param_index = (int)dis.getShort();
+  target_system = (int)dis.get()&0x00FF;
+  target_component = (int)dis.get()&0x00FF;
   for (int i=0; i<16; i++) {
-    param_id[i] = (char)dis.readByte();
+    param_id[i] = (char)dis.get();
   }
 }
 /**
@@ -72,22 +72,19 @@ public void decode(LittleEndianDataInputStream dis) throws IOException {
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+20];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeShort(param_index&0x00FFFF);
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(target_component&0x00FF);
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putShort((short)(param_index&0x00FFFF));
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(target_component&0x00FF));
   for (int i=0; i<16; i++) {
-    dos.writeByte(param_id[i]);
+    dos.put((byte)(param_id[i]));
   }
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 20);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

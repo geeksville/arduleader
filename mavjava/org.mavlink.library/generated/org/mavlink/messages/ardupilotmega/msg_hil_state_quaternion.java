@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_hil_state_quaternion
  * Sent from simulation to autopilot, avoids in contrast to HIL_STATE singularities. This packet is useful for high throughput applications such as hardware in the loop simulations.
@@ -91,59 +91,56 @@ public class msg_hil_state_quaternion extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  time_usec = (long)dis.readLong();
+public void decode(ByteBuffer dis) throws IOException {
+  time_usec = (long)dis.getLong();
   for (int i=0; i<4; i++) {
-    attitude_quaternion[i] = (float)dis.readFloat();
+    attitude_quaternion[i] = (float)dis.getFloat();
   }
-  rollspeed = (float)dis.readFloat();
-  pitchspeed = (float)dis.readFloat();
-  yawspeed = (float)dis.readFloat();
-  lat = (int)dis.readInt();
-  lon = (int)dis.readInt();
-  alt = (int)dis.readInt();
-  vx = (int)dis.readShort();
-  vy = (int)dis.readShort();
-  vz = (int)dis.readShort();
-  ind_airspeed = (int)dis.readUnsignedShort()&0x00FFFF;
-  true_airspeed = (int)dis.readUnsignedShort()&0x00FFFF;
-  xacc = (int)dis.readShort();
-  yacc = (int)dis.readShort();
-  zacc = (int)dis.readShort();
+  rollspeed = (float)dis.getFloat();
+  pitchspeed = (float)dis.getFloat();
+  yawspeed = (float)dis.getFloat();
+  lat = (int)dis.getInt();
+  lon = (int)dis.getInt();
+  alt = (int)dis.getInt();
+  vx = (int)dis.getShort();
+  vy = (int)dis.getShort();
+  vz = (int)dis.getShort();
+  ind_airspeed = (int)dis.getShort()&0x00FFFF;
+  true_airspeed = (int)dis.getShort()&0x00FFFF;
+  xacc = (int)dis.getShort();
+  yacc = (int)dis.getShort();
+  zacc = (int)dis.getShort();
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+64];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeLong(time_usec);
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putLong(time_usec);
   for (int i=0; i<4; i++) {
-    dos.writeFloat(attitude_quaternion[i]);
+    dos.putFloat(attitude_quaternion[i]);
   }
-  dos.writeFloat(rollspeed);
-  dos.writeFloat(pitchspeed);
-  dos.writeFloat(yawspeed);
-  dos.writeInt((int)(lat&0x00FFFFFFFF));
-  dos.writeInt((int)(lon&0x00FFFFFFFF));
-  dos.writeInt((int)(alt&0x00FFFFFFFF));
-  dos.writeShort(vx&0x00FFFF);
-  dos.writeShort(vy&0x00FFFF);
-  dos.writeShort(vz&0x00FFFF);
-  dos.writeShort(ind_airspeed&0x00FFFF);
-  dos.writeShort(true_airspeed&0x00FFFF);
-  dos.writeShort(xacc&0x00FFFF);
-  dos.writeShort(yacc&0x00FFFF);
-  dos.writeShort(zacc&0x00FFFF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+  dos.putFloat(rollspeed);
+  dos.putFloat(pitchspeed);
+  dos.putFloat(yawspeed);
+  dos.putInt((int)(lat&0x00FFFFFFFF));
+  dos.putInt((int)(lon&0x00FFFFFFFF));
+  dos.putInt((int)(alt&0x00FFFFFFFF));
+  dos.putShort((short)(vx&0x00FFFF));
+  dos.putShort((short)(vy&0x00FFFF));
+  dos.putShort((short)(vz&0x00FFFF));
+  dos.putShort((short)(ind_airspeed&0x00FFFF));
+  dos.putShort((short)(true_airspeed&0x00FFFF));
+  dos.putShort((short)(xacc&0x00FFFF));
+  dos.putShort((short)(yacc&0x00FFFF));
+  dos.putShort((short)(zacc&0x00FFFF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 64);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

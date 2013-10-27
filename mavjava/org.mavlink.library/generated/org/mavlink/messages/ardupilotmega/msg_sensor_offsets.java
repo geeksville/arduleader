@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_sensor_offsets
  * Offsets and calibrations values for hardware
@@ -76,47 +76,44 @@ public class msg_sensor_offsets extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  mag_declination = (float)dis.readFloat();
-  raw_press = (int)dis.readInt();
-  raw_temp = (int)dis.readInt();
-  gyro_cal_x = (float)dis.readFloat();
-  gyro_cal_y = (float)dis.readFloat();
-  gyro_cal_z = (float)dis.readFloat();
-  accel_cal_x = (float)dis.readFloat();
-  accel_cal_y = (float)dis.readFloat();
-  accel_cal_z = (float)dis.readFloat();
-  mag_ofs_x = (int)dis.readShort();
-  mag_ofs_y = (int)dis.readShort();
-  mag_ofs_z = (int)dis.readShort();
+public void decode(ByteBuffer dis) throws IOException {
+  mag_declination = (float)dis.getFloat();
+  raw_press = (int)dis.getInt();
+  raw_temp = (int)dis.getInt();
+  gyro_cal_x = (float)dis.getFloat();
+  gyro_cal_y = (float)dis.getFloat();
+  gyro_cal_z = (float)dis.getFloat();
+  accel_cal_x = (float)dis.getFloat();
+  accel_cal_y = (float)dis.getFloat();
+  accel_cal_z = (float)dis.getFloat();
+  mag_ofs_x = (int)dis.getShort();
+  mag_ofs_y = (int)dis.getShort();
+  mag_ofs_z = (int)dis.getShort();
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+42];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(mag_declination);
-  dos.writeInt((int)(raw_press&0x00FFFFFFFF));
-  dos.writeInt((int)(raw_temp&0x00FFFFFFFF));
-  dos.writeFloat(gyro_cal_x);
-  dos.writeFloat(gyro_cal_y);
-  dos.writeFloat(gyro_cal_z);
-  dos.writeFloat(accel_cal_x);
-  dos.writeFloat(accel_cal_y);
-  dos.writeFloat(accel_cal_z);
-  dos.writeShort(mag_ofs_x&0x00FFFF);
-  dos.writeShort(mag_ofs_y&0x00FFFF);
-  dos.writeShort(mag_ofs_z&0x00FFFF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(mag_declination);
+  dos.putInt((int)(raw_press&0x00FFFFFFFF));
+  dos.putInt((int)(raw_temp&0x00FFFFFFFF));
+  dos.putFloat(gyro_cal_x);
+  dos.putFloat(gyro_cal_y);
+  dos.putFloat(gyro_cal_z);
+  dos.putFloat(accel_cal_x);
+  dos.putFloat(accel_cal_y);
+  dos.putFloat(accel_cal_z);
+  dos.putShort((short)(mag_ofs_x&0x00FFFF));
+  dos.putShort((short)(mag_ofs_y&0x00FFFF));
+  dos.putShort((short)(mag_ofs_z&0x00FFFF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 42);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

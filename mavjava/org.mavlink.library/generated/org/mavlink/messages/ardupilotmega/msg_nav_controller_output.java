@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_nav_controller_output
  * Outputs of the APM navigation controller. The primary use of this message is to check the response and signs of the controller before actual flight and to assist with tuning controller parameters.
@@ -59,39 +59,36 @@ public class msg_nav_controller_output extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  nav_roll = (float)dis.readFloat();
-  nav_pitch = (float)dis.readFloat();
-  alt_error = (float)dis.readFloat();
-  aspd_error = (float)dis.readFloat();
-  xtrack_error = (float)dis.readFloat();
-  nav_bearing = (int)dis.readShort();
-  target_bearing = (int)dis.readShort();
-  wp_dist = (int)dis.readUnsignedShort()&0x00FFFF;
+public void decode(ByteBuffer dis) throws IOException {
+  nav_roll = (float)dis.getFloat();
+  nav_pitch = (float)dis.getFloat();
+  alt_error = (float)dis.getFloat();
+  aspd_error = (float)dis.getFloat();
+  xtrack_error = (float)dis.getFloat();
+  nav_bearing = (int)dis.getShort();
+  target_bearing = (int)dis.getShort();
+  wp_dist = (int)dis.getShort()&0x00FFFF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+26];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(nav_roll);
-  dos.writeFloat(nav_pitch);
-  dos.writeFloat(alt_error);
-  dos.writeFloat(aspd_error);
-  dos.writeFloat(xtrack_error);
-  dos.writeShort(nav_bearing&0x00FFFF);
-  dos.writeShort(target_bearing&0x00FFFF);
-  dos.writeShort(wp_dist&0x00FFFF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(nav_roll);
+  dos.putFloat(nav_pitch);
+  dos.putFloat(alt_error);
+  dos.putFloat(aspd_error);
+  dos.putFloat(xtrack_error);
+  dos.putShort((short)(nav_bearing&0x00FFFF));
+  dos.putShort((short)(target_bearing&0x00FFFF));
+  dos.putShort((short)(wp_dist&0x00FFFF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 26);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);
