@@ -45,7 +45,6 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.view._
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.view.ViewGroup
-import com.geeksville.aspeech.TTSClient
 import com.geeksville.util.ThrottleByBucket
 import com.geeksville.andropilot.service._
 import com.geeksville.andropilot._
@@ -78,9 +77,10 @@ import android.view.WindowManager
 import com.geeksville.gcsapi.WebActivity
 import com.geeksville.gcsapi.Webserver
 import com.geeksville.akka.EventStream
+import com.geeksville.aspeech.TTSClient
 
-class MainActivity extends FragmentActivity with TypedActivity
-  with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
+class MainActivity extends FragmentActivity with TypedActivity with TTSClient
+  with AndroidLogger with FlurryActivity with AndropilotPrefs
   with AndroServiceClient with JoystickHID with UsesResources with UsesDirectories {
 
   implicit def context = this
@@ -144,64 +144,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private var oldVehicleType: Option[Int] = None
 
-  private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
-  private val throttleBattery = new ThrottleByBucket(10)
-
-  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
-    val warning = if (isLowVolt)
-      R.string.spk_warn_volt
-    else if (isLowBatPercent)
-      R.string.spk_warn_battery
-    else if (isLowRssi)
-      R.string.spk_warn_radio
-    else if (isLowNumSats)
-      R.string.spk_warn_gps
-    else
-      -1
-
-    if (warning != -1 && handler != null)
-      handler.post { () =>
-        speak(S(warning), true)
-      }
-  }
-
   override def onVehicleReceive: InstrumentedActor.Receiver = {
-
-    case l: Location =>
-      myVehicle.foreach { v =>
-        throttleAlt(v.bestAltitude.toInt) { alt =>
-          handler.post { () =>
-            debug("Speak alt: " + alt)
-            speak(S(R.string.spk_meter).format(alt))
-          }
-        }
-      }
-
-    case MsgFenceBreached =>
-      handler.post { () => speak("Fence Breached", urgent = true) }
-
-    case MsgSysStatusChanged =>
-      for { v <- myVehicle; pct <- v.batteryPercent } yield {
-        throttleBattery((pct * 100).toInt) { pct =>
-          handler.post { () =>
-            debug("Speak battery: " + pct)
-            speak(S(R.string.spk_percent).format(pct))
-          }
-        }
-      }
-
-    case MsgReportBug(m) =>
-      handler.post { () =>
-        val e = new Exception(m)
-        BugSenseHandler.sendExceptionMessage("model_bug", "state_machine", e)
-        speak("Warning, non fatal bug")
-        toast("Non fatal andropilot bug - please post on diydrones.com")
-      }
-
-    case MsgWaypointCurrentChanged(n) =>
-      handler.post { () =>
-        speak("Waypoint " + n)
-      }
 
     case MsgRCModeChanged(_) =>
       handler.post { () =>
@@ -225,7 +168,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgHeartbeatLost =>
       handler.post { () =>
         usageEvent("heartbeat_lost")
-        speak(S(R.string.spk_heartbeat_lost), urgent = true)
         setModeSpinner()
       }
 
@@ -251,14 +193,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private def handleStatus(s: String, severity: Int) {
     debug("Status changed: " + s)
-    if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE) {
-      val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
-      // toast(s, isImportant) - we show this on the map view now
-
-      if (isImportant)
-        speak(s)
-
-    } else {
+    if (severity == MsgStatusChanged.SEVERITY_USER_RESPONSE) {
       // Show a user dialog and have them ack what the APM wants acked
 
       val builder = new AlertDialog.Builder(this)
@@ -420,7 +355,6 @@ class MainActivity extends FragmentActivity with TypedActivity
         for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
       }
       initScreenJoysticks()
-      initSpeech()
     } catch {
       case ex: NoSuchFieldError =>
         toast("Your tablet has a pirated/old version of google play - Andropilot can not start")
@@ -445,12 +379,17 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   def checkSunspots() {
-    val t = new SunspotDetectorTask(this) {
-      override protected def didSunspot(curLevel: Option[Int]) {
-        application.lastSunspotCheck = System.currentTimeMillis()
+    try {
+      val t = new SunspotDetectorTask(this) {
+        override protected def didSunspot(curLevel: Option[Int]) {
+          application.lastSunspotCheck = System.currentTimeMillis()
+        }
       }
+      t.execute()
+    } catch {
+      case ex: NoClassDefFoundError =>
+        error("Ignoring buggy dalvik looking for sunspot code")
     }
-    t.execute()
   }
 
   def perhapsCheckSunspots() {
@@ -626,13 +565,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onPause()
   }
 
-  override def onDestroy() {
-    warningChecker.cancel()
-    destroySpeech()
-
-    super.onDestroy()
-  }
-
   def initAndShowJoystick() {
     initJoystickParams()
 
@@ -747,7 +679,6 @@ class MainActivity extends FragmentActivity with TypedActivity
 
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
           if (!AndroidSerial.getDevices.isEmpty) {
-            // speak("Connected")
             toast(R.string.telem_connected, false)
           } else
             warn("Ignoring attach for some other device")
@@ -778,12 +709,6 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
       myVehicle.foreach { v =>
         val modeName = if (v.hasHeartbeat) {
-          val toSpeak = if (v.isArmed != oldArmed) {
-            oldArmed = v.isArmed
-            if (oldArmed) "Armed" else "Disarmed"
-          } else
-            v.currentMode
-          speak(toSpeak)
           debug("Spinning to " + v.currentMode)
           v.currentMode
         } else {

@@ -227,7 +227,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               v.currentMode -> okayColor
           }
         case None =>
-          "No vehicle (BUG!)" -> errColor
+          "No vehicle" -> errColor
       }
 
       setModeText(msg, color)
