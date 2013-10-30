@@ -1,8 +1,9 @@
 * FIXME - do background param fetch
 
-# 1.9.11
-* Oops, the 1.9.10 beta broke speach announcement of altitude - thanks Luciano
+# 1.9.12
+* Oops, the 1.9.10 beta broke speech announcement of altitude - thanks Luciano
 * Hide OF_LOITER, TOY_A and TOY_B modes because no one seems to use them
+* Fix an autobug
 
 # 1.9.10
 * ac3.1rc5 now reports gps, magnetometer and rc radio faults - Speak announce such faults (thx Randy)

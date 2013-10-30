@@ -100,7 +100,7 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
       handler.post { () =>
         val e = new Exception(m)
         BugSenseHandler.sendExceptionMessage("model_bug", "state_machine", e)
-        context.speak("Warning, non fatal bug")
+        // context.speak("Warning, non fatal bug")
       }
 
     case MsgHeartbeatLost =>
