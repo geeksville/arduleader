@@ -3,7 +3,6 @@ package com.geeksville.andropilot.service
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.flight.VehicleModel
 import android.content.Context
-import android.location._
 import android.os.Bundle
 import com.geeksville.util.Throttled
 import com.ridemission.scandroid.AndroidLogger
@@ -29,6 +28,7 @@ import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import com.geeksville.flight.MsgStatusChanged
 import com.geeksville.mavlink.MsgArmChanged
+import com.geeksville.flight.Location
 
 /**
  * Do any background speech announcements based on vehicle state
@@ -70,9 +70,11 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
 
   override def onReceive = {
     case l: Location =>
+      //log.debug("Received alt " + v.bestAltitude)
       throttleAlt(v.bestAltitude.toInt) { alt =>
         handler.post { () =>
-          context.speak("%d meters".format(alt))
+          //log.warn(s"Announcing alt $alt")
+          context.speak(s"$alt meters")
         }
       }
 

@@ -27,6 +27,7 @@ import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 import com.geeksville.akka.InstrumentedActor
 import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
+import scala.util.Random
 
 //
 // Messages we publish on our event bus when something happens
@@ -198,6 +199,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     location = Some(l)
 
     locationThrottle { () =>
+      //log.debug("publishing loc")
       eventStream.publish(l)
     }
   }
@@ -357,6 +359,8 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
+  //val rand = new Random()
+
   private def mReceive: InstrumentedActor.Receiver = {
 
     case OnInterfaceChanged(c) =>
@@ -427,9 +431,10 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       }
 
     case msg: msg_global_position_int =>
+      //msg.alt += rand.nextInt(12 * 1000)
       globalPos = Some(msg)
       val loc = VehicleSimulator.decodePosition(msg)
-      //log.debug("Received location: " + loc)
+      //log.debug("Received globalpos: " + loc)
       onLocationChanged(loc)
 
     case msg: msg_vfr_hud =>
