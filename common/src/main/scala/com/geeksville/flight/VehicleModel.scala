@@ -76,9 +76,12 @@ case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MED
 }
 
 /**
- * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
+ * Listens to a particular vehicle, capturing interesting state like heartbeat,
+ * cur lat, lng, alt, mode, status and next waypoint
+ *
+ * @param targetOverride if specified then we will only talk with the specified sysId
  */
-class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) with WaypointModel with FenceModel {
+class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)

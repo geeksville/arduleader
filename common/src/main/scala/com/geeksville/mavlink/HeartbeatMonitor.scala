@@ -45,6 +45,8 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   def hasHeartbeat = mySysId.isDefined
 
+  def heartbeatSysId = mySysId
+
   def onReceive = {
     case msg: msg_heartbeat =>
       // We don't care about the heartbeats from a GCS

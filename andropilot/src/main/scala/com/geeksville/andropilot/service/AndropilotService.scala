@@ -235,9 +235,6 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
     actor.useRequestById = !useOldArducopter
 
-    // This lets the vehicle model receive messages from its vehicle...
-    // FIXME - somehow direct by port id instead
-    MavlinkEventBus.subscribe(actor, actor.targetSystem)
     vehicle = Some(actor)
 
     speaker = Some(MockAkka.actorOf(new Speaker(this, actor), "speaker"))
