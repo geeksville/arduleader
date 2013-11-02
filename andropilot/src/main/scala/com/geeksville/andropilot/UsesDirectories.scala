@@ -24,6 +24,11 @@ trait UsesDirectories extends UsesResources {
     f.mkdirs()
     f
   }
+  def checklistDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "checklists")
+    f.mkdirs()
+    f
+  }
   def uploadedDirectory = sdDirectory.map { sd =>
     val f = new File(sd, "uploaded")
     f.mkdirs()

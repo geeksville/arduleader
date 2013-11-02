@@ -48,7 +48,7 @@ class AndroidFilesystem(val assets: AssetManager, val baseDir: String = "") exte
         Some(new BufferedInputStream(s))
     } catch {
       case ex: Exception =>
-        error(s"$this: Can't find $name in $baseDir due to $ex")
+        error(s"$this: Can't find $name in '$baseDir' due to $ex")
         None
     }
   }
