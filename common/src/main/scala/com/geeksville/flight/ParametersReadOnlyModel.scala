@@ -30,11 +30,10 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     6 -> "RTL",
     7 -> "CIRCLE",
     8 -> "POSITION",
-    9 -> "LAND" /* Hide these rarely used modes
+    9 -> "LAND",
     10 -> "OF_LOITER",
-    11 -> "TOY_A",
-    12 -> "TOY_B"
-    */ )
+    11 -> "TOY",
+    13 -> "SPORT")
 
   /**
    * A set of modes that are selectable when the vehicle is flying in simple mode
