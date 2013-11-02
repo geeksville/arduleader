@@ -976,7 +976,9 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
         }
 
       case R.id.menu_checklist =>
-        WebActivity.showURL(context, "http://localhost:%s/static/checklist.html".format(Webserver.portNumber))
+        val isCopter = myVehicle.map(_.isCopter).getOrElse(true)
+        val checklistName = if (isCopter) "copter" else "plane"
+        WebActivity.showURL(context, "http://localhost:%s/static/checklist/%s.html".format(Webserver.portNumber, checklistName))
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>

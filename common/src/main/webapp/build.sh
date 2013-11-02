@@ -1,5 +1,6 @@
 echo building checklist
-haml checklist.haml checklist.html
+haml checklist/plane.haml checklist/plane.html
+haml checklist/copter.haml checklist/copter.html
 echo building README
 haml README.haml README.html
 
