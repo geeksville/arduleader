@@ -39,6 +39,11 @@ WantInterface
   OnParametersDownloaded
     nil
     {}       
+
+  // Ignore stale messages if radio was unplugged at the wrong time
+  HBSaysArmed
+    nil
+    {}   
 }
 
 WantVehicle
