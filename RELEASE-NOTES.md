@@ -1,5 +1,11 @@
 * FIXME - do background param fetch
 
+# 1.9.13
+* Allow users to place custom checklists in /sdcard/andropilot/checklists/plane.html or copter.html
+* Support FBSOD for Naza-M autopilots (thanks Jay Davis and Mike Knott)
+* List SPORT mode in the modes menu
+* Fix a couple of rare autobugs
+
 # 1.9.12
 * Oops, the 1.9.10 beta broke speech announcement of altitude - thanks Luciano
 * Hide OF_LOITER, TOY_A and TOY_B modes because no one seems to use them
