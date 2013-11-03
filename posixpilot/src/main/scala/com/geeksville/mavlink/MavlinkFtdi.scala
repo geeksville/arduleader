@@ -42,7 +42,7 @@ object MavlinkPosix extends Logging {
 
   def openFtdi(portName: String, baudRate: Int) = {
     logger.info("Opening ftdi")
-    val dev = LibFtdi.open(0x0403, 0x6001, portName)
+    val dev = LibFtdi.open(0x0403, 0x6015, portName)
     logger.info("Ftdi open")
     dev.setLatencyTimer(1)
     dev.setReadDataChunksize(512) // Possibly shrink even further - default was 4096       

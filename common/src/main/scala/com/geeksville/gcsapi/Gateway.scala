@@ -19,13 +19,17 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
     "waypoints" -> { () =>
       v.waypoints.asJson
     },
-    "gps.hdop" -> { () =>
+    "gps_hdop" -> { () =>
       v.hdop.asJson
     },
-    "rc.channels" -> { () =>
+    "has_heartbeat" -> { () => v.hasHeartbeat.asJson },
+    "is_armed" -> { () => v.isArmed.asJson },
+    "status_messages" -> { () => v.statusMessages.asJson },
+    "rc_channels" -> { () =>
       v.rcChannels.asJson
     },
-    "currentMode" -> { () =>
+    "rc_connected" -> { () => v.hasRealRc.asJson },
+    "current_mode" -> { () =>
       v.currentMode.asJson
     })
 

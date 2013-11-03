@@ -5,8 +5,8 @@
     %title Drone Checklist
     %meta(name="viewport" content="width=device-width, initial-scale=1.0")
     / Bootstrap
-    %link(href="/static/css/bootstrap.min.css" rel="stylesheet" media="screen")
-    %link(href="/static/css/custom.css" rel="stylesheet")
+    %link(href="../css/bootstrap.min.css" rel="stylesheet" media="screen")
+    %link(href="../css/custom.css" rel="stylesheet")
   %body
     / Top level container for bootstrap CSS
     .container
@@ -56,17 +56,12 @@
 
           / NOTE: x2717 is the unicode symbol for X (opposited of checkmark)
           / NOTE: x2713 is the unicode symbol for checkmark
-          .alert.alert-success
-            &#x2713; Telemetry connected
 
-          .alert.alert-success
-            &#x2713; Transmitter is on (auto detected by GCS)
+          #telem-connected
+          #rc-connected
+          #manual-mode
+          #has-3d-fix
 
-          .alert.alert-danger
-            &#x2717; Transmitter is <b>not</b> in manual mode
-
-          .alert.alert-success
-            &#x2713; Have 3D GPS fix
           .alert.alert-info
             .checkbox 
               %input(type="checkbox") 
@@ -97,7 +92,13 @@
           on github and help us extend it...
 
     %span.glyphicon.glyphicon-search
-    %script(src="/static/js/jquery.js")
-    %script(src="/static/js/bootstrap.min.js")
+    %script(src="../js/jquery.js")
+    %script(src="../js/bootstrap.min.js")
+    %script(src="../js/json2.js")
+    %script(src="../js/underscore.js")
+    %script(src="../js/backbone.js")
+    %script(src="../js/gcsapi.js")
+    %script(src="../js/checklist.js")
+
 
 
