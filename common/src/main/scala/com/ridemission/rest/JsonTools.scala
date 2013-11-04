@@ -2,6 +2,13 @@ package com.ridemission.rest
 
 import JsonTools._
 
+/**
+ * A Mixin for classes that can return a JSON representation of themselves
+ */
+trait ASJSON {
+  def asJSON: JValue
+}
+
 trait JValue {
   def asJSON: String
 
@@ -52,6 +59,7 @@ object JsonConverters {
   implicit def asJsonMapConverter(i: Seq[(String, _)]) = new AsJson(JObject(i: _*))
   implicit def asJsonMapConverter(i: Map[String, _]) = new AsJson(JObject(i.toSeq: _*))
 
+  implicit def asJsonArrayConverter(i: Array[_]) = new AsJson(JArray(i: _*))
   implicit def asJsonSeqConverter(i: Seq[_]) = new AsJson(JArray(i: _*))
 
   /// To convert case classes
@@ -80,6 +88,7 @@ object JsonTools {
     case None => "null"
     case Some(x) => valueToJSON(x)
 
+    case x: ASJSON => x.asJSON.toString
     case x: JValue => x.asJSON
 
     case x: String => quoted(x)

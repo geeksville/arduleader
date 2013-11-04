@@ -18,7 +18,7 @@ new GCSAPI.View.VehicleBased(
   el: '#rc-connected'
   watching: 'rc_connected'
   getContent: () ->
-    msg = if this.model.rc_connected() 
+    if this.model.rc_connected() 
       alertSuccess('RC Transmitter is on')
     else
       alertFail('RC Transmitter offline')
@@ -28,7 +28,7 @@ new GCSAPI.View.VehicleBased(
   watching: 'manual_mode'
   getContent: () ->
     mode = this.model.current_mode()
-    msg = if (mode == "MANUAL") || (mode == "STABILIZE")
+    if (mode == "MANUAL") || (mode == "STABILIZE")
       alertSuccess('Vehicle in MANUAL mode')
     else
       alertFail('Vehicle not in MANUAL mode')
@@ -37,7 +37,7 @@ new GCSAPI.View.VehicleBased(
   el: '#has-3d-fix'
   watching: 'location'
   getContent: () ->
-    msg = if this.model.has_3d_fix()
+    if this.model.has_3d_fix()
       alertSuccess('GPS has 3D fix')
     else
       alertFail('GPS does not have 3D fix')

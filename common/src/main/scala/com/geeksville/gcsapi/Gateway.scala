@@ -17,6 +17,9 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
     "location" -> { () =>
       v.location.asJson
     },
+    "parameters" -> { () =>
+      v.parameters.asJson
+    },
     "waypoints" -> { () =>
       v.waypoints.asJson
     },
