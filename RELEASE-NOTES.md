@@ -1,5 +1,8 @@
 * FIXME - do background param fetch
 
+# 1.9.14
+* Hook up GCSAPI to the checklists
+
 # 1.9.13
 * Allow users to place custom checklists in /sdcard/andropilot/checklists/plane.html or copter.html
 * Support FBSOD for Naza-M autopilots (thanks Jay Davis and Mike Knott)
