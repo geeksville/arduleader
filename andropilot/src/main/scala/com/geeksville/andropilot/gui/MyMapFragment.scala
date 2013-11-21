@@ -320,7 +320,7 @@ class MyMapFragment extends SupportMapFragment
       //debug(s"in iconres ${v.hasHeartbeat}, ${s.isConnected}")
       if (!v.hasHeartbeat || !s.isConnected)
         if (v.isCopter) R.drawable.quad_red else R.drawable.plane_red
-      else if (isWarning)
+      else if (s.isWarning)
         if (v.isCopter) R.drawable.quad_yellow else R.drawable.plane_yellow
       else if (v.isCopter) R.drawable.quad_blue else R.drawable.plane_blue
     }).getOrElse(R.drawable.plane_red)
@@ -337,22 +337,22 @@ class MyMapFragment extends SupportMapFragment
     }).getOrElse("No service"))
 
     override def snippet = Some(
-      myVehicle.map { v =>
+      (for { s <- service; v <- myVehicle } yield {
         // Generate a few optional lines of text
 
         val locStr = v.location.map { l =>
           "Altitude %.1fm".format(v.toAGL(l))
         }
 
-        val batStr = if (isLowVolt) Some(S(R.string.low_volt)) else None
-        val pctStr = if (isLowBatPercent) Some(S(R.string.low_charge)) else None
-        val radioStr = if (isLowRssi) Some(S(R.string.low_rssi)) else None
-        val gpsStr = if (isLowNumSats) Some(S(R.string.low_sats)) else None
+        val batStr = if (s.isLowVolt) Some(S(R.string.low_volt)) else None
+        val pctStr = if (s.isLowBatPercent) Some(S(R.string.low_charge)) else None
+        val radioStr = if (s.isLowRssi) Some(S(R.string.low_rssi)) else None
+        val gpsStr = if (s.isLowNumSats) Some(S(R.string.low_sats)) else None
 
         val r = Seq(locStr, batStr, pctStr, radioStr, gpsStr).flatten.mkString(" ")
         //debug("snippet: " + r)
         r
-      }.getOrElse(S(R.string.no_service)))
+      }).getOrElse(S(R.string.no_service)))
 
     override def toString = title.get
 
@@ -361,8 +361,9 @@ class MyMapFragment extends SupportMapFragment
      */
     def update() {
       // Do we need to change icons?
-      if (isWarning != oldWarning) {
-        oldWarning = isWarning
+      val warn = service.map(_.isWarning).getOrElse(false)
+      if (warn != oldWarning) {
+        oldWarning = warn
         redraw()
       }
 

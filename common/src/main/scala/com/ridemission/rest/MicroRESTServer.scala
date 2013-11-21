@@ -67,14 +67,14 @@ class MicroRESTServer(portNum: Int, val localOnly: Boolean = true) {
         val reqStream = client.getInputStream
         val reqLines = new UnbufferedStreamSource(reqStream).getLines
         firstLine = reqLines.next.trim
-        println("Request: " + firstLine)
+        print("Request: " + firstLine + " ")
         // Read headers till blank line
         val headerMap = Map(reqLines.takeWhile(_.length != 0).toSeq.map { line =>
           //println(s"Considering: $line")
           val HeaderRegex(k, v) = line.trim
           k -> v
         }: _*)
-        print(headerMap.mkString("Request headers:\n  ", "\n  ", "\n"))
+        println(headerMap.mkString("headers: ", ", ", ""))
 
         val ReqRegex(methodStr, req, httpVer) = firstLine
         var reqURI = new URI(req)

@@ -173,6 +173,10 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
+    override def HBSaysArmed(context: VehicleFSM): Unit = {
+
+    }
+
     override def OnHasHeartbeat(context: VehicleFSM): Unit = {
 
     }
@@ -185,6 +189,10 @@ private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM
     }
 
     override def OnLostHeartbeat(context: VehicleFSM): Unit = {
+
+    }
+
+    override def OnParametersDownloaded(context: VehicleFSM): Unit = {
 
     }
 }
@@ -210,6 +218,10 @@ private class VehicleFSM_WantVehicle(name: String, id: Int) extends VehicleFSM_D
         }        else {
             super.OnHasHeartbeat(context)
         }
+
+    }
+
+    override def OnParametersDownloaded(context: VehicleFSM): Unit = {
 
     }
 }

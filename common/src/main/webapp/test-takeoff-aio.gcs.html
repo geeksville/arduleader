@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<!-- A test of using GCS scripts to control behavior -->
+<html>
+  <head>
+    <title>Auto Takeoff</title>
+  </head>
+  <body>
+    <h1>Auto takeoff</h1>
+    <p>Welcome to the bleeding edge</p>
+    <p>
+      Congratulations (or apologies).  By running this script you
+      just launched your copter and told it to hover 10m above the
+      launch location.
+    </p>
+
+    <script>
+
+(function() {
+  var v = GCSAPI.vehicle;
+  v.set_mode('LOITER');
+  v.arm();
+  var alt = 10;
+
+  v.goto_guided(v.location[0], v.location[1], v.location[2] + alt);
+}).call(this);
+
+    </script>
+  </body>
+</html>

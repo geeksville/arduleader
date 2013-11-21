@@ -14,7 +14,6 @@ import com.geeksville.akka.Cancellable
 import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
-import com.geeksville.aspeech.TTSClient
 import com.geeksville.andropilot.R
 import android.content.ActivityNotFoundException
 import android.os.Bundle
@@ -194,7 +193,7 @@ trait JoystickHID extends JoystickController {
           doToggleFence()
           true
         case KeyEvent.KEYCODE_BUTTON_START =>
-          speak(S(R.string.spk_joystick_off), true)
+          service.foreach(_.speak(S(R.string.spk_joystick_off), true))
           toast("Joystick off")
           stopOverrides()
           true

@@ -33,7 +33,17 @@ WantInterface
   // Likewise for old have heartbeat msgs
   OnHasHeartbeat
     nil
-    {}    
+    {}  
+    
+  // Ignore stale messages if radio was unplugged at the wrong time
+  OnParametersDownloaded
+    nil
+    {}       
+
+  // Ignore stale messages if radio was unplugged at the wrong time
+  HBSaysArmed
+    nil
+    {}   
 }
 
 WantVehicle
@@ -46,6 +56,11 @@ WantVehicle
   OnHasHeartbeat [ ctxt.listenOnly ]
     DownloadedParameters 
     {}    
+  
+  // Ignore stale messages if radio was unplugged at the wrong time
+  OnParametersDownloaded
+    nil
+    {}  
 }
 
 DownloadingWaypoints

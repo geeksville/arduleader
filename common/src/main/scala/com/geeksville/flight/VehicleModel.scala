@@ -26,6 +26,9 @@ import scala.collection.mutable.SynchronizedBuffer
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeEvent
 import com.geeksville.akka.InstrumentedActor
+import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
+import scala.util.Random
+import org.mavlink.messages.MAV_AUTOPILOT
 
 //
 // Messages we publish on our event bus when something happens
@@ -74,9 +77,12 @@ case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MED
 }
 
 /**
- * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
+ * Listens to a particular vehicle, capturing interesting state like heartbeat,
+ * cur lat, lng, alt, mode, status and next waypoint
+ *
+ * @param targetOverride if specified then we will only talk with the specified sysId
  */
-class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) with WaypointModel with FenceModel {
+class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)
@@ -108,6 +114,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   var batteryVoltage: Option[Float] = None
   var radio: Option[msg_radio] = None
   var numSats: Option[Int] = None
+  var sysStatus: Option[msg_sys_status] = None
 
   /// Are we connected to any sort of interface hardware
   var hasInterface = false
@@ -125,6 +132,11 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
+
+  /**
+   * Is the autopilot we are listening to _incapabable_ of hearing our messages? (i.e. Naza FBOSD)
+   */
+  def isAutopilotTalkOnly = autopilot.map(_ == MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID).getOrElse(false)
 
   /**
    * The rc channels the vehicle is currently receiving
@@ -168,14 +180,38 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
     }
   }
 
+  private val sensors = Map(MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_3D_MAG -> "Magnotometer",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_GPS -> "GPS",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_MOTOR_OUTPUTS -> "Motor Output",
+    MAV_SYS_STATUS_SENSOR.MAV_SYS_STATUS_SENSOR_RC_RECEIVER -> "RC Receiver")
+
+  /**
+   * Currently pending hardware faults
+   */
+  def sysStatusFaults = sysStatus.map { s =>
+    val faults = s.onboard_control_sensors_present & ~s.onboard_control_sensors_health
+
+    val r = sensors.flatMap {
+      case (k, v) =>
+        if ((faults & k) != 0)
+          Some(v)
+        else
+          None
+    }.toSeq
+
+    log.debug(s"Checking faults p=${s.onboard_control_sensors_present} h=${s.onboard_control_sensors_health} => $faults / $r")
+
+    r
+  }.getOrElse(Seq())
+
   private def onLocationChanged(l: Location) {
     // Don't publish bogus locations
     if (l.lat != 0 && l.lon != 0) {
       location = Some(l)
 
-      locationThrottle { () =>
-        eventStream.publish(l)
-      }
+    locationThrottle { () =>
+      //log.debug("publishing loc")
+      eventStream.publish(l)
     }
   }
 
@@ -334,6 +370,8 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
 
   override def onReceive = mReceive.orElse(super.onReceive)
 
+  //val rand = new Random()
+
   private def mReceive: InstrumentedActor.Receiver = {
 
     case OnInterfaceChanged(c) =>
@@ -387,6 +425,7 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       onStatusChanged(s, m.severity)
 
     case msg: msg_sys_status =>
+      sysStatus = Some(msg)
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
       batteryPercent = if (msg.battery_remaining == -1) None else Some(msg.battery_remaining / 100.0f)
       onSysStatusChanged()
@@ -403,9 +442,10 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
       }
 
     case msg: msg_global_position_int =>
+      //msg.alt += rand.nextInt(12 * 1000)
       globalPos = Some(msg)
       val loc = VehicleSimulator.decodePosition(msg)
-      //log.debug("Received location: " + loc)
+      //log.debug("Received globalpos: " + loc)
       onLocationChanged(loc)
 
     case msg: msg_vfr_hud =>
@@ -427,6 +467,11 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
 
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
+
+    if (isAutopilotTalkOnly) {
+      log.error("Autopilot is talk only - so we should never send to it")
+      listenOnly = true
+    }
 
     setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling

@@ -58,7 +58,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
   /**
    * The system we are trying to control
    */
-  def targetSystem: Int = 1
+  protected def targetSystem: Int = 1
 
   /**
    * In special cases (spectator mode, or a RX only radio, we want to suppress _any_ packet sends to the vehicle)

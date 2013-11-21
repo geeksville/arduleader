@@ -181,9 +181,6 @@ object Main extends Logging {
       // Keep a complete model of the arduplane state
       val vehicle = MockAkka.actorOf(new VehicleModel)
 
-      // That model wants to hear messages from id 1
-      MavlinkEventBus.subscribe(vehicle, arduPilotId)
-
       if (startMavServe) {
         val gcs = new TempGCSModel(vehicle)
         val adapter = new GCSAdapter(gcs)

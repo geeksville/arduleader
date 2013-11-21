@@ -35,6 +35,9 @@ class HeartbeatMonitor extends InstrumentedActor {
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
 
+  // A MAV_AUTOPILOT autopilot mfg code
+  var autopilot: Option[Int] = None
+
   /// Has the vehicle been armed (ever) during this session
   var hasBeenArmed = false
 
@@ -44,6 +47,8 @@ class HeartbeatMonitor extends InstrumentedActor {
   private def isArmed(m: Int): Boolean = (m & MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED) != 0
 
   def hasHeartbeat = mySysId.isDefined
+
+  def heartbeatSysId = mySysId
 
   def onReceive = {
     case msg: msg_heartbeat =>
@@ -57,6 +62,7 @@ class HeartbeatMonitor extends InstrumentedActor {
         val oldStatus = systemStatus
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
+        autopilot = Some(msg.autopilot)
         systemStatus = Some(msg.system_status)
 
         val oldVehicle = vehicleType

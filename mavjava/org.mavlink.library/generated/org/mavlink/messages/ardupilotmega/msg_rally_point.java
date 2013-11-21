@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_rally_point
  * A rally point. Used to set a point when from GCS -> MAV. Also used to return a point from MAV -> GCS
@@ -67,43 +67,40 @@ public class msg_rally_point extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  lat = (int)dis.readInt();
-  lng = (int)dis.readInt();
-  alt = (int)dis.readShort();
-  break_alt = (int)dis.readShort();
-  land_dir = (int)dis.readUnsignedShort()&0x00FFFF;
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  target_component = (int)dis.readUnsignedByte()&0x00FF;
-  idx = (int)dis.readUnsignedByte()&0x00FF;
-  count = (int)dis.readUnsignedByte()&0x00FF;
-  flags = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  lat = (int)dis.getInt();
+  lng = (int)dis.getInt();
+  alt = (int)dis.getShort();
+  break_alt = (int)dis.getShort();
+  land_dir = (int)dis.getShort()&0x00FFFF;
+  target_system = (int)dis.get()&0x00FF;
+  target_component = (int)dis.get()&0x00FF;
+  idx = (int)dis.get()&0x00FF;
+  count = (int)dis.get()&0x00FF;
+  flags = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+19];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeInt((int)(lat&0x00FFFFFFFF));
-  dos.writeInt((int)(lng&0x00FFFFFFFF));
-  dos.writeShort(alt&0x00FFFF);
-  dos.writeShort(break_alt&0x00FFFF);
-  dos.writeShort(land_dir&0x00FFFF);
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(target_component&0x00FF);
-  dos.writeByte(idx&0x00FF);
-  dos.writeByte(count&0x00FF);
-  dos.writeByte(flags&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putInt((int)(lat&0x00FFFFFFFF));
+  dos.putInt((int)(lng&0x00FFFFFFFF));
+  dos.putShort((short)(alt&0x00FFFF));
+  dos.putShort((short)(break_alt&0x00FFFF));
+  dos.putShort((short)(land_dir&0x00FFFF));
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(target_component&0x00FF));
+  dos.put((byte)(idx&0x00FF));
+  dos.put((byte)(count&0x00FF));
+  dos.put((byte)(flags&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 19);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

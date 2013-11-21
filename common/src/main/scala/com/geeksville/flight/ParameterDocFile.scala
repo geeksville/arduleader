@@ -224,7 +224,7 @@ object ParameterDocFile {
             _xml.get
           }
         } catch {
-          case ex: Exception =>
+          case ex: Throwable =>
             // No matter what - we must return a valid stream - and apparently something about the cached file is corruped
             AnalyticsService.reportException("pdef_badparse", ex)
             XML.load(openBuiltinPdefStream())

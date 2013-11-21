@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_set_mode
  * Set the system mode, as defined by enum MAV_MODE. There is no target component id as the mode is by definition for the overall aircraft, not only for one component.
@@ -39,29 +39,26 @@ public class msg_set_mode extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  custom_mode = (int)dis.readInt()&0x00FFFFFFFF;
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  base_mode = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  custom_mode = (int)dis.getInt()&0x00FFFFFFFF;
+  target_system = (int)dis.get()&0x00FF;
+  base_mode = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+6];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeInt((int)(custom_mode&0x00FFFFFFFF));
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(base_mode&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putInt((int)(custom_mode&0x00FFFFFFFF));
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(base_mode&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 6);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);
