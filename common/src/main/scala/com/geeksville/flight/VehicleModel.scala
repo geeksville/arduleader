@@ -169,10 +169,13 @@ class VehicleModel(targetSystem: Int = 1) extends VehicleClient(targetSystem) wi
   }
 
   private def onLocationChanged(l: Location) {
-    location = Some(l)
+    // Don't publish bogus locations
+    if (l.lat != 0 && l.lon != 0) {
+      location = Some(l)
 
-    locationThrottle { () =>
-      eventStream.publish(l)
+      locationThrottle { () =>
+        eventStream.publish(l)
+      }
     }
   }
 

@@ -414,6 +414,9 @@ class MyMapFragment extends SupportMapFragment
         val marker = new VehicleMarker
         s.addMarker(marker)
         planeMarker = Some(marker)
+
+        // Default to last known position
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.latLng, 16.0f))
       }
     }
 
