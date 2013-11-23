@@ -98,6 +98,8 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
      */
     override def doGoto() {
       for { v <- myVehicle; s <- selected } yield {
+        if (v.isDirty)
+          v ! SendWaypoints // Make sure the vehicle has latest waypoints
         v ! DoSetCurrent(s.msg.seq)
         v ! DoSetMode("AUTO")
       }
@@ -169,7 +171,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
       // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
       // browser.
       // Added in kitkat
-      val intent = new Intent("android.intent.action.OPEN_DOCUMENT" /* Intent.ACTION_OPEN_DOCUMENT */ )
+      val intent = new Intent("android.intent.action.GET_CONTENT" /* Intent.ACTION_GET_CONTENT */ )
 
       // Filter to only show results that can be "opened", such as a
       // file (as opposed to a list of contacts or timezones)
@@ -181,7 +183,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
       // it would be "*/*".
       intent.setType("*/*")
 
-      startActivityForResult(intent, MainActivity.openWaypointRequestCode)
+      context.startActivityForResult(intent, MainActivity.openWaypointRequestCode)
     }
 
     private def save() {
@@ -190,6 +192,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
         info("Saving waypoints to " + file.getAbsolutePath)
         val os = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
         vm.writeToStream(os)
+        toast(s"Waypoints saved to $file", true)
       }
     }
 
@@ -197,7 +200,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
 
     private def deleteAll() {
       myVehicle.foreach { v =>
-        val seqNums = v.waypoints.filterNot(_.isHome).map(_.msg.seq).toArray
+        val seqNums = v.waypoints.filterNot(_.isHome).map(_.msg.seq).reverse.toArray
         seqNums.foreach { s =>
           v ! DoDeleteWaypoint(s)
         }

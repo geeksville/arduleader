@@ -185,7 +185,11 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               val b = makeButton(name)
 
               if (confirm)
-                confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
+                confirmButtonPress(b, s"Switch to $name mode?") { () =>
+                  if (name == "AUTO" && v.isDirty)
+                    v ! SendWaypoints // Make sure the vehicle has latest waypoints
+                  v ! DoSetMode(name)
+                }
               else
                 b.onClick { b => v ! DoSetMode(name) }
           }
