@@ -31,8 +31,11 @@
     el: '#rc-connected',
     watching: 'rc_connected',
     getContent: function() {
-      var msg;
-      return msg = this.model.rc_connected() ? alertSuccess('RC Transmitter is on') : alertFail('RC Transmitter offline');
+      if (this.model.rc_connected()) {
+        return alertSuccess('RC Transmitter is on');
+      } else {
+        return alertFail('RC Transmitter offline');
+      }
     }
   });
 
@@ -40,9 +43,13 @@
     el: '#manual-mode',
     watching: 'manual_mode',
     getContent: function() {
-      var mode, msg;
+      var mode;
       mode = this.model.current_mode();
-      return msg = (mode === "MANUAL") || (mode === "STABILIZE") ? alertSuccess('Vehicle in MANUAL mode') : alertFail('Vehicle not in MANUAL mode');
+      if ((mode === "MANUAL") || (mode === "STABILIZE")) {
+        return alertSuccess('Vehicle in MANUAL mode');
+      } else {
+        return alertFail('Vehicle not in MANUAL mode');
+      }
     }
   });
 
@@ -50,8 +57,11 @@
     el: '#has-3d-fix',
     watching: 'location',
     getContent: function() {
-      var msg;
-      return msg = this.model.has_3d_fix() ? alertSuccess('GPS has 3D fix') : alertFail('GPS does not have 3D fix');
+      if (this.model.has_3d_fix()) {
+        return alertSuccess('GPS has 3D fix');
+      } else {
+        return alertFail('GPS does not have 3D fix');
+      }
     }
   });
 

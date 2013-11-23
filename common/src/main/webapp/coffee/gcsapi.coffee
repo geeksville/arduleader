@@ -31,6 +31,9 @@ Vehicle = Backbone.Model.extend(
   status_messages: () -> this.get('status_messages')
   current_mode: () -> this.get('current_mode')
 
+  set_mode: (str) -> null # FIXME
+  goto_guided(x, y, z) -> null # FIXME
+
   has_3d_fix: () -> 
     loc = this.location()
     if loc then !!loc[2] else false
