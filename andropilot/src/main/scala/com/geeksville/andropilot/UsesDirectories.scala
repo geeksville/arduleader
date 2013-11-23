@@ -39,4 +39,9 @@ trait UsesDirectories extends UsesResources {
     f.mkdirs()
     f
   }
+  def waypointDirectory = sdDirectory.map { sd =>
+    val f = new File(sd, "waypoints")
+    f.mkdirs()
+    f
+  }
 }

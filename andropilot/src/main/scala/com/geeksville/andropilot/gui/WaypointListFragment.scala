@@ -21,8 +21,16 @@ import android.view.Menu
 import android.view.MenuItem
 import com.google.android.gms.maps.model.LatLng
 import com.geeksville.akka.InstrumentedActor
+import android.content.Intent
+import com.geeksville.util.Using._
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
+import com.geeksville.andropilot.UsesDirectories
+import com.geeksville.util.FileTools
+import com.ridemission.scandroid.SimpleDialogClient
 
-class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
+class WaypointListFragment extends ListAdapterHelper[Waypoint]
+  with AndroServiceFragment with UsesDirectories with SimpleDialogClient {
 
   private var selected: Option[Waypoint] = None
 
@@ -97,10 +105,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
 
     override def doDelete() {
       for { v <- myVehicle; s <- selected } yield {
-        // FIXME - we shouldn't be touching this
         v ! DoDeleteWaypoint(s.msg.seq)
-
-        changed()
       }
     }
 
@@ -140,13 +145,63 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
       val movedown = menu.findItem(R.id.menu_movedown)
       val moveup = menu.findItem(R.id.menu_moveup)
       val showmap = menu.findItem(R.id.menu_showonmap)
+      val save = menu.findItem(R.id.menu_save)
+      val load = menu.findItem(R.id.menu_load)
 
       // Allow some extra features when using list view
       val isNav = selected.map { i => i.isNavCommand && i.isValidLatLng }.getOrElse(false)
       showmap.setVisible(isNav)
       //Seq( /* movedown, moveup, */ showmap).foreach(_.setVisible(true))
 
+      load.setVisible(hasKitKat)
+      save.setVisible(canSave)
+
       super.onPrepareActionMode(mode, menu)
+    }
+
+    def hasKitKat = android.os.Build.VERSION.SDK_INT >= 19
+
+    /**
+     * Fires an intent to spin up the "file chooser" UI and select an image.
+     */
+    def performFileSearch() {
+
+      // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+      // browser.
+      // Added in kitkat
+      val intent = new Intent("android.intent.action.OPEN_DOCUMENT" /* Intent.ACTION_OPEN_DOCUMENT */ )
+
+      // Filter to only show results that can be "opened", such as a
+      // file (as opposed to a list of contacts or timezones)
+      intent.addCategory(Intent.CATEGORY_OPENABLE)
+
+      // Filter to show only images, using the image MIME data type.
+      // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+      // To search for all documents available via installed storage providers,
+      // it would be "*/*".
+      intent.setType("*/*")
+
+      startActivityForResult(intent, MainActivity.openWaypointRequestCode)
+    }
+
+    private def save() {
+      for { dir <- waypointDirectory; vm <- myVehicle } yield {
+        val file = FileTools.getDatestampFilename(".wpt", dir)
+        info("Saving waypoints to " + file.getAbsolutePath)
+        val os = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
+        vm.writeToStream(os)
+      }
+    }
+
+    private def canSave = waypointDirectory.isDefined && myVehicle.isDefined
+
+    private def deleteAll() {
+      myVehicle.foreach { v =>
+        val seqNums = v.waypoints.filterNot(_.isHome).map(_.msg.seq).toArray
+        seqNums.foreach { s =>
+          v ! DoDeleteWaypoint(s)
+        }
+      }
     }
 
     // Called when the user selects a contextual menu item
@@ -159,6 +214,18 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
             true
 
           case R.id.menu_moveup =>
+            true
+
+          case R.id.menu_load =>
+            performFileSearch()
+            true
+
+          case R.id.menu_save =>
+            save()
+            true
+
+          case R.id.menu_deleteall =>
+            showYesNo("Delete all waypoints?", deleteAll)
             true
 
           case R.id.menu_showonmap =>

@@ -18,7 +18,7 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") //
 
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6") // Needed for android
 
-platformName in Android := "android-17"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15
+platformName in Android := "android-19"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15, kitkat 4.4 is 19
 
 keyalias in Android := "geeksville-android-key"
 

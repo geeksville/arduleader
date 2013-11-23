@@ -2,10 +2,22 @@ package com.geeksville.util
 
 import scala.io._
 import java.io._
-
 import Using._
+import java.text.SimpleDateFormat
+import java.util.Date
 
 object FileTools {
+
+  private val dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+
+  /// Allocate a filename in the spooldir
+  def getDatestampFilename(suffix: String, spoolDir: File) = {
+    if (!spoolDir.exists)
+      spoolDir.mkdirs()
+
+    val fname = dateFormat.format(new Date) + suffix
+    new File(spoolDir, fname)
+  }
 
   /// Return extension string for this file
   def getExtension(fs: String): Option[String] = {
