@@ -209,9 +209,10 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
     if (l.lat != 0 && l.lon != 0) {
       location = Some(l)
 
-    locationThrottle { () =>
-      //log.debug("publishing loc")
-      eventStream.publish(l)
+      locationThrottle { () =>
+        //log.debug("publishing loc")
+        eventStream.publish(l)
+      }
     }
   }
 
