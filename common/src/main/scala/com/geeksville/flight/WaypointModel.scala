@@ -43,7 +43,7 @@ case class DoDeleteWaypoint(seqnum: Int)
 case object DoMarkDirty
 
 /**
- * Upload a sequence of waypoints to the vehicle (being careful to not replace home)
+ * Upload a sequence of waypoints to the local view (being careful to not replace home)
  */
 case class DoLoadWaypoints(pts: Seq[Waypoint])
 
@@ -342,7 +342,6 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       val home = waypoints.head
       waypoints = IndexedSeq(home) ++ wpts.filter(!_.isHome)
       setDirty(true)
-      onWaypointsChanged()
     }
   }
 
