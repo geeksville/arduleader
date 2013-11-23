@@ -73,20 +73,5 @@
         android:showAsAction="ifRoom"
         android:title="Delete"
         android:visible="false"/>
-    <item
-        android:id="@+id/menu_deleteall"
-        android:showAsAction="never"
-        android:title="Delete all"
-        android:visible="true"/>
-    <item
-        android:id="@+id/menu_load"
-        android:showAsAction="never"
-        android:title="Load..."
-        android:visible="false"/>
-    <item
-        android:id="@+id/menu_save"
-        android:showAsAction="never"
-        android:title="Save..."
-        android:visible="false"/>
 
 </menu>
