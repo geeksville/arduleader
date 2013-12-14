@@ -1,5 +1,19 @@
 * FIXME - do background param fetch
 
+# 2.0.1
+* Fix a small race on loading wpts
+
+# 2.0.0
+* Add support for moving waypoints up/down to change flt plan order
+* Add support for saving waypoints to SD card
+* Add a 'delete all waypoints' menu entry
+* KitKat only: Add support for loading waypoints from a menu (no need for a file-browser app) (Older androids
+  can still use a file browser (like ASTRO File Manager) or web browser to open .wpt files).
+  Supports google drive for storing wpt/fence/param files
+* Minor checklist improvements
+* Last known vehicle location is saved to flash (no longer will unknown locations be shown off coast of Africa ;-))
+* Fix improper zooming which could sometimes occur on first vehicle connect
+
 # 1.9.14
 * Hook up GCSAPI to the checklists
 

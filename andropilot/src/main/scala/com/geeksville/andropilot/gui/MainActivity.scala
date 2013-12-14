@@ -606,7 +606,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
 
     override protected def inBackground() {
 
-      debug("Handling fileOpen (in background thread)")
+      debug(s"Handling fileOpen: $uri")
 
       using(AndroidJUtil.getFromURI(context, uri)) { s =>
         debug("Opened fileOpen (in background thread)")
@@ -672,13 +672,12 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
     // response to some other intent, and the code below shouldn't run at all.
 
     if (requestCode == MainActivity.openWaypointRequestCode && resultCode == Activity.RESULT_OK) {
-      info(s"ActivityResult open waypoints")
+      info(s"ActivityResult open waypoints: " + resultData.getAction)
 
-      // The document selected by the user won't be returned in the intent.
-      // Instead, a URI to that document will be contained in the return intent
-      // provided to this method as a parameter.
-      // Pull that URI using resultData.getData().
-      handleViewIntent(resultData)
+      // Just use our regular view handler (so we can defer until the vehicle is reconnected)
+      resultData.setAction(Intent.ACTION_VIEW)
+
+      handleIntent(resultData)
     }
   }
 
@@ -1034,7 +1033,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
   /**
    * Do we think the vehicle is flying?
    */
-  private def inFlight = myVehicle.flatMap(_.vfrHud.map(_.groundspeed > 0.5f)).getOrElse(true)
+  private def inFlight = myVehicle.flatMap(_.isFlying).getOrElse(true)
 
   /** Ask for permission to access our device */
   def requestAccess() {

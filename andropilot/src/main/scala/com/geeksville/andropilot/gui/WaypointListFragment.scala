@@ -153,8 +153,55 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
       val isNav = selected.map { i => i.isNavCommand && i.isValidLatLng }.getOrElse(false)
       showmap.setVisible(isNav)
       //Seq( /* movedown, moveup, */ showmap).foreach(_.setVisible(true))
+      moveup.setVisible(!selectedIsFirst)
+      movedown.setVisible(!selectedIsLast)
 
       super.onPrepareActionMode(mode, menu)
+    }
+
+    def selectedIsLast = (for {
+      v <- myVehicle
+      s <- selected
+    } yield {
+      s.seq >= v.waypoints.size - 1
+    }).getOrElse(false)
+
+    /// Are we the first non home waypoint?
+    def selectedIsFirst = (for {
+      s <- selected
+    } yield {
+      s.seq <= 1
+    }).getOrElse(false)
+
+    private def doMove(dir: Int) {
+      val movingDown = dir > 0
+
+      for {
+        v <- myVehicle
+        s <- selected if !s.isHome && (if (movingDown) !selectedIsLast else !selectedIsFirst)
+      } yield {
+        // Swap with an adjacent waypoint
+        val myindex = s.seq
+        val otherindex = if (movingDown) myindex + 1 else myindex - 1
+        val wpts = v.waypoints
+        val other = wpts(otherindex)
+
+        v.waypoints = wpts.zipWithIndex.map {
+          case (w, i) =>
+            if (i == myindex) {
+              val r = wpts(otherindex)
+              r.msg.seq = myindex
+              r
+            } else if (i == otherindex) {
+              val r = wpts(myindex)
+              r.msg.seq = otherindex
+              r
+            } else
+              w
+        }
+
+        v ! DoMarkDirty
+      }
     }
 
     // Called when the user selects a contextual menu item
@@ -164,9 +211,11 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
         item.getItemId match {
 
           case R.id.menu_movedown =>
+            doMove(1)
             true
 
           case R.id.menu_moveup =>
+            doMove(-1)
             true
 
           case R.id.menu_showonmap =>
@@ -257,7 +306,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
     // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
     // browser.
     // Added in kitkat
-    val intent = new Intent("android.intent.action.GET_CONTENT" /* Intent.ACTION_GET_CONTENT */ )
+    val intent = new Intent("android.intent.action.GET_CONTENT" /* OPEN_DOCUMENT Intent.ACTION_GET_CONTENT */ )
 
     // Filter to only show results that can be "opened", such as a
     // file (as opposed to a list of contacts or timezones)
