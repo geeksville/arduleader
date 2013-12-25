@@ -21,8 +21,17 @@ import android.view.Menu
 import android.view.MenuItem
 import com.google.android.gms.maps.model.LatLng
 import com.geeksville.akka.InstrumentedActor
+import android.content.Intent
+import com.geeksville.util.Using._
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
+import com.geeksville.andropilot.UsesDirectories
+import com.geeksville.util.FileTools
+import com.ridemission.scandroid.SimpleDialogClient
+import android.view.MenuInflater
 
-class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroServiceFragment {
+class WaypointListFragment extends ListAdapterHelper[Waypoint]
+  with AndroServiceFragment with UsesDirectories with SimpleDialogClient {
 
   private var selected: Option[Waypoint] = None
 
@@ -90,6 +99,8 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
      */
     override def doGoto() {
       for { v <- myVehicle; s <- selected } yield {
+        if (v.isDirty)
+          v ! SendWaypoints // Make sure the vehicle has latest waypoints
         v ! DoSetCurrent(s.msg.seq)
         v ! DoSetMode("AUTO")
       }
@@ -97,10 +108,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
 
     override def doDelete() {
       for { v <- myVehicle; s <- selected } yield {
-        // FIXME - we shouldn't be touching this
         v ! DoDeleteWaypoint(s.msg.seq)
-
-        changed()
       }
     }
 
@@ -175,6 +183,8 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
     }
   }
 
+  setHasOptionsMenu(true)
+
   override def onServiceConnected(s: AndropilotService) {
     super.onServiceConnected(s)
 
@@ -235,6 +245,86 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint] with AndroService
 
       l.invalidateViews()
     }
+  }
+
+  def hasKitKat = android.os.Build.VERSION.SDK_INT >= 19
+
+  /**
+   * Fires an intent to spin up the "file chooser" UI and select an image.
+   */
+  def performFileSearch() {
+
+    // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+    // browser.
+    // Added in kitkat
+    val intent = new Intent("android.intent.action.GET_CONTENT" /* Intent.ACTION_GET_CONTENT */ )
+
+    // Filter to only show results that can be "opened", such as a
+    // file (as opposed to a list of contacts or timezones)
+    intent.addCategory(Intent.CATEGORY_OPENABLE)
+
+    // Filter to show only images, using the image MIME data type.
+    // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+    // To search for all documents available via installed storage providers,
+    // it would be "*/*".
+    intent.setType("*/*")
+
+    getActivity.startActivityForResult(intent, MainActivity.openWaypointRequestCode)
+  }
+
+  private def save() {
+    for { dir <- waypointDirectory; vm <- myVehicle } yield {
+      val file = FileTools.getDatestampFilename(".wpt", dir)
+      info("Saving waypoints to " + file.getAbsolutePath)
+      val os = new BufferedOutputStream(new FileOutputStream(file, true), 8192)
+      vm.writeToStream(os)
+      toast(s"Waypoints saved to $file", true)
+    }
+  }
+
+  private def canSave = waypointDirectory.isDefined && myVehicle.isDefined
+
+  private def deleteAll() {
+    myVehicle.foreach { v =>
+      val seqNums = v.waypoints.filterNot(_.isHome).map(_.msg.seq).reverse.toArray
+      seqNums.foreach { s =>
+        v ! DoDeleteWaypoint(s)
+      }
+    }
+  }
+
+  override def onOptionsItemSelected(item: MenuItem) = {
+    item.getItemId match {
+
+      case R.id.menu_load =>
+        performFileSearch()
+        true
+
+      case R.id.menu_save =>
+        save()
+        true
+
+      case R.id.menu_deleteall =>
+        showYesNo("Delete all waypoints?", deleteAll)
+        true
+      case _ =>
+        super.onOptionsItemSelected(item)
+    }
+  }
+
+  override def onPrepareOptionsMenu(menu: Menu) = {
+    val save = menu.findItem(R.id.menu_save)
+    val load = menu.findItem(R.id.menu_load)
+
+    load.setVisible(hasKitKat)
+    save.setVisible(canSave)
+
+    super.onPrepareOptionsMenu(menu)
+  }
+
+  override def onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    debug("Creating option menu")
+    inflater.inflate(R.menu.waypoint_menu, menu) // inflate the menu
   }
 
   override def onListItemClick(l: ListView, v: View, position: Int, id: Long) {

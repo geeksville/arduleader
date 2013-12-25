@@ -5,6 +5,7 @@ import com.ridemission.rest.JsonConverters._
 import com.ridemission.rest.JArray
 import com.ridemission.rest.JNull
 import com.geeksville.flight.DoGotoGuided
+import com.geeksville.flight.DoSetMode
 
 /**
  * This is the singleton used to access vehicle and GCS state from javascript or other languages.
@@ -16,21 +17,36 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
     "location" -> { () =>
       v.location.asJson
     },
+    "parameters" -> { () =>
+      v.parameters.asJson
+    },
     "waypoints" -> { () =>
       v.waypoints.asJson
     },
-    "gps.hdop" -> { () =>
+    "gps_hdop" -> { () =>
       v.hdop.asJson
     },
-    "rc.channels" -> { () =>
+    "has_heartbeat" -> { () => v.hasHeartbeat.asJson },
+    "is_armed" -> { () => v.isArmed.asJson },
+    "status_messages" -> { () => v.statusMessages.asJson },
+    "rc_channels" -> { () =>
       v.rcChannels.asJson
     },
-    "currentMode" -> { () =>
+    "rc_connected" -> { () => v.hasRealRc.asJson },
+    "current_mode" -> { () =>
       v.currentMode.asJson
     })
 
   override def methods = Map(
-    "gotoGuided" -> { (args: Seq[Any]) =>
+
+    "set_mode" -> { (args: Seq[Any]) =>
+      val s = args(0).asInstanceOf[String]
+      println(s"GCSAPI set mode to $s")
+      v ! DoSetMode(s)
+      JNull
+    },
+
+    "goto_guided" -> { (args: Seq[Any]) =>
       println(s"Got args $args: " + args.mkString(","))
       val lat = args(0).asInstanceOf[Double]
       val lon = args(1).asInstanceOf[Double]

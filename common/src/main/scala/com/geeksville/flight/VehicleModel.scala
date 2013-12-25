@@ -28,6 +28,7 @@ import java.beans.PropertyChangeEvent
 import com.geeksville.akka.InstrumentedActor
 import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
 import scala.util.Random
+import org.mavlink.messages.MAV_AUTOPILOT
 
 //
 // Messages we publish on our event bus when something happens
@@ -133,6 +134,11 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
   MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
 
   /**
+   * Is the autopilot we are listening to _incapabable_ of hearing our messages? (i.e. Naza FBOSD)
+   */
+  def isAutopilotTalkOnly = autopilot.map(_ == MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID).getOrElse(false)
+
+  /**
    * The rc channels the vehicle is currently receiving
    */
   def rcChannels = rcChannelsRaw match {
@@ -199,11 +205,14 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
   }.getOrElse(Seq())
 
   private def onLocationChanged(l: Location) {
-    location = Some(l)
+    // Don't publish bogus locations
+    if (l.lat != 0 && l.lon != 0) {
+      location = Some(l)
 
-    locationThrottle { () =>
-      //log.debug("publishing loc")
-      eventStream.publish(l)
+      locationThrottle { () =>
+        //log.debug("publishing loc")
+        eventStream.publish(l)
+      }
     }
   }
 
@@ -459,6 +468,11 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
 
   override def onHeartbeatFound() {
     super.onHeartbeatFound()
+
+    if (isAutopilotTalkOnly) {
+      log.error("Autopilot is talk only - so we should never send to it")
+      listenOnly = true
+    }
 
     setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling

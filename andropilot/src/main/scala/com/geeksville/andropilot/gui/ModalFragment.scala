@@ -89,10 +89,6 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   override def onActivityCreated(savedInstanceState: Bundle) {
     super.onActivityCreated(savedInstanceState)
 
-    myVehicle.foreach { v =>
-      setWPUploadVisibility(v.isDirty)
-    }
-
     uploadWpButton.get.onClick { b =>
       myVehicle.foreach { v =>
         v ! SendWaypoints
@@ -171,6 +167,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       } yield {
         debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
+        setWPUploadVisibility(v.isDirty)
         warning.setVisibility(if (v.listenOnly) View.VISIBLE else View.GONE)
 
         // Show the vehicle mode buttons
@@ -185,7 +182,11 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               val b = makeButton(name)
 
               if (confirm)
-                confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
+                confirmButtonPress(b, s"Switch to $name mode?") { () =>
+                  if (name == "AUTO" && v.isDirty)
+                    v ! SendWaypoints // Make sure the vehicle has latest waypoints
+                  v ! DoSetMode(name)
+                }
               else
                 b.onClick { b => v ! DoSetMode(name) }
           }

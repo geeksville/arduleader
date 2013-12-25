@@ -78,6 +78,7 @@ import com.geeksville.gcsapi.WebActivity
 import com.geeksville.gcsapi.Webserver
 import com.geeksville.akka.EventStream
 import com.geeksville.aspeech.TTSClient
+import android.app.Activity
 
 class MainActivity extends FragmentActivity with TypedActivity with TTSClient
   with AndroidLogger with FlurryActivity with AndropilotPrefs
@@ -664,15 +665,36 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
     (new FileLoadTask(uri)).execute()
   }
 
+  override def onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent) {
+
+    // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+    // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+    // response to some other intent, and the code below shouldn't run at all.
+
+    if (requestCode == MainActivity.openWaypointRequestCode && resultCode == Activity.RESULT_OK) {
+      info(s"ActivityResult open waypoints")
+
+      // The document selected by the user won't be returned in the intent.
+      // Instead, a URI to that document will be contained in the return intent
+      // provided to this method as a parameter.
+      // Pull that URI using resultData.getData().
+      handleViewIntent(resultData)
+    }
+  }
+
+  private def handleViewIntent(intent: Intent) {
+    Option(intent.getData).foreach { uri =>
+      // User wants to open a file
+      handleFileOpen(uri)
+    }
+  }
+
   private def handleIntent(intent: Intent) {
     debug("Received intent: " + intent)
     service.map { s =>
       intent.getAction match {
         case Intent.ACTION_VIEW =>
-          Option(intent.getData).foreach { uri =>
-            // User wants to open a file
-            handleFileOpen(uri)
-          }
+          handleViewIntent(intent)
         case Intent.ACTION_MAIN =>
           // Normal app start - just ask for access to any connected devices
           requestAccess()
@@ -1053,6 +1075,8 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
 }
 
 object MainActivity {
+  val openWaypointRequestCode = 1020
+
   /**
    * This really useful method is not on ICS, alas...
    */

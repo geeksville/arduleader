@@ -4,6 +4,8 @@ import org.mavlink.messages.ardupilotmega.msg_param_value
 import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.mavlink.MavlinkConstants
+import com.ridemission.rest.ASJSON
+import com.ridemission.rest.JObject
 
 /**
  * Parameter access, but only read-only (so it can work at log playback time)
@@ -77,7 +79,7 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
-  class ROParamValue {
+  class ROParamValue extends ASJSON {
     var raw: Option[msg_param_value] = None
 
     /// The docs for this parameter (if we can find them)
@@ -126,6 +128,8 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     def getFloat = raw.map { v => v.param_value }
 
     def getBoolean = getInt.map(_ != 0)
+
+    def asJSON = JObject("id" -> getId, "value" -> getValue, "as_str" -> asString)
 
     /**
      * @return a nice human readable version of this value (decoding based on documentation if possible)
