@@ -48,6 +48,8 @@ object MavlinkAndroid extends AndroidLogger {
 
     VehicleClient.isUsbBusted = !port.isInstanceOf[FTDISerial] && AsyncSerial.isUsbBusted
 
+    assert(instream != null)
+    assert(port.out != null)
     new MavlinkStream(port.out, instream, sysIdOverride)
   }
 }

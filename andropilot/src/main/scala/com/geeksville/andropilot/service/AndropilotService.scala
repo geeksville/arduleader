@@ -374,6 +374,8 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
   protected def onBluetoothConnect(in: InputStream, outs: OutputStream) {
     info("Starting bluetooth")
+    assert(outs != null)
+    assert(in != null)
     val out = new BufferedOutputStream(outs, 512)
 
     val port = new MavlinkStream(out, in)
