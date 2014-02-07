@@ -162,7 +162,7 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
    * Are we on a copter? or None if not sure
    */
   def isCopterOpt = vehicleType.map { t =>
-    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
+    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_TRICOPTER) || (t == MAV_TYPE.MAV_TYPE_COAXIAL) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
   }
 
   def isCopter = isCopterOpt.getOrElse(true)
