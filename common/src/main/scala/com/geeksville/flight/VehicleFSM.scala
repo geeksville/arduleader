@@ -173,6 +173,10 @@ private class VehicleFSM_Default(name: String, id: Int) extends VehicleModelStat
 
 private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
+    override def HBSaysArmed(context: VehicleFSM): Unit = {
+
+    }
+
     override def OnHasHeartbeat(context: VehicleFSM): Unit = {
 
     }
@@ -187,15 +191,38 @@ private class VehicleFSM_WantInterface(name: String, id: Int) extends VehicleFSM
     override def OnLostHeartbeat(context: VehicleFSM): Unit = {
 
     }
+
+    override def OnParametersDownloaded(context: VehicleFSM): Unit = {
+
+    }
 }
 
 private class VehicleFSM_WantVehicle(name: String, id: Int) extends VehicleFSM_Default(name, id) {
 
     override def OnHasHeartbeat(context: VehicleFSM): Unit = {
+        val ctxt: VehicleModel = context.getOwner()
 
-        context.getState().Exit(context)
-        context.setState(VehicleFSM.DownloadingWaypoints)
-        context.getState().Entry(context)
+        if ( !ctxt.listenOnly ) {
+
+            context.getState().Exit(context)
+            // No actions.
+            context.setState(VehicleFSM.DownloadingWaypoints)
+            context.getState().Entry(context)
+        }
+        else if ( ctxt.listenOnly ) {
+
+            context.getState().Exit(context)
+            // No actions.
+            context.setState(VehicleFSM.DownloadedParameters)
+            context.getState().Entry(context)
+        }        else {
+            super.OnHasHeartbeat(context)
+        }
+
+    }
+
+    override def OnParametersDownloaded(context: VehicleFSM): Unit = {
+
     }
 }
 
@@ -244,6 +271,12 @@ private class VehicleFSM_DownloadingParameters(name: String, id: Int) extends Ve
 }
 
 private class VehicleFSM_DownloadedParameters(name: String, id: Int) extends VehicleFSM_Default(name, id) {
+
+    override def Entry (context: VehicleFSM): Unit = {
+        val ctxt = context.getOwner()
+
+        ctxt.handleStartupComplete()
+    }
 
     override def HBSaysArmed(context: VehicleFSM): Unit = {
 
@@ -299,6 +332,10 @@ private class VehicleFSM_Armed(name: String, id: Int) extends VehicleFSM_Default
 }
 
 private class VehicleFSM_Flying(name: String, id: Int) extends VehicleFSM_Default(name, id) {
+
+    override def HBSaysArmed(context: VehicleFSM): Unit = {
+
+    }
 
     override def HBSaysDisarmed(context: VehicleFSM): Unit = {
 

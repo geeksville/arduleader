@@ -22,6 +22,9 @@ import java.io.InputStream
 import scala.io.Source
 import com.geeksville.mavlink.SendYoungest
 import com.geeksville.akka.InstrumentedActor
+import java.io.OutputStream
+import java.io.PrintWriter
+import com.geeksville.util.Using._
 
 //
 // Messages we publish on our event bus when something happens
@@ -40,7 +43,7 @@ case class DoDeleteWaypoint(seqnum: Int)
 case object DoMarkDirty
 
 /**
- * Upload a sequence of waypoints to the vehicle (being careful to not replace home)
+ * Upload a sequence of waypoints to the local view (being careful to not replace home)
  */
 case class DoLoadWaypoints(pts: Seq[Waypoint])
 
@@ -218,9 +221,12 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
   }
 
   private def startWaypointDownload() {
-    log.info("Downloading waypoints")
-    hasRequestedWaypoints = true
-    sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
+    if (!listenOnly) {
+      log.info("Downloading waypoints")
+      hasRequestedWaypoints = true
+      sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
+    } else
+      log.warn("Listen only mode - not downloading waypoints")
   }
 
   protected def onWaypointDownloadFailed() {
@@ -229,7 +235,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private def perhapsRequestWaypoints() {
     // First contact, download any waypoints from the vehicle and get params
-    if (!hasRequestedWaypoints)
+    if (!hasRequestedWaypoints && !listenOnly)
       self ! StartWaypointDownload
   }
 
@@ -336,7 +342,37 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       val home = waypoints.head
       waypoints = IndexedSeq(home) ++ wpts.filter(!_.isHome)
       setDirty(true)
-      onWaypointsChanged()
+    }
+  }
+
+  /**
+   * Write the wpts to an output stream (we will close the stream afterwards)
+   */
+  def writeToStream(os: OutputStream) {
+    using(new PrintWriter(os)) { p =>
+      p.println("QGC WPL 110")
+
+      def emit(s: Any) {
+        p.print(s.toString)
+        p.print(" ")
+      }
+
+      waypoints.foreach { w =>
+        val msg = w.msg
+        emit(msg.seq)
+        emit(msg.current)
+        emit(msg.frame)
+        emit(msg.command)
+        emit(msg.param1)
+        emit(msg.param2)
+        emit(msg.param3)
+        emit(msg.param4)
+        emit(msg.x)
+        emit(msg.y)
+        emit(msg.z)
+        emit(msg.autocontinue)
+        p.println()
+      }
     }
   }
 

@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_servo_output_raw
  * The RAW values of the servo outputs (for RC input from the remote, use the RC_CHANNELS messages). The standard PPM modulation is as follows: 1000 microseconds: 0%, 2000 microseconds: 100%.
@@ -67,43 +67,40 @@ public class msg_servo_output_raw extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  time_usec = (int)dis.readInt()&0x00FFFFFFFF;
-  servo1_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo2_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo3_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo4_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo5_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo6_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo7_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  servo8_raw = (int)dis.readUnsignedShort()&0x00FFFF;
-  port = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  time_usec = (int)dis.getInt()&0x00FFFFFFFF;
+  servo1_raw = (int)dis.getShort()&0x00FFFF;
+  servo2_raw = (int)dis.getShort()&0x00FFFF;
+  servo3_raw = (int)dis.getShort()&0x00FFFF;
+  servo4_raw = (int)dis.getShort()&0x00FFFF;
+  servo5_raw = (int)dis.getShort()&0x00FFFF;
+  servo6_raw = (int)dis.getShort()&0x00FFFF;
+  servo7_raw = (int)dis.getShort()&0x00FFFF;
+  servo8_raw = (int)dis.getShort()&0x00FFFF;
+  port = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+21];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeInt((int)(time_usec&0x00FFFFFFFF));
-  dos.writeShort(servo1_raw&0x00FFFF);
-  dos.writeShort(servo2_raw&0x00FFFF);
-  dos.writeShort(servo3_raw&0x00FFFF);
-  dos.writeShort(servo4_raw&0x00FFFF);
-  dos.writeShort(servo5_raw&0x00FFFF);
-  dos.writeShort(servo6_raw&0x00FFFF);
-  dos.writeShort(servo7_raw&0x00FFFF);
-  dos.writeShort(servo8_raw&0x00FFFF);
-  dos.writeByte(port&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putInt((int)(time_usec&0x00FFFFFFFF));
+  dos.putShort((short)(servo1_raw&0x00FFFF));
+  dos.putShort((short)(servo2_raw&0x00FFFF));
+  dos.putShort((short)(servo3_raw&0x00FFFF));
+  dos.putShort((short)(servo4_raw&0x00FFFF));
+  dos.putShort((short)(servo5_raw&0x00FFFF));
+  dos.putShort((short)(servo6_raw&0x00FFFF));
+  dos.putShort((short)(servo7_raw&0x00FFFF));
+  dos.putShort((short)(servo8_raw&0x00FFFF));
+  dos.put((byte)(port&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 21);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

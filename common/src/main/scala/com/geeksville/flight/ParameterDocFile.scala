@@ -10,6 +10,7 @@ import com.geeksville.util.FileTools
 import java.io.BufferedInputStream
 import java.io.FileInputStream
 import com.geeksville.util.OSTools
+import java.io.IOException
 
 /**
  * Documentation (for human and machine) of a particular parameter name
@@ -158,6 +159,9 @@ object ParameterDocFile {
           }
         }
       } catch {
+        case ex: IOException =>
+          println(s"Can't download new pdef due to: $ex")
+
         case ex: Exception =>
           AnalyticsService.reportException("pdef_failed", ex)
       }
@@ -220,7 +224,7 @@ object ParameterDocFile {
             _xml.get
           }
         } catch {
-          case ex: Exception =>
+          case ex: Throwable =>
             // No matter what - we must return a valid stream - and apparently something about the cached file is corruped
             AnalyticsService.reportException("pdef_badparse", ex)
             XML.load(openBuiltinPdefStream())

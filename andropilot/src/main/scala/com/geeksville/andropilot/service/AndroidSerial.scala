@@ -171,7 +171,6 @@ class USBAndroidSerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Co
       d.setDTR(true)
     } else
       d.setFlowControl(UsbSerialDriver.FLOWCONTROL_RTSCTS)
-    // Not yet implemented for ACM devices
 
     info("Port open")
     driver.put(d)
@@ -195,7 +194,7 @@ object AndroidSerial extends AndroidLogger {
 
   def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 && (dvr.getProductId == 0x6001 || dvr.getProductId == 0x6015)
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
-  def isPX4(dvr: UsbDevice) = dvr.getVendorId == 0x26ac && dvr.getProductId == 0x0010
+  def isPX4(dvr: UsbDevice) = dvr.getVendorId == 0x26ac && dvr.getProductId == 0x0011
 
   def getDevices(implicit context: Context) = {
     val manager = context.getSystemService(Context.USB_SERVICE).asInstanceOf[UsbManager]

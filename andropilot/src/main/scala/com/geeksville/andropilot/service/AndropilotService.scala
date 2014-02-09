@@ -50,12 +50,13 @@ import com.geeksville.gcsapi.Webserver
 import com.geeksville.gcsapi.AndroidWebserver
 import com.geeksville.flight.ParameterDocFile
 import com.geeksville.util.ThreadTools
+import com.geeksville.aspeech.TTSClient
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
 }
 
-class AndropilotService extends Service with AndroidLogger
+class AndropilotService extends Service with TTSClient with AndroidLogger
   with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources with UsesDirectories {
   val groundControlId = 255
 
@@ -74,6 +75,8 @@ class AndropilotService extends Service with AndroidLogger
 
   private var udp: Option[InstrumentedActor] = None
 
+  private var speaker: Option[Speaker] = None
+
   private var btInputStream: Option[InputStream] = None
   private var btStream: Option[MavlinkStream] = None
 
@@ -90,6 +93,24 @@ class AndropilotService extends Service with AndroidLogger
   implicit val context = this
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
+
+  //
+  // Not really the ideal place for these status things - but leave here for now
+  //
+
+  def isLowVolt = (for { v <- vehicle; volt <- v.batteryVoltage } yield { v.hasHeartbeat && volt < minVoltage }).getOrElse(false)
+
+  /// Apparently ardupane treats -1 for pct charge as 'no idea'
+  def isLowBatPercent = (for { v <- vehicle; pct <- v.batteryPercent } yield {
+    v.hasHeartbeat && (pct < minBatPercent && pct >= -1.0)
+  }).getOrElse(false)
+  def isLowRssi = (for { v <- vehicle; r <- v.radio } yield {
+    val span = minRssiSpan
+
+    v.hasHeartbeat && (r.rssi - span < r.noise || r.remrssi - span < r.remnoise)
+  }).getOrElse(false)
+  def isLowNumSats = (for { v <- vehicle; n <- v.numSats } yield { v.hasHeartbeat && n < minNumSats }).getOrElse(false)
+  def isWarning = isLowVolt || isLowBatPercent || isLowRssi || isLowNumSats
 
   /**
    * Class for clients to access.  Because we know this service always
@@ -180,6 +201,8 @@ class AndropilotService extends Service with AndroidLogger
 
     info("Creating service")
 
+    initSpeech()
+
     // Not really ideal - but good enough for now
     ParameterDocFile.cacheDir = Some(getFilesDir)
     ThreadTools.start("docupdate")(ParameterDocFile.updateParamDocs)
@@ -212,10 +235,9 @@ class AndropilotService extends Service with AndroidLogger
 
     actor.useRequestById = !useOldArducopter
 
-    // This lets the vehicle model receive messages from its vehicle...
-    // FIXME - somehow direct by port id instead
-    MavlinkEventBus.subscribe(actor, actor.targetSystem)
     vehicle = Some(actor)
+
+    speaker = Some(MockAkka.actorOf(new Speaker(this, actor), "speaker"))
 
     if (runWebserver) {
       warn("Starting web server")
@@ -352,6 +374,8 @@ class AndropilotService extends Service with AndroidLogger
 
   protected def onBluetoothConnect(in: InputStream, outs: OutputStream) {
     info("Starting bluetooth")
+    assert(outs != null)
+    assert(in != null)
     val out = new BufferedOutputStream(outs, 512)
 
     val port = new MavlinkStream(out, in)
@@ -519,6 +543,8 @@ class AndropilotService extends Service with AndroidLogger
     pebbleListener = None
 
     setFollowMe(false)
+    speaker.foreach(_ ! PoisonPill)
+    speaker = None
     prefListeners.foreach(unregisterOnPreferenceChanged)
     prefListeners = Seq()
     udp.foreach(_ ! PoisonPill)
@@ -528,6 +554,9 @@ class AndropilotService extends Service with AndroidLogger
     serialDetachAll()
     unregisterReceiver(disconnectReceiver)
     btDetached()
+
+    destroySpeech()
+
     MockAkka.shutdown()
     super.onDestroy()
   }

@@ -6,8 +6,8 @@ package org.mavlink.messages;
 import org.mavlink.messages.MAVLinkMessage;
 import org.mavlink.IMAVLinkMessage;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.mavlink.messages.ardupilotmega.msg_optical_flow;
 import org.mavlink.messages.ardupilotmega.msg_hil_gps;
 import org.mavlink.messages.ardupilotmega.msg_omnidirectional_flow;
@@ -223,7 +223,7 @@ import org.mavlink.messages.ardupilotmega.msg_airspeed_autocal;
 public class MAVLinkMessageFactory implements IMAVLinkMessage, IMAVLinkMessageID {
 public static MAVLinkMessage getMessage(int msgid, int sysId, int componentId, byte[] rawData) throws IOException {
     MAVLinkMessage msg=null;
-    LittleEndianDataInputStream dis = new LittleEndianDataInputStream(new ByteArrayInputStream(rawData));
+    ByteBuffer dis = ByteBuffer.wrap(rawData).order(ByteOrder.LITTLE_ENDIAN);
     switch(msgid) {
   case MAVLINK_MSG_ID_FENCE_FETCH_POINT:
       msg = new msg_fence_fetch_point(sysId, componentId);

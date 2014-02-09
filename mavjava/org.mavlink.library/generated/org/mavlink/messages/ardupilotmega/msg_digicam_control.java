@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_digicam_control
  * Control on-board Camera Control System to take shots.
@@ -67,43 +67,40 @@ public class msg_digicam_control extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  extra_value = (float)dis.readFloat();
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  target_component = (int)dis.readUnsignedByte()&0x00FF;
-  session = (int)dis.readUnsignedByte()&0x00FF;
-  zoom_pos = (int)dis.readUnsignedByte()&0x00FF;
-  zoom_step = (int)dis.readByte();
-  focus_lock = (int)dis.readUnsignedByte()&0x00FF;
-  shot = (int)dis.readUnsignedByte()&0x00FF;
-  command_id = (int)dis.readUnsignedByte()&0x00FF;
-  extra_param = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  extra_value = (float)dis.getFloat();
+  target_system = (int)dis.get()&0x00FF;
+  target_component = (int)dis.get()&0x00FF;
+  session = (int)dis.get()&0x00FF;
+  zoom_pos = (int)dis.get()&0x00FF;
+  zoom_step = (int)dis.get();
+  focus_lock = (int)dis.get()&0x00FF;
+  shot = (int)dis.get()&0x00FF;
+  command_id = (int)dis.get()&0x00FF;
+  extra_param = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+13];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(extra_value);
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(target_component&0x00FF);
-  dos.writeByte(session&0x00FF);
-  dos.writeByte(zoom_pos&0x00FF);
-  dos.write(zoom_step&0x00FF);
-  dos.writeByte(focus_lock&0x00FF);
-  dos.writeByte(shot&0x00FF);
-  dos.writeByte(command_id&0x00FF);
-  dos.writeByte(extra_param&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(extra_value);
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(target_component&0x00FF));
+  dos.put((byte)(session&0x00FF));
+  dos.put((byte)(zoom_pos&0x00FF));
+  dos.put((byte)(zoom_step&0x00FF));
+  dos.put((byte)(focus_lock&0x00FF));
+  dos.put((byte)(shot&0x00FF));
+  dos.put((byte)(command_id&0x00FF));
+  dos.put((byte)(extra_param&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 13);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

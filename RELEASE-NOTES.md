@@ -1,9 +1,61 @@
-* FIXME - try using not for embedded java in mavlink lib
+* FIXME - do background param fetch
 
-* We now fetch the current param documentation from the diydrones servers
+# 2.0.1
+* Fix a small race on loading wpts
+
+# 2.0.0
+* Add support for moving waypoints up/down to change flt plan order
+* Add support for saving waypoints to SD card
+* Add a 'delete all waypoints' menu entry
+* KitKat only: Add support for loading waypoints from a menu (no need for a file-browser app) (Older androids
+  can still use a file browser (like ASTRO File Manager) or web browser to open .wpt files).
+  Supports google drive for storing wpt/fence/param files
+* Minor checklist improvements
+* Last known vehicle location is saved to flash (no longer will unknown locations be shown off coast of Africa ;-))
+* Fix improper zooming which could sometimes occur on first vehicle connect
+
+# 1.9.14
+* Hook up GCSAPI to the checklists
+
+# 1.9.13
+* Allow users to place custom checklists in /sdcard/andropilot/checklists/plane.html or copter.html
+* Support FBSOD for Naza-M autopilots (thanks Jay Davis and Mike Knott)
+* List SPORT mode in the modes menu
+* Fix a couple of rare autobugs
+
+# 1.9.12
+* Oops, the 1.9.10 beta broke speech announcement of altitude - thanks Luciano
+* Hide OF_LOITER, TOY_A and TOY_B modes because no one seems to use them
+* Fix an autobug
+
+# 1.9.10
+* ac3.1rc5 now reports gps, magnetometer and rc radio faults - Speak announce such faults (thx Randy)
+* Run speech daemon in the background - this allows speech notifications while
+phone is asleep in your pocket.
+* Spend a bit more time with power profiling.  Using a more efficient version
+of the mavlink code saves a lot of battery.  A Nexus 7 should now be able to
+log for almost 2 hours per charge.
+* Fix more minor autobugs
+
+# 1.9.09
+* Fix a couple of minor/rare autobugs
+
+# 1.9.6
+* Support 'spectator/read-only mode'.  The new 'Read Only' menu item will switch Andropilot into a mode where it _never_ sends packets to the vehicle.  This is useful for vehicles that only have a one-way radio link
+
+# 1.9.5
+* Support the new px4 USB device IDs (reenables direct USB connection to Pixhawk) (Thanks for the report Tridge)
+* Support VERY small screens (320x240) with a special UI (move bluetooth options into menu etc...) (Thanks Rory San Miguel)
+* Better support for nvidia shield 
+* Prompt for arm & disarm in the menu  (thanks Edgar)
+* Do not allow arming (from andropilot only) if the vehicle is not level (thanks Craig Baldwin for the idea)
+
+# 1.9.3
+* We now fetch the current param documentation from the diydrones servers (in both Droneshare and Andropilot)
 * Lower AHRS data download rate when HUD is not up - to save battery & bandwidth
 * Use a higher position download rate - for higher resolution tlogs/map view
 * Support the new MAV_CMD_DO_SET_CAM_TRIGG_DIST command
+* If the vehicle has never been armed, don't show the home icon until it has been so armed... (prevent user confusion with arducopter)
 
 # 1.9.2
 * The new style 3dr radios (shipped with Iris) would not be auto recognized by Andropilot on the first plug attempt (you had to plug them in a second time).  Fixed.

@@ -320,7 +320,7 @@ class MyMapFragment extends SupportMapFragment
       //debug(s"in iconres ${v.hasHeartbeat}, ${s.isConnected}")
       if (!v.hasHeartbeat || !s.isConnected)
         if (v.isCopter) R.drawable.quad_red else R.drawable.plane_red
-      else if (isWarning)
+      else if (s.isWarning)
         if (v.isCopter) R.drawable.quad_yellow else R.drawable.plane_yellow
       else if (v.isCopter) R.drawable.quad_blue else R.drawable.plane_blue
     }).getOrElse(R.drawable.plane_red)
@@ -337,22 +337,22 @@ class MyMapFragment extends SupportMapFragment
     }).getOrElse("No service"))
 
     override def snippet = Some(
-      myVehicle.map { v =>
+      (for { s <- service; v <- myVehicle } yield {
         // Generate a few optional lines of text
 
         val locStr = v.location.map { l =>
           "Altitude %.1fm".format(v.toAGL(l))
         }
 
-        val batStr = if (isLowVolt) Some(S(R.string.low_volt)) else None
-        val pctStr = if (isLowBatPercent) Some(S(R.string.low_charge)) else None
-        val radioStr = if (isLowRssi) Some(S(R.string.low_rssi)) else None
-        val gpsStr = if (isLowNumSats) Some(S(R.string.low_sats)) else None
+        val batStr = if (s.isLowVolt) Some(S(R.string.low_volt)) else None
+        val pctStr = if (s.isLowBatPercent) Some(S(R.string.low_charge)) else None
+        val radioStr = if (s.isLowRssi) Some(S(R.string.low_rssi)) else None
+        val gpsStr = if (s.isLowNumSats) Some(S(R.string.low_sats)) else None
 
         val r = Seq(locStr, batStr, pctStr, radioStr, gpsStr).flatten.mkString(" ")
         //debug("snippet: " + r)
         r
-      }.getOrElse(S(R.string.no_service)))
+      }).getOrElse(S(R.string.no_service)))
 
     override def toString = title.get
 
@@ -361,8 +361,9 @@ class MyMapFragment extends SupportMapFragment
      */
     def update() {
       // Do we need to change icons?
-      if (isWarning != oldWarning) {
-        oldWarning = isWarning
+      val warn = service.map(_.isWarning).getOrElse(false)
+      if (warn != oldWarning) {
+        oldWarning = warn
         redraw()
       }
 
@@ -414,6 +415,9 @@ class MyMapFragment extends SupportMapFragment
         val marker = new VehicleMarker
         s.addMarker(marker)
         planeMarker = Some(marker)
+
+        // Default to last known position
+        map.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.latLng, 16.0f))
       }
     }
 
@@ -479,6 +483,7 @@ class MyMapFragment extends SupportMapFragment
       debug("heartbeat found")
       handler.post { () =>
         redrawMarker()
+        handleWaypoints() // We might need to draw the home icon now
         invalidateContextMenu()
       }
 
@@ -561,12 +566,14 @@ class MyMapFragment extends SupportMapFragment
     mapOpt.foreach { map =>
       // FIXME Allow altitude choice (by adding altitude to provisional marker)
       myVehicle.foreach { v =>
-        removeProvisionalMarker()
-        val marker = new ProvisionalMarker(l, guideAlt)
-        val m = scene.get.addMarker(marker)
-        m.showInfoWindow()
-        provisionalMarker = Some(marker)
-        selectMarker(marker)
+        if (!v.listenOnly) {
+          removeProvisionalMarker()
+          val marker = new ProvisionalMarker(l, guideAlt)
+          val m = scene.get.addMarker(marker)
+          m.showInfoWindow()
+          provisionalMarker = Some(marker)
+          selectMarker(marker)
+        }
       }
     }
   }
@@ -594,16 +601,18 @@ class MyMapFragment extends SupportMapFragment
       scene.foreach { scene =>
 
         def createWaypointSegments() {
-          // Generate drawables going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
-          val pairs = waypointMarkers.zip(waypointMarkers.tail)
-          scene.drawables.appendAll(pairs.map { p =>
-            val color = if (p._1.isAutocontinue)
-              Color.GREEN
-            else
-              Color.GRAY
+          if (!waypointMarkers.isEmpty) {
+            // Generate drawables going between each pair of waypoints (FIXME, won't work with waypoints that don't have x,y position)
+            val pairs = waypointMarkers.zip(waypointMarkers.tail)
+            scene.drawables.appendAll(pairs.map { p =>
+              val color = if (p._1.isAutocontinue)
+                Color.GREEN
+              else
+                Color.GRAY
 
-            Segment(p, color)
-          })
+              Segment(p, color)
+            })
+          }
         }
 
         def createFenceSegments() = {
@@ -636,15 +645,29 @@ class MyMapFragment extends SupportMapFragment
           }
         }
 
+        def androidDistance(a: Location, b: Location) = {
+          val results = new Array[Float](1)
+          android.location.Location.distanceBetween(a.lat, a.lon, b.lat, b.lon, results)
+          results(0)
+        }
+
         def createRangeCircles() = {
+          // For testing with bluetooth at my desk
+          val fakeData = developerMode && !v.radio.isDefined
+
           for {
-            r <- v.radio // fakeRadio 
-            vLoc <- v.location
+            r <- if (fakeData) fakeRadio else v.radio
             map <- mapOpt
             gcsAndroidLoc <- Option(map.getMyLocation)
+            gcsLoc <- Some(Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude))
+            vLoc <- if (fakeData) {
+              val fakeV = Location(gcsLoc.lat + 0.0005, gcsLoc.lon)
+              Option(fakeV)
+            } else
+              v.location
           } yield {
-            val gcsLoc = Location(gcsAndroidLoc.getLatitude, gcsAndroidLoc.getLongitude)
-            val curDist = vLoc.distance(gcsLoc).toFloat
+            // Android version is apparently better
+            val curDist = androidDistance(vLoc, gcsLoc) // vLoc.distance(gcsLoc).toFloat
             val (localRange, remRange) = RadioTools.estimateRangePair(r, curDist)
             val maxRangeMeters = 50 * 1000 // 50km limit - If we have bogus location for one of the nodes we can get _really_ huge ranges reported
 
@@ -672,14 +695,19 @@ class MyMapFragment extends SupportMapFragment
         scene.clearSegments() // FIXME - shouldn't touch this
 
         if (!wpts.isEmpty) {
-          waypointMarkers = wpts.map { w =>
-            val r = new DraggableWaypointMarker(w)
-            scene.addMarker(r)
+          waypointMarkers = wpts.flatMap { w =>
 
-            if (isAuto && r.isCurrent)
-              destMarker = Some(r)
+            // If the vehicle has never been armed, then the home location is of low quality - don't show it
+            if (!w.isHome || v.hasBeenArmed) {
+              val r = new DraggableWaypointMarker(w)
+              scene.addMarker(r)
 
-            r
+              if (isAuto && r.isCurrent)
+                destMarker = Some(r)
+
+              Some(r)
+            } else
+              None
           }
 
           createWaypointSegments()

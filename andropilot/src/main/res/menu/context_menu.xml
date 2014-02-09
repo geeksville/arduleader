@@ -55,12 +55,12 @@
         android:title="Continue"/>
     <item
         android:id="@+id/menu_moveup"
-        android:showAsAction="never"
+        android:showAsAction="ifRoom"
         android:title="Move up"
         android:visible="false"/>
     <item
         android:id="@+id/menu_movedown"
-        android:showAsAction="never"
+        android:showAsAction="ifRoom"
         android:title="Move down"
         android:visible="false"/>
     <item

@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_airspeed_autocal
  * Airspeed auto-calibration
@@ -75,47 +75,44 @@ public class msg_airspeed_autocal extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  vx = (float)dis.readFloat();
-  vy = (float)dis.readFloat();
-  vz = (float)dis.readFloat();
-  diff_pressure = (float)dis.readFloat();
-  EAS2TAS = (float)dis.readFloat();
-  ratio = (float)dis.readFloat();
-  state_x = (float)dis.readFloat();
-  state_y = (float)dis.readFloat();
-  state_z = (float)dis.readFloat();
-  Pax = (float)dis.readFloat();
-  Pby = (float)dis.readFloat();
-  Pcz = (float)dis.readFloat();
+public void decode(ByteBuffer dis) throws IOException {
+  vx = (float)dis.getFloat();
+  vy = (float)dis.getFloat();
+  vz = (float)dis.getFloat();
+  diff_pressure = (float)dis.getFloat();
+  EAS2TAS = (float)dis.getFloat();
+  ratio = (float)dis.getFloat();
+  state_x = (float)dis.getFloat();
+  state_y = (float)dis.getFloat();
+  state_z = (float)dis.getFloat();
+  Pax = (float)dis.getFloat();
+  Pby = (float)dis.getFloat();
+  Pcz = (float)dis.getFloat();
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+48];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(vx);
-  dos.writeFloat(vy);
-  dos.writeFloat(vz);
-  dos.writeFloat(diff_pressure);
-  dos.writeFloat(EAS2TAS);
-  dos.writeFloat(ratio);
-  dos.writeFloat(state_x);
-  dos.writeFloat(state_y);
-  dos.writeFloat(state_z);
-  dos.writeFloat(Pax);
-  dos.writeFloat(Pby);
-  dos.writeFloat(Pcz);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(vx);
+  dos.putFloat(vy);
+  dos.putFloat(vz);
+  dos.putFloat(diff_pressure);
+  dos.putFloat(EAS2TAS);
+  dos.putFloat(ratio);
+  dos.putFloat(state_x);
+  dos.putFloat(state_y);
+  dos.putFloat(state_z);
+  dos.putFloat(Pax);
+  dos.putFloat(Pby);
+  dos.putFloat(Pcz);
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 48);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

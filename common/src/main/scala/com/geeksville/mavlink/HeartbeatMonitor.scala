@@ -14,6 +14,7 @@ import org.mavlink.messages.MAV_MODE_FLAG
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
 case class MsgArmChanged(armed: Boolean)
+case class MsgSystemStatusChanged(stat: Option[Int])
 
 /**
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
@@ -34,12 +35,20 @@ class HeartbeatMonitor extends InstrumentedActor {
   /// A MAV_TYPE vehicle code
   var vehicleType: Option[Int] = None
 
+  // A MAV_AUTOPILOT autopilot mfg code
+  var autopilot: Option[Int] = None
+
+  /// Has the vehicle been armed (ever) during this session
+  var hasBeenArmed = false
+
   def isArmed: Boolean = baseMode.map(isArmed).getOrElse(false)
 
   /// Parse a baseMode to see if we are armed
   private def isArmed(m: Int): Boolean = (m & MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED) != 0
 
   def hasHeartbeat = mySysId.isDefined
+
+  def heartbeatSysId = mySysId
 
   def onReceive = {
     case msg: msg_heartbeat =>
@@ -53,6 +62,7 @@ class HeartbeatMonitor extends InstrumentedActor {
         val oldStatus = systemStatus
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
+        autopilot = Some(msg.autopilot)
         systemStatus = Some(msg.system_status)
 
         val oldVehicle = vehicleType
@@ -66,8 +76,10 @@ class HeartbeatMonitor extends InstrumentedActor {
         if (oldArmed != isArmed)
           onArmedChanged(isArmed)
         if (systemStatus != oldStatus)
-          onSystemStatusChanged(systemStatus.get)
+          onSystemStatusChanged(systemStatus)
       }
+
+    //case msg: MAVLinkMessage => log.warn(s"Unknown mavlink msg: ${msg.messageType} $msg")
 
     case WatchdogExpired =>
       forceLostHeartbeat()
@@ -81,7 +93,9 @@ class HeartbeatMonitor extends InstrumentedActor {
     mySysId.foreach { id =>
       eventStream.publish(MsgHeartbeatLost(id))
       mySysId = None
+      systemStatus = None
       onHeartbeatLost()
+      onSystemStatusChanged(systemStatus)
     }
   }
 
@@ -92,6 +106,9 @@ class HeartbeatMonitor extends InstrumentedActor {
 
   protected def onArmedChanged(armed: Boolean) {
     log.info("Armed changed: " + armed)
+    if (armed)
+      hasBeenArmed = true
+
     eventStream.publish(MsgArmChanged(armed))
   }
 
@@ -99,8 +116,9 @@ class HeartbeatMonitor extends InstrumentedActor {
     log.error("Received new mode: " + m)
   }
 
-  protected def onSystemStatusChanged(m: Int) {
+  protected def onSystemStatusChanged(m: Option[Int]) {
     log.error("Received new status: " + m)
+    eventStream.publish(MsgSystemStatusChanged(m))
   }
 
   protected def onHeartbeatLost() {

@@ -29,11 +29,15 @@ import android.util.TypedValue
 import statemap.StateUndefinedException
 import com.bugsense.trace.BugSenseHandler
 import com.geeksville.akka.InstrumentedActor
+import com.geeksville.mavlink.MsgSystemStatusChanged
+import com.geeksville.mavlink.MsgHeartbeatLost
+import com.geeksville.mavlink.MsgHeartbeatFound
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
   private def modeTextView = Option(getView).map(_.findView(TR.mode_text))
   private def modeButtonGroup = Option(getView).map(_.findView(TR.mode_buttons))
+  private def modeSpectatorWarning = Option(getView).map(_.findView(TR.spectator_warning))
 
   val errColor = Color.RED
   val warnColor = Color.YELLOW
@@ -62,6 +66,15 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
     case MsgFSMChanged(_) =>
       postModeChange()
 
+    case MsgHeartbeatFound(_) =>
+      postModeChange()
+
+    case MsgHeartbeatLost(_) =>
+      postModeChange()
+
+    case MsgSystemStatusChanged(_) =>
+      postModeChange()
+
     case StatusText(s, severity) =>
       val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
       handler.post { () =>
@@ -75,10 +88,6 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
   override def onActivityCreated(savedInstanceState: Bundle) {
     super.onActivityCreated(savedInstanceState)
-
-    myVehicle.foreach { v =>
-      setWPUploadVisibility(v.isDirty)
-    }
 
     uploadWpButton.get.onClick { b =>
       myVehicle.foreach { v =>
@@ -141,6 +150,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
   private val testModeNames = Seq("RTL", "STABILIZE", "FISH", "Arm", "LAUNDRY", "CARS", "CATS")
 
   private def setButtons() {
+    debug("Begin setButtons")
     modeButtonGroup.foreach { bgrp =>
       bgrp.removeAllViews()
 
@@ -153,8 +163,12 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
       for {
         v <- myVehicle
         s <- service
+        warning <- modeSpectatorWarning
       } yield {
         debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
+
+        setWPUploadVisibility(v.isDirty)
+        warning.setVisibility(if (v.listenOnly) View.VISIBLE else View.GONE)
 
         // Show the vehicle mode buttons
         val modenames = if (s.isConnected && v.hasHeartbeat)
@@ -162,15 +176,20 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
         else
           Seq()
 
-        modenames.foreach {
-          case (name, confirm) =>
-            val b = makeButton(name)
+        if (!v.listenOnly)
+          modenames.foreach {
+            case (name, confirm) =>
+              val b = makeButton(name)
 
-            if (confirm)
-              confirmButtonPress(b, s"Switch to $name mode?") { () => v ! DoSetMode(name) }
-            else
-              b.onClick { b => v ! DoSetMode(name) }
-        }
+              if (confirm)
+                confirmButtonPress(b, s"Switch to $name mode?") { () =>
+                  if (name == "AUTO" && v.isDirty)
+                    v ! SendWaypoints // Make sure the vehicle has latest waypoints
+                  v ! DoSetMode(name)
+                }
+              else
+                b.onClick { b => v ! DoSetMode(name) }
+          }
 
         // Add a special button to turn bluetooth on/off
         if (s.bluetoothAdapterPresent) {
@@ -200,7 +219,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
             case "VehicleFSM.DownloadingParameters" =>
               "Downloading parameters..." -> warnColor
             case "VehicleFSM.DownloadedParameters" =>
-              "Downloaded params (BUG!)" -> errColor
+              "Downloaded params" -> errColor
             case "VehicleFSM.Disarmed" =>
               "Disarmed" -> errColor
             case "VehicleFSM.Armed" =>
@@ -209,7 +228,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               v.currentMode -> okayColor
           }
         case None =>
-          "No vehicle (BUG!)" -> errColor
+          "No vehicle" -> errColor
       }
 
       setModeText(msg, color)

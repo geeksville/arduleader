@@ -45,7 +45,6 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.view._
 import android.support.v4.app.FragmentStatePagerAdapter
 import android.view.ViewGroup
-import com.geeksville.aspeech.TTSClient
 import com.geeksville.util.ThrottleByBucket
 import com.geeksville.andropilot.service._
 import com.geeksville.andropilot._
@@ -77,9 +76,12 @@ import com.geeksville.flight.MsgRCModeChanged
 import android.view.WindowManager
 import com.geeksville.gcsapi.WebActivity
 import com.geeksville.gcsapi.Webserver
+import com.geeksville.akka.EventStream
+import com.geeksville.aspeech.TTSClient
+import android.app.Activity
 
-class MainActivity extends FragmentActivity with TypedActivity
-  with AndroidLogger with FlurryActivity with AndropilotPrefs with TTSClient
+class MainActivity extends FragmentActivity with TypedActivity with TTSClient
+  with AndroidLogger with FlurryActivity with AndropilotPrefs
   with AndroServiceClient with JoystickHID with UsesResources with UsesDirectories {
 
   implicit def context = this
@@ -125,6 +127,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   // Also - might not always be present, so we make it an option
   def mapFragment = Option(getFragmentManager.findFragmentById(R.id.map).asInstanceOf[MyMapFragment])
   def viewPager = Option(findViewById(R.id.pager).asInstanceOf[ViewPager])
+  def modalFragment = Option(getFragmentManager.findFragmentById(R.id.modal_fragment).asInstanceOf[ModalFragment])
 
   lazy val joystickPanel = Option(findViewById(R.id.joysticks))
   lazy val leftJoystickView = Option(findViewById(R.id.leftStick).asInstanceOf[JoystickView])
@@ -142,64 +145,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private var oldVehicleType: Option[Int] = None
 
-  private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
-  private val throttleBattery = new ThrottleByBucket(10)
-
-  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
-    val warning = if (isLowVolt)
-      R.string.spk_warn_volt
-    else if (isLowBatPercent)
-      R.string.spk_warn_battery
-    else if (isLowRssi)
-      R.string.spk_warn_radio
-    else if (isLowNumSats)
-      R.string.spk_warn_gps
-    else
-      -1
-
-    if (warning != -1 && handler != null)
-      handler.post { () =>
-        speak(S(warning), true)
-      }
-  }
-
   override def onVehicleReceive: InstrumentedActor.Receiver = {
-
-    case l: Location =>
-      myVehicle.foreach { v =>
-        throttleAlt(v.bestAltitude.toInt) { alt =>
-          handler.post { () =>
-            debug("Speak alt: " + alt)
-            speak(S(R.string.spk_meter).format(alt))
-          }
-        }
-      }
-
-    case MsgFenceBreached =>
-      handler.post { () => speak("Fence Breached", urgent = true) }
-
-    case MsgSysStatusChanged =>
-      for { v <- myVehicle; pct <- v.batteryPercent } yield {
-        throttleBattery((pct * 100).toInt) { pct =>
-          handler.post { () =>
-            debug("Speak battery: " + pct)
-            speak(S(R.string.spk_percent).format(pct))
-          }
-        }
-      }
-
-    case MsgReportBug(m) =>
-      handler.post { () =>
-        val e = new Exception(m)
-        BugSenseHandler.sendExceptionMessage("model_bug", "state_machine", e)
-        speak("Warning, non fatal bug")
-        toast("Non fatal andropilot bug - please post on diydrones.com")
-      }
-
-    case MsgWaypointCurrentChanged(n) =>
-      handler.post { () =>
-        speak("Waypoint " + n)
-      }
 
     case MsgRCModeChanged(_) =>
       handler.post { () =>
@@ -223,7 +169,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     case MsgHeartbeatLost =>
       handler.post { () =>
         usageEvent("heartbeat_lost")
-        speak(S(R.string.spk_heartbeat_lost), urgent = true)
         setModeSpinner()
       }
 
@@ -249,14 +194,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
   private def handleStatus(s: String, severity: Int) {
     debug("Status changed: " + s)
-    if (severity != MsgStatusChanged.SEVERITY_USER_RESPONSE) {
-      val isImportant = severity >= MsgStatusChanged.SEVERITY_HIGH
-      // toast(s, isImportant) - we show this on the map view now
-
-      if (isImportant)
-        speak(s)
-
-    } else {
+    if (severity == MsgStatusChanged.SEVERITY_USER_RESPONSE) {
       // Show a user dialog and have them ack what the APM wants acked
 
       val builder = new AlertDialog.Builder(this)
@@ -339,6 +277,11 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
+  // Check for a 'long' screen as a hack to turn off this code for samsung note
+  // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
+  // Height: My galaxy nexus is 567, so say <600 means a phone...
+  def isSmallScreen = screenSmallestWidthDp <= 360 && !screenIsLong
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
 
@@ -355,10 +298,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     val isArchosGamepad = Build.MANUFACTURER == "Archos" && Build.DEVICE == "A70GP"
 
     // If we are on a phone sized device disallow landscape mode (our panes become too small)
-    // Check for a 'long' screen as a hack to turn off this code for samsung note
-    // Width: Samsung note returns 360 and it seems like regular phones are about 320 or 360...
-    // Height: My galaxy nexus is 567, so say <600 means a phone...
-    if (screenSmallestWidthDp <= 360 && !screenIsLong)
+    if (isSmallScreen)
       setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
 
     if (screenHeightDp < 360) { // Are we on a phone screen and in landscape - turn off the titlebar, cause we need all we can get
@@ -416,7 +356,6 @@ class MainActivity extends FragmentActivity with TypedActivity
         for { map <- mapFragment; view <- Option(map.getView) } yield { view.setVisibility(View.GONE) }
       }
       initScreenJoysticks()
-      initSpeech()
     } catch {
       case ex: NoSuchFieldError =>
         toast("Your tablet has a pirated/old version of google play - Andropilot can not start")
@@ -441,12 +380,17 @@ class MainActivity extends FragmentActivity with TypedActivity
   }
 
   def checkSunspots() {
-    val t = new SunspotDetectorTask(this) {
-      override protected def didSunspot(curLevel: Option[Int]) {
-        application.lastSunspotCheck = System.currentTimeMillis()
+    try {
+      val t = new SunspotDetectorTask(this) {
+        override protected def didSunspot(curLevel: Option[Int]) {
+          application.lastSunspotCheck = System.currentTimeMillis()
+        }
       }
+      t.execute()
+    } catch {
+      case ex: NoClassDefFoundError =>
+        error("Ignoring buggy dalvik looking for sunspot code")
     }
-    t.execute()
   }
 
   def perhapsCheckSunspots() {
@@ -574,7 +518,7 @@ class MainActivity extends FragmentActivity with TypedActivity
    * If the user wants the screen always on or the joystick is up, keep the screen awake
    */
   private def setScreenOn() {
-    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown)
+    mainView.setKeepScreenOn(isKeepScreenOn || isJoystickShown || isOverriding)
   }
 
   override def onResume() {
@@ -622,13 +566,6 @@ class MainActivity extends FragmentActivity with TypedActivity
     super.onPause()
   }
 
-  override def onDestroy() {
-    warningChecker.cancel()
-    destroySpeech()
-
-    super.onDestroy()
-  }
-
   def initAndShowJoystick() {
     initJoystickParams()
 
@@ -669,7 +606,7 @@ class MainActivity extends FragmentActivity with TypedActivity
 
     override protected def inBackground() {
 
-      debug("Handling fileOpen (in background thread)")
+      debug(s"Handling fileOpen: $uri")
 
       using(AndroidJUtil.getFromURI(context, uri)) { s =>
         debug("Opened fileOpen (in background thread)")
@@ -728,22 +665,41 @@ class MainActivity extends FragmentActivity with TypedActivity
     (new FileLoadTask(uri)).execute()
   }
 
+  override def onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent) {
+
+    // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+    // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+    // response to some other intent, and the code below shouldn't run at all.
+
+    if (requestCode == MainActivity.openWaypointRequestCode && resultCode == Activity.RESULT_OK) {
+      info(s"ActivityResult open waypoints: " + resultData.getAction)
+
+      // Just use our regular view handler (so we can defer until the vehicle is reconnected)
+      resultData.setAction(Intent.ACTION_VIEW)
+
+      handleIntent(resultData)
+    }
+  }
+
+  private def handleViewIntent(intent: Intent) {
+    Option(intent.getData).foreach { uri =>
+      // User wants to open a file
+      handleFileOpen(uri)
+    }
+  }
+
   private def handleIntent(intent: Intent) {
     debug("Received intent: " + intent)
     service.map { s =>
       intent.getAction match {
         case Intent.ACTION_VIEW =>
-          Option(intent.getData).foreach { uri =>
-            // User wants to open a file
-            handleFileOpen(uri)
-          }
+          handleViewIntent(intent)
         case Intent.ACTION_MAIN =>
           // Normal app start - just ask for access to any connected devices
           requestAccess()
 
         case UsbManager.ACTION_USB_DEVICE_ATTACHED =>
           if (!AndroidSerial.getDevices.isEmpty) {
-            // speak("Connected")
             toast(R.string.telem_connected, false)
           } else
             warn("Ignoring attach for some other device")
@@ -774,12 +730,6 @@ class MainActivity extends FragmentActivity with TypedActivity
       }
       myVehicle.foreach { v =>
         val modeName = if (v.hasHeartbeat) {
-          val toSpeak = if (v.isArmed != oldArmed) {
-            oldArmed = v.isArmed
-            if (oldArmed) "Armed" else "Disarmed"
-          } else
-            v.currentMode
-          speak(toSpeak)
           debug("Spinning to " + v.currentMode)
           v.currentMode
         } else {
@@ -834,6 +784,10 @@ class MainActivity extends FragmentActivity with TypedActivity
     showSidebarMenu.setVisible(isWide)
     showSidebarMenu.setChecked(viewPager.map(_.isShown).getOrElse(false))
 
+    // Only show the 'bluetooth' menu item on tiny devices that can't really use the modal bar
+    val btMenu = menu.findItem(R.id.menu_bluetoothconnect)
+    btMenu.setVisible(isSmallScreen)
+
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
     val checklist = menu.findItem(R.id.menu_checklist)
@@ -855,8 +809,12 @@ class MainActivity extends FragmentActivity with TypedActivity
       follow.setTitle(if (isLeading) R.string.lead_it else R.string.follow_me)
       follow.setChecked(svc.isFollowMe)
 
+      btMenu.setChecked(svc.isBluetoothConnected)
+
       myVehicle.foreach { v =>
         checklist.setEnabled(v.hasHeartbeat)
+
+        menu.findItem(R.id.menu_spectator).setChecked(v.listenOnly)
 
         if (v.isCopter) {
           val armed = v.isArmed
@@ -959,7 +917,7 @@ class MainActivity extends FragmentActivity with TypedActivity
     }
   }
 
-  private def showSidebar(shown: Boolean) {
+  override protected def showSidebar(shown: Boolean) {
     if (isWide) // If we _only_ have the sidebar - don't hide it
       viewPager.foreach(_.setVisibility(if (shown) View.VISIBLE else View.GONE))
   }
@@ -975,13 +933,32 @@ class MainActivity extends FragmentActivity with TypedActivity
         isSpeechEnabled = n
         item.setChecked(n)
 
+      case R.id.menu_spectator =>
+        val n = !item.isChecked
+
+        myVehicle.foreach { v =>
+          debug("Toggle specator, newmode " + n)
+          v.listenOnly = n
+
+          // hack to remove warning from modal bar
+          v.eventStream.publish(StatusText(if (n) "Read only mode" else "Normal mode"))
+
+          item.setChecked(n)
+        }
+
       case R.id.check_sun =>
         checkSunspots()
 
       case R.id.menu_arm =>
         val n = !item.isChecked
         myVehicle.foreach { v =>
-          v ! DoSetMode(if (n) "Arm" else "Disarm")
+          val isFlying = v.isFlying.getOrElse(true)
+          if (isFlying && !n) {
+            val newFragment = new SimpleYesNoDialog("Are you sure you want to disarm?", { () => v ! DoSetMode("Disarm") })
+
+            AlertUtil.show(this, newFragment, "disconf")
+          } else
+            v ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
 
@@ -1006,13 +983,23 @@ class MainActivity extends FragmentActivity with TypedActivity
         item.setChecked(n)
         setShowJoystick(n)
 
+      case R.id.menu_bluetoothconnect =>
+        service.foreach { s =>
+          if (s.isBluetoothConnected)
+            s.forceBluetoothDisconnect()
+          else
+            s.connectToDevices()
+        }
+
       case R.id.menu_gotovehicle =>
         navToVehicleIntent.map { intent =>
           startActivity(intent)
         }
 
       case R.id.menu_checklist =>
-        WebActivity.showURL(context, "http://localhost:%s/static/checklist.html".format(Webserver.portNumber))
+        val isCopter = myVehicle.map(_.isCopter).getOrElse(true)
+        val checklistName = if (isCopter) "copter" else "plane"
+        WebActivity.showURL(context, "http://localhost:%s/static/checklist/%s.html".format(Webserver.portNumber, checklistName))
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
@@ -1046,7 +1033,7 @@ class MainActivity extends FragmentActivity with TypedActivity
   /**
    * Do we think the vehicle is flying?
    */
-  private def inFlight = myVehicle.flatMap(_.vfrHud.map(_.groundspeed > 0.5f)).getOrElse(true)
+  private def inFlight = myVehicle.flatMap(_.isFlying).getOrElse(true)
 
   /** Ask for permission to access our device */
   def requestAccess() {
@@ -1087,6 +1074,8 @@ class MainActivity extends FragmentActivity with TypedActivity
 }
 
 object MainActivity {
+  val openWaypointRequestCode = 1020
+
   /**
    * This really useful method is not on ICS, alas...
    */

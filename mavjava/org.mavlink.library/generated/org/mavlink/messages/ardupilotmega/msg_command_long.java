@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_command_long
  * Send a command with up to four parameters to the MAV
@@ -71,45 +71,42 @@ public class msg_command_long extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  param1 = (float)dis.readFloat();
-  param2 = (float)dis.readFloat();
-  param3 = (float)dis.readFloat();
-  param4 = (float)dis.readFloat();
-  param5 = (float)dis.readFloat();
-  param6 = (float)dis.readFloat();
-  param7 = (float)dis.readFloat();
-  command = (int)dis.readUnsignedShort()&0x00FFFF;
-  target_system = (int)dis.readUnsignedByte()&0x00FF;
-  target_component = (int)dis.readUnsignedByte()&0x00FF;
-  confirmation = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  param1 = (float)dis.getFloat();
+  param2 = (float)dis.getFloat();
+  param3 = (float)dis.getFloat();
+  param4 = (float)dis.getFloat();
+  param5 = (float)dis.getFloat();
+  param6 = (float)dis.getFloat();
+  param7 = (float)dis.getFloat();
+  command = (int)dis.getShort()&0x00FFFF;
+  target_system = (int)dis.get()&0x00FF;
+  target_component = (int)dis.get()&0x00FF;
+  confirmation = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+33];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeFloat(param1);
-  dos.writeFloat(param2);
-  dos.writeFloat(param3);
-  dos.writeFloat(param4);
-  dos.writeFloat(param5);
-  dos.writeFloat(param6);
-  dos.writeFloat(param7);
-  dos.writeShort(command&0x00FFFF);
-  dos.writeByte(target_system&0x00FF);
-  dos.writeByte(target_component&0x00FF);
-  dos.writeByte(confirmation&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putFloat(param1);
+  dos.putFloat(param2);
+  dos.putFloat(param3);
+  dos.putFloat(param4);
+  dos.putFloat(param5);
+  dos.putFloat(param6);
+  dos.putFloat(param7);
+  dos.putShort((short)(command&0x00FFFF));
+  dos.put((byte)(target_system&0x00FF));
+  dos.put((byte)(target_component&0x00FF));
+  dos.put((byte)(confirmation&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 33);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

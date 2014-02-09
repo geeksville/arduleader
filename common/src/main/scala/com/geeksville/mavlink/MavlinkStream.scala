@@ -14,6 +14,7 @@ import com.geeksville.akka.PoisonPill
 import java.net.ConnectException
 import scala.concurrent._
 import scala.util.Random
+import java.net.SocketTimeoutException
 
 // with SerialPortEventListener
 
@@ -162,6 +163,10 @@ class MavlinkStream(outgen: => OutputStream, ingen: => InputStream, val sysIdOve
     } catch {
       case ex: ConnectException =>
         log.error("Failure to connect: " + ex.getMessage)
+        self ! PoisonPill
+
+      case ex: SocketTimeoutException =>
+        log.error("Socket timeout: " + ex.getMessage)
         self ! PoisonPill
     }
 

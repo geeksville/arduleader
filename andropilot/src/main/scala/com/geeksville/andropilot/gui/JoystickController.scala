@@ -30,7 +30,7 @@ import org.mavlink.messages.ardupilotmega.msg_rc_channels_raw
  * Button START = return all axis controls to regular RC transmitter
  */
 trait JoystickController extends Activity
-  with AndroidLogger with AndroServiceClient with TTSClient with UsesResources {
+  with AndroidLogger with AndroServiceClient with UsesResources {
 
   protected val debugOutput = false
 
@@ -183,7 +183,7 @@ trait JoystickController extends Activity
 
   def startOverride() {
     if (!isOverriding && joystickAvailable) {
-      speak(S(R.string.spk_joystick_on))
+      service.foreach(_.speak(S(R.string.spk_joystick_on)))
       isOverriding = true
 
       // Pull over current throttle setting
@@ -213,6 +213,12 @@ trait JoystickController extends Activity
     if (fenceChannel != 0) {
       fenceOverridden = true
       fenceEnabled = !fenceEnabled
+      val msg = if (fenceEnabled)
+        "Fence enabled"
+      else
+        "Fence disabled"
+      toast(msg)
+      service.foreach(_.speak(msg))
       debug("new fence state: " + fenceEnabled)
       startOverride()
       sendOverride()

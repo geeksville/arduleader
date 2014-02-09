@@ -33,7 +33,7 @@ class Webserver(val root: SmallAPI, localonly: Boolean = true) extends Instrumen
   val getterHandler = new GETHandler(readRegex) {
 
     override protected def handleRequest(req: Request) = {
-      println("In get handler")
+      //println("In get handler")
 
       // FIXME- use something like the following if you want to parse html path
       // use the following as the argument to the superclass constructor: "/vdata/gethtml/(.*)".r

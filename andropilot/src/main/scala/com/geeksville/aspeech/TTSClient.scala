@@ -8,11 +8,12 @@ import android.content.Context
 import java.util.Locale
 import com.geeksville.andropilot.FlurryContext
 import com.geeksville.andropilot.R
+import android.app.Service
 
 /**
  * Speak using the Android TTS library
  */
-trait TTSClient extends Activity with UsesPreferences
+trait TTSClient extends Context with UsesPreferences
   with AndroidLogger with FlurryContext with UsesResources {
   private val MY_DATA_CHECK_CODE = 0x4403
 
@@ -130,6 +131,11 @@ trait TTSClient extends Activity with UsesPreferences
 
     // missing data, install it
     val installIntent = new Intent()
+
+    // Needed when launching activities from services
+    if (this.isInstanceOf[Service])
+      installIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
     installIntent.setAction("android.speech.tts.engine.INSTALL_TTS_DATA")
     startActivity(installIntent)
   }

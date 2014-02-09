@@ -21,8 +21,16 @@ object MavlinkTCP {
       r.setTcpNoDelay(true)
       r
     }
-    lazy val in = new BufferedInputStream(socket.getInputStream, 512)
-    lazy val out = new BufferedOutputStream(socket.getOutputStream, 512)
+    lazy val in = {
+      val s = socket.getInputStream
+      assert(s != null)
+      new BufferedInputStream(s, 512)
+    }
+    lazy val out = {
+      val s = socket.getOutputStream
+      assert(s != null)
+      new BufferedOutputStream(s, 512)
+    }
 
     new MavlinkStream(out, in)
   }

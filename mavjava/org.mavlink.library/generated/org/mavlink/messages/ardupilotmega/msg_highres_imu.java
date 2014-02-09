@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_highres_imu
  * The IMU readings in SI units in NED body frame
@@ -87,53 +87,50 @@ public class msg_highres_imu extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  time_usec = (long)dis.readLong();
-  xacc = (float)dis.readFloat();
-  yacc = (float)dis.readFloat();
-  zacc = (float)dis.readFloat();
-  xgyro = (float)dis.readFloat();
-  ygyro = (float)dis.readFloat();
-  zgyro = (float)dis.readFloat();
-  xmag = (float)dis.readFloat();
-  ymag = (float)dis.readFloat();
-  zmag = (float)dis.readFloat();
-  abs_pressure = (float)dis.readFloat();
-  diff_pressure = (float)dis.readFloat();
-  pressure_alt = (float)dis.readFloat();
-  temperature = (float)dis.readFloat();
-  fields_updated = (int)dis.readUnsignedShort()&0x00FFFF;
+public void decode(ByteBuffer dis) throws IOException {
+  time_usec = (long)dis.getLong();
+  xacc = (float)dis.getFloat();
+  yacc = (float)dis.getFloat();
+  zacc = (float)dis.getFloat();
+  xgyro = (float)dis.getFloat();
+  ygyro = (float)dis.getFloat();
+  zgyro = (float)dis.getFloat();
+  xmag = (float)dis.getFloat();
+  ymag = (float)dis.getFloat();
+  zmag = (float)dis.getFloat();
+  abs_pressure = (float)dis.getFloat();
+  diff_pressure = (float)dis.getFloat();
+  pressure_alt = (float)dis.getFloat();
+  temperature = (float)dis.getFloat();
+  fields_updated = (int)dis.getShort()&0x00FFFF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+62];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeLong(time_usec);
-  dos.writeFloat(xacc);
-  dos.writeFloat(yacc);
-  dos.writeFloat(zacc);
-  dos.writeFloat(xgyro);
-  dos.writeFloat(ygyro);
-  dos.writeFloat(zgyro);
-  dos.writeFloat(xmag);
-  dos.writeFloat(ymag);
-  dos.writeFloat(zmag);
-  dos.writeFloat(abs_pressure);
-  dos.writeFloat(diff_pressure);
-  dos.writeFloat(pressure_alt);
-  dos.writeFloat(temperature);
-  dos.writeShort(fields_updated&0x00FFFF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putLong(time_usec);
+  dos.putFloat(xacc);
+  dos.putFloat(yacc);
+  dos.putFloat(zacc);
+  dos.putFloat(xgyro);
+  dos.putFloat(ygyro);
+  dos.putFloat(zgyro);
+  dos.putFloat(xmag);
+  dos.putFloat(ymag);
+  dos.putFloat(zmag);
+  dos.putFloat(abs_pressure);
+  dos.putFloat(diff_pressure);
+  dos.putFloat(pressure_alt);
+  dos.putFloat(temperature);
+  dos.putShort((short)(fields_updated&0x00FFFF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 62);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);

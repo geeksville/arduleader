@@ -8,8 +8,8 @@ import org.mavlink.IMAVLinkCRC;
 import org.mavlink.MAVLinkCRC;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import org.mavlink.io.LittleEndianDataInputStream;
-import org.mavlink.io.LittleEndianDataOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 /**
  * Class msg_manual_control
  * This message provides an API for manually controlling the vehicle using standard joystick axes nomenclature, along with a joystick-like input device. Unused axes can be disabled an buttons are also transmit as boolean values of their
@@ -51,35 +51,32 @@ public class msg_manual_control extends MAVLinkMessage {
 /**
  * Decode message with raw data
  */
-public void decode(LittleEndianDataInputStream dis) throws IOException {
-  x = (int)dis.readShort();
-  y = (int)dis.readShort();
-  z = (int)dis.readShort();
-  r = (int)dis.readShort();
-  buttons = (int)dis.readUnsignedShort()&0x00FFFF;
-  target = (int)dis.readUnsignedByte()&0x00FF;
+public void decode(ByteBuffer dis) throws IOException {
+  x = (int)dis.getShort();
+  y = (int)dis.getShort();
+  z = (int)dis.getShort();
+  r = (int)dis.getShort();
+  buttons = (int)dis.getShort()&0x00FFFF;
+  target = (int)dis.get()&0x00FF;
 }
 /**
  * Encode message with raw data and other informations
  */
 public byte[] encode() throws IOException {
   byte[] buffer = new byte[8+11];
-   LittleEndianDataOutputStream dos = new LittleEndianDataOutputStream(new ByteArrayOutputStream());
-  dos.writeByte((byte)0xFE);
-  dos.writeByte(length & 0x00FF);
-  dos.writeByte(sequence & 0x00FF);
-  dos.writeByte(sysId & 0x00FF);
-  dos.writeByte(componentId & 0x00FF);
-  dos.writeByte(messageType & 0x00FF);
-  dos.writeShort(x&0x00FFFF);
-  dos.writeShort(y&0x00FFFF);
-  dos.writeShort(z&0x00FFFF);
-  dos.writeShort(r&0x00FFFF);
-  dos.writeShort(buttons&0x00FFFF);
-  dos.writeByte(target&0x00FF);
-  dos.flush();
-  byte[] tmp = dos.toByteArray();
-  for (int b=0; b<tmp.length; b++) buffer[b]=tmp[b];
+   ByteBuffer dos = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
+  dos.put((byte)0xFE);
+  dos.put((byte)(length & 0x00FF));
+  dos.put((byte)(sequence & 0x00FF));
+  dos.put((byte)(sysId & 0x00FF));
+  dos.put((byte)(componentId & 0x00FF));
+  dos.put((byte)(messageType & 0x00FF));
+  dos.putShort((short)(x&0x00FFFF));
+  dos.putShort((short)(y&0x00FFFF));
+  dos.putShort((short)(z&0x00FFFF));
+  dos.putShort((short)(r&0x00FFFF));
+  dos.putShort((short)(buttons&0x00FFFF));
+  dos.put((byte)(target&0x00FF));
   int crc = MAVLinkCRC.crc_calculate_encode(buffer, 11);
   crc = MAVLinkCRC.crc_accumulate((byte) IMAVLinkCRC.MAVLINK_MESSAGE_CRCS[messageType], crc);
   byte crcl = (byte) (crc & 0x00FF);
