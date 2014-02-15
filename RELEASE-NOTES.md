@@ -1,5 +1,9 @@
 * FIXME - do background param fetch
 
+# 2.0.3
+* Some bluetooth stacks get confused if you have multiple serial devices paired - add a workaround
+* Don't queue up speech events if you rapidally decent through a bunch of altitude levels
+
 # 2.0.1
 * Fix a small race on loading wpts
 
