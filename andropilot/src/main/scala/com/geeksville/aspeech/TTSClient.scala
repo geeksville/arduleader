@@ -63,7 +63,10 @@ trait TTSClient extends Context with UsesPreferences
       usageEvent("speech_on", "msg" -> str)
 
       val cleaned = str.replace('_', ' ') // Don't say 'underscore'
-      tts.foreach(_.speak(cleaned, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null))
+      tts.foreach { tts =>
+        if (urgent || !tts.isSpeaking) // Don't queue up a zillion things in the speech queue
+          tts.speak(cleaned, if (urgent) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null)
+      }
     } else
       usageEvent("speech_off", "msg" -> str)
   }
