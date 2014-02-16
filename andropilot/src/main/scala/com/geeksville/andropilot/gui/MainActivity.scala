@@ -97,6 +97,9 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
    */
   private var didAutohideSidebar = false
 
+  /// Has user used follow-me at least once this session?
+  private var hasFollowed = false
+
   /**
    * If an intent arrives before our service is up, squirel it away until we can handle it
    */
@@ -1013,10 +1016,23 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>
-          debug("Toggle followme")
-          val n = !item.isChecked
-          s.setFollowMe(n)
-          item.setChecked(s.isFollowMe)
+          val wantFollow = !item.isChecked
+
+          def toggleFollow() {
+            debug("Toggle followme")
+
+            if (wantFollow)
+              hasFollowed = true
+            s.setFollowMe(wantFollow)
+            item.setChecked(s.isFollowMe)
+          }
+
+          // If this is the first time user is trying follow-me make sure they confirm via dialog
+          if (wantFollow & !hasFollowed) {
+            val newFragment = new SimpleYesNoDialog("Follow-me is in alpha-test, are you sure?", toggleFollow)
+            AlertUtil.show(this, newFragment, "followconf")
+          } else
+            toggleFollow()
         }
 
       case R.id.menu_levelnow =>
