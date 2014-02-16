@@ -72,7 +72,7 @@ class HeartbeatMonitor extends InstrumentedActor {
         resetWatchdog(msg.sysId)
 
         if (oldVal != customMode || oldVehicle != vehicleType || baseMode != oldBase)
-          onModeChanged(newVal)
+          onModeChanged(oldVal, newVal)
         if (oldArmed != isArmed)
           onArmedChanged(isArmed)
         if (systemStatus != oldStatus)
@@ -112,8 +112,8 @@ class HeartbeatMonitor extends InstrumentedActor {
     eventStream.publish(MsgArmChanged(armed))
   }
 
-  protected def onModeChanged(m: Int) {
-    log.error("Received new mode: " + m)
+  protected def onModeChanged(old: Option[Int], m: Int) {
+    log.error(s"Mode change, $old -> $m")
   }
 
   protected def onSystemStatusChanged(m: Option[Int]) {

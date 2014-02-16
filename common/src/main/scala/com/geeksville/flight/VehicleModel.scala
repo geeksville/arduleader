@@ -149,6 +149,9 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
       Seq()
   }
 
+  /// Is the vehicle still running startup code?
+  def isVehicleInitializing = currentMode == "INITIALIZING"
+
   /**
    * We can only detect flight modes in copter currently
    */
@@ -453,8 +456,12 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
       vfrHud = Some(msg)
   }
 
-  override def onModeChanged(m: Int) {
-    super.onModeChanged(m)
+  override def onModeChanged(oldmode: Option[Int], newmode: Int) {
+    super.onModeChanged(oldmode, newmode)
+
+    // When we exit init mode, we should refetch parameters etc... (This handles cases where someone pulls the battery and quickly replugs it)
+    if (oldmode.isDefined && oldmode.get != newmode && modeToString(oldmode.get) == "INITIALIZING")
+      refetchVehicleState()
 
     eventStream.publish(MsgModeChanged(currentMode))
   }
@@ -474,6 +481,13 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
       listenOnly = true
     }
 
+    // If the vehicle is just starting up, wait to download params until after it exits INITIALIZING
+    if (!isVehicleInitializing)
+      refetchVehicleState()
+  }
+
+  /// Start a new download of params/wpts/etc... essentially everything necessary to handle reaquisition of heartbeat
+  private def refetchVehicleState() {
     setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
