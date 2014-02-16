@@ -790,6 +790,13 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
 
     menu.findItem(R.id.menu_tracing).setVisible(developerMode)
     menu.findItem(R.id.menu_speech).setChecked(isSpeechEnabled)
+
+    // Default to not enabled unless we have a vehicle
+    val levelMenu = menu.findItem(R.id.menu_levelnow)
+    levelMenu.setEnabled(false)
+    val calibrateMenu = menu.findItem(R.id.menu_calibrate)
+    calibrateMenu.setEnabled(false)
+
     val checklist = menu.findItem(R.id.menu_checklist)
     checklist.setVisible(runWebserver)
     checklist.setEnabled(false)
@@ -815,6 +822,9 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
         checklist.setEnabled(v.hasHeartbeat)
 
         menu.findItem(R.id.menu_spectator).setChecked(v.listenOnly)
+
+        levelMenu.setEnabled(true)
+        calibrateMenu.setEnabled(true)
 
         if (v.isCopter) {
           val armed = v.isArmed
