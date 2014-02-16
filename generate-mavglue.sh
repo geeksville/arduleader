@@ -1,1 +1,1 @@
-java -cp mavjava/org.mavlink.generator/bin:mavjava/org.mavlink.util/bin org.mavlink.generator.MAVLinkGenerator ../ardupilot/libraries/GCS_MAVLink/message_definitions/ardupilotmega.xml mavjava/org.mavlink.library/generated true false true true
+java -cp thirdparty/org.mavlink.generator/bin:mavjava/org.mavlink.util/bin org.mavlink.generator.MAVLinkGenerator ../ardupilot/libraries/GCS_MAVLink/message_definitions/ardupilotmega.xml thirdparty/org.mavlink.library/generated true false true true
