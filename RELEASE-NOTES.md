@@ -1,5 +1,10 @@
 * FIXME - do background param fetch
 
+# 2.0.4
+* Add warning dialog for follow-me
+* If vehicle is in INIT state, delay param fetch (thx @rmackay9)
+* do BT connect in background thread (to make GUI snappier)
+
 # 2.0.3
 * Some bluetooth stacks get confused if you have multiple serial devices paired - add a workaround
 * Don't queue up speech events if you rapidally decent through a bunch of altitude levels
