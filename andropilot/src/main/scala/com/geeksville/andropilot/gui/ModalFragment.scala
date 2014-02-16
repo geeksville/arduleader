@@ -32,6 +32,7 @@ import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.MsgSystemStatusChanged
 import com.geeksville.mavlink.MsgHeartbeatLost
 import com.geeksville.mavlink.MsgHeartbeatFound
+import com.ridemission.scandroid.AsyncVoidTask
 
 class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroServiceFragment with SimpleDialogClient with AndropilotPrefs {
   private def uploadWpButton = Option(getView).map(_.findView(TR.upload_waypoint_button))
@@ -149,6 +150,25 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
   private val testModeNames = Seq("RTL", "STABILIZE", "FISH", "Arm", "LAUNDRY", "CARS", "CATS")
 
+  /**
+   * Bluetooth device connection can take a long time - so do it in the background
+   */
+  private class BluetoothConnector(button: Button) extends AsyncVoidTask {
+    button.setEnabled(false); // Disable the button until we complete connecting (or we fail)
+
+    override protected def inBackground() {
+      for {
+        s <- service
+      } yield {
+        s.connectToDevices()
+      }
+    }
+
+    protected override def onPostExecute(unused: Void) {
+      button.setEnabled(true);
+    }
+  }
+
   private def setButtons() {
     debug("Begin setButtons")
     modeButtonGroup.foreach { bgrp =>
@@ -195,7 +215,8 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
         if (s.bluetoothAdapterPresent) {
           if (!s.isConnected)
             makeButton("Bluetooth").onClick { b =>
-              s.connectToDevices()
+              // Do this slow op in an asynctask
+              (new BluetoothConnector(b)).execute()
             }
           // Plane is always armed, so always show the disconnect button
           else if (s.isBluetoothConnected && (!v.isArmed || !v.isCopter))
