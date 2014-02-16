@@ -35,7 +35,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
   def foundDevices = {
     val pairedDevices = adapter.getBondedDevices.asScala
     // If there are paired devices
-    val r = pairedDevices.find { device =>
+    val r = pairedDevices.filter { device =>
 
       // Fix an auto bug, some devices out there seem able to return null for getUuids or getUUid
       val uuids = Option(device.getUuids).getOrElse(Array()).map(_.getUuid.toString)
@@ -43,10 +43,11 @@ trait BluetoothConnection extends Context with AndroidLogger {
 
       // Add the name and address to an array adapter to show in a ListView
       //mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+
       getUUID(device).isDefined
     }
 
-    debug("Found BT: " + r)
+    debug("Found BT: " + r.mkString(", "))
     r
   }
 
@@ -77,6 +78,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
   def connectToDevices() {
     if (isEnabled)
       foundDevices.foreach { device =>
+        info(s"Connecting to $device")
         val remoteDev = adapter.getRemoteDevice(device.getAddress)
         adapter.cancelDiscovery()
 
@@ -89,6 +91,7 @@ trait BluetoothConnection extends Context with AndroidLogger {
             onBluetoothConnect(new BTInputWrapper(btSocket), btSocket.getOutputStream)
           } catch {
             case ex: IOException =>
+              // FIXME - show user message to have them put their device in SPP mode
               error("Socket connect failed: " + ex)
               btSocket.close()
           }

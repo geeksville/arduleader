@@ -2,9 +2,9 @@ import sbtandroid.AndroidKeys._
 
 name := "andropilot"
 
-version := "2.0.02"
+version := "2.0.03"
 
-versionCode := 20002
+versionCode := 20003
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
@@ -19,6 +19,8 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") //
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6") // Needed for android
 
 platformName in Android := "android-19"  // USB host mode appeared in 3.1 (12), Ice cream sandwich and later is 80% market share, so I could drop to 15, kitkat 4.4 is 19
+
+dxMemory in Android := "-JXmx1024m"
 
 keyalias in Android := "geeksville-android-key"
 
