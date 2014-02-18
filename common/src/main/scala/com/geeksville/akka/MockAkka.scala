@@ -3,11 +3,16 @@ package com.geeksville.akka
 import com.geeksville.logback.Logger
 import com.geeksville.logback.Logging
 import scala.collection.mutable.HashSet
+import akka.actor.ActorSystem
 
 object MockAkka extends Logging {
 
   // The system event stream
   val eventStream = new EventStream
+
+  val system = ActorSystem("mockakka")
+
+  /*
   var scheduler = new Scheduler
 
   private val actors = HashSet[InstrumentedActor]()
@@ -30,4 +35,5 @@ object MockAkka extends Logging {
     scheduler = new Scheduler
     logger.info("Done shutting down")
   }
+  */
 }

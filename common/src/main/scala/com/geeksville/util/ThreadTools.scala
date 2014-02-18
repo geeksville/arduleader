@@ -7,7 +7,7 @@ object ThreadTools {
    * Generate runnables
    * (Note if you findyourself tempted to change handler to a => Any you are probably making a mistake that won't work well with reference arguments
    */
-  implicit def toRunable(handler: () => Any) = new Runnable {
+  implicit def toRunable(handler: () => Unit) = new Runnable {
     override def run() = handler()
   }
 

@@ -42,7 +42,7 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
     "set_mode" -> { (args: Seq[Any]) =>
       val s = args(0).asInstanceOf[String]
       println(s"GCSAPI set mode to $s")
-      v ! DoSetMode(s)
+      v.self ! DoSetMode(s)
       JNull
     },
 
@@ -56,7 +56,7 @@ class VehicleAdapter(v: VehicleModel) extends SmallAdapter {
 
       // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
       val msg = v.makeGuided(myloc)
-      v ! DoGotoGuided(msg, false)
+      v.self ! DoGotoGuided(msg, false)
 
       JNull
     })

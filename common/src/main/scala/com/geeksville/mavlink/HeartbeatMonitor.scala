@@ -6,10 +6,10 @@ import org.mavlink.messages.ardupilotmega._
 import LogIncomingMavlink._
 import scala.concurrent._
 import scala.concurrent.duration._
-import com.geeksville.akka.Cancellable
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAV_MODE_FLAG
+import akka.actor.Cancellable
 
 case class MsgHeartbeatLost(id: Int)
 case class MsgHeartbeatFound(id: Int)
@@ -20,6 +20,7 @@ case class MsgSystemStatusChanged(stat: Option[Int])
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
  */
 class HeartbeatMonitor extends InstrumentedActor {
+  import context._
 
   private case object WatchdogExpired
 
@@ -137,7 +138,7 @@ class HeartbeatMonitor extends InstrumentedActor {
     }
     cancelWatchdog()
 
-    timer = Some(acontext.system.scheduler.scheduleOnce(30 seconds, self, WatchdogExpired))
+    timer = Some(context.system.scheduler.scheduleOnce(30 seconds, self, WatchdogExpired))
   }
 
   private def cancelWatchdog() {

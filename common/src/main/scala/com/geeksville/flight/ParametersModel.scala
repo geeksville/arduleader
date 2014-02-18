@@ -10,15 +10,14 @@ import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
-import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ThrottledActor
 import com.geeksville.akka.InstrumentedActor
+import akka.actor.Cancellable
 
 //
 // Messages we publish on our event bus when something happens
@@ -39,6 +38,8 @@ case class MsgParameterDownloadProgress(primary: Int, secondary: Int)
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
 trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
+
+  import context._
 
   case object FinishParameters
 
@@ -160,7 +161,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     if (!hasParameters)
       onParametersDownloaded()
     else
-      log.warn("Ignoring stale parameter update")
+      log.warning("Ignoring stale parameter update")
   }
 
   override def onReceive = mReceive.orElse(super.onReceive)
@@ -259,13 +260,13 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
    */
   private def restartFinisher() {
     finisher.foreach(_.cancel())
-    finisher = Some(MockAkka.scheduler.scheduleOnce(4 seconds, ParametersModel.this, FinishParameters))
+    finisher = Some(system.scheduler.scheduleOnce(4 seconds, self, FinishParameters))
   }
 
   private def requestParameterByIndex(i: Int) {
     sendWithRetry(paramRequestReadByIndex(i), classOf[msg_param_value], { () =>
       // We failed, just tell everyone we are done
-      log.warn("failed read by index")
+      log.warning("failed read by index")
       perhapsParametersDownloaded()
     })
   }
@@ -285,7 +286,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     log.info("Number of missing parameters: " + numMissing)
     if (numMissing > 0 && numAttemptsRemaining > 0) {
       numAttemptsRemaining -= 1
-      log.warn("Asking for params, attempts remaining: " + numAttemptsRemaining)
+      log.warning("Asking for params, attempts remaining: " + numAttemptsRemaining)
       restartParameterDownload()
     } else
       perhapsParametersDownloaded() // Yay!  Success (or we gave up)

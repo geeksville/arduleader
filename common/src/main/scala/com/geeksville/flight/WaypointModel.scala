@@ -10,14 +10,12 @@ import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
-import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ThrottledActor
 import java.io.InputStream
 import scala.io.Source
 import com.geeksville.mavlink.SendYoungest
@@ -226,7 +224,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
       hasRequestedWaypoints = true
       sendWithRetry(missionRequestList(), classOf[msg_mission_count], onWaypointDownloadFailed)
     } else
-      log.warn("Listen only mode - not downloading waypoints")
+      log.warning("Listen only mode - not downloading waypoints")
   }
 
   protected def onWaypointDownloadFailed() {

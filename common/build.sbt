@@ -8,9 +8,11 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
  
-libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0"
+// libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0"
 
-libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.2"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.2.3"
+
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.2.3"
 
 unmanagedResourceDirectories in Compile <+= baseDirectory( _ / "src" / "main" / "scala" )
 

@@ -8,6 +8,7 @@ import com.geeksville.util.Counted
 import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.logback.Logging
 import com.geeksville.akka.MockAkka
+import akka.actor.ActorRef
 
 /**
  * Source a bunch of fake traffic - direct to a port
@@ -16,7 +17,7 @@ class DirectSending(sysId: Int) extends VehicleSimulator with HeartbeatSender {
 
   override def systemId = sysId
 
-  var sendingInterface: Option[InstrumentedActor] = None
+  var sendingInterface: Option[ActorRef] = None
 
   override def sendMavlink(m: MAVLinkMessage) = {
     sendingInterface.foreach(_ ! m)
@@ -33,8 +34,9 @@ class DirectSending(sysId: Int) extends VehicleSimulator with HeartbeatSender {
  * Source a bunch of fake traffic - direct to a port
  */
 class StressTestVehicle(sysId: Int) extends DirectSending(sysId) {
+  import context._
 
-  val scheduled = acontext.system.scheduler.schedule(1 seconds, 100 milliseconds)(sendPackets)
+  val scheduled = context.system.scheduler.schedule(1 seconds, 100 milliseconds)(sendPackets)
 
   override def postStop() {
     log.debug("cancelling stress sender")
@@ -45,6 +47,8 @@ class StressTestVehicle(sysId: Int) extends DirectSending(sysId) {
   def sendPackets() {
     //log.debug("Sending packets")
 
+    throw new Exception("Busted with classic akka")
+    /*
     sendingInterface.foreach { iface =>
       if (iface.debugMailboxSize < 16) {
         val l = new Location(12, 14, Some(0))
@@ -52,5 +56,6 @@ class StressTestVehicle(sysId: Int) extends DirectSending(sysId) {
         iface ! sendMavlink(makeGPSRaw(l))
       }
     }
+    */
   }
 }

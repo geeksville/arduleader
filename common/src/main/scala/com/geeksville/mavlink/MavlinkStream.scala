@@ -10,11 +10,11 @@ import com.geeksville.util.DebugInputStream
 import com.geeksville.util.ByteOnlyInputStream
 import com.geeksville.util.Throttled
 import com.geeksville.logback.Logging
-import com.geeksville.akka.PoisonPill
 import java.net.ConnectException
 import scala.concurrent._
 import scala.util.Random
 import java.net.SocketTimeoutException
+import akka.actor.PoisonPill
 
 // with SerialPortEventListener
 

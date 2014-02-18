@@ -21,22 +21,24 @@ import com.geeksville.mavlink.LogIncomingMavlink
 import com.geeksville.gcsapi.Webserver
 import com.geeksville.gcsapi.TempGCSModel
 import com.geeksville.gcsapi.GCSAdapter
+import akka.actor.Props
 
 object Main extends Logging {
 
   val arduPilotId = 1
   val groundControlId = 255
   val wingmanId = Wingman.systemId
+  def system = MockAkka.system
 
   /**
    * We use a systemId 2, because the ardupilot is normally on 1.
    */
   val systemId: Int = 2
 
-  def createMavlinkClient(stream: MavlinkStream) {
+  def createMavlinkClient(mkStream: () => MavlinkStream) {
     try {
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = MockAkka.actorOf(stream, "serrx")
+      val mavSerial = system.actorOf(Props(mkStream()), "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -54,11 +56,13 @@ object Main extends Logging {
 
   def createSerial() {
     try {
-      val telemPort = "/dev/ttyUSB0"
-      val serDriver = if ((new File(telemPort)).exists)
+      // First try to find an FTDI device (using libftdi) - if that throws then fall back to rxtx 
+      def serDriver() = try {
         MavlinkPosix.openFtdi(null, 57600)
-      else
-        MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
+      } catch {
+        case ex: Exception =>
+          MavlinkPosix.openSerial("/dev/ttyACM0", 115200)
+      }
 
       createMavlinkClient(serDriver)
     } catch {
@@ -67,7 +71,7 @@ object Main extends Logging {
     }
   }
 
-  def createSITLClient() = createMavlinkClient(MavlinkTCP.connect("localhost", 5760))
+  def createSITLClient() = createMavlinkClient(() => MavlinkTCP.connect("localhost", 5760))
 
   /**
    * A quick hack to send a bunch of traffic in one direction and time RC overrides the other way
@@ -75,23 +79,32 @@ object Main extends Logging {
   def testRadios() {
 
     logger.info("Starting radio test")
-    val serGcs = MockAkka.actorOf(MavlinkPosix.openFtdi("A900X44V", 57600), "serrx0")
-    val serVehicle = MockAkka.actorOf(MavlinkPosix.openFtdi("A1011M1P", 57600), "serrx1")
+    val serGcs = system.actorOf(Props(MavlinkPosix.openFtdi("A900X44V", 57600)), "serrx0")
+    val serVehicle = system.actorOf(Props(MavlinkPosix.openFtdi("A1011M1P", 57600)), "serrx1")
 
     //MavlinkEventBus.subscribe(serGcs, 1) // Anything from vehicle goes to gcs
     //MavlinkEventBus.subscribe(serVehicle, 253) // Anything from gcs goes to vehicle
 
-    val rcrcv = MockAkka.actorOf(new RCOverrideDebug(253), "gclog")
+    val rcrcv = system.actorOf(Props(new RCOverrideDebug(253)), "gclog")
     //MockAkka.actorOf(new LogIncomingMavlink(1), "vlog")
     //MockAkka.actorOf(new LogIncomingMavlink(253), "gclogdump")
 
-    val gcs = MockAkka.actorOf(new DirectSending(253), "fakegcs")
-    gcs.sendingInterface = Some(serGcs)
-    val vehicle = MockAkka.actorOf(new StressTestVehicle(1), "fakevehicle")
-    vehicle.sendingInterface = Some(serVehicle)
+    val gcs = system.actorOf(Props {
+      val a = new DirectSending(253)
+      a.sendingInterface = Some(serGcs)
+      a
+    }, "fakegcs")
 
+    val vehicle = system.actorOf(Props {
+      val a = new StressTestVehicle(1)
+      a.sendingInterface = Some(serVehicle)
+      a
+    }, "fakevehicle")
+
+    throw new Exception("rc test not yet updated for akka")
     // Send some fake RC overrides
-    MockAkka.scheduler.schedule(2 seconds, 1000 milliseconds) { () =>
+    /*
+    system.scheduler.schedule(2 seconds, 1000 milliseconds) { () =>
       val rc = gcs.rcChannelsOverride(1)
       val now = System.currentTimeMillis
       rc.chan1_raw = (now.toInt & 0xffff)
@@ -103,7 +116,7 @@ object Main extends Logging {
       rcrcv.expectedSend = now
       serVehicle ! rc // Send to the interface directly rather than using mavlinkSend - because we want to control which port gets what data
     }
-
+*/
   }
 
   def main(args: Array[String]) {
@@ -148,11 +161,11 @@ object Main extends Logging {
       // Create flightlead actors
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-      MockAkka.actorOf(new FlightLead, "lead")
-      MockAkka.actorOf(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc")), "igcpub")
+      system.actorOf(Props(new FlightLead), "lead")
+      system.actorOf(Props(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc"))), "igcpub")
 
       // Watch for failures
-      MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), systemId)
+      MavlinkEventBus.subscribe(system.actorOf(Props { new HeartbeatMonitor }), systemId)
     }
 
     //
@@ -162,12 +175,11 @@ object Main extends Logging {
     if (startOutgoingUDP || startIncomingUDP) {
       // FIXME create this somewhere else
       logger.info("Opening UDP link")
-      val udp = if (startOutgoingUDP)
+
+      val mavUDP = system.actorOf(Props(if (startOutgoingUDP)
         new MavlinkUDP(destHostName = Some("192.168.0.160"), destPortNumber = Some(MavlinkUDP.portNumber))
       else
-        new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))
-
-      val mavUDP = MockAkka.actorOf(udp, "mavudp")
+        new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))), "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(mavUDP, arduPilotId)
@@ -179,12 +191,16 @@ object Main extends Logging {
 
     if (startMonitor) {
       // Keep a complete model of the arduplane state
-      val vehicle = MockAkka.actorOf(new VehicleModel)
+      var vModel: VehicleModel = null
+      val vehicle = system.actorOf(Props {
+        vModel = new VehicleModel
+        vModel
+      })
 
       if (startMavServe) {
-        val gcs = new TempGCSModel(vehicle)
+        val gcs = new TempGCSModel(vModel)
         val adapter = new GCSAdapter(gcs)
-        MockAkka.actorOf(new PosixWebserver(adapter))
+        system.actorOf(Props(new PosixWebserver(adapter)))
       }
     }
 
@@ -194,23 +210,23 @@ object Main extends Logging {
 
     if (startWingman)
       // Create wingman actors
-      MockAkka.actorOf(new Wingman, "wing")
+      system.actorOf(Props(new Wingman), "wing")
 
     if (logToConsole) {
       // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-      MockAkka.actorOf(new LogIncomingMavlink(arduPilotId,
+      system.actorOf(Props(new LogIncomingMavlink(arduPilotId,
         if (dumpSerialRx)
           LogIncomingMavlink.allowDefault
         else
-          LogIncomingMavlink.allowNothing), "ardlog")
+          LogIncomingMavlink.allowNothing)), "ardlog")
 
       // to see GroundControl packets
-      MockAkka.actorOf(new LogIncomingMavlink(groundControlId), "gclog")
+      system.actorOf(Props(new LogIncomingMavlink(groundControlId)), "gclog")
     }
 
     if (logToFile) {
       // Generate log files mission control would understand
-      val logger = MockAkka.actorOf(LogBinaryMavlink.create(true), "gclog")
+      val logger = system.actorOf(Props(LogBinaryMavlink.create(true)), "gclog")
       MavlinkEventBus.subscribe(logger, arduPilotId)
       MavlinkEventBus.subscribe(logger, groundControlId)
       MavlinkEventBus.subscribe(logger, VehicleSimulator.andropilotId)
@@ -223,6 +239,6 @@ object Main extends Logging {
     shell.run()
 
     logger.info("Shutting down actors...")
-    MockAkka.shutdown()
+    system.shutdown()
   }
 }

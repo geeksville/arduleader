@@ -4,7 +4,6 @@
  */
 package com.ridemission.rest
 
-import scala.actors._
 import scala.util.matching._
 import scala.io._
 import scala.collection.mutable.ListBuffer

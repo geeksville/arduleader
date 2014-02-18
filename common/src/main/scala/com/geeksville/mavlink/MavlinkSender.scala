@@ -2,7 +2,9 @@ package com.geeksville.mavlink
 
 import com.geeksville.akka.InstrumentedActor
 import org.mavlink.messages.MAVLinkMessage
-import scala.actors.TIMEOUT
+import akka.actor.ReceiveTimeout
+import scala.concurrent.duration._
+import akka.actor.Stash
 
 case class SendYoungest(msg: MAVLinkMessage)
 
@@ -53,6 +55,12 @@ trait MavlinkSender extends InstrumentedActor {
   }
 
   private def nextYoungest(msg: MAVLinkMessage): Option[MAVLinkMessage] = {
+    log.warning("FIXME - using busted nextYoungest due to akka")
+    None
+  }
+
+  /* Need to figure out how to make this work with akka - probably by specifying a custom msg queue?
+    private def nextYoungest(msg: MAVLinkMessage): Option[MAVLinkMessage] = {
     val r = receiveWithin(0) {
       case SendYoungest(m) if m.messageType == msg.messageType =>
         Some(m)
@@ -63,4 +71,5 @@ trait MavlinkSender extends InstrumentedActor {
     //log.debug("nextYoungest = " + r)
     r
   }
+  */
 }

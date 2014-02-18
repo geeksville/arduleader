@@ -1,8 +1,6 @@
 package com.geeksville.akka
 
 import scala.concurrent.duration.Duration
-import scala.actors.Actor
-import scala.actors.TIMEOUT
 import com.geeksville.logback.Logger
 import com.geeksville.logback.Logging
 import com.geeksville.util.ThreadTools._
@@ -11,6 +9,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledThreadPoolExecutor
 
+/*
 case class Cancellable(f: ScheduledFuture[_]) {
   def cancel() {
     f.cancel(false)
@@ -55,3 +54,4 @@ class Scheduler extends Logging {
     Cancellable(r)
   }
 }
+*/ 

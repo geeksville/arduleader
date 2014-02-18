@@ -6,7 +6,7 @@ import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
 import com.geeksville.akka.InstrumentedActor
-import com.geeksville.akka.PoisonPill
+import akka.actor.PoisonPill
 
 /**
  * published on our eventbus when someone wants a packet sent to the outside world
@@ -104,7 +104,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
           throw ex
 
       case ex: Exception =>
-        log.warn("exception in UDP receiver: " + ex)
+        log.warning("exception in UDP receiver: " + ex)
     }
 
     log.debug("UDP receiver exiting")

@@ -10,16 +10,15 @@ import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
-import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ThrottledActor
 import com.geeksville.mavlink.MavlinkConstants
 import com.geeksville.akka.InstrumentedActor
+import akka.actor.Cancellable
 
 /**
  * An endpoint client that talks to a vehicle (adds message retries etc...)
@@ -27,6 +26,7 @@ import com.geeksville.akka.InstrumentedActor
  * @param targetOverride if specified then we will only talk with the specified sysId
  */
 class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor with VehicleSimulator with HeartbeatSender with MavlinkConstants {
+  import context._
 
   case class RetryExpired(ctx: RetryContext)
 
@@ -38,7 +38,7 @@ class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor
 
   // Default to listening to all traffic until we know the id of our vehicle
   // This lets the vehicle model receive messages from its vehicle...
-  private var subscriber = MavlinkEventBus.subscribe(this, targetOverride.getOrElse(-1))
+  private var subscriber = MavlinkEventBus.subscribe(self, targetOverride.getOrElse(-1))
 
   /**
    * If an override has been set, use that otherwise try to talk to whatever vehicle we've received heartbeats from
@@ -54,7 +54,7 @@ class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor
       // We didn't previously have any particular sysId filter installed.  Now that we know our vehicle
       // we can be more selective.  Resubscribe with the new system id
       MavlinkEventBus.removeSubscription(subscriber)
-      subscriber = MavlinkEventBus.subscribe(this, targetSystem)
+      subscriber = MavlinkEventBus.subscribe(self, targetSystem)
     }
     super.onHeartbeatFound()
   }
@@ -109,7 +109,7 @@ class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor
     private def sendPacket() {
       retriesLeft -= 1
       sendMavlink(retryPacket)
-      retryTimer = Some(MockAkka.scheduler.scheduleOnce(retryInterval milliseconds, VehicleClient.this, RetryExpired(this)))
+      retryTimer = Some(system.scheduler.scheduleOnce(retryInterval milliseconds, self, RetryExpired(this)))
     }
 
     def doRetry() {

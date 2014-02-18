@@ -10,14 +10,12 @@ import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
-import com.geeksville.akka.Cancellable
 import org.mavlink.messages.MAV_DATA_STREAM
 import org.mavlink.messages.MAV_MISSION_RESULT
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ThrottledActor
 import org.mavlink.messages.MAV_MODE
 import org.mavlink.messages.MAV_MODE_FLAG
 import org.mavlink.messages.MAV_STATE
@@ -131,7 +129,7 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
 
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
-  MavlinkEventBus.subscribe(VehicleModel.this, radioSysId)
+  MavlinkEventBus.subscribe(self, radioSysId)
 
   /**
    * Is the autopilot we are listening to _incapabable_ of hearing our messages? (i.e. Naza FBOSD)
@@ -400,7 +398,7 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
       val newMode = rcRequestedMode
       if (newMode.isDefined && oldMode != newMode) {
         val s = modeToString(newMode.get)
-        log.warn(s"RC mode change: $s")
+        log.warning(s"RC mode change: $s")
         eventStream.publish(MsgRCModeChanged(s))
       }
 
@@ -562,7 +560,7 @@ class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(tar
         } yield {
           val rdeg = math.abs(att.roll) * 180 / math.Pi
           val pdeg = math.abs(att.pitch) * 180 / math.Pi
-          log.warn(s"ARM check roll=$rdeg, pitch=$pdeg")
+          log.warning(s"ARM check roll=$rdeg, pitch=$pdeg")
           (rdeg < 30 && pdeg < 30)
         }).getOrElse(false)
 

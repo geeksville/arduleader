@@ -43,7 +43,7 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
    */
   def isBoring = numMovingPoints < 20
 
-  logger.info("Logging to " + file.getAbsolutePath)
+  log.info("Logging to " + file.getAbsolutePath)
 
   private val buf = ByteBuffer.allocate(8)
   buf.order(ByteOrder.BIG_ENDIAN)
@@ -56,11 +56,11 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
       log.error("Can't improve filename, no vehicles")
       ""
     } else if (vehiclesSeen.size == 1 && vehiclesSeen.head == 1) {
-      log.warn("Not improving filename, sysId is 1")
+      log.warning("Not improving filename, sysId is 1")
       ""
     } else {
       val r = vehiclesSeen.take(3).mkString("-ids-", "-", "")
-      log.warn(s"Improving filename to $r")
+      log.warning(s"Improving filename to $r")
       r
     }
 

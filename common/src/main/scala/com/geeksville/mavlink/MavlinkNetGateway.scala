@@ -50,7 +50,7 @@ trait MavlinkNetGateway extends MavlinkSender with MavlinkReceiver {
           throw ex
 
       case ex: Exception =>
-        log.warn("exception in Net receiver: " + ex)
+        log.warning("exception in Net receiver: " + ex)
     }
 
     log.debug("Net receiver exiting")

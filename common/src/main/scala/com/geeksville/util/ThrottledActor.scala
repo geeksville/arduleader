@@ -1,6 +1,9 @@
 package com.geeksville.util
 
 import java.util.concurrent._
+
+/* Not yet updated for akka
+ 
 import scala.actors._
 
 /// A mixin to throttle the actor send queue, once the queue reaches a certain size
@@ -44,3 +47,4 @@ trait ThrottledActor extends Actor {
   private def handledMessage() { semaphore.release() }
 
 }
+*/ 

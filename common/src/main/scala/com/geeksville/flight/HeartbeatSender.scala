@@ -9,15 +9,17 @@ import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.SendYoungest
+import com.geeksville.util.ThreadTools._
 
 /**
  * A mixin that adds periodic sending of heartbeats
  *
  */
 trait HeartbeatSender extends VehicleSimulator {
+  import context._
 
   // Send a heartbeat every few seconds 
-  val heartbeatSender = acontext.system.scheduler.schedule(1 seconds, 3 seconds) { () =>
+  val heartbeatSender = context.system.scheduler.schedule(1 seconds, 3 seconds) { () =>
     //self.log.debug("Sending heartbeat")
     sendMavlinkAlways(heartbeat)
   }

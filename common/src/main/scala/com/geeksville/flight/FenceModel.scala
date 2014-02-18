@@ -10,12 +10,10 @@ import scala.collection.mutable.ArrayBuffer
 import com.geeksville.util.Throttled
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
-import com.geeksville.akka.Cancellable
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.HashSet
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.mavlink.MavlinkStream
-import com.geeksville.util.ThrottledActor
 import org.mavlink.messages.FENCE_ACTION
 import java.io.InputStream
 import scala.io.Source
