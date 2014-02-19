@@ -10,7 +10,7 @@ net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 // Github.settings
 
-// libraryDependencies += "ch.acra" % "acra" % "4.4.0" 
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.2.3"
 
 libraryDependencies += "google-play-services" % "google-play-services_2.10" % "0.1-SNAPSHOT" artifacts(Artifact("google-play-services_2.10", "apklib", "apklib"))
 

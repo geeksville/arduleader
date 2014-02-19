@@ -92,7 +92,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
 
     uploadWpButton.get.onClick { b =>
       myVehicle.foreach { v =>
-        v ! SendWaypoints
+        v.self ! SendWaypoints
       }
     }
   }
@@ -204,11 +204,11 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
               if (confirm)
                 confirmButtonPress(b, s"Switch to $name mode?") { () =>
                   if (name == "AUTO" && v.isDirty)
-                    v ! SendWaypoints // Make sure the vehicle has latest waypoints
-                  v ! DoSetMode(name)
+                    v.self ! SendWaypoints // Make sure the vehicle has latest waypoints
+                  v.self ! DoSetMode(name)
                 }
               else
-                b.onClick { b => v ! DoSetMode(name) }
+                b.onClick { b => v.self ! DoSetMode(name) }
           }
 
         // Add a special button to turn bluetooth on/off

@@ -133,7 +133,7 @@ class MyMapFragment extends SupportMapFragment
       for { map <- mapOpt; v <- myVehicle } yield {
 
         val wp = myVehicle.get.makeGuided(loc)
-        v ! DoGotoGuided(wp)
+        v.self ! DoGotoGuided(wp)
 
         toast(S(R.string.guided_meters).format(loc.alt.get))
       }
@@ -143,7 +143,7 @@ class MyMapFragment extends SupportMapFragment
       for { map <- mapOpt; v <- myVehicle } yield {
         val wp = v.missionItem(v.waypointsForMap.size, loc)
 
-        v ! DoAddWaypoint(Waypoint(wp))
+        v.self ! DoAddWaypoint(Waypoint(wp))
         // toast("Waypoint added")
       }
     }
@@ -237,7 +237,7 @@ class MyMapFragment extends SupportMapFragment
     override def toString = title.get
 
     protected def sendWaypointsAndUpdate() {
-      myVehicle.foreach(_ ! DoMarkDirty) // Will implicitly cause an update
+      myVehicle.foreach(_.self ! DoMarkDirty) // Will implicitly cause an update
     }
   }
 
@@ -280,7 +280,7 @@ class MyMapFragment extends SupportMapFragment
 
     override def doDelete() {
       for { v <- myVehicle } yield {
-        v ! DoDeleteWaypoint(wp.seq)
+        v.self ! DoDeleteWaypoint(wp.seq)
 
         sendWaypointsAndUpdate()
         // toast(R.string.waypoint_deleted, true)
@@ -289,8 +289,8 @@ class MyMapFragment extends SupportMapFragment
 
     override def doGoto() {
       for { map <- mapOpt; v <- myVehicle } yield {
-        v ! DoSetCurrent(wp.seq)
-        v ! DoSetMode("AUTO")
+        v.self ! DoSetCurrent(wp.seq)
+        v.self ! DoSetMode("AUTO")
         //toast("Goto " + title)
       }
     }

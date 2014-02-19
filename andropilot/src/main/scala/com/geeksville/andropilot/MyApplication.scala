@@ -28,7 +28,7 @@ class AndroidAnalytics extends AnalyticsAdapter {
   * 
   */
 class MyApplication extends Application with AndropilotPrefs {
-  override def context = this
+  override def acontext = this
 
   var lastSunspotCheck = 0L
 

@@ -31,11 +31,11 @@ class AndroidDirUpload extends IntentService("Uploader")
 
   private var curUpload: Option[AndroidUpload] = None
 
-  def context = this
-  def isUploading = curUpload.isDefined
+  final def acontext = this
+  final def isUploading = curUpload.isDefined
 
   // FIXME - check for data connection and permission for background data
-  def canUpload = !dshareUsername.isEmpty && !dsharePassword.isEmpty && dshareUpload && isNetworkAvailable && srcDirOpt.isDefined && destDirOpt.isDefined
+  final def canUpload = !dshareUsername.isEmpty && !dsharePassword.isEmpty && dshareUpload && isNetworkAvailable && srcDirOpt.isDefined && destDirOpt.isDefined
 
   /// Anytime anyone sends us an intent, we just scan the spool directory to
   /// see if we have outbound files and send em all (if we have data connectivity)
@@ -97,7 +97,7 @@ class AndroidDirUpload extends IntentService("Uploader")
   }
 
   def isNetworkAvailable = {
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+    val connectivityManager = acontext.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
     val activeNetworkInfo = connectivityManager.getActiveNetworkInfo()
     activeNetworkInfo != null && activeNetworkInfo.isConnected()
   }
@@ -111,8 +111,8 @@ class AndroidDirUpload extends IntentService("Uploader")
 
     private val notifyId = AndroidUpload.makeId
 
-    private val notifyManager = context.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
-    private val nBuilder = new NotificationCompat.Builder(context)
+    private val notifyManager = acontext.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+    private val nBuilder = new NotificationCompat.Builder(acontext)
     nBuilder.setContentTitle(S(R.string.droneshare_upload))
       .setContentText(S(R.string.uploading_tlog))
       .setSmallIcon(R.drawable.icon)
@@ -192,11 +192,11 @@ class AndroidDirUpload extends IntentService("Uploader")
       nBuilder.setContentText(S(R.string.completed_select))
 
       // Attach the view URL
-      val pintent = PendingIntent.getActivity(context, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(viewURL)), 0)
+      val pintent = PendingIntent.getActivity(acontext, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(viewURL)), 0)
       nBuilder.setContentIntent(pintent)
 
       // Attach the google earth link
-      val geintent = PendingIntent.getActivity(context, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(kmzURL)), 0)
+      val geintent = PendingIntent.getActivity(acontext, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(kmzURL)), 0)
       nBuilder.addAction(android.R.drawable.ic_menu_mapmode, S(R.string.google_earth), geintent)
 
       // Attach a web link
@@ -208,7 +208,7 @@ class AndroidDirUpload extends IntentService("Uploader")
       sendIntent.setType("text/plain")
       //val chooser = Intent.createChooser(sendIntent, "Share log to...")
       nBuilder.addAction(android.R.drawable.ic_menu_share, S(R.string.share),
-        PendingIntent.getActivity(context, 0, sendIntent, 0))
+        PendingIntent.getActivity(acontext, 0, sendIntent, 0))
       nBuilder.setPriority(NotificationCompat.PRIORITY_HIGH) // The user probably wants to choose us now
 
       // FIXME, include action buttons for sharing

@@ -65,7 +65,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
      */
     private def changed() {
       for { v <- myVehicle } yield {
-        v ! DoMarkDirty
+        v.self ! DoMarkDirty
 
         // We don't need this because the model will publish waypointschanged
         // a.notifyDataSetChanged()
@@ -100,15 +100,15 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
     override def doGoto() {
       for { v <- myVehicle; s <- selected } yield {
         if (v.isDirty)
-          v ! SendWaypoints // Make sure the vehicle has latest waypoints
-        v ! DoSetCurrent(s.msg.seq)
-        v ! DoSetMode("AUTO")
+          v.self ! SendWaypoints // Make sure the vehicle has latest waypoints
+        v.self ! DoSetCurrent(s.msg.seq)
+        v.self ! DoSetMode("AUTO")
       }
     }
 
     override def doDelete() {
       for { v <- myVehicle; s <- selected } yield {
-        v ! DoDeleteWaypoint(s.msg.seq)
+        v.self ! DoDeleteWaypoint(s.msg.seq)
       }
     }
 
@@ -200,7 +200,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
               w
         }
 
-        v ! DoMarkDirty
+        v.self ! DoMarkDirty
       }
     }
 
@@ -337,7 +337,7 @@ class WaypointListFragment extends ListAdapterHelper[Waypoint]
     myVehicle.foreach { v =>
       val seqNums = v.waypoints.filterNot(_.isHome).map(_.msg.seq).reverse.toArray
       seqNums.foreach { s =>
-        v ! DoDeleteWaypoint(s)
+        v.self ! DoDeleteWaypoint(s)
       }
     }
   }

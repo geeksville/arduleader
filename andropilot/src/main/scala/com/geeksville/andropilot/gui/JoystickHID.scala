@@ -4,19 +4,20 @@ import android.view.MotionEvent
 import android.view.InputDevice
 import com.ridemission.scandroid._
 import scala.collection.JavaConverters._
+import com.geeksville.util.ThreadTools._
 import android.app.Activity
 import android.view.KeyEvent
 import com.geeksville.andropilot.service.AndroServiceClient
 import com.geeksville.flight.DoSetMode
 import com.geeksville.andropilot.service.AndropilotService
 import com.geeksville.mavlink.SendYoungest
-import com.geeksville.akka.Cancellable
 import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
 import com.geeksville.andropilot.R
 import android.content.ActivityNotFoundException
 import android.os.Bundle
+import akka.actor.Cancellable
 
 /**
  * Provides joystick control through a bluetooth joystick
@@ -140,8 +141,10 @@ trait JoystickHID extends JoystickController {
         sendOverride()
       }
 
+      import MockAkka.system._
+
       // Schedule us to be invoked again in a little while
-      throttleTimer = Some(MockAkka.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
+      throttleTimer = Some(MockAkka.system.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
     } else
       throttleTimer = None
   }
@@ -206,7 +209,7 @@ trait JoystickHID extends JoystickController {
   }
 
   private def doRTL() {
-    myVehicle.foreach(_ ! DoSetMode("RTL"))
+    myVehicle.foreach(_.self ! DoSetMode("RTL"))
   }
 
   protected def showSidebar(shown: Boolean)
@@ -238,7 +241,7 @@ trait JoystickHID extends JoystickController {
               favoriteModes.last
           }
 
-          v ! DoSetMode(newMode)
+          v.self ! DoSetMode(newMode)
         }
       }
     } catch {

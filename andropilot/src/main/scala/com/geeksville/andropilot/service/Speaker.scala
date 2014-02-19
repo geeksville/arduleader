@@ -11,7 +11,6 @@ import com.geeksville.util.MathTools
 import com.ridemission.scandroid.UsesPreferences
 import com.geeksville.andropilot.AndropilotPrefs
 import com.geeksville.flight.MsgModeChanged
-import com.geeksville.akka.PoisonPill
 import com.geeksville.mavlink.MsgHeartbeatLost
 import android.os.Handler
 import com.geeksville.util.ThrottleByBucket
@@ -33,7 +32,10 @@ import com.geeksville.flight.Location
 /**
  * Do any background speech announcements based on vehicle state
  */
-class Speaker(val context: AndropilotService, val v: VehicleModel) extends InstrumentedActor with UsesResources with AndroidLogger with AndropilotPrefs {
+class Speaker(val acontext: AndropilotService, val v: VehicleModel) extends InstrumentedActor with UsesResources with AndroidLogger with AndropilotPrefs {
+
+  import context._
+
   private val subscription = v.eventStream.subscribe(this)
 
   private val handler = new Handler
@@ -41,14 +43,14 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
   private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)
 
-  val warningChecker = MockAkka.scheduler.schedule(60 seconds, 60 seconds) { () =>
-    val warning = if (context.isLowVolt)
+  val warningChecker = context.system.scheduler.schedule(60 seconds, 60 seconds) { () =>
+    val warning = if (acontext.isLowVolt)
       R.string.spk_warn_volt
-    else if (context.isLowBatPercent)
+    else if (acontext.isLowBatPercent)
       R.string.spk_warn_battery
-    else if (context.isLowRssi)
+    else if (acontext.isLowRssi)
       R.string.spk_warn_radio
-    else if (context.isLowNumSats)
+    else if (acontext.isLowNumSats)
       R.string.spk_warn_gps
     else
       -1
@@ -56,9 +58,9 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
     if (warning != -1 && handler != null)
       handler.post { () =>
         v.sysStatusFaults.foreach { f =>
-          context.speak(f + " failure")
+          acontext.speak(f + " failure")
         }
-        context.speak(S(warning))
+        acontext.speak(S(warning))
       }
   }
 
@@ -74,7 +76,7 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
       throttleAlt(v.bestAltitude.toInt) { alt =>
         handler.post { () =>
           //log.warn(s"Announcing alt $alt")
-          context.speak(s"$alt meters")
+          acontext.speak(s"$alt meters")
         }
       }
 
@@ -83,17 +85,17 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
         throttleBattery((pct * 100).toInt) { pct =>
           handler.post { () =>
             debug("Speak battery: " + pct)
-            context.speak(S(R.string.spk_percent).format(pct))
+            acontext.speak(S(R.string.spk_percent).format(pct))
           }
         }
       }
 
     case MsgFenceBreached =>
-      handler.post { () => context.speak("Fence Breached", urgent = true) }
+      handler.post { () => acontext.speak("Fence Breached", urgent = true) }
 
     case MsgWaypointCurrentChanged(n) =>
       handler.post { () =>
-        context.speak("Waypoint " + n)
+        acontext.speak("Waypoint " + n)
       }
 
     case MsgReportBug(m) =>
@@ -105,7 +107,7 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
 
     case MsgHeartbeatLost =>
       handler.post { () =>
-        context.speak("Heartbeat lost", urgent = true)
+        acontext.speak("Heartbeat lost", urgent = true)
       }
 
     case StatusText(s, severity) =>
@@ -114,13 +116,13 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
     case MsgArmChanged(armed) =>
       handler.post { () =>
         if (v.hasHeartbeat)
-          context.speak(if (armed) "Armed" else "Disarmed")
+          acontext.speak(if (armed) "Armed" else "Disarmed")
       }
 
     case MsgModeChanged(mode) =>
       handler.post { () =>
         if (v.hasHeartbeat)
-          context.speak(mode)
+          acontext.speak(mode)
       }
   }
 
@@ -132,7 +134,7 @@ class Speaker(val context: AndropilotService, val v: VehicleModel) extends Instr
 
       if (isImportant)
         handler.post { () =>
-          context.speak(s)
+          acontext.speak(s)
         }
     }
   }

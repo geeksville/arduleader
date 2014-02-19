@@ -18,11 +18,11 @@ import android.widget.Spinner
 import android.view.inputmethod.InputMethodManager
 import android.content.Context
 
-class ParameterEditorFragment(val param: VehicleModel#ParamValue) 
-extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
+class ParameterEditorFragment(val param: VehicleModel#ParamValue)
+  extends DialogFragment with AndroidLogger with FlurryClient with UsesResources {
   setCancelable(true)
 
-    implicit def context: Context = getActivity
+  implicit def acontext: Context = getActivity
 
   override def onCreateDialog(savedInstanceState: Bundle) = {
     val builder = new AlertDialog.Builder(getActivity)

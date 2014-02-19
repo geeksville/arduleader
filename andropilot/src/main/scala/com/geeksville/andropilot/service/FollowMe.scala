@@ -13,13 +13,13 @@ import com.geeksville.util.MathTools
 import com.ridemission.scandroid.UsesPreferences
 import com.geeksville.andropilot.AndropilotPrefs
 import com.geeksville.flight.MsgModeChanged
-import com.geeksville.akka.PoisonPill
 import com.geeksville.mavlink.MsgHeartbeatLost
+import akka.actor.PoisonPill
 
 /**
  * Try to drive vehicle to stay near us
  */
-class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedActor with AndroidLogger with AndropilotPrefs {
+class FollowMe(val acontext: Context, val v: VehicleModel) extends InstrumentedActor with AndroidLogger with AndropilotPrefs {
 
   private val throttleInterval = (1000 * followMeInterval).toInt
   private val throttle = new Throttled(throttleInterval)
@@ -37,7 +37,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
    * Add an android location listener
    */
   private val locListener = new LocationListener {
-    private val locManager = context.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
+    private val locManager = acontext.getSystemService(Context.LOCATION_SERVICE).asInstanceOf[LocationManager]
     locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, throttleInterval, 3, this)
 
     override def onLocationChanged(location: Location) {
@@ -55,7 +55,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
   }
 
   private val compassListener = new SensorEventListener {
-    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE).asInstanceOf[SensorManager]
+    private val sensorManager = acontext.getSystemService(Context.SENSOR_SERVICE).asInstanceOf[SensorManager]
 
     /**
      * If we have our sensor this will be !None
@@ -155,7 +155,7 @@ class FollowMe(val context: Context, val v: VehicleModel) extends InstrumentedAc
         // FIXME - support using magnetic heading to have vehicle be in _lead or follow_ of the user
         val msg = v.makeGuided(myloc)
         debug("Following " + myloc)
-        v ! DoGotoGuided(msg, false)
+        v.self ! DoGotoGuided(msg, false)
       }
     }
   }

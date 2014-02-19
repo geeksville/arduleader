@@ -9,7 +9,7 @@ import com.ridemission.scandroid.UsesResources
 import android.support.v4.app.FragmentActivity
 import com.ridemission.scandroid.SimpleOkayDialog
 
-class SunspotDetectorTask(val context: FragmentActivity) extends AsyncVoidTask with AndroidLogger with UsesResources {
+class SunspotDetectorTask(val acontext: FragmentActivity) extends AsyncVoidTask with AndroidLogger with UsesResources {
 
   private var curLevel: Option[Int] = None
 
@@ -19,7 +19,7 @@ class SunspotDetectorTask(val context: FragmentActivity) extends AsyncVoidTask w
   }
 
   private def showDialog(icon: Int, msg: String) {
-    SimpleOkayDialog.show(context, msg, android.R.drawable.ic_dialog_alert)
+    SimpleOkayDialog.show(acontext, msg, android.R.drawable.ic_dialog_alert)
   }
 
   protected def didSunspot(curLevel: Option[Int]) {

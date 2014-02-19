@@ -19,7 +19,7 @@ import com.ridemission.scandroid.AndroidUtil
  */
 trait AndroServiceFragment extends Fragment with AndroidLogger with AndroServiceClient with PagerPage with FlurryClient {
 
-  implicit def context: Context = getActivity
+  implicit def acontext: Context = getActivity
 
   /**
    * Does work in the GUIs thread
@@ -31,7 +31,7 @@ trait AndroServiceFragment extends Fragment with AndroidLogger with AndroService
   /**
    * A utility to convert dipPixels to values the android API understands (FIXME - move someplace better)
    */
-  def dipPixel(sz: Float) = AndroidUtil.dipPixel(context, sz)
+  def dipPixel(sz: Float) = AndroidUtil.dipPixel(acontext, sz)
 
   override def onCreate(saved: Bundle) {
     super.onCreate(saved)

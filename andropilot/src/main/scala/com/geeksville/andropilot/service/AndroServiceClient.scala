@@ -11,21 +11,23 @@ import com.google.android.gms.maps.model._
 import com.geeksville.flight.VehicleModel
 import com.geeksville.akka.MockAkka
 import com.geeksville.util.ThreadTools._
-import com.geeksville.akka.PoisonPill
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink._
 import com.geeksville.flight._
 import com.geeksville.andropilot.AndropilotPrefs
+import akka.actor.ActorRef
+import akka.actor.PoisonPill
+import akka.actor.Props
 
 /**
  * Common client side goo for any GUI widget that binds to our service
  */
 trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
-  def context: Context
+  def acontext: Context
 
   protected var myVehicle: Option[VehicleModel] = None
-  private var myVListener: Option[MyVehicleListener] = None
+  private var myVListener: Option[ActorRef] = None
   protected var service: Option[AndropilotService] = None
 
   /// Are we talking to at least one vehicle
@@ -46,7 +48,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
       // Don't use akka until the service is created
       s.vehicle.foreach { v =>
-        val actor = MockAkka.actorOf(new MyVehicleListener(v), "lst")
+        val actor = MockAkka.system.actorOf(Props(new MyVehicleListener(v)), "lst")
         myVehicle = Some(v)
         myVListener = Some(actor)
       }
@@ -80,7 +82,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
    */
   class MyVehicleListener(val v: VehicleModel) extends InstrumentedActor {
 
-    val subscription = v.eventStream.subscribe(this, isInterested _)
+    val subscription = v.eventStream.subscribe(self, isInterested _)
 
     override def postStop() {
       v.eventStream.removeSubscription(subscription)
@@ -106,7 +108,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
     debug("Unbinding from service")
     try {
-      context.unbindService(serviceConnection)
+      acontext.unbindService(serviceConnection)
     } catch {
       case ex: IllegalArgumentException =>
         warn("Ignoring error on unbind") // If we get paused before the service has started, we could get this
@@ -116,8 +118,8 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
   protected def serviceOnResume() {
     //debug("Binding to service")
-    assert(context != null)
-    val intent = new Intent(context, classOf[AndropilotService])
-    context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)
+    assert(acontext != null)
+    val intent = new Intent(acontext, classOf[AndropilotService])
+    acontext.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE | Context.BIND_IMPORTANT)
   }
 }

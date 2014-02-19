@@ -28,7 +28,6 @@ import android.content.IntentFilter
 import com.geeksville.util.Throttled
 import com.google.android.gms.maps.CameraUpdateFactory
 import android.view.View
-import com.geeksville.akka.PoisonPill
 import android.view.Menu
 import android.widget.AdapterView.OnItemSelectedListener
 import com.geeksville.gmaps.Scene
@@ -84,7 +83,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
   with AndroidLogger with FlurryActivity with AndropilotPrefs
   with AndroServiceClient with JoystickHID with UsesResources with UsesDirectories {
 
-  implicit def context = this
+  implicit def acontext = this
 
   private var mainView: View = null
   private var modeSpinner: Option[Spinner] = None
@@ -537,7 +536,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
     if (shouldNagUser) {
       val pendingIntent = PendingIntent.getActivity(this, 0, SettingsActivity.sharingSettingsIntent(this), 0)
 
-      val nBuilder = new NotificationCompat.Builder(context)
+      val nBuilder = new NotificationCompat.Builder(acontext)
       nBuilder.setContentTitle("Configure droneshare.com settings")
         .setContentText("Select this to configure or disable sharing")
         .setSmallIcon(android.R.drawable.ic_menu_share)
@@ -611,7 +610,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
 
       debug(s"Handling fileOpen: $uri")
 
-      using(AndroidJUtil.getFromURI(context, uri)) { s =>
+      using(AndroidJUtil.getFromURI(acontext, uri)) { s =>
         debug("Opened fileOpen (in background thread)")
         myVehicle.foreach { v =>
           debug("Got vehicle in fileOpen (in background thread)")
@@ -633,7 +632,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
                 message = Some(S(R.string.uploading_fence).format(filename))
                 val pts = FenceModel.pointsFromStream(s)
 
-                v ! DoSetFence(pts, fenceMode)
+                v.self ! DoSetFence(pts, fenceMode)
               }
             }
 
@@ -647,7 +646,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
                 debug(s"Loaded ${pts.size} waypoints")
 
                 message = Some(s"Loaded waypoints from $filename, please click to upload")
-                v ! DoLoadWaypoints(pts)
+                v.self ! DoLoadWaypoints(pts)
                 // v ! SendWaypoints
               } catch {
                 case ex: Exception =>
@@ -867,7 +866,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
         if (modeName != "unknown" && modeName != v.currentMode) {
           service.foreach(_.setFollowMe(false)) // Immediately cancel any follow-me
           debug("Sending DoSetMode: " + modeName)
-          v ! DoSetMode(modeName.toString)
+          v.self ! DoSetMode(modeName.toString)
         }
       }
     }
@@ -888,7 +887,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
     (for { v <- myVehicle; loc <- v.location } yield {
 
       val navIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=%f,%f".format(loc.lat, loc.lon)))
-      val info = context.getPackageManager().resolveActivity(navIntent, 0)
+      val info = acontext.getPackageManager().resolveActivity(navIntent, 0)
 
       if (info != null)
         Some(navIntent)
@@ -967,11 +966,11 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
         myVehicle.foreach { v =>
           val isFlying = v.isFlying.getOrElse(true)
           if (isFlying && !n) {
-            val newFragment = new SimpleYesNoDialog("Are you sure you want to disarm?", { () => v ! DoSetMode("Disarm") })
+            val newFragment = new SimpleYesNoDialog("Are you sure you want to disarm?", { () => v.self ! DoSetMode("Disarm") })
 
             AlertUtil.show(this, newFragment, "disconf")
           } else
-            v ! DoSetMode(if (n) "Arm" else "Disarm")
+            v.self ! DoSetMode(if (n) "Arm" else "Disarm")
           //item.setChecked(n) - wait for the next heartbeat msg
         }
 
@@ -1012,7 +1011,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
       case R.id.menu_checklist =>
         val isCopter = myVehicle.map(_.isCopter).getOrElse(true)
         val checklistName = if (isCopter) "copter" else "plane"
-        WebActivity.showURL(context, "http://localhost:%s/static/checklist/%s.html".format(Webserver.portNumber, checklistName))
+        WebActivity.showURL(acontext, "http://localhost:%s/static/checklist/%s.html".format(Webserver.portNumber, checklistName))
 
       case R.id.menu_followme => // FIXME - move this into the map fragment
         service.foreach { s =>

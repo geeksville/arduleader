@@ -14,7 +14,6 @@ import com.geeksville.akka.MockAkka
 import java.io.File
 import com.geeksville.mavlink.LogBinaryMavlink
 import com.geeksville.mavlink._
-import com.geeksville.akka.PoisonPill
 import com.geeksville.flight.VehicleSimulator
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -51,6 +50,9 @@ import com.geeksville.gcsapi.AndroidWebserver
 import com.geeksville.flight.ParameterDocFile
 import com.geeksville.util.ThreadTools
 import com.geeksville.aspeech.TTSClient
+import akka.actor.ActorRef
+import akka.actor.Props
+import akka.actor.PoisonPill
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -58,12 +60,13 @@ trait ServiceAPI extends IBinder {
 
 class AndropilotService extends Service with TTSClient with AndroidLogger
   with FlurryService with AndropilotPrefs with BluetoothConnection with UsesResources with UsesDirectories {
+
   val groundControlId = 255
 
   /**
    * If we are logging the file is here
    */
-  private var logger: Option[LogBinaryMavlink] = None
+  private var logger: Option[ActorRef] = None
   private var prefListeners: Seq[OnSharedPreferenceChangeListener] = Seq()
 
   var vehicle: Option[VehicleModel] = None
@@ -71,26 +74,28 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
   /**
    * A mapping from usb unique device id to the stream for that device
    */
-  private val serial: HashMap[Int, MavlinkStream] = HashMap()
+  private val serial: HashMap[Int, ActorRef] = HashMap()
 
-  private var udp: Option[InstrumentedActor] = None
+  private var udp: Option[ActorRef] = None
 
-  private var speaker: Option[Speaker] = None
+  private var speaker: Option[ActorRef] = None
 
   private var btInputStream: Option[InputStream] = None
-  private var btStream: Option[MavlinkStream] = None
+  private var btStream: Option[ActorRef] = None
 
-  private var follower: Option[FollowMe] = None
+  private var follower: Option[ActorRef] = None
 
   private var uploader: Option[AndroidDirUpload] = None
 
-  private var pebbleListener: Option[PebbleVehicleListener] = None
+  private var pebbleListener: Option[ActorRef] = None
 
   private var errorMessage: Option[String] = None
 
-  private var webServer: Option[InstrumentedActor] = None
+  private var webServer: Option[ActorRef] = None
 
-  implicit val context = this
+  implicit val acontext = this
+
+  def system = MockAkka.system
 
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
 
@@ -223,27 +228,28 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
       // If you want logging uncomment the following line
       // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
       // For testing I pretend to be a real arduplane (id 1)
-      MockAkka.actorOf(new FlightLead(flightSysId), "lead")
+      system.actorOf(Props(new FlightLead(flightSysId)), "lead")
       val stream = getAssets().open("testdata.igc")
-      MockAkka.actorOf(new IGCPublisher(stream), "igcpub")
+      system.actorOf(Props(new IGCPublisher(stream)), "igcpub")
 
       // Watch for failures
       // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), flightSysId)
     }
 
-    val actor = MockAkka.actorOf(new VehicleModel, "vmon")
+    system.actorOf(Props {
+      val a = new VehicleModel
+      a.useRequestById = !useOldArducopter
+      vehicle = Some(a)
+      a
+    }, "vmon")
 
-    actor.useRequestById = !useOldArducopter
-
-    vehicle = Some(actor)
-
-    speaker = Some(MockAkka.actorOf(new Speaker(this, actor), "speaker"))
+    speaker = Some(system.actorOf(Props(new Speaker(this, vehicle.get)), "speaker"))
 
     if (runWebserver) {
       warn("Starting web server")
-      val gcs = new TempGCSModel(actor)
+      val gcs = new TempGCSModel(vehicle.get)
       val adapter = new GCSAdapter(gcs)
-      webServer = Some(MockAkka.actorOf(new AndroidWebserver(this, adapter, !allowOtherHosts)))
+      webServer = Some(system.actorOf(Props(new AndroidWebserver(this, adapter, !allowOtherHosts))))
     }
 
     val dumpSerialRx = false
@@ -251,15 +257,15 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
       info("Starting packet log")
 
       // Include this if you want to see all traffic from the ardupilot (use filters to keep less verbose)
-      MockAkka.actorOf(new LogIncomingMavlink(actor.targetSystem,
+      system.actorOf(Props(new LogIncomingMavlink(vehicle.get.targetSystem,
         if (dumpSerialRx)
           LogIncomingMavlink.allowDefault
         else
-          LogIncomingMavlink.allowNothing), "ardlog")
+          LogIncomingMavlink.allowNothing)), "ardlog")
     }
 
     if (PebbleClient.hasPebble(this))
-      pebbleListener = Some(MockAkka.actorOf(new PebbleVehicleListener(this), "pebble"))
+      pebbleListener = Some(system.actorOf(Props(new PebbleVehicleListener(this)), "pebble"))
 
     setLogging(true)
     serialAttachToExisting()
@@ -286,7 +292,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
     udp = if (outboundUdpEnabled) {
       info("Creating outbound UDP port")
-      val a = MockAkka.actorOf(new MavlinkUDP(destHostName = Some(outboundUdpHost), destPortNumber = Some(outboundPort)), "mavudp")
+      val a = system.actorOf(Props(new MavlinkUDP(destHostName = Some(outboundUdpHost), destPortNumber = Some(outboundPort))), "mavudp")
 
       // Anything from the ardupilot, forward it to the controller app
       MavlinkEventBus.subscribe(a, vehicleId)
@@ -296,7 +302,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     } else if (inboundUdpEnabled) {
       // Let aircraft port
       info("Creating inbound UDP port")
-      val a = MockAkka.actorOf(new MavlinkUDP(localPortNumber = Some(inboundPort)), "mavudp")
+      val a = system.actorOf(Props(new MavlinkUDP(localPortNumber = Some(inboundPort))), "mavudp")
 
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, vehicleId)
@@ -306,7 +312,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     } else if (outboundTcpEnabled) {
       // Let aircraft port
       info("Creating outbound TCP port")
-      val a = MockAkka.actorOf(MavlinkTCP.connect(outboundUdpHost, outboundPort), "mavtcp")
+      val a = system.actorOf(Props(MavlinkTCP.connect(outboundUdpHost, outboundPort)), "mavtcp")
 
       // Send our control packets to this UDP link
       MavlinkEventBus.subscribe(a, vehicleId)
@@ -335,7 +341,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
         logDirectory.foreach { d =>
           try {
             val logfile = LogBinaryMavlink.getFilename(d)
-            val l = MockAkka.actorOf(LogBinaryMavlink.create(!loggingKeepBoring, logfile), "gclog")
+            val l = system.actorOf(Props(LogBinaryMavlink.create(!loggingKeepBoring, logfile)), "gclog")
             MavlinkEventBus.subscribe(l, -1)
             logger = Some(l)
           } catch {
@@ -363,7 +369,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     debug("Setting follow: " + b)
     if (b && follower.map(_.isTerminated).getOrElse(true) && FollowMe.isAvailable(this))
       vehicle.foreach { v =>
-        follower = Some(MockAkka.actorOf(new FollowMe(this, v), "follow"))
+        follower = Some(system.actorOf(Props(new FollowMe(this, v)), "follow"))
       }
 
     if (!b) {
@@ -378,13 +384,11 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     assert(in != null)
     val out = new BufferedOutputStream(outs, 512)
 
-    val port = new MavlinkStream(out, in)
-
     //port.simulateUnreliable = true
 
     btInputStream = Some(in)
     // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-    val mavSerial = MockAkka.actorOf(port, "btrx")
+    val mavSerial = system.actorOf(Props(new MavlinkStream(out, in)), "btrx")
     btStream = Some(mavSerial)
 
     // Anything coming from the controller app, forward it to the serial port
@@ -437,10 +441,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
       else
         None
 
-      val port = MavlinkAndroid.create(sdev, baudRate, sysIdOverride)
-
-      // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
-      val mavSerial = MockAkka.actorOf(port, "serrx")
+      val mavSerial = system.actorOf(Props(MavlinkAndroid.create(sdev, baudRate, sysIdOverride)), "serrx")
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
@@ -485,14 +486,14 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
       if (stayAwakeEnabled)
         wakeLock.acquire()
 
-      vehicle.foreach(_ ! OnInterfaceChanged(true))
+      vehicle.foreach(_.self ! OnInterfaceChanged(true))
     }
   }
 
   private def stopHighValue() {
     warn("In stopHighValue")
     if (!isConnected) {
-      vehicle.foreach(_ ! OnInterfaceChanged(false))
+      vehicle.foreach(_.self ! OnInterfaceChanged(false))
 
       endTimedEvent("high_value")
 
@@ -557,7 +558,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
     destroySpeech()
 
-    MockAkka.shutdown()
+    system.shutdown()
     super.onDestroy()
   }
 

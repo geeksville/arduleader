@@ -17,7 +17,7 @@ import com.geeksville.andropilot.FlurryClient
  */
 trait AndroServicePage extends Fragment with AndroidLogger with AndroServiceClient with PagerPage with FlurryClient {
 
-  implicit def context = getActivity
+  implicit def acontext = getActivity
 
   /**
    * Does work in the GUIs thread

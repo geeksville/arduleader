@@ -10,7 +10,6 @@ import com.geeksville.andropilot.service.AndroServiceClient
 import com.geeksville.flight.DoSetMode
 import com.geeksville.andropilot.service.AndropilotService
 import com.geeksville.mavlink.SendYoungest
-import com.geeksville.akka.Cancellable
 import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import org.mavlink.messages.ardupilotmega.msg_rc_channels_override
