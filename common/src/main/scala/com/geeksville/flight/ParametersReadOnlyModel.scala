@@ -31,17 +31,18 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     5 -> "LOITER",
     6 -> "RTL",
     7 -> "CIRCLE",
-    8 -> "POSITION",
     9 -> "LAND",
     10 -> "OF_LOITER",
-    11 -> "TOY",
-    13 -> "SPORT")
+    11 -> "DRIFT",
+    13 -> "SPORT",
+    14 -> "FLIP",
+    15 -> "AUTOTUNE")
 
   /**
    * A set of modes that are selectable when the vehicle is flying in simple mode
    */
-  protected val simpleFlightModes = Map("LAND" -> true, "RTL" -> false,
-    "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "FBW_B" -> false, "Disarm" -> true)
+  protected val simpleFlightModes = Map("LAND" -> true, "RTL" -> false, "ALT_HOLD" -> false,
+    "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "FBW_B" -> false, "DRIFT" -> false, "Disarm" -> true)
 
   // FIXME - add support for a takeoff waypoint set
   protected val simpleGroundModes = Map("Arm" -> true, "LOITER" -> false, "AUTO" -> true, "STABILIZE" -> false, "Disarm" -> false)
