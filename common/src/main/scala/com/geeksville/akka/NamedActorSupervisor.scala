@@ -14,6 +14,10 @@ private case class Get(id: String)
  */
 class NamedActorSupervisor extends InstrumentedActor {
 
+      // This actor should not be auto restarted, because most likely there is _one_ NamedActorClient that has a hardwired
+  // actorref pointing to this instance
+    override def supervisorStrategy = SupervisorStrategy.stoppingStrategy
+    
   implicit val timeout = Timeout(10 second)
   var as = Map.empty[String, ActorRef]
 

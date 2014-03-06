@@ -13,7 +13,7 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 
 /**
- * @param time is in usecs
+ * @param time is in usecs since 1970
  */
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
