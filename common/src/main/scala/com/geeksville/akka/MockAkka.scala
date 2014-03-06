@@ -4,13 +4,16 @@ import com.geeksville.logback.Logger
 import com.geeksville.logback.Logging
 import scala.collection.mutable.HashSet
 import akka.actor.ActorSystem
+import com.typesafe.config.ConfigFactory
 
 object MockAkka extends Logging {
 
   // The system event stream
   val eventStream = new EventStream
 
-  val system = ActorSystem("mockakka")
+  private val config = ConfigFactory.load()
+
+  val system = ActorSystem("mockakka", config)
 
   /*
   var scheduler = new Scheduler
