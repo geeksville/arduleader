@@ -21,7 +21,7 @@ class NameLevelFilter extends Filter[ILoggingEvent] {
     if (!e.getLoggerName.startsWith(prefix))
       FilterReply.NEUTRAL
     else if (e.getLevel.isGreaterOrEqual(minLevel))
-      FilterReply.NEUTRAL // Level is suffient, just use someone elses rules
+      FilterReply.ACCEPT // Level is sufficient - show it
     else
       FilterReply.DENY // veto
   }
