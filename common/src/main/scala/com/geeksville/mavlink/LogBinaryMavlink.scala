@@ -22,7 +22,7 @@ import scala.collection.mutable.HashSet
  *
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
-class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) extends InstrumentedActor {
+class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean, val wantImprovedFilename: Boolean) extends InstrumentedActor {
 
   private val tempFile = new File(file.getCanonicalPath() + ".tmp")
   private val out = new BufferedOutputStream(new FileOutputStream(tempFile, true), 8192)
@@ -77,7 +77,8 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
       log.error("Deleting boring file " + file)
       tempFile.delete()
     } else {
-      improveFilename()
+      if (wantImprovedFilename)
+        improveFilename()
       log.info("Renaming to " + file)
       tempFile.renameTo(file)
     }
@@ -85,7 +86,23 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
     super.postStop()
   }
 
-  private def handleMessage(msg: MAVLinkMessage) {
+  private def handleMessage(msg: MAVLinkMessage, timeUsec: Long = System.currentTimeMillis * 1000) {
+
+    // Special case handling of certain messages
+    msg match {
+      case vfr: msg_vfr_hud =>
+        // Crude check for motion
+        if (vfr.groundspeed > 3)
+          numMovingPoints += 1
+
+      case msg: msg_heartbeat =>
+        val typ = msg.`type`
+        if (typ != MAV_TYPE.MAV_TYPE_GCS)
+          vehiclesSeen += msg.sysId
+
+      case _ =>
+    }
+
     // def str = "Rcv" + msg.sysId + ": " + msg
     //log.debug("Binary write: " + msg)
     numPacket += 1
@@ -100,9 +117,9 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
     }
 
     // Time in usecs
-    val time = System.currentTimeMillis * 1000
-    buf.clear()
-    buf.putLong(time)
+    val time =
+      buf.clear()
+    buf.putLong(timeUsec)
     out.write(buf.array)
 
     // Payload
@@ -110,20 +127,10 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean) exte
   }
 
   def onReceive = {
-    case vfr: msg_vfr_hud =>
-      // Crude check for motion
-      if (vfr.groundspeed > 3)
-        numMovingPoints += 1
-      handleMessage(vfr)
-
-    case msg: msg_heartbeat =>
-      val typ = msg.`type`
-      if (typ != MAV_TYPE.MAV_TYPE_GCS)
-        vehiclesSeen += msg.sysId
-      handleMessage(msg)
-
     case msg: MAVLinkMessage =>
-      handleMessage(msg)
+      handleMessage(msg, System.currentTimeMillis * 1000)
+    case TimestampedMessage(time, payload) =>
+      handleMessage(payload, time)
   }
 }
 
@@ -141,7 +148,7 @@ object LogBinaryMavlink extends Logging {
   }
 
   // Create a new log file 
-  def create(deleteIfBoring: Boolean, file: File = getFilename()) = {
-    new LogBinaryMavlink(file, deleteIfBoring)
+  def create(deleteIfBoring: Boolean, file: File = getFilename(), wantImprovedFilename: Boolean = true) = {
+    new LogBinaryMavlink(file, deleteIfBoring, wantImprovedFilename)
   }
 }
