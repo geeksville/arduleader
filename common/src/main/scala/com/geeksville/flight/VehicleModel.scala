@@ -471,7 +471,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       fsm.HBSaysFlying()
   }
 
-  override def onHeartbeatFound() {
+  override protected def onHeartbeatFound() {
     super.onHeartbeatFound()
 
     if (isAutopilotTalkOnly) {
@@ -492,7 +492,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
     fsm.OnHasHeartbeat()
   }
 
-  override def onHeartbeatLost() {
+  override protected def onHeartbeatLost() {
     super.onHeartbeatLost()
 
     onStatusChanged("Lost contact to vehicle", MsgStatusChanged.SEVERITY_HIGH)
