@@ -4,6 +4,7 @@ import sbtassembly.Plugin._
 import AssemblyKeys._ // put this at the top of the file
 import sbtandroid.AndroidKeys._
 import sbtandroid._
+import scalabuff.ScalaBuffPlugin._
 
 object ScalaFlyBuild extends Build {
 
@@ -27,7 +28,9 @@ object ScalaFlyBuild extends Build {
     base = file(".")) aggregate(posixpilot, andropilot)
 
   lazy val common = Project(id = "gcommon",
-                           base = file("common"))
+                           base = file("common"),
+			    settings = Project.defaultSettings ++ scalabuffSettings
+	).configs(ScalaBuff)
 
   lazy val posixpilot = Project(id = "posixpilot",
     base = file("posixpilot"),
