@@ -19,7 +19,7 @@ case class MsgSystemStatusChanged(stat: Option[Int])
 /**
  * Watches for arrival of a heartbeat, if we don't see one we print an error message
  */
-class HeartbeatMonitor extends InstrumentedActor {
+trait HeartbeatMonitor extends InstrumentedActor {
   import context._
 
   private case object WatchdogExpired

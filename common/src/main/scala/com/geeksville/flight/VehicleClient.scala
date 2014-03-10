@@ -25,7 +25,7 @@ import akka.actor.Cancellable
  *
  * @param targetOverride if specified then we will only talk with the specified sysId
  */
-class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor with VehicleSimulator with HeartbeatSender with MavlinkConstants {
+abstract class VehicleClient(val targetOverride: Option[Int] = None) extends HeartbeatMonitor with VehicleSimulator with HeartbeatSender with MavlinkConstants {
   import context._
 
   case class RetryExpired(ctx: RetryContext)
@@ -36,10 +36,6 @@ class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor
 
   private val retries = HashSet[RetryContext]()
 
-  // Default to listening to all traffic until we know the id of our vehicle
-  // This lets the vehicle model receive messages from its vehicle...
-  private var subscriber = MavlinkEventBus.subscribe(self, targetOverride.getOrElse(-1))
-
   /**
    * If an override has been set, use that otherwise try to talk to whatever vehicle we've received heartbeats from
    */
@@ -48,16 +44,6 @@ class VehicleClient(targetOverride: Option[Int] = None) extends HeartbeatMonitor
   }
 
   override def systemId = 253 // We always claim to be a ground controller (FIXME, find a better way to pick a number)
-
-  override protected def onHeartbeatFound() {
-    if (!targetOverride.isDefined) {
-      // We didn't previously have any particular sysId filter installed.  Now that we know our vehicle
-      // we can be more selective.  Resubscribe with the new system id
-      MavlinkEventBus.removeSubscription(subscriber)
-      subscriber = MavlinkEventBus.subscribe(self, targetSystem)
-    }
-    super.onHeartbeatFound()
-  }
 
   override def onReceive = mReceive.orElse(super.onReceive)
 

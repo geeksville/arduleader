@@ -80,7 +80,7 @@ case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MED
  *
  * @param targetOverride if specified then we will only talk with the specified sysId
  */
-class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
+abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
 
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private val locationThrottle = new Throttled(1000)

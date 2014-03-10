@@ -9,12 +9,14 @@ import java.util.GregorianCalendar
 import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.SendYoungest
+import com.geeksville.mavlink.CanSendMavlink
+import com.geeksville.mavlink.EventBusVehicleSender
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
  */
-trait VehicleSimulator extends InstrumentedActor {
+trait VehicleSimulator extends InstrumentedActor with CanSendMavlink {
 
   val componentId = 190 // FIXME, just copied what mission control was doing
 
@@ -65,21 +67,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
    */
   var listenOnly = false
 
-  def sendMavlink(m: MAVLinkMessage) {
+  final def sendMavlink(m: MAVLinkMessage) {
     if (!listenOnly)
-      MavlinkEventBus.publish(m)
+      sendMavlinkAlways(m)
   }
 
-  /**
-   * Send packets even if we are supposed to only listen (useful for GCS heartbeat)
-   */
-  protected def sendMavlinkAlways(m: MAVLinkMessage) {
-    MavlinkEventBus.publish(m)
-  }
-
-  def sendMavlink(m: SendYoungest) {
+  final def sendMavlink(m: SendYoungest) {
     if (!listenOnly)
-      MavlinkEventBus.publish(m)
+      sendMavlinkAlways(m)
   }
 
   /**
