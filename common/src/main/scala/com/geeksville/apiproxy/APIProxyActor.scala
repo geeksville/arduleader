@@ -77,7 +77,7 @@ trait APIProxyActor extends InstrumentedActor {
     val typ = msg.`type`
     val sysId = msg.sysId
     if (!sysIdToVehicleId.contains(sysId)) {
-      val isGCS = typ != MAV_TYPE.MAV_TYPE_GCS
+      val isGCS = typ == MAV_TYPE.MAV_TYPE_GCS
       val id = if (isGCS)
         "GCS"
       else {

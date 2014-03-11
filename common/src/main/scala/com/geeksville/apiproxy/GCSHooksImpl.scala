@@ -16,6 +16,11 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
 
   private val startTime = System.currentTimeMillis * 1000L
 
+  private def send(e: Envelope) {
+    e.writeDelimitedTo(out)
+    out.flush()
+  }
+
   /**
    * GCS must call this for ever mavlink packet received or sent from the
    * vehicle
@@ -30,7 +35,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
   def filterMavlink(fromInterface: Int, bytes: Array[Byte]) {
     val deltat = (System.currentTimeMillis() * 1000) - startTime
 
-    Envelope(mavlink = Some(MavlinkMsg(fromInterface, Vector(ByteString.copyFrom(bytes)), Some(deltat)))).writeDelimitedTo(out)
+    send(Envelope(mavlink = Some(MavlinkMsg(fromInterface, Vector(ByteString.copyFrom(bytes)), Some(deltat)))))
   }
 
   /**
@@ -42,7 +47,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws UnknownHostException
    */
   def loginUser(userName: String, password: String) {
-    Envelope(login = Some(LoginMsg(userName, password, Some(startTime)))).writeDelimitedTo(out)
+    send(Envelope(login = Some(LoginMsg(userName, password, Some(startTime)))))
   }
 
   /**
@@ -61,7 +66,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws IOException
    */
   def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int) {
-    Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId, false))).writeDelimitedTo(out)
+    send(Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId, false))))
   }
 
   /**

@@ -57,6 +57,9 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   case object StartWaypointDownload
 
+  /// In some cases (i.e. on a server) we may not want to auto fetch waypoints
+  var autoWaypointDownload = true
+
   var guidedDest: Option[Waypoint] = None
 
   var waypoints = IndexedSeq[Waypoint]()
@@ -233,7 +236,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private def perhapsRequestWaypoints() {
     // First contact, download any waypoints from the vehicle and get params
-    if (!hasRequestedWaypoints && !listenOnly)
+    if (!hasRequestedWaypoints && autoWaypointDownload)
       self ! StartWaypointDownload
   }
 

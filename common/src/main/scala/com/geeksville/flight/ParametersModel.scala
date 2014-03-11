@@ -46,6 +46,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
   var parameters = new Array[ParamValue](0)
   var parametersById = Map[String, ParamValue]()
 
+  var autoParameterDownload = true
+
   /**
    * If we just connected to a vehicle it might be still sending stale param messages from some previous session.  Ignore them.
    */
@@ -232,7 +234,7 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
     }
   }
 
-  protected def startParameterDownload() {
+  private def startParameterDownload() {
     // We could be called multiple times, because we are called after every waypoint download.  If we already have parameters,
     // don't start over
     if (parametersById.isEmpty) {
@@ -243,6 +245,11 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
       restartParameterDownload()
     }
+  }
+
+  protected def perhapsParameterDownload() {
+    if (autoParameterDownload)
+      startParameterDownload()
   }
 
   /**

@@ -512,7 +512,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
     super.onWaypointsDownloaded()
     fsm.OnWaypointsDownloaded()
 
-    startParameterDownload()
+    perhapsParameterDownload()
   }
 
   override protected def onParametersDownloaded() {
