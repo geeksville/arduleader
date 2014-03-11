@@ -9,14 +9,17 @@ import org.mavlink.messages.MAVLinkMessage
 /**
  * Common code for any gateway that receives mavlink messages into our actor system
  */
-trait MavlinkReceiver {
+trait MavlinkReceiver extends CanSendMavlink {
 
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
   val destEventBus = MavlinkEventBus
 
-  protected def handlePacket(msg: MAVLinkMessage) {
+  /**
+   * Where msg is a SendYoungest or a MAVLinkMessage
+   */
+  override protected def handlePacket(msg: Any) {
     destEventBus.publish(msg)
   }
 

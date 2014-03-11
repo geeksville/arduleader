@@ -19,7 +19,7 @@ class DirectSending(sysId: Int) extends VehicleSimulator with HeartbeatSender {
 
   var sendingInterface: Option[ActorRef] = None
 
-  override def sendMavlinkAlways(m: Any) = {
+  override def handlePacket(m: Any) = {
     m match {
       case SendYoungest(m) =>
         sendingInterface.foreach(_ ! m)

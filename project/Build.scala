@@ -29,7 +29,9 @@ object ScalaFlyBuild extends Build {
 
   lazy val common = Project(id = "gcommon",
                            base = file("common"),
-			    settings = Project.defaultSettings ++ scalabuffSettings
+			    settings = Project.defaultSettings ++ scalabuffSettings ++ Seq(
+	  scalabuffVersion in ScalaBuff := "1.3.7"
+	)
 	).configs(ScalaBuff)
 
   lazy val posixpilot = Project(id = "posixpilot",

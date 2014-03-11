@@ -9,5 +9,5 @@ trait CanSendMavlink {
   /**
    * m must be a SendYoungest or a MAVLinkMessage
    */
-  protected def sendMavlinkAlways(m: Any)
+  protected def handlePacket(m: Any)
 }

@@ -10,7 +10,6 @@ import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.SendYoungest
 import com.geeksville.mavlink.CanSendMavlink
-import com.geeksville.mavlink.EventBusVehicleSender
 
 /**
  * Pretend to be a vehicle, generating mavlink messages for our system id.
@@ -69,12 +68,12 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
 
   final def sendMavlink(m: MAVLinkMessage) {
     if (!listenOnly)
-      sendMavlinkAlways(m)
+      handlePacket(m)
   }
 
   final def sendMavlink(m: SendYoungest) {
     if (!listenOnly)
-      sendMavlinkAlways(m)
+      handlePacket(m)
   }
 
   /**

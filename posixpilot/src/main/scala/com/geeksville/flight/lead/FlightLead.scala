@@ -23,7 +23,7 @@ import com.geeksville.gcsapi.TempGCSModel
 import com.geeksville.gcsapi.GCSAdapter
 import akka.actor.Props
 import com.geeksville.flight.EventBusVehicleReceiver
-import com.geeksville.mavlink.EventBusVehicleSender
+import com.geeksville.mavlink.MavlinkReceiver
 
 object Main extends Logging {
 
@@ -167,7 +167,7 @@ object Main extends Logging {
       system.actorOf(Props(new IGCPublisher(getClass.getResourceAsStream("pretty-good-res-dumps-1hr.igc"))), "igcpub")
 
       // Watch for failures
-      class FullMonitor extends HeartbeatMonitor 
+      class FullMonitor extends HeartbeatMonitor
       MavlinkEventBus.subscribe(system.actorOf(Props { new FullMonitor }), systemId)
     }
 
@@ -196,7 +196,7 @@ object Main extends Logging {
       // Keep a complete model of the arduplane state
       var vModel: VehicleModel = null
       val vehicle = system.actorOf(Props {
-        vModel = new VehicleModel with EventBusVehicleReceiver with EventBusVehicleSender
+        vModel = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
         vModel
       })
 

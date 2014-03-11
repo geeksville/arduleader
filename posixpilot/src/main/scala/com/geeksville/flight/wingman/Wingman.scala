@@ -12,7 +12,7 @@ import com.geeksville.util.Counted
 import com.geeksville.util.MathTools._
 import com.geeksville.flight.HeartbeatSender
 import com.geeksville.flight.EventBusVehicleReceiver
-import com.geeksville.mavlink.EventBusVehicleSender
+import com.geeksville.mavlink.MavlinkReceiver
 
 /**
  * A full description of how to get from p1 to p2
@@ -22,7 +22,7 @@ import com.geeksville.mavlink.EventBusVehicleSender
  */
 case class Distance3D(x: Double, z: Double, bearing: Int)
 
-class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSender with EventBusVehicleSender {
+class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSender with MavlinkReceiver {
   override def systemId = Wingman.systemId
 
   /**

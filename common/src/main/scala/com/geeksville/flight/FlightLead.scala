@@ -13,7 +13,7 @@ import com.geeksville.akka.MockAkka
 /**
  * Listen for GPS Locations on the event bus, and drive our simulated vehicle
  */
-class FlightLead(sysId: Int = FlightLead.systemId) extends VehicleSimulator with HeartbeatSender with EventBusVehicleSender {
+class FlightLead(sysId: Int = FlightLead.systemId) extends VehicleSimulator with HeartbeatSender with MavlinkReceiver {
 
   private val throttle = new Counted(10)
 
