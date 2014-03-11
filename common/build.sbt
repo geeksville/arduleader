@@ -24,3 +24,6 @@ unmanagedResourceDirectories in Compile <+= baseDirectory( _ / "src" / "main" / 
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.9" withSources()
 
+libraryDependencies += "net.sandrogrzicic" %% "scalabuff-runtime" % "1.3.7" withSources()
+ 
+libraryDependencies += "com.google.protobuf" % "protobuf-java" % "2.5.0" withSources()

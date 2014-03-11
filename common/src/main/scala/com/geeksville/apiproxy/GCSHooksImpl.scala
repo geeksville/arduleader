@@ -30,7 +30,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
   def filterMavlink(fromInterface: Int, bytes: Array[Byte]) {
     val deltat = (System.currentTimeMillis() * 1000) - startTime
 
-    MavlinkMsg(fromInterface, Vector(ByteString.copyFrom(bytes)), Some(deltat)).writeDelimitedTo(out)
+    Envelope(mavlink = Some(MavlinkMsg(fromInterface, Vector(ByteString.copyFrom(bytes)), Some(deltat)))).writeDelimitedTo(out)
   }
 
   /**
@@ -42,8 +42,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws UnknownHostException
    */
   def loginUser(userName: String, password: String) {
-
-    LoginMsg(userName, password, Some(startTime)).writeDelimitedTo(out)
+    Envelope(login = Some(LoginMsg(userName, password, Some(startTime)))).writeDelimitedTo(out)
   }
 
   /**
@@ -62,7 +61,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws IOException
    */
   def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int) {
-    SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId).writeDelimitedTo(out)
+    Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId))).writeDelimitedTo(out)
   }
 
   /**
