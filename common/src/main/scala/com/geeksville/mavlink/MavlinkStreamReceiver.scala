@@ -97,9 +97,9 @@ class MavlinkStreamReceiver(
         var startTimestamp = 0L
         var startTick = System.currentTimeMillis
 
-        while (!self.isTerminated) {
-          try {
-            log.debug("Reading next packet")
+        try {
+          while (!self.isTerminated) {
+            //log.debug("Reading next packet")
 
             // Sleep if needed to simulate the time delay
             tlogSpeedup.foreach { speedup =>
@@ -110,12 +110,13 @@ class MavlinkStreamReceiver(
               val desired = (nowStamp - startTimestamp) + startTick
               val delay = desired - System.currentTimeMillis
               if (delay > 0) {
-                log.debug(s"Sleeping for $delay")
+                //log.debug(s"Sleeping for $delay")
                 Thread.sleep(delay)
               }
             }
 
             val msg = Option(reader.getNextMessage())
+            //log.debug(s"Read packet: $msg")
             msg.foreach { s =>
               numPacket += 1
 
@@ -157,20 +158,24 @@ class MavlinkStreamReceiver(
 
               prevSeq = s.sequence
             }
-          } catch {
-
-            case ex: EOFException =>
-              // Kill our actor if our port gets closed
-              self ! PoisonPill
-
-            case ex: IOException =>
-              if (!self.isTerminated) {
-                log.error("Killing mavlink stream due to: " + ex)
-                self ! PoisonPill
-              }
           }
+
+          // This catch clause is only used _after_ we've successfully opened our socket
+        } catch {
+
+          case ex: EOFException =>
+            // Kill our actor if our port gets closed
+            self ! PoisonPill
+
+          case ex: IOException =>
+            if (!self.isTerminated) {
+              log.error("Killing mavlink stream due to: " + ex)
+              self ! PoisonPill
+            }
         }
       }
+
+      // This catch clause covers connection time problems
     } catch {
       case ex: ConnectException =>
         log.error("Failure to connect: " + ex.getMessage)

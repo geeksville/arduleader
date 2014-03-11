@@ -15,7 +15,7 @@ import gnu.io.NoSuchPortException
 import com.geeksville.logback.Logging
 import com.geeksville.flight.FlightLead
 import com.geeksville.akka.MockAkka
-import java.io.File
+import java.io._
 import com.geeksville.mavserve.MavServe
 import com.geeksville.mavlink.LogIncomingMavlink
 import com.geeksville.gcsapi.Webserver
@@ -37,7 +37,7 @@ object Main extends Logging {
    */
   val systemId: Int = 2
 
-  def createMavlinkClient(mkStream: () => MavlinkStream) {
+  def createMavlinkClient(mkStream: () => MavlinkStreamReceiver) {
     try {
       // val mavSerial = Akka.actorOf(Props(MavlinkPosix.openSerial(port, baudRate)), "serrx")
       val mavSerial = system.actorOf(Props(mkStream()), "serrx")
@@ -71,6 +71,14 @@ object Main extends Logging {
       case ex: NoSuchPortException =>
         logger.error("No serial port found, disabling...")
     }
+  }
+
+  /**
+   * A mavlink streamer that just reads packets from built-in test data
+   */
+  def createTestTlogInput() = createMavlinkClient { () =>
+    val s = new BufferedInputStream(getClass.getResourceAsStream("test.tlog"), 8192)
+    TlogStreamReceiver.open(s)
   }
 
   def createSITLClient() = createMavlinkClient(() => MavlinkTCP.connect("localhost", 5760))
@@ -139,12 +147,13 @@ object Main extends Logging {
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false
     val startIncomingUDP = false
-    val startSerial = true
+    val startSerial = false
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
     val startMonitor = true
     val startMavServe = true
+    val startSimData = true
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = false
@@ -152,6 +161,9 @@ object Main extends Logging {
 
     if (startSerial)
       createSerial()
+
+    if (startSimData)
+      createTestTlogInput()
 
     if (startRadios)
       testRadios()
@@ -197,6 +209,7 @@ object Main extends Logging {
       var vModel: VehicleModel = null
       val vehicle = system.actorOf(Props {
         vModel = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
+        vModel.listenOnly = startSimData // If using sim data, don't try talking with it
         vModel
       })
 
