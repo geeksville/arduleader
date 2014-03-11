@@ -77,9 +77,11 @@ object Main extends Logging {
   /**
    * A mavlink streamer that just reads packets from built-in test data
    */
-  def createTestTlogInput() = createMavlinkClient { () =>
-    val s = new BufferedInputStream(getClass.getResourceAsStream("test.tlog"), 8192)
-    TlogStreamReceiver.open(s)
+  def createTestTlogInput() {
+    createMavlinkClient { () =>
+      val s = new BufferedInputStream(getClass.getResourceAsStream("test.tlog"), 8192)
+      TlogStreamReceiver.open(s)
+    }
   }
 
   def createSITLClient() = createMavlinkClient(() => MavlinkTCP.connect("localhost", 5760))

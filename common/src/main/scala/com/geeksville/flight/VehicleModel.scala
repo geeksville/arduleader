@@ -486,7 +486,8 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
   /// Start a new download of params/wpts/etc... essentially everything necessary to handle reaquisition of heartbeat
   private def refetchVehicleState() {
-    setStreamEnable(true)
+    if (!listenOnly)
+      setStreamEnable(true)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     fsm.OnHasHeartbeat()
