@@ -24,6 +24,7 @@ import com.geeksville.gcsapi.GCSAdapter
 import akka.actor.Props
 import com.geeksville.flight.EventBusVehicleReceiver
 import com.geeksville.mavlink.MavlinkReceiver
+import com.geeksville.apiproxy.LiveUploader
 
 object Main extends Logging {
 
@@ -158,6 +159,7 @@ object Main extends Logging {
     val logToConsole = false
     val logToFile = false
     val startRadios = false
+    val liveUpload = true
 
     if (startSerial)
       createSerial()
@@ -170,6 +172,9 @@ object Main extends Logging {
 
     if (startSITL)
       createSITLClient()
+
+    if (liveUpload)
+      LiveUploader.create(system)
 
     if (startFlightLead) {
       // Create flightlead actors

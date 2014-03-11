@@ -22,7 +22,6 @@ case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
 }
 
 /**
- *
  * Reads tlog files
  */
 class BinaryMavlinkReader(bytes: Array[Byte]) extends Iterable[TimestampedMessage] {

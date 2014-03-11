@@ -61,7 +61,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws IOException
    */
   def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int) {
-    Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId))).writeDelimitedTo(out)
+    Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId, false))).writeDelimitedTo(out)
   }
 
   /**
