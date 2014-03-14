@@ -81,23 +81,8 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     send(Envelope(startMission = Some(StartMissionMsg(keep = true))))
   }
 
-  /**
-   * Associate a server vehicleId string with a particular mavlink sysId. GCS
-   * must call this for every vehicle that is connected.
-   *
-   * @param vehicleId
-   *            a UUID for this vehicle, if the server has never seen this
-   *            UUID before, a new vehicle record will be created. Use the
-   *            special string "gcs" for data from the GCS (not really a
-   *            vehicle)
-   * @param fromInterface
-   *            the interface # this vehicle is connected on
-   * @param mavlinkSysId
-   *            the mavlink sysid for this vehicle
-   * @throws IOException
-   */
-  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int) {
-    send(Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId, false))))
+  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean) {
+    send(Envelope(setVehicle = Some(SetVehicleMsg(fromInterface, mavlinkSysId, vehicleId, allowControl))))
   }
 
   /**

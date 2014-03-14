@@ -66,9 +66,11 @@ trait GCSHooks {
    *            the interface # this vehicle is connected on
    * @param mavlinkSysId
    *            the mavlink sysid for this vehicle
+   * @param allowControl
+   *            true if we will allow the server to control this vehicle
    * @throws IOException
    */
-  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int)
+  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean)
 
   /**
    * Send any queued messages immedately

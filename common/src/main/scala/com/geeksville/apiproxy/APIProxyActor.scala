@@ -65,7 +65,7 @@ trait APIProxyActor extends InstrumentedActor {
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
         case (sysId, id) =>
-          l.setVehicleId(id, interfaceNum, sysId)
+          l.setVehicleId(id, interfaceNum, sysId, true)
       }
     }
   }
@@ -92,7 +92,7 @@ trait APIProxyActor extends InstrumentedActor {
       }
 
       sysIdToVehicleId += (sysId -> id)
-      link.foreach(_.setVehicleId(id, interfaceNum, sysId))
+      link.foreach(_.setVehicleId(id, interfaceNum, sysId, true))
     }
   }
 }
