@@ -5,14 +5,19 @@ import java.net.InetSocketAddress
 import java.io.BufferedOutputStream
 import com.geeksville.dapi._
 import com.google.protobuf.ByteString
+import java.io.BufferedInputStream
+import java.net.URL
+import com.geeksville.logback.Logging
 
-class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends GCSHooks {
+class LoginFailedException(message: Option[ShowMsg]) extends Exception(message.flatMap(_.text).getOrElse("Login failed"))
+
+class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends GCSHooks with Logging {
   private val socket = new Socket();
   socket.setTcpNoDelay(true); // Turn off nagle
   socket.connect(new InetSocketAddress(host, port))
 
   private val out = new BufferedOutputStream(socket.getOutputStream(), 8192)
-  private val in = socket.getInputStream()
+  private val in = new BufferedInputStream(socket.getInputStream(), 8192)
 
   private val startTime = System.currentTimeMillis * 1000L
 
@@ -38,6 +43,25 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     send(Envelope(mavlink = Some(MavlinkMsg(fromInterface, Vector(ByteString.copyFrom(bytes)), Some(deltat)))))
   }
 
+  /// Ask server if the specified username is available for creation
+  def isUsernameAvailable(userName: String) = {
+    send(Envelope(login = Some(LoginMsg(LoginRequestCode.CHECK_USERNAME, userName))))
+    val r = readLoginResponse()
+    logger.debug(s"isUsernameAvailable response=$r")
+    r.code == LoginResponseMsg.ResponseCode.OK
+  }
+
+  /// Create a new user account
+  def createUser(userName: String, password: String, email: Option[String]) {
+    send(Envelope(login = Some(LoginMsg(LoginRequestCode.CREATE, userName, password = Some(password), email = email, startTime = Some(startTime)))))
+    val r = readLoginResponse()
+    if (r.code != LoginResponseMsg.ResponseCode.OK)
+      throw new LoginFailedException(r.message)
+  }
+
+  private def readEnvelope() = Envelope.parseDelimitedFrom(in).getOrElse(throw new Exception("No server response"))
+  private def readLoginResponse() = readEnvelope().loginResponse.get
+
   /**
    * Connect to web service
    *
@@ -48,6 +72,12 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    */
   def loginUser(userName: String, password: String) {
     send(Envelope(login = Some(LoginMsg(LoginRequestCode.LOGIN, userName, password = Some(password), startTime = Some(startTime)))))
+    val r = readLoginResponse()
+    if (r.code != LoginResponseMsg.ResponseCode.OK)
+      throw new LoginFailedException(r.message)
+  }
+
+  override def startMission() {
     send(Envelope(startMission = Some(StartMissionMsg(keep = true))))
   }
 

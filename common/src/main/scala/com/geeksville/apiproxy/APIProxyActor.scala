@@ -8,7 +8,7 @@ import scala.collection.mutable.HashMap
 import java.util.UUID
 
 /**
- * Base class for actors that connect to the central API hub.
+ * Base class for (client side) actors that connect to the central API hub.
  * If we receive any mavlink messages we will send them to the server
  */
 trait APIProxyActor extends InstrumentedActor {
@@ -53,8 +53,14 @@ trait APIProxyActor extends InstrumentedActor {
     loginInfo.foreach { u =>
       // Now reconnect
       val l = new GCSHooksImpl
-      l.loginUser(u.loginName, u.password)
+
       link = Some(l)
+
+      // Create user if necessary/possible
+      if (l.isUsernameAvailable(u.loginName))
+        l.createUser(u.loginName, u.password, u.email)
+      else
+        l.loginUser(u.loginName, u.password)
 
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
@@ -92,5 +98,5 @@ trait APIProxyActor extends InstrumentedActor {
 }
 
 object APIProxyActor {
-  case class LoginMsg(loginName: String, password: String)
+  case class LoginMsg(loginName: String, password: String, email: Option[String])
 }

@@ -19,8 +19,12 @@ object LiveUploader {
   def create(context: ActorRefFactory) = {
     val r = context.actorOf(Props(new LiveUploader))
 
-    // FIXME test account creation
-    r ! APIProxyActor.LoginMsg("test-bob@3drobotics.com", "sekrit")
+    // Create account as needed (FIXME) - pull out to expose separately in GUI
+    val username = "test-bob"
+    val email = "test-bob@3drobotics.com"
+    val psw = "sekrit"
+
+    r ! APIProxyActor.LoginMsg(username, psw, Some(email))
     r
   }
 }

@@ -40,10 +40,18 @@ trait GCSHooks {
    *
    * @param userName
    * @param password
-   * @throws IOException
-   * @throws UnknownHostException
+   * @throws LoginException if login fails
    */
   def loginUser(userName: String, password: String)
+
+  /// Ask server if the specified username is available for creation
+  def isUsernameAvailable(userName: String): Boolean
+
+  /// Create a new user account 
+  /// @throws LoginException if login fails
+  def createUser(userName: String, password: String, email: Option[String])
+
+  def startMission()
 
   /**
    * Associate a server vehicleId string with a particular mavlink sysId. GCS
