@@ -47,7 +47,8 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    * @throws UnknownHostException
    */
   def loginUser(userName: String, password: String) {
-    send(Envelope(login = Some(LoginMsg(userName, password, Some(startTime)))))
+    send(Envelope(login = Some(LoginMsg(LoginRequestCode.LOGIN, userName, password = Some(password), startTime = Some(startTime)))))
+    send(Envelope(startMission = Some(StartMissionMsg(keep = true))))
   }
 
   /**
