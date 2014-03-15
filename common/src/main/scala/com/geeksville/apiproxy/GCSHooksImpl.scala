@@ -8,6 +8,9 @@ import com.google.protobuf.ByteString
 import java.io.BufferedInputStream
 import java.net.URL
 import com.geeksville.logback.Logging
+import com.geeksville.util.ThreadTools
+import com.geeksville.util.Using._
+import java.net.SocketException
 
 class LoginFailedException(message: Option[ShowMsg]) extends Exception(message.flatMap(_.text).getOrElse("Login failed"))
 
@@ -21,9 +24,55 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
 
   private val startTime = System.currentTimeMillis * 1000L
 
+  // FIXME - change to use the fancy akka TCP API or zeromq so we don't need to burn a thread for each client)
+  private val listenerThread = ThreadTools.createDaemon("TCPGCS")(readerFunct)
+
+  private var callbacks: Option[GCSCallback] = None
+
+  private def readerFunct() {
+    try {
+      val default = Envelope.defaultInstance
+      val cb = callbacks.get
+
+      // Any Envelopes that come over TCP, extract the message and handle just like any other actor msg
+      using(in) { is =>
+        // Real until we see an invalid envelope - FIXME, don't hang up in this case?
+        Stream.continually(default.mergeDelimitedFromStream(is)).takeWhile { o =>
+          // log.warning(s"Considering $o")
+          o.isDefined
+        }.foreach { mopt =>
+          mopt.foreach { env =>
+            logger.debug(s"Got packet $env")
+
+            // FIXME - use the enum to more quickly find the payload we care about
+            env.mavlink.foreach { m =>
+              logger.debug(s"Dispatching $m")
+              m.packet.foreach { p =>
+                cb.sendMavlink(p.toByteArray)
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      case ex: SocketException =>
+        logger.error(s"Exiting client reader due to: $ex")
+    } finally {
+      logger.debug("Client reader shutting down")
+
+      // If our reader exits, shut everything down
+      close()
+    }
+  }
+
   private def send(e: Envelope) {
     e.writeDelimitedTo(out)
     out.flush()
+  }
+
+  def setCallback(cb: GCSCallback) {
+    callbacks = Some(cb)
+    listenerThread.start()
   }
 
   /**

@@ -20,7 +20,7 @@ trait GCSHooks {
    *
    * @param cb
    */
-  // def setCallback( cb: GCSCallback)
+  def setCallback(cb: GCSCallback)
 
   /**
    * GCS must call this for ever mavlink packet received or sent from the

@@ -6,12 +6,14 @@ import org.mavlink.messages.ardupilotmega.msg_heartbeat
 import org.mavlink.messages.MAV_TYPE
 import scala.collection.mutable.HashMap
 import java.util.UUID
+import com.geeksville.mavlink.CanSendMavlink
+import com.geeksville.mavlink.MavlinkUtils
 
 /**
  * Base class for (client side) actors that connect to the central API hub.
  * If we receive any mavlink messages we will send them to the server
  */
-trait APIProxyActor extends InstrumentedActor {
+trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
   import APIProxyActor._
 
   private var link: Option[GCSHooks] = None
@@ -22,6 +24,14 @@ trait APIProxyActor extends InstrumentedActor {
   private val sysIdToVehicleId = HashMap[Int, String]()
 
   private var loginInfo: Option[LoginMsg] = None
+
+  private val callbacks = new GCSCallback {
+    def sendMavlink(b: Array[Byte]) {
+      val msg = MavlinkUtils.bytesToPacket(b)
+      log.debug(s"Client received mavlink from server: $msg")
+      handlePacket(msg)
+    }
+  }
 
   override def postStop() {
     disconnect()
@@ -44,7 +54,10 @@ trait APIProxyActor extends InstrumentedActor {
   }
 
   private def disconnect() {
-    link.foreach(_.close())
+    link.foreach { s =>
+      log.debug("Closing link to server")
+      s.close()
+    }
     link = None
   }
 
@@ -61,6 +74,9 @@ trait APIProxyActor extends InstrumentedActor {
         l.createUser(u.loginName, u.password, u.email)
       else
         l.loginUser(u.loginName, u.password)
+
+      // We don't start reading async until we are logged in
+      l.setCallback(callbacks)
 
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
