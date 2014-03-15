@@ -2,7 +2,6 @@ package com.geeksville.mavlink
 
 import java.net._
 import org.mavlink.messages.MAVLinkMessage
-import org.mavlink.messages.MAVLinkMessageFactory
 import org.mavlink.IMAVLinkMessage
 import com.geeksville.util.ThreadTools
 import com.geeksville.akka.InstrumentedActor

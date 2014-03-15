@@ -69,24 +69,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
     socket.receive(packet)
     remote = Some(packet.getSocketAddress)
 
-    val msg = packet.getData
-
-    //log.info("Processing packet from " + remote.get)
-
-    msg match {
-      case Array(start, payLength, packSeq, sysId, compId, msgId, payload @ _*) =>
-        if (start == IMAVLinkMessage.MAVPROT_PACKET_START_V10) {
-          val packet = MAVLinkMessageFactory.getMessage(msgId & 0xff, sysId & 0xff, compId & 0xff, payload.take(payLength).toArray)
-          //log.debug("Mav rx sysId=%d: %s".format(sysId & 0xff, packet))
-          Option(packet)
-        } else {
-          log.error("Ignoring bad MAVLink packet")
-          None
-        }
-      case _ =>
-        log.error("Ignoring bad match")
-        None
-    }
+    MavlinkUtils.bytesToPacket(packet.getData)
   }
 
   private def worker() {
