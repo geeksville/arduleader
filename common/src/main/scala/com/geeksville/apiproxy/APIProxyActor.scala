@@ -33,6 +33,9 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
     }
   }
 
+  /// Normally we claim to be a live/controllable vehicle - but subclasses can change this
+  protected def isLive = true
+
   override def postStop() {
     disconnect()
     super.postStop()
@@ -81,7 +84,7 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
         case (sysId, id) =>
-          l.setVehicleId(id, interfaceNum, sysId, true)
+          l.setVehicleId(id, interfaceNum, sysId, isLive)
       }
     }
   }
@@ -108,7 +111,7 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
       }
 
       sysIdToVehicleId += (sysId -> id)
-      link.foreach(_.setVehicleId(id, interfaceNum, sysId, true))
+      link.foreach(_.setVehicleId(id, interfaceNum, sysId, isLive))
     }
   }
 }
