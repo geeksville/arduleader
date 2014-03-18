@@ -16,13 +16,14 @@ import com.geeksville.logback.Logging
 import com.geeksville.util.Throttled
 import org.mavlink.messages.MAV_TYPE
 import scala.collection.mutable.HashSet
+import scala.concurrent.blocking
 
 /**
  * Output a mission planner compatible tlog file
  *
  * File format seems to be time in usec as a long (big endian), followed by packet.
  */
-class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean, val wantImprovedFilename: Boolean) extends InstrumentedActor {
+class LogBinaryMavlink(protected var file: File, val deleteIfBoring: Boolean, val wantImprovedFilename: Boolean) extends InstrumentedActor {
 
   private val tempFile = new File(file.getCanonicalPath() + ".tmp")
   private val out = new BufferedOutputStream(new FileOutputStream(tempFile, true), 8192)
@@ -70,17 +71,25 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean, val 
     }
   }
 
+  /**
+   * Override this hook if you'd like to be informed when the file has been successfully closed
+   */
+  protected def onFileClose() {}
+
   override def postStop() {
-    log.info("Closing log file...")
-    out.close()
-    if (deleteIfBoring && isBoring) {
-      log.error("Deleting boring file " + file)
-      tempFile.delete()
-    } else {
-      if (wantImprovedFilename)
-        improveFilename()
-      log.info("Renaming to " + file)
-      tempFile.renameTo(file)
+    blocking {
+      log.info("Closing log file...")
+      out.close()
+      if (deleteIfBoring && isBoring) {
+        log.error("Deleting boring file " + file)
+        tempFile.delete()
+      } else {
+        if (wantImprovedFilename)
+          improveFilename()
+        log.info("Renaming to " + file)
+        tempFile.renameTo(file)
+        onFileClose()
+      }
     }
 
     super.postStop()
@@ -116,14 +125,14 @@ class LogBinaryMavlink(private var file: File, val deleteIfBoring: Boolean, val 
       log.info("msg write per sec %s".format(mPerSec))
     }
 
-    // Time in usecs
-    val time =
+    blocking {
       buf.clear()
-    buf.putLong(timeUsec)
-    out.write(buf.array)
+      buf.putLong(timeUsec)
+      out.write(buf.array)
 
-    // Payload
-    out.write(msg.encode)
+      // Payload
+      out.write(msg.encode)
+    }
   }
 
   def onReceive = {
