@@ -59,6 +59,7 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
   private def disconnect() {
     link.foreach { s =>
       log.debug("Closing link to server")
+      s.stopMission()
       s.close()
     }
     link = None
@@ -80,6 +81,8 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
 
       // We don't start reading async until we are logged in
       l.setCallback(callbacks)
+
+      l.startMission()
 
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {

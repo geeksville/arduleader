@@ -51,7 +51,11 @@ trait GCSHooks {
   /// @throws LoginException if login fails
   def createUser(userName: String, password: String, email: Option[String])
 
+  /// Begin a new mission
   def startMission()
+
+  /// End a mission
+  def stopMission()
 
   /**
    * Associate a server vehicleId string with a particular mavlink sysId. GCS

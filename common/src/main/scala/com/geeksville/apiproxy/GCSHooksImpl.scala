@@ -109,7 +109,10 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
   }
 
   private def readEnvelope() = Envelope.parseDelimitedFrom(in).getOrElse(throw new Exception("No server response"))
-  private def readLoginResponse() = readEnvelope().loginResponse.get
+  private def readLoginResponse() = {
+    flush() // Make sure any previous commands has been sent
+    readEnvelope().loginResponse.get
+  }
 
   /**
    * Connect to web service
@@ -128,6 +131,10 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
 
   override def startMission() {
     send(Envelope(startMission = Some(StartMissionMsg(keep = true))))
+  }
+
+  override def stopMission() {
+    send(Envelope(stopMission = Some(StopMissionMsg(keep = true))))
   }
 
   def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean) {
