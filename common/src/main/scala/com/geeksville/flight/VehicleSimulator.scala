@@ -24,7 +24,7 @@ trait VehicleSimulator extends InstrumentedActor with CanSendMavlink {
   /**
    * We want to use a 'system boot time' but for now I'll just pick something that is relatively recent (so 32 bit msecs don't roll over)
    */
-  val startTime = (new GregorianCalendar(2012, 12, 30)).getTime.getTime
+  private val startTime = (new GregorianCalendar(2012, 12, 30)).getTime.getTime
 
   def vehicleTypeCode = MAV_TYPE.MAV_TYPE_GCS // MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
 

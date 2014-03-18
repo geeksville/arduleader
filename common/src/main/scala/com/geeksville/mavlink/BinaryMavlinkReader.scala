@@ -18,7 +18,12 @@ import java.io.IOException
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
   def timeMsec = time / 1000
   def timeSeconds = time / (1e6)
-  def timeAsDate = new Date(timeMsec)
+  def timeAsDate = TimestampedMessage.usecsToDate(time)
+}
+
+object TimestampedMessage {
+  def usecsToDate(t: Long) = new Date(t / 1000)
+  def usecsToSeconds(t: Long) = t / 1e6
 }
 
 /**

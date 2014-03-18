@@ -27,6 +27,7 @@ import com.geeksville.akka.InstrumentedActor
 import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
 import scala.util.Random
 import org.mavlink.messages.MAV_AUTOPILOT
+import com.geeksville.mavlink.TimestampedMessage
 
 //
 // Messages we publish on our event bus when something happens
@@ -127,6 +128,13 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
   var vfrHud: Option[msg_vfr_hud] = None
   var globalPos: Option[msg_global_position_int] = None
 
+  // Summary stats
+  var maxAltitude: Double = 0.0
+  var maxAirSpeed: Double = 0.0
+  var maxGroundSpeed: Double = 0.0
+  var startOfFlightTime: Option[Long] = None
+  var endOfFlightTime: Option[Long] = None
+
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
   MavlinkEventBus.subscribe(self, radioSysId)
@@ -209,6 +217,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
     // Don't publish bogus locations
     if (l.lat != 0 && l.lon != 0) {
       location = Some(l)
+      l.alt.foreach { a => maxAltitude = math.max(maxAltitude, a) }
 
       locationThrottle { () =>
         //log.debug("publishing loc")
@@ -452,6 +461,28 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
     case msg: msg_vfr_hud =>
       vfrHud = Some(msg)
+      maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
+      maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
+      if (msg.throttle > 0) {
+        if (!startOfFlightTime.isDefined)
+          startOfFlightTime = Some(-1)
+        endOfFlightTime = Some(-1) // FIXME - find real start/end times
+      }
+  }
+
+  /**
+   * duration of flying portion in seconds
+   */
+  def flightDuration = (for {
+    s <- startOfFlightTime
+    e <- endOfFlightTime
+  } yield {
+    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
+    println(s"Calculated flight duration of $r")
+    r
+  }).orElse {
+    println("Can't find duration for flight")
+    None
   }
 
   override def onModeChanged(oldmode: Option[Int], newmode: Int) {
