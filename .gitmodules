@@ -1,3 +1,6 @@
 [submodule "scandroid"]
 	path = scandroid
 	url = git://github.com/geeksville/scandroid.git
+[submodule "droneapi-protobuf"]
+	path = droneapi-protobuf
+	url = git@github.com:diydrones/droneapi-protobuf.git
