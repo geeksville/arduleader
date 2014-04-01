@@ -10,9 +10,9 @@ scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") //
  
 // libraryDependencies += "org.scala-lang" % "scala-actors" % "2.10.0"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.2.3"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.0"
 
-libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.2.3"
+libraryDependencies += "com.typesafe.akka" %% "akka-slf4j" % "2.3.0"
 
 unmanagedResourceDirectories in Compile <+= baseDirectory( _ / "src" / "main" / "scala" )
 
