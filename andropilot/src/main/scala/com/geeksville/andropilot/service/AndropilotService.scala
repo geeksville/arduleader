@@ -54,7 +54,7 @@ import akka.actor.ActorRef
 import akka.actor.Props
 import akka.actor.PoisonPill
 import com.geeksville.flight.EventBusVehicleReceiver
-import com.geeksville.mavlink.EventBusVehicleSender
+import com.geeksville.mavlink.MavlinkReceiver
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -239,7 +239,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     }
 
     system.actorOf(Props {
-      val a = new VehicleModel with EventBusVehicleReceiver with EventBusVehicleSender
+      val a = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
       a.useRequestById = !useOldArducopter
       vehicle = Some(a)
       a
