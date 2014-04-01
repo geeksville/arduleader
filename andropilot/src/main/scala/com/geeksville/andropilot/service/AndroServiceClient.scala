@@ -48,7 +48,7 @@ trait AndroServiceClient extends AndroidLogger with AndropilotPrefs {
 
       // Don't use akka until the service is created
       s.vehicle.foreach { v =>
-        val actor = MockAkka.system.actorOf(Props(new MyVehicleListener(v)), "lst")
+        val actor = MockAkka.system.actorOf(Props(new MyVehicleListener(v)))
         myVehicle = Some(v)
         myVListener = Some(actor)
       }
