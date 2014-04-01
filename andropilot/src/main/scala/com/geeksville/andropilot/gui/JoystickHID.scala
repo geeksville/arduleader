@@ -18,6 +18,7 @@ import com.geeksville.andropilot.R
 import android.content.ActivityNotFoundException
 import android.os.Bundle
 import akka.actor.Cancellable
+import scala.concurrent.ExecutionContext
 
 /**
  * Provides joystick control through a bluetooth joystick
@@ -141,10 +142,11 @@ trait JoystickHID extends JoystickController {
         sendOverride()
       }
 
-      import MockAkka.system._
+      val system = MockAkka.system
+      import system._
 
       // Schedule us to be invoked again in a little while
-      throttleTimer = Some(MockAkka.system.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
+      throttleTimer = Some(system.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
     } else
       throttleTimer = None
   }

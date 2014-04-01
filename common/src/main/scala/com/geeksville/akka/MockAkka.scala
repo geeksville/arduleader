@@ -22,7 +22,19 @@ object MockAkka extends Logging {
 
   private lazy val config = configOverride.getOrElse(ConfigFactory.load(classLoader))
 
-  lazy val system = ActorSystem("mockakka", config, classLoader)
+  private var currentSystem: Option[ActorSystem] = None
+
+  /// Create a new akka system as needed
+  def system = currentSystem.getOrElse {
+    currentSystem = Some(ActorSystem("mockakka", config, classLoader))
+    currentSystem.get
+  }
+
+  def shutdown() {
+    system.shutdown()
+    system.awaitTermination()
+    currentSystem = None // If we use akka again we'll need to start from scratch
+  }
 
   /*
   var scheduler = new Scheduler
@@ -35,17 +47,6 @@ object MockAkka extends Logging {
     r
   }
 
-  def shutdown() {
-    logger.info("Shutting down actors")
-    actors.foreach { a =>
-      logger.debug("Killing " + a)
-      a ! PoisonPill
-    }
-    actors.clear()
-    scheduler.close()
-    // Make a new scheduler since we just torched the current one
-    scheduler = new Scheduler
-    logger.info("Done shutting down")
-  }
+
   */
 }

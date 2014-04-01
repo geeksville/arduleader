@@ -574,7 +574,8 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
     destroySpeech()
 
-    system.shutdown()
+    MockAkka.shutdown()
+    warn("done onDestroy ******************************")
     super.onDestroy()
   }
 
