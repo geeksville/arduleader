@@ -99,6 +99,9 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
   def system = MockAkka.system
 
+  /// This handler needs to be created in the foreground thread (shared with actors such as Speaker)
+  lazy val handler = new Handler
+
   private lazy val wakeLock = getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager].newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CPU")
 
   //
@@ -203,48 +206,10 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     startService(AndroidDirUpload.createIntent(this))
   }
 
-  override def onCreate() {
-    super.onCreate()
-
-    info("Creating service")
-
-    initSpeech()
-
-    // Not really ideal - but good enough for now
-    ParameterDocFile.cacheDir = Some(getFilesDir)
-    ThreadTools.start("docupdate")(ParameterDocFile.updateParamDocs)
-
-    // Send any previously spooled files
-    perhapsUpload()
-
-    // Find out when the device goes away
-    registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
-
-    val startFlightLead = false
-    if (startFlightLead) {
-      info("Starting flight-lead")
-
-      val flightSysId = 1 // FlightLead.systemId // FIXME, really should be 2, but we pretend to be a real plane for now
-
-      // Create flightlead actors
-      // If you want logging uncomment the following line
-      // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
-      // For testing I pretend to be a real arduplane (id 1)
-      system.actorOf(Props(new FlightLead(flightSysId)), "lead")
-      val stream = getAssets().open("testdata.igc")
-      system.actorOf(Props(new IGCPublisher(stream)), "igcpub")
-
-      // Watch for failures
-      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), flightSysId)
-    }
-
-    system.actorOf(Props {
-      val a = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
-      a.useRequestById = !useOldArducopter
-      vehicle = Some(a)
-      a
-    }, "vmon")
-
+  /**
+   * Init operations that can only proceed after the vehicle model is up
+   */
+  private def postVehicleInit() {
     speaker = Some(system.actorOf(Props(new Speaker(this, vehicle.get)), "speaker"))
 
     if (runWebserver) {
@@ -281,6 +246,55 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     prefListeners = prefListeners ++ handlers.map { p => registerOnPreferenceChanged(p._1)(p._2) }
 
     info("Done starting service")
+  }
+
+  override def onCreate() {
+    super.onCreate()
+
+    info("Creating service")
+
+    initSpeech()
+
+    // Not really ideal - but good enough for now
+    ParameterDocFile.cacheDir = Some(getFilesDir)
+    ThreadTools.start("docupdate")(ParameterDocFile.updateParamDocs)
+
+    // Send any previously spooled files
+    perhapsUpload()
+
+    // Find out when the device goes away
+    registerReceiver(disconnectReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED))
+
+    val startFlightLead = false
+    if (startFlightLead) {
+      info("Starting flight-lead")
+
+      val flightSysId = 1 // FlightLead.systemId // FIXME, really should be 2, but we pretend to be a real plane for now
+
+      // Create flightlead actors
+      // If you want logging uncomment the following line
+      // Akka.actorOf(Props(new LogIncomingMavlink(VehicleSimulator.systemId)), "hglog")
+      // For testing I pretend to be a real arduplane (id 1)
+      system.actorOf(Props(new FlightLead(flightSysId)), "lead")
+      val stream = getAssets().open("testdata.igc")
+      system.actorOf(Props(new IGCPublisher(stream)), "igcpub")
+
+      // Watch for failures
+      // MavlinkEventBus.subscribe(MockAkka.actorOf(new HeartbeatMonitor), flightSysId)
+    }
+
+    val vactor = system.actorOf(Props {
+      val a = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
+      a.useRequestById = !useOldArducopter
+      vehicle = Some(a)
+
+      postVehicleInit()
+      a
+    }, "vmon")
+
+    // Use a sync operation because this 
+    // vactor.ask(GetInstance)(5 seconds)
+
   }
 
   def startUDP() {

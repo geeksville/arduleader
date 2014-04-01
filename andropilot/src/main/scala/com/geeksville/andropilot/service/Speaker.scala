@@ -38,7 +38,7 @@ class Speaker(val acontext: AndropilotService, val v: VehicleModel) extends Inst
 
   private val subscription = v.eventStream.subscribe(this)
 
-  private val handler = new Handler
+  private def handler = acontext.handler
 
   private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)

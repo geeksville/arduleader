@@ -7,6 +7,10 @@ import com.ridemission.scandroid.AndroidLogger
 import com.geeksville.logback.MuteAllFilter
 import com.geeksville.util.AnalyticsAdapter
 import com.geeksville.util.AnalyticsService
+import android.util.Log
+import com.geeksville.akka.MockAkka
+import scala.io.Source
+import com.typesafe.config.ConfigFactory
 
 class AndroidAnalytics extends AnalyticsAdapter {
   def reportException(msg: String, ex: Throwable) {
@@ -44,6 +48,15 @@ class MyApplication extends Application with AndropilotPrefs {
     // Turn off our two types of logging
     AndroidLogger.enable = developerMode
     MuteAllFilter.mute = !developerMode
+
+    /*
+    Log.e("FISH", "loading config")
+    val stream = getAssets().open("application.conf")
+    val asStr = Source.fromInputStream(stream).mkString("")
+    stream.close()
+    MockAkka.configOverride = Some(ConfigFactory.load(ConfigFactory.parseString(asStr)))
+	*/
+    MockAkka.classLoader = getClassLoader
 
     // BugSenseHandler.setLogging(true)
 
