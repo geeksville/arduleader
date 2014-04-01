@@ -11,6 +11,7 @@ import android.util.Log
 import com.geeksville.akka.MockAkka
 import scala.io.Source
 import com.typesafe.config.ConfigFactory
+import android.os.StrictMode
 
 class AndroidAnalytics extends AnalyticsAdapter {
   def reportException(msg: String, ex: Throwable) {
@@ -37,6 +38,21 @@ class MyApplication extends Application with AndropilotPrefs {
   var lastSunspotCheck = 0L
 
   override def onCreate() {
+    if (developerMode) {
+      StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+        .detectDiskReads()
+        .detectDiskWrites()
+        .detectNetwork() // or .detectAll() for all detectable problems
+        .penaltyLog()
+        .build());
+      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+        .detectLeakedSqlLiteObjects()
+        .detectLeakedClosableObjects()
+        .penaltyLog()
+        .penaltyDeath()
+        .build());
+    }
+
     // The following line triggers the initialization of ACRA
     // ACRA.init(this)
     BugSenseHandler.initAndStartSession(this, "2a5e5e70")
