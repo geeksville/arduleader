@@ -40,10 +40,10 @@ class MyApplication extends Application with AndropilotPrefs {
   override def onCreate() {
     if (developerMode) {
       StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-        .detectDiskReads()
+        // .detectDiskReads() - for now we don't freak out about disk reads
         .detectDiskWrites()
         .detectNetwork() // or .detectAll() for all detectable problems
-        .penaltyLog()
+        .penaltyDialog()
         .build());
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
         .detectLeakedSqlLiteObjects()
