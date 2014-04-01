@@ -25,6 +25,7 @@ import akka.actor.Props
 import com.geeksville.flight.EventBusVehicleReceiver
 import com.geeksville.mavlink.MavlinkReceiver
 import com.geeksville.apiproxy.LiveUploader
+import com.geeksville.apiproxy.APIProxyActor
 
 object Main extends Logging {
 
@@ -156,7 +157,7 @@ object Main extends Logging {
     val startWingman = false
     val startMonitor = true
     val startMavServe = true
-    val startSimData = true
+    val startSimData = false
     val dumpSerialRx = false
     val logToConsole = false
     val logToFile = false
@@ -176,7 +177,7 @@ object Main extends Logging {
       createSITLClient()
 
     if (liveUpload)
-      LiveUploader.create(system)
+      LiveUploader.create(system, APIProxyActor.testAccount, true)
 
     if (startFlightLead) {
       // Create flightlead actors

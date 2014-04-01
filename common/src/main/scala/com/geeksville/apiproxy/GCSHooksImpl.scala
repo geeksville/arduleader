@@ -14,6 +14,8 @@ import java.net.SocketException
 
 class LoginFailedException(message: Option[ShowMsg]) extends Exception(message.flatMap(_.text).getOrElse("Login failed"))
 
+class CallbackLaterException(message: Option[ShowMsg], val delayMsec: Int) extends LoginFailedException(message)
+
 class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends GCSHooks with Logging {
   private val socket = new Socket();
   socket.setTcpNoDelay(true); // Turn off nagle
@@ -103,15 +105,25 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
   /// Create a new user account
   def createUser(userName: String, password: String, email: Option[String]) {
     send(Envelope(login = Some(LoginMsg(LoginRequestCode.CREATE, userName, password = Some(password), email = email, startTime = Some(startTime)))))
-    val r = readLoginResponse()
-    if (r.code != LoginResponseMsg.ResponseCode.OK)
-      throw new LoginFailedException(r.message)
+    checkLoginOkay()
   }
 
   private def readEnvelope() = Envelope.parseDelimitedFrom(in).getOrElse(throw new Exception("No server response"))
   private def readLoginResponse() = {
     flush() // Make sure any previous commands has been sent
-    readEnvelope().loginResponse.get
+    val r = readEnvelope().loginResponse.get
+
+    // No matter what, if the server is telling us to hang up, we must bail immediately
+    if (r.code == LoginResponseMsg.ResponseCode.CALL_LATER)
+      throw new CallbackLaterException(r.message, r.callbackDelay.getOrElse(10 * 60 * 1000))
+
+    r
+  }
+
+  private def checkLoginOkay() {
+    val r = readLoginResponse()
+    if (r.code != LoginResponseMsg.ResponseCode.OK)
+      throw new LoginFailedException(r.message)
   }
 
   /**
@@ -124,17 +136,15 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
    */
   def loginUser(userName: String, password: String) {
     send(Envelope(login = Some(LoginMsg(LoginRequestCode.LOGIN, userName, password = Some(password), startTime = Some(startTime)))))
-    val r = readLoginResponse()
-    if (r.code != LoginResponseMsg.ResponseCode.OK)
-      throw new LoginFailedException(r.message)
+    checkLoginOkay()
   }
 
-  override def startMission() {
-    send(Envelope(startMission = Some(StartMissionMsg(keep = true))))
+  override def startMission(keep: Boolean) {
+    send(Envelope(startMission = Some(StartMissionMsg(keep = keep))))
   }
 
-  override def stopMission() {
-    send(Envelope(stopMission = Some(StopMissionMsg(keep = true))))
+  override def stopMission(keep: Boolean) {
+    send(Envelope(stopMission = Some(StopMissionMsg(keep = keep))))
   }
 
   def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean) {

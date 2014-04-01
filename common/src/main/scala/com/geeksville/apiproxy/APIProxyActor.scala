@@ -8,6 +8,8 @@ import scala.collection.mutable.HashMap
 import java.util.UUID
 import com.geeksville.mavlink.CanSendMavlink
 import com.geeksville.mavlink.MavlinkUtils
+import java.net.ConnectException
+import scala.concurrent.duration._
 
 /**
  * Base class for (client side) actors that connect to the central API hub.
@@ -24,6 +26,12 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
   private val sysIdToVehicleId = HashMap[Int, String]()
 
   private var loginInfo: Option[LoginMsg] = None
+
+  /// How long should we wait before calling again?
+  private var callbackDelayMsec = 5000 // 30 * 60 * 1000
+
+  /// We might need to start missions later - after we have a connection
+  private var desiredMission: Option[StartMissionMsg] = None
 
   private val callbacks = new GCSCallback {
     def sendMavlink(b: Array[Byte]) {
@@ -54,42 +62,86 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
     case msg: MAVLinkMessage =>
       // FIXME - use ByteStrings instead!
       handleMessage(msg)
-  }
 
-  private def disconnect() {
-    link.foreach { s =>
-      log.debug("Closing link to server")
-      s.stopMission()
-      s.close()
-    }
-    link = None
-  }
+    case x: StartMissionMsg =>
+      desiredMission = Some(x)
+      perhapsStartMission()
 
-  private def connect() {
-    // FIXME - if we fail to connect we should periodically retry
-    loginInfo.foreach { u =>
-      // Now reconnect
-      val l = new GCSHooksImpl
+    case StopMissionMsg(keep) =>
+      link.foreach { l =>
+        l.stopMission(keep)
+      }
 
-      link = Some(l)
-
-      // Create user if necessary/possible
-      if (l.isUsernameAvailable(u.loginName))
-        l.createUser(u.loginName, u.password, u.email)
+    case AttemptConnectMsg =>
+      if (!link.isDefined)
+        connect()
       else
-        l.loginUser(u.loginName, u.password)
+        log.warning("Ignoring stale attempt connect message (we are already connected)")
+  }
 
-      // We don't start reading async until we are logged in
-      l.setCallback(callbacks)
-
-      l.startMission()
+  private def perhapsStartMission() {
+    // This may fail if we are not already connected
+    for {
+      l <- link
+      m <- desiredMission
+    } yield {
+      l.startMission(m.keep)
 
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
         case (sysId, id) =>
           l.setVehicleId(id, interfaceNum, sysId, isLive)
       }
+
+      // Success
+      desiredMission = None
     }
+  }
+
+  private def disconnect() {
+    link.foreach { s =>
+      log.debug("Closing link to server")
+      s.close()
+    }
+    link = None
+  }
+
+  private def connect() {
+    // if we fail to connect we should periodically retry
+    try {
+      loginInfo.foreach { u =>
+        // Now reconnect
+        val l = new GCSHooksImpl
+
+        // Create user if necessary/possible
+        if (l.isUsernameAvailable(u.loginName))
+          l.createUser(u.loginName, u.password, u.email)
+        else
+          l.loginUser(u.loginName, u.password)
+
+        link = Some(l) // Our link is now usable
+
+        // We don't start reading async until we are logged in
+        l.setCallback(callbacks)
+
+        perhapsStartMission()
+      }
+    } catch {
+      case ex: CallbackLaterException => // server wants us to callback
+        callbackDelayMsec = ex.delayMsec
+        log.error(s"Server told us to get lost.  Will try again in $callbackDelayMsec ms")
+        scheduleReconnect()
+
+      case ex: ConnectException => // can't reach server
+        log.error(s"Can't reach server.  Will try again in $callbackDelayMsec ms")
+        scheduleReconnect()
+    }
+  }
+
+  private def scheduleReconnect() {
+    val system = context.system
+    import system.dispatcher
+    system.scheduler.scheduleOnce(callbackDelayMsec milliseconds, self, AttemptConnectMsg)
   }
 
   private def handleMessage(msg: MAVLinkMessage) {
@@ -120,5 +172,22 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
 }
 
 object APIProxyActor {
+  /// Opens connection and logs into server
   case class LoginMsg(loginName: String, password: String, email: Option[String])
+
+  case class StartMissionMsg(keep: Boolean)
+
+  /// you must send this if you want the mission to be properly closed
+  case class StopMissionMsg(keep: Boolean)
+
+  /// Normally this message is sent only privately - but if we are not connected it will try to connect
+  case object AttemptConnectMsg
+
+  /// Use only for testing
+  def testAccount = {
+    val username = "test-bob"
+    val email = "test-bob@3drobotics.com"
+    val psw = "sekrit"
+    APIProxyActor.LoginMsg(username, psw, Some(email))
+  }
 }

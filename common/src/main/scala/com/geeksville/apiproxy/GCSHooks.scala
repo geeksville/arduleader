@@ -52,10 +52,10 @@ trait GCSHooks {
   def createUser(userName: String, password: String, email: Option[String])
 
   /// Begin a new mission
-  def startMission()
+  def startMission(keep: Boolean)
 
   /// End a mission
-  def stopMission()
+  def stopMission(keep: Boolean)
 
   /**
    * Associate a server vehicleId string with a particular mavlink sysId. GCS
