@@ -16,7 +16,7 @@ object ScalaFlyBuild extends Build {
       // Pull all of the jansi classes from the offical dist jar, not jline
       case PathList("org", "fusesource", xs @ _*) => MergeStrategy.first
       case PathList("META-INF", "native", xs @ _*) => MergeStrategy.first
-      //case "application.conf" => MergeStrategy.concat
+      case "application.conf" => MergeStrategy.concat
       case ".project" => MergeStrategy.discard
       case ".classpath" => MergeStrategy.discard
       case "build.xml" => MergeStrategy.discard
@@ -80,6 +80,10 @@ object ScalaFlyBuild extends Build {
   lazy val androidAppSettings =
     Project.defaultSettings ++
     assemblySettings ++
+    Seq (
+      // workaround for akka application.conf - see http://stackoverflow.com/questions/16200386/classpath-resource-gets-duplicated-by-probably-sbt
+	  unmanagedClasspath in Runtime <+= (baseDirectory) map { bd => Attributed.blank(bd / "config") }
+	) ++
     AndroidProject.androidSettings ++
     TypedResources.settings ++
     proguardSettings ++
