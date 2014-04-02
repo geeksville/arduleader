@@ -1,5 +1,7 @@
 package com.geeksville.apiproxy
 
+import java.util.UUID
+
 /**
  * These are low level routines called by the GCS to hook into the proxy. When
  * the proxy calls in the expected sequence of operations are:
@@ -52,7 +54,7 @@ trait GCSHooks {
   def createUser(userName: String, password: String, email: Option[String])
 
   /// Begin a new mission
-  def startMission(keep: Boolean)
+  def startMission(keep: Boolean, uuid: UUID)
 
   /// End a mission
   def stopMission(keep: Boolean)

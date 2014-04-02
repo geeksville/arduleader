@@ -10,6 +10,7 @@ import com.geeksville.mavlink.CanSendMavlink
 import com.geeksville.mavlink.MavlinkUtils
 import java.net.ConnectException
 import scala.concurrent.duration._
+import java.net.SocketException
 
 /**
  * Base class for (client side) actors that connect to the central API hub.
@@ -79,13 +80,30 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
         log.warning("Ignoring stale attempt connect message (we are already connected)")
   }
 
+  /**
+   * Call a function, but if it throws a network exception, mark the socket as down and try again later
+   */
+  private def watchForFailure(block: => Unit) {
+    try {
+      block
+    } catch {
+      case ex: ConnectException => // can't reach server
+        log.error(s"Can't reach server.  Will try again in $callbackDelayMsec ms")
+        scheduleReconnect()
+
+      case ex: SocketException =>
+        log.error(s"Lost connection to server.  Will try again in $callbackDelayMsec ms")
+        scheduleReconnect()
+    }
+  }
+
   private def perhapsStartMission() {
     // This may fail if we are not already connected
     for {
       l <- link
       m <- desiredMission
     } yield {
-      l.startMission(m.keep)
+      l.startMission(m.keep, m.uuid)
 
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
@@ -106,7 +124,7 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
     link = None
   }
 
-  private def connect() {
+  private def connect() = watchForFailure {
     // if we fail to connect we should periodically retry
     try {
       loginInfo.foreach { u =>
@@ -131,21 +149,20 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
         callbackDelayMsec = ex.delayMsec
         log.error(s"Server told us to get lost.  Will try again in $callbackDelayMsec ms")
         scheduleReconnect()
-
-      case ex: ConnectException => // can't reach server
-        log.error(s"Can't reach server.  Will try again in $callbackDelayMsec ms")
-        scheduleReconnect()
     }
   }
 
   private def scheduleReconnect() {
     val system = context.system
     import system.dispatcher
+
+    disconnect() // We are currently down
     system.scheduler.scheduleOnce(callbackDelayMsec milliseconds, self, AttemptConnectMsg)
   }
 
-  private def handleMessage(msg: MAVLinkMessage) {
+  private def handleMessage(msg: MAVLinkMessage) = watchForFailure {
     link.foreach { l =>
+      //log.debug(s"Sending to server: $msg")
       l.filterMavlink(interfaceNum, msg.encode)
     }
   }
@@ -175,7 +192,7 @@ object APIProxyActor {
   /// Opens connection and logs into server
   case class LoginMsg(loginName: String, password: String, email: Option[String])
 
-  case class StartMissionMsg(keep: Boolean)
+  case class StartMissionMsg(keep: Boolean, uuid: UUID = UUID.randomUUID)
 
   /// you must send this if you want the mission to be properly closed
   case class StopMissionMsg(keep: Boolean)

@@ -151,7 +151,7 @@ object Main extends Logging {
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false
     val startIncomingUDP = false
-    val startSerial = false
+    val startSerial = true
     val startSITL = false
     val startFlightLead = false
     val startWingman = false

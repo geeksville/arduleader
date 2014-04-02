@@ -1,6 +1,7 @@
 package com.geeksville.apiproxy
 
 import java.net.Socket
+import java.util.UUID
 import java.net.InetSocketAddress
 import java.io.BufferedOutputStream
 import com.geeksville.dapi._
@@ -139,8 +140,8 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     checkLoginOkay()
   }
 
-  override def startMission(keep: Boolean) {
-    send(Envelope(startMission = Some(StartMissionMsg(keep = keep))))
+  override def startMission(keep: Boolean, uuid: UUID) {
+    send(Envelope(startMission = Some(StartMissionMsg(keep = keep, uuid = Some(uuid.toString)))))
   }
 
   override def stopMission(keep: Boolean) {
