@@ -15,9 +15,9 @@ import java.net.SocketException
 
 class LoginFailedException(message: Option[ShowMsg]) extends Exception(message.flatMap(_.text).getOrElse("Login failed"))
 
-class CallbackLaterException(message: Option[ShowMsg], val delayMsec: Int, private val startTime: Long = System.currentTimeMillis * 1000L) extends LoginFailedException(message)
+class CallbackLaterException(message: Option[ShowMsg], val delayMsec: Int) extends LoginFailedException(message)
 
-class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends GCSHooks with Logging {
+class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT, private val startTime: Long = System.currentTimeMillis * 1000L) extends GCSHooks with Logging {
   private val socket = new Socket();
   socket.setTcpNoDelay(true); // Turn off nagle
   socket.connect(new InetSocketAddress(host, port))
@@ -66,7 +66,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     }
   }
 
-  private def send(e: Envelope) {
+  def send(e: Envelope) {
     e.writeDelimitedTo(out)
     out.flush()
   }

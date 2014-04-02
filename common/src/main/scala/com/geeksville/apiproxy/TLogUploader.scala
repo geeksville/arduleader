@@ -28,7 +28,7 @@ class TLogUploader(srcFile: File, val loginName: String, val password: String, v
       val messages = new BinaryMavlinkReader(in)
       startTime = messages.head.time
 
-      using(new GCSHooksImpl()) { webapi: GCSHooks =>
+      using(new GCSHooksImpl(startTime = startTime)) { webapi: GCSHooks =>
 
         val email = None // FIXME
 
