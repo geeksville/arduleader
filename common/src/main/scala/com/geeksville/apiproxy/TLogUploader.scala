@@ -26,7 +26,10 @@ class TLogUploader(srcFile: File, val loginName: String, val password: String, v
   private def worker() {
     using(new BufferedInputStream(new FileInputStream(srcFile))) { in =>
       val messages = new BinaryMavlinkReader(in)
-      startTime = messages.head.time
+
+      startTime = 0L
+      // FIXME: The following wiresize optimization won't work because the iterator leaves the file open
+      // startTime = messages.head.time
 
       using(new GCSHooksImpl(startTime = startTime)) { webapi: GCSHooks =>
 
