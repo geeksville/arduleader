@@ -11,6 +11,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.ArrayBuilder
 import java.io.ByteArrayInputStream
 import java.io.IOException
+import java.io.EOFException
 
 /**
  * @param time is in usecs since 1970
@@ -29,16 +30,19 @@ object TimestampedMessage {
 /**
  * Reads tlog files
  */
-class BinaryMavlinkReader(bytes: Array[Byte]) extends Iterable[TimestampedMessage] {
+class BinaryMavlinkReader(is: InputStream) extends Iterable[TimestampedMessage] {
+
+  def this(bytes: Array[Byte]) = this(new ByteArrayInputStream(bytes))
 
   /**
    * Start reading from scratch every time someone accesses the records iterator
    */
   def iterator = new Iterator[TimestampedMessage] {
     private var n: Option[TimestampedMessage] = None
-    private val stream = new DataInputStream(new ByteArrayInputStream(bytes))
+    private val stream = new DataInputStream(is)
 
     private val reader = new MAVLinkReader(stream, IMAVLinkMessage.MAVPROT_PACKET_START_V10)
+    private var atEOF = false
 
     /// Try to read the next message return Option(time -> msg)
     private def readNext() = {
@@ -50,15 +54,22 @@ class BinaryMavlinkReader(bytes: Array[Byte]) extends Iterable[TimestampedMessag
           TimestampedMessage(time, raw)
         }
       } catch {
+        case ex: EOFException =>
+          atEOF = true
+          stream.close()
+          None
+
         case ex: IOException =>
           println("Error reading mavlink file: " + ex)
+          atEOF = true
+          stream.close()
           None
       }
     }
 
     def hasNext = {
       // Prefetch the next valid record
-      while (stream.available > 0 && !n.isDefined) {
+      while (!atEOF && !n.isDefined) {
         n = readNext()
       }
       n.isDefined

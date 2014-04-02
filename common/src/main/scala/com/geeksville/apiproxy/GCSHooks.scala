@@ -1,6 +1,7 @@
 package com.geeksville.apiproxy
 
 import java.util.UUID
+import com.geeksville.dapi.Envelope
 
 /**
  * These are low level routines called by the GCS to hook into the proxy. When
@@ -52,6 +53,9 @@ trait GCSHooks {
   /// Create a new user account 
   /// @throws LoginException if login fails
   def createUser(userName: String, password: String, email: Option[String])
+
+  /// Send an arbitrary envelope
+  def send(env: Envelope)
 
   /// Begin a new mission
   def startMission(keep: Boolean, uuid: UUID)

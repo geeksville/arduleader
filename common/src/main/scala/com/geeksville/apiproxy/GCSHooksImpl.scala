@@ -15,7 +15,7 @@ import java.net.SocketException
 
 class LoginFailedException(message: Option[ShowMsg]) extends Exception(message.flatMap(_.text).getOrElse("Login failed"))
 
-class CallbackLaterException(message: Option[ShowMsg], val delayMsec: Int) extends LoginFailedException(message)
+class CallbackLaterException(message: Option[ShowMsg], val delayMsec: Int, private val startTime: Long = System.currentTimeMillis * 1000L) extends LoginFailedException(message)
 
 class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends GCSHooks with Logging {
   private val socket = new Socket();
@@ -24,8 +24,6 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
 
   private val out = new BufferedOutputStream(socket.getOutputStream(), 8192)
   private val in = new BufferedInputStream(socket.getInputStream(), 8192)
-
-  private val startTime = System.currentTimeMillis * 1000L
 
   // FIXME - change to use the fancy akka TCP API or zeromq so we don't need to burn a thread for each client)
   private val listenerThread = ThreadTools.createDaemon("TCPGCS")(readerFunct)
