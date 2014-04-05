@@ -7,19 +7,19 @@
 			<!-- %date{ISO8601} %X{sourceThread} -->
 		</encoder>
 
-		<filter class="com.geeksville.logback.NameLevelFilter">
-			<Prefix>com.geeksville.mavlink</Prefix>
-			<MinLevel>INFO</MinLevel>
-		</filter>
-
 		<filter class="com.geeksville.logback.MuteAllFilter" />
 				
 	</appender>
 
 	<!-- <logger name="play" level="INFO" /> <logger name="application" level="DEBUG" 
 		/> -->
-	<root level="DEBUG">
-		<appender-ref ref="STDOUT" />
-	</root>
+
+  <!-- See all our log msgs -->
+  <logger name="com.geeksville" level="DEBUG"/>
+  
+  <!-- But ignore debug msgs from others -->
+  <root level="info">
+    <appender-ref ref="STDOUT" />
+  </root>
 
 </configuration>
