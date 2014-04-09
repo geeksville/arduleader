@@ -7,9 +7,9 @@ object TlogStreamReceiver {
   /**
    * Read from a tlog in the classpath, i.e. "/path/file.ext"
    */
-  def open(s: InputStream) = {
+  def open(s: InputStream, speedup: Double = 1.0) = {
     println(s"Opened $s " + s.available)
-    new MavlinkStreamReceiver(s, tlogSpeedup = Some(1.0))
+    new MavlinkStreamReceiver(s, tlogSpeedup = Some(speedup))
   }
 
 }

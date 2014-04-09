@@ -165,6 +165,7 @@ class MavlinkStreamReceiver(
 
           case ex: EOFException =>
             // Kill our actor if our port gets closed
+            log.info("Exiting stream reader due to EOF")
             self ! PoisonPill
 
           case ex: IOException =>
