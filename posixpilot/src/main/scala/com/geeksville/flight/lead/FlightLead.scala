@@ -150,8 +150,8 @@ object Main extends Logging {
 
     // FIXME - select these options based on cmd line flags
     val startOutgoingUDP = false
-    val startIncomingUDP = false
-    val startSerial = true
+    val startIncomingUDP = true
+    val startSerial = false
     val startSITL = false
     val startFlightLead = false
     val startWingman = false
@@ -204,8 +204,14 @@ object Main extends Logging {
       else
         new MavlinkUDP(localPortNumber = Some(MavlinkUDP.portNumber))), "mavudp")
 
-      // Anything from the ardupilot, forward it to the controller app
-      MavlinkEventBus.subscribe(mavUDP, arduPilotId)
+      // We don't want to send stuff from sysId one to this port (creates a loop when it arrived at that port)
+      // MavlinkEventBus.subscribe(mavUDP, arduPilotId)
+
+      // Anything coming from the controller app, forward it to the serial port
+      MavlinkEventBus.subscribe(mavUDP, groundControlId)
+
+      // Also send anything from our active agent to the serial port
+      MavlinkEventBus.subscribe(mavUDP, VehicleSimulator.andropilotId)
 
       // Also send our wingman and flightlead planes to the ground control app
       MavlinkEventBus.subscribe(mavUDP, wingmanId)

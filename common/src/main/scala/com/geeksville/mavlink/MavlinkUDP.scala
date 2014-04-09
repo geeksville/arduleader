@@ -49,6 +49,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
       // Has anyone called into us?
 
       remote.map { r =>
+        //log.debug(s"Sending via UDP to $r")
         val packet = new DatagramPacket(bytes, bytes.length, r)
         socket.send(packet)
       }.getOrElse {
