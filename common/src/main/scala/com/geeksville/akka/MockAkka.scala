@@ -36,17 +36,4 @@ object MockAkka extends Logging {
     currentSystem = None // If we use akka again we'll need to start from scratch
   }
 
-  /*
-  var scheduler = new Scheduler
-
-  private val actors = HashSet[InstrumentedActor]()
-
-  def actorOf[T <: InstrumentedActor](r: T, name: String = "unspecified") = {
-    actors.add(r)
-    r.start()
-    r
-  }
-
-
-  */
 }
