@@ -16,7 +16,7 @@ import java.net.SocketException
  * Base class for (client side) actors that connect to the central API hub.
  * If we receive any mavlink messages we will send them to the server
  */
-trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
+abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends InstrumentedActor with CanSendMavlink {
   import APIProxyActor._
 
   private var link: Option[GCSHooks] = None
@@ -129,7 +129,7 @@ trait APIProxyActor extends InstrumentedActor with CanSendMavlink {
     try {
       loginInfo.foreach { u =>
         // Now reconnect
-        val l = new GCSHooksImpl
+        val l = new GCSHooksImpl(host, port)
 
         // Create user if necessary/possible
         if (l.isUsernameAvailable(u.loginName))
