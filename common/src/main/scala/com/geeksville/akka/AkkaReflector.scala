@@ -20,7 +20,7 @@ class AkkaReflector extends InstrumentedActor {
   override def onReceive = {
     case ActorIdentity(_, ref) =>
       ref.foreach { a =>
-        log.debug(s"Found actor $a")
+        //log.debug(s"Found actor $a")
         allActors += a
 
         // Recurse
