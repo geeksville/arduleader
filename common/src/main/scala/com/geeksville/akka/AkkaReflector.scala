@@ -5,7 +5,6 @@ import akka.actor.Identify
 import akka.actor.ActorIdentity
 import akka.actor.ActorRef
 import scala.xml._
-import scala.collection.mutable.TreeSet
 
 object AkkaReflector {
   case object PollMsg
@@ -15,13 +14,13 @@ object AkkaReflector {
 class AkkaReflector extends InstrumentedActor {
   import AkkaReflector._
 
-  private val allActors = TreeSet[ActorRef]()
+  private var allActors: List[ActorRef] = Nil
 
   override def onReceive = {
     case ActorIdentity(_, ref) =>
       ref.foreach { a =>
         //log.debug(s"Found actor $a")
-        allActors += a
+        allActors = a :: allActors
 
         // Recurse
         context.system.actorSelection(a.path + "/*") ! Identify(0)
@@ -35,7 +34,7 @@ class AkkaReflector extends InstrumentedActor {
   }
 
   def startPoll() {
-    allActors.clear()
+    allActors = Nil
     context.system.actorSelection("*") ! Identify(0)
   }
 
@@ -48,7 +47,7 @@ class AkkaReflector extends InstrumentedActor {
         <p>Actors:</p>
         <ul>
           {
-            allActors.map(_.toString).toSeq.sorted.map { a =>
+            allActors.sorted.map { a =>
               <li> { a } </li>
             }
           }
