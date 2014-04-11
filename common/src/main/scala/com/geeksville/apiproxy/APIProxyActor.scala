@@ -56,10 +56,6 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
       loginInfo = Some(x)
       connect()
 
-    case msg: msg_heartbeat =>
-      handleSysId(msg)
-      handleMessage(msg)
-
     case msg: MAVLinkMessage =>
       // FIXME - use ByteStrings instead!
       handleMessage(msg)
@@ -161,6 +157,8 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
   }
 
   private def handleMessage(msg: MAVLinkMessage) = watchForFailure {
+    handleSysId(msg)
+
     link.foreach { l =>
       //log.debug(s"Sending to server: $msg")
       l.filterMavlink(interfaceNum, msg.encode)
@@ -170,11 +168,11 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
   /**
    * The first time we see a vehicle heartbeat we will assign a vehicle ID
    */
-  private def handleSysId(msg: msg_heartbeat) {
-    val typ = msg.`type`
+  private def handleSysId(msg: MAVLinkMessage) {
+    // val typ = msg.`type`
     val sysId = msg.sysId
     if (!sysIdToVehicleId.contains(sysId)) {
-      val isGCS = typ == MAV_TYPE.MAV_TYPE_GCS
+      val isGCS = sysId > 200 // FIXME - super skanky
       val id = if (isGCS)
         "GCS"
       else {
