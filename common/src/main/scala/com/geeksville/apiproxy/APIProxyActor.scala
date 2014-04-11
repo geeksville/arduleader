@@ -103,13 +103,13 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
       l <- link
       m <- desiredMission
     } yield {
-      l.startMission(m.keep, m.uuid)
-
       // Resend any old vehicle defs
       sysIdToVehicleId.foreach {
         case (sysId, id) =>
           l.setVehicleId(id, interfaceNum, sysId, isLive)
       }
+
+      l.startMission(m.keep, m.uuid)
 
       // Success
       desiredMission = None
