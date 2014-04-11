@@ -43,6 +43,8 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
 
   case object FinishParameters
 
+  val paramLogThrottle = new Throttled(5000)
+
   var parameters = new Array[ParamValue](0)
   var parametersById = Map[String, ParamValue]()
 
@@ -177,7 +179,9 @@ trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
       if (hasRequestedParameters)
         handleParameterMessage(msg)
       else
-        log.error(s"Ignoring stale parameter message: $msg")
+        paramLogThrottle.withIgnoreCount { numIgnored: Int =>
+          log.warning(s"Ignoring stale parameter: $msg (and $numIgnored others)")
+        }
 
     case FinishParameters =>
       log.info("Handling finish parameters")

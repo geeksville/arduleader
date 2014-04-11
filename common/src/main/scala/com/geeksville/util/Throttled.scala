@@ -7,18 +7,22 @@ package com.geeksville.util
 class Throttled(minIntervalMsec: Int) {
   private var lasttimeMsec = 0L
 
+  private var numVetoed = 0
+
   /**
    * A new event has occured, should it pass the throttle?
    */
-  def isAllowed() = {
+  protected def isAllowed() = {
     val now = System.currentTimeMillis
 
     val span = now - lasttimeMsec
     if (span >= minIntervalMsec || span < 0) {
       lasttimeMsec = now
       true
-    } else
+    } else {
+      numVetoed += 1
       false
+    }
   }
 
   def apply(fn: () => Unit) {
@@ -36,6 +40,16 @@ class Throttled(minIntervalMsec: Int) {
     if (span >= minIntervalMsec || span < 0) {
       fn(span)
       lasttimeMsec = now
+    }
+  }
+
+  /**
+   * Call this version to find number of calls ignored since last time
+   */
+  def withIgnoreCount(fn: Int => Unit) {
+    if (isAllowed) {
+      fn(numVetoed)
+      numVetoed = 0
     }
   }
 }

@@ -116,7 +116,7 @@ class LogBinaryMavlink(protected var file: File, val deleteIfBoring: Boolean, va
     //log.debug("Binary write: " + msg)
     numPacket += 1
 
-    messageThrottle { dt =>
+    messageThrottle { dt: Long =>
       val numSec = dt / 1000.0
 
       val mPerSec = (numPacket - oldNumPacket) / numSec

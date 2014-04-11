@@ -138,7 +138,7 @@ class MavlinkStreamReceiver(
                 //log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
               }
 
-              messageThrottle { dt =>
+              messageThrottle { dt: Long =>
                 val numSec = dt / 1000.0
 
                 val newLost = reader.getLostBytes
