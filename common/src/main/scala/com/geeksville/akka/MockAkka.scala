@@ -20,7 +20,7 @@ object MockAkka extends Logging {
   // For some platforms (android) it is useful to pass in a non default class loader
   var classLoader = getClass.getClassLoader
 
-  private lazy val config = configOverride.getOrElse(ConfigFactory.load(classLoader))
+  lazy val config = configOverride.getOrElse(ConfigFactory.load(classLoader))
 
   private var currentSystem: Option[ActorSystem] = None
 
