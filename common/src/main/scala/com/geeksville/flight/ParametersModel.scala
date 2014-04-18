@@ -37,7 +37,7 @@ case class MsgParameterDownloadProgress(primary: Int, secondary: Int)
 /**
  * Listens to a particular vehicle, capturing interesting state like heartbeat, cur lat, lng, alt, mode, status and next waypoint
  */
-trait ParametersModel extends VehicleClient with ParametersReadOnlyModel {
+trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with ParametersReadOnlyModel {
 
   import context._
 
