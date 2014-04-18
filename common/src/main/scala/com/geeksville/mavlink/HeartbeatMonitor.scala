@@ -37,7 +37,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
   var vehicleType: Option[Int] = None
 
   // A MAV_AUTOPILOT autopilot mfg code
-  var autopilot: Option[Int] = None
+  var autopilotType: Option[Int] = None
 
   /// Has the vehicle been armed (ever) during this session
   var hasBeenArmed = false
@@ -63,7 +63,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
         val oldStatus = systemStatus
         customMode = Some(newVal)
         baseMode = Some(msg.base_mode)
-        autopilot = Some(msg.autopilot)
+        autopilotType = Some(msg.autopilot)
         systemStatus = Some(msg.system_status)
 
         val oldVehicle = vehicleType

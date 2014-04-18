@@ -142,7 +142,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
   /**
    * Is the autopilot we are listening to _incapabable_ of hearing our messages? (i.e. Naza FBOSD)
    */
-  def isAutopilotTalkOnly = autopilot.map(_ == MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID).getOrElse(false)
+  def isAutopilotTalkOnly = autopilotType.map(_ == MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID).getOrElse(false)
 
   /**
    * The rc channels the vehicle is currently receiving

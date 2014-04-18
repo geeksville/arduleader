@@ -6,6 +6,37 @@ import org.mavlink.messages.MAVLinkMessage
 import com.geeksville.mavlink.MavlinkConstants
 import com.ridemission.rest.ASJSON
 import com.ridemission.rest.JObject
+import org.mavlink.messages.MAV_AUTOPILOT
+
+object ParametersReadOnlyModel {
+  private val typeNameMap = Map(
+    MAV_TYPE.MAV_TYPE_QUADROTOR -> "quadcopter",
+    MAV_TYPE.MAV_TYPE_TRICOPTER -> "tricopter",
+    MAV_TYPE.MAV_TYPE_COAXIAL -> "coaxial",
+    MAV_TYPE.MAV_TYPE_HEXAROTOR -> "hexarotor",
+    MAV_TYPE.MAV_TYPE_OCTOROTOR -> "octorotor",
+    MAV_TYPE.MAV_TYPE_FIXED_WING -> "fixed-wing",
+    MAV_TYPE.MAV_TYPE_GROUND_ROVER -> "ground-rover",
+    MAV_TYPE.MAV_TYPE_SUBMARINE -> "submarine",
+    MAV_TYPE.MAV_TYPE_AIRSHIP -> "airship",
+    MAV_TYPE.MAV_TYPE_FLAPPING_WING -> "flapping-wing",
+    MAV_TYPE.MAV_TYPE_SURFACE_BOAT -> "boat",
+    MAV_TYPE.MAV_TYPE_FREE_BALLOON -> "free-balloon",
+    MAV_TYPE.MAV_TYPE_ANTENNA_TRACKER -> "antenna-tracker",
+    MAV_TYPE.MAV_TYPE_GENERIC -> "generic",
+    MAV_TYPE.MAV_TYPE_ROCKET -> "rocket",
+    MAV_TYPE.MAV_TYPE_HELICOPTER -> "helicopter")
+
+  private val autopiltNameMap = Map(
+    MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA -> "apm",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_GENERIC -> "generic",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_PX4 -> "px4",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_OPENPILOT -> "openpilot",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_PIXHAWK -> "pixhawk",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_PPZ -> "ppz",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_UDB -> "udb",
+    MAV_AUTOPILOT.MAV_AUTOPILOT_FP -> "fp")
+}
 
 /**
  * Parameter access, but only read-only (so it can work at log playback time)
@@ -148,7 +179,7 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
     override def toString = (for { id <- getId; v <- getValue } yield { id + " = " + v }).getOrElse("undefined")
   }
 
-  /// Either ArduCopter or ArduPlane etc... used to find appropriate parameter docs
+  /// Must match ArduCopter or ArduPlane etc... used to find appropriate parameter docs
   // FIXME handle other vehicle types
   def vehicleTypeName = if (isCopter)
     "ArduCopter"
@@ -157,13 +188,21 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
   else
     "ArduPlane"
 
+  /**
+   * A human readable name for this type of vehicle (if known...)
+   */
+  def humanVehicleType = vehicleType.flatMap(ParametersReadOnlyModel.typeNameMap.get(_))
+  def humanAutopilotType = autopilotType.flatMap(ParametersReadOnlyModel.autopiltNameMap.get(_))
+
   def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
 
   /**
    * Are we on a copter? or None if not sure
    */
   def isCopterOpt = vehicleType.map { t =>
-    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) || (t == MAV_TYPE.MAV_TYPE_TRICOPTER) || (t == MAV_TYPE.MAV_TYPE_COAXIAL) || (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
+    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) ||
+      (t == MAV_TYPE.MAV_TYPE_TRICOPTER) || (t == MAV_TYPE.MAV_TYPE_COAXIAL) ||
+      (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
   }
 
   def isCopter = isCopterOpt.getOrElse(true)
@@ -174,6 +213,9 @@ trait ParametersReadOnlyModel extends MavlinkConstants {
 
   /// A MAV_TYPE vehicle code
   def vehicleType: Option[Int]
+
+  /// A MAV_AUTOPILOT code
+  def autopilotType: Option[Int]
 
   protected def codeToModeMap = if (isPlane)
     planeCodeToModeMap
