@@ -2,6 +2,8 @@ package com.geeksville.flight
 
 import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAV_AUTOPILOT
+import org.mavlink.messages.MAVLinkMessage
+import org.mavlink.messages.ardupilotmega.msg_vfr_hud
 
 object LiveOrPlaybackModel {
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
@@ -84,6 +86,15 @@ object LiveOrPlaybackModel {
 trait LiveOrPlaybackModel {
   import LiveOrPlaybackModel._
 
+  // Summary stats
+  var maxAltitude: Double = 0.0
+  var maxAirSpeed: Double = 0.0
+  var maxGroundSpeed: Double = 0.0
+
+  // In usecs
+  var startOfFlightTime: Option[Long] = None
+  var endOfFlightTime: Option[Long] = None
+
   private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
   private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
   private val roverModeToCodeMap = roverCodeToModeMap.map { case (k, v) => (v, k) }
@@ -155,4 +166,15 @@ trait LiveOrPlaybackModel {
 
   /// Convert a custom mode int into a human readable string
   def modeToString(modeCode: Int) = codeToModeMap.getOrElse(modeCode, "unknown")
+
+  val updateModel: PartialFunction[Any, Unit] = {
+    case msg: msg_vfr_hud =>
+      maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
+      maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
+      if (msg.throttle > 0) {
+        if (!startOfFlightTime.isDefined)
+          startOfFlightTime = Some(-1)
+        endOfFlightTime = Some(-1) // FIXME - find real start/end times
+      }
+  }
 }

@@ -28,6 +28,7 @@ import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
 import scala.util.Random
 import org.mavlink.messages.MAV_AUTOPILOT
 import com.geeksville.mavlink.TimestampedMessage
+import com.geeksville.util.PartialFunctionTools
 
 //
 // Messages we publish on our event bus when something happens
@@ -127,13 +128,6 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
   var attitude: Option[msg_attitude] = None
   var vfrHud: Option[msg_vfr_hud] = None
   var globalPos: Option[msg_global_position_int] = None
-
-  // Summary stats
-  var maxAltitude: Double = 0.0
-  var maxAirSpeed: Double = 0.0
-  var maxGroundSpeed: Double = 0.0
-  var startOfFlightTime: Option[Long] = None
-  var endOfFlightTime: Option[Long] = None
 
   // We always want to see radio packets (which are hardwired for this sys id)
   val radioSysId = 51
@@ -379,7 +373,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
   private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
 
-  override def onReceive = mReceive.orElse(super.onReceive)
+  override def onReceive = PartialFunctionTools.callBoth(mReceive, updateModel).orElse(super.onReceive)
 
   //val rand = new Random()
 
@@ -461,13 +455,6 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
     case msg: msg_vfr_hud =>
       vfrHud = Some(msg)
-      maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
-      maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
-      if (msg.throttle > 0) {
-        if (!startOfFlightTime.isDefined)
-          startOfFlightTime = Some(-1)
-        endOfFlightTime = Some(-1) // FIXME - find real start/end times
-      }
   }
 
   /**
