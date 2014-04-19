@@ -4,6 +4,7 @@ import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAV_AUTOPILOT
 import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.ardupilotmega.msg_vfr_hud
+import org.mavlink.messages.ardupilotmega.msg_statustext
 
 object LiveOrPlaybackModel {
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
@@ -90,6 +91,9 @@ trait LiveOrPlaybackModel {
   var maxAltitude: Double = 0.0
   var maxAirSpeed: Double = 0.0
   var maxGroundSpeed: Double = 0.0
+  var buildName: Option[String] = None
+  var buildVersion: Option[String] = None
+  var buildGit: Option[String] = None
 
   // In usecs
   var startOfFlightTime: Option[Long] = None
@@ -167,6 +171,8 @@ trait LiveOrPlaybackModel {
   /// Convert a custom mode int into a human readable string
   def modeToString(modeCode: Int) = codeToModeMap.getOrElse(modeCode, "unknown")
 
+  val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
+
   val updateModel: PartialFunction[Any, Unit] = {
     case msg: msg_vfr_hud =>
       maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
@@ -175,6 +181,17 @@ trait LiveOrPlaybackModel {
         if (!startOfFlightTime.isDefined)
           startOfFlightTime = Some(-1)
         endOfFlightTime = Some(-1) // FIXME - find real start/end times
+      }
+    case msg: msg_statustext =>
+      // Sniff messages looking for interesting vehicle strings
+      val s = msg.getText()
+      println(s"Considering status: $s")
+      s match {
+        case VersionRegex(bName, bVer, bGit) =>
+          buildName = Some(bName)
+          buildVersion = Some(bVer)
+          buildGit = Some(bGit)
+        case _ =>
       }
   }
 }
