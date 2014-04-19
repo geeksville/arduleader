@@ -51,6 +51,8 @@ trait HeartbeatMonitor extends InstrumentedActor {
 
   def heartbeatSysId = mySysId
 
+  protected def publishEvent(a: Any) { eventStream.publish(a) }
+
   def onReceive = {
     case msg: msg_heartbeat =>
       // We don't care about the heartbeats from a GCS
@@ -92,7 +94,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
   protected def forceLostHeartbeat() {
     cancelWatchdog()
     mySysId.foreach { id =>
-      eventStream.publish(MsgHeartbeatLost(id))
+      publishEvent(MsgHeartbeatLost(id))
       mySysId = None
       systemStatus = None
       onHeartbeatLost()
@@ -110,7 +112,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
     if (armed)
       hasBeenArmed = true
 
-    eventStream.publish(MsgArmChanged(armed))
+    publishEvent(MsgArmChanged(armed))
   }
 
   protected def onModeChanged(old: Option[Int], m: Int) {
@@ -119,7 +121,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
 
   protected def onSystemStatusChanged(m: Option[Int]) {
     log.error("Received new status: " + m)
-    eventStream.publish(MsgSystemStatusChanged(m))
+    publishEvent(MsgSystemStatusChanged(m))
   }
 
   protected def onHeartbeatLost() {
@@ -134,7 +136,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
     if (!mySysId.isDefined) {
       mySysId = Some(sysId)
       onHeartbeatFound()
-      eventStream.publish(MsgHeartbeatFound(sysId))
+      publishEvent(MsgHeartbeatFound(sysId))
     }
     cancelWatchdog()
 

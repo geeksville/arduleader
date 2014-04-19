@@ -76,7 +76,7 @@ trait FenceModel extends ParametersModel {
       val oldCount = fenceNumBreach
       fenceStatus = Some(msg)
       if (fenceNumBreach > oldCount)
-        eventStream.publish(MsgFenceBreached)
+        publishEvent(MsgFenceBreached)
   }
 
   override protected def onParametersDownloaded() {
@@ -84,7 +84,7 @@ trait FenceModel extends ParametersModel {
     startFenceDownload()
   }
 
-  private def onFenceChanged() { eventStream.publish(MsgFenceChanged) }
+  private def onFenceChanged() { publishEvent(MsgFenceChanged) }
 
   private def startFenceDownload() {
     fencePoints.clear()

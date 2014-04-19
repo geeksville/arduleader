@@ -24,13 +24,15 @@ class EventStream extends Publisher[Any] {
   /**
    * @param isInterested - if not specified we look at the actor's partial function to see what it understands
    */
-  def subscribe(a: ActorRef, isInterested: Any => Boolean = null) = {
+  def subscribe(a: ActorRef, receiver: PartialFunction[Any, Unit]): Subscriber = subscribe(a, receiver.isDefinedAt _)
+
+  /**
+   * @param isInterested - if not specified we look at the actor's partial function to see what it understands
+   */
+  def subscribe(a: ActorRef, isInterested: Any => Boolean): Subscriber = {
     val isInt = if (isInterested != null)
       isInterested
     else { x: Any => true }
-    // FIXME - this new akka version isn't as good as the old version, because it will _always_ queue messages
-    // rather than the check below which looked at the partial function
-    // { evt => a.receive.isDefinedAt(evt) }
 
     val sub = new Subscriber(a)
     super.subscribe(sub, isInt)
@@ -40,13 +42,7 @@ class EventStream extends Publisher[Any] {
   /**
    * @param isInterested - if not specified we look at the actor's partial function to see what it understands
    */
-  def subscribe(a: Actor) = {
-    val isInt = { evt => a.receive.isDefinedAt(evt) }
-
-    val sub = new Subscriber(a.self)
-    super.subscribe(sub, isInt)
-    sub
-  }
+  def subscribe(a: Actor): Subscriber = subscribe(a.self, a.receive)
 
   override def publish(x: Any) { super.publish(x) }
 }

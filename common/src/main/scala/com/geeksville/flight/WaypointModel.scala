@@ -71,8 +71,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private var dirty = false
 
-  private def onWaypointsChanged() { eventStream.publish(MsgWaypointsChanged) }
-  private def onWaypointsCurrentChanged(n: Int) { eventStream.publish(MsgWaypointCurrentChanged(n)) }
+  private def onWaypointsChanged() { publishEvent(MsgWaypointsChanged) }
+  private def onWaypointsCurrentChanged(n: Int) { publishEvent(MsgWaypointCurrentChanged(n)) }
 
   protected def onWaypointsDownloaded() {
     onWaypointsChanged()
@@ -265,7 +265,7 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
 
   private def setDirty(v: Boolean) {
     dirty = v
-    eventStream.publish(MsgWaypointDirty(v))
+    publishEvent(MsgWaypointDirty(v))
 
     if (v)
       onWaypointsChanged() // Tell any local observers about our new waypoints

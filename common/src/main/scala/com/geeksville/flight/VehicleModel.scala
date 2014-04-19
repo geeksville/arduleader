@@ -103,7 +103,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
         val oldState = ev.getOldValue.asInstanceOf[VehicleModelState]
         val newState = ev.getNewValue.asInstanceOf[VehicleModelState]
         log.debug("publishing fsm: " + oldState.getName + " -> " + newState.getName)
-        eventStream.publish(MsgFSMChanged(newState.getName))
+        publishEvent(MsgFSMChanged(newState.getName))
       }
     }
     addStateChangeListener(l)
@@ -215,7 +215,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
       locationThrottle { () =>
         //log.debug("publishing loc")
-        eventStream.publish(l)
+        publishEvent(l)
       }
     }
   }
@@ -315,7 +315,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
     val msg = s"Undefined transition $trans in $sname"
     log.error(msg)
-    eventStream.publish(MsgReportBug(msg))
+    publishEvent(MsgReportBug(msg))
   }
 
   /**
@@ -367,11 +367,11 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       if (s.startsWith(prefix))
         s = "Failure: " + s.substring(prefix.length)
 
-      eventStream.publish(StatusText(s, sc))
+      publishEvent(StatusText(s, sc))
     }
   }
 
-  private def onSysStatusChanged() { sysStatusThrottle { () => eventStream.publish(MsgSysStatusChanged) } }
+  private def onSysStatusChanged() { sysStatusThrottle { () => publishEvent(MsgSysStatusChanged) } }
 
   override def onReceive = PartialFunctionTools.callBoth(mReceive, updateModel).orElse(super.onReceive)
 
@@ -393,7 +393,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
 
     case m: msg_attitude =>
       attitude = Some(m)
-      attitudeThrottle { () => eventStream.publish(m) }
+      attitudeThrottle { () => publishEvent(m) }
 
     case m: msg_rc_channels_raw =>
       val oldMode = rcRequestedMode
@@ -402,14 +402,14 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       if (newMode.isDefined && oldMode != newMode) {
         val s = modeToString(newMode.get)
         log.warning(s"RC mode change: $s")
-        eventStream.publish(MsgRCModeChanged(s))
+        publishEvent(MsgRCModeChanged(s))
       }
 
-      rcChannelsThrottle { () => eventStream.publish(MsgRcChannelsChanged) }
+      rcChannelsThrottle { () => publishEvent(MsgRcChannelsChanged) }
 
     case m: msg_servo_output_raw =>
       servoOutputRaw = Some(m)
-      servoOutputThrottle { () => eventStream.publish(MsgServoOutputChanged(m)) }
+      servoOutputThrottle { () => publishEvent(MsgServoOutputChanged(m)) }
 
     case m: msg_radio =>
       //log.info("Received radio from " + m.sysId + ": " + m)
@@ -479,7 +479,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
     if (oldmode.isDefined && oldmode.get != newmode && modeToString(oldmode.get) == "INITIALIZING")
       refetchVehicleState()
 
-    eventStream.publish(MsgModeChanged(currentMode))
+    publishEvent(MsgModeChanged(currentMode))
   }
 
   override protected def onSystemStatusChanged(m: Option[Int]) {

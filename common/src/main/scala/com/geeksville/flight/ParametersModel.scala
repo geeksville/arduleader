@@ -120,7 +120,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
   private def sendProgress(secondary: Int) {
     val primary = 100 * (maxNumAttempts - numAttemptsRemaining - 1) / maxNumAttempts
 
-    eventStream.publish(MsgParameterDownloadProgress(primary, secondary))
+    publishEvent(MsgParameterDownloadProgress(primary, secondary))
   }
 
   override protected def onHeartbeatFound() {
@@ -155,7 +155,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
     }
     parametersById = Map(known: _*)
 
-    eventStream.publish(MsgParametersDownloaded)
+    publishEvent(MsgParametersDownloaded)
   }
 
   /**
@@ -233,7 +233,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
 
       if (paramNum != -1) {
         log.debug("publishing param " + paramNum)
-        eventStream.publish(MsgParameterReceived(paramNum))
+        publishEvent(MsgParameterReceived(paramNum))
       }
     }
   }
