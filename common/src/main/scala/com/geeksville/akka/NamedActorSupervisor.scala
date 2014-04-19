@@ -53,11 +53,11 @@ class NamedActorClient(val name: String) {
 
   implicit val timeout = Timeout(30 second)
 
-  private def supervisor(implicit context: ActorContext) = {
+  private def supervisor(implicit context: ActorRefFactory) = {
     // We do this strange test for termination, so we will work correctly in the test harness, which apparently
     // can kill actors without killing every object
     if (!supervisorRef.isDefined || supervisorRef.get.isTerminated) {
-      supervisorRef = Some(context.system.actorOf(Props[NamedActorSupervisor], name))
+      supervisorRef = Some(context.actorOf(Props[NamedActorSupervisor], name))
     }
 
     supervisorRef.get
@@ -66,7 +66,7 @@ class NamedActorClient(val name: String) {
   /**
    * Get or create an actor with a particular ID
    */
-  def getOrCreate(id: String, props: Props)(implicit context: ActorContext): ActorRef = {
+  def getOrCreate(id: String, props: Props)(implicit context: ActorRefFactory): ActorRef = {
     val f = (supervisor ? GetOrCreate(id, props))
     Await.result(f, timeout.duration).asInstanceOf[ActorRef]
   }
@@ -74,7 +74,7 @@ class NamedActorClient(val name: String) {
   /**
    * Get or create an actor with a particular ID
    */
-  def get(id: String)(implicit context: ActorContext): Option[ActorRef] = {
+  def get(id: String)(implicit context: ActorRefFactory): Option[ActorRef] = {
     val f = (supervisor ? Get(id))
     Await.result(f, timeout.duration).asInstanceOf[Option[ActorRef]]
   }
