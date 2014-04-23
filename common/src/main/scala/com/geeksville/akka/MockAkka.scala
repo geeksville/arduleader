@@ -22,7 +22,6 @@ object MockAkka extends Logging {
 
   lazy val config = {
     println(s"GETTING CONFIG: $configOverride")
-    Thread.dumpStack()
     configOverride.getOrElse(ConfigFactory.load(classLoader))
   }
 

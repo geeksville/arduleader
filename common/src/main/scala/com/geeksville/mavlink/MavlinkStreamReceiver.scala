@@ -28,7 +28,7 @@ import akka.actor.Actor
 class MavlinkStreamReceiver(
   ingen: => InputStream,
   val sysIdOverride: Option[Int] = None,
-  val tlogSpeedup: Option[Double] = None) extends InstrumentedActor with MavlinkReceiver {
+  val tlogSpeedup: Option[Double] = None, autoStart: Boolean = true) extends InstrumentedActor with MavlinkReceiver {
 
   log.debug("MavlinkStream starting")
   MavlinkStreamReceiver.isIgnoreReceive = false
@@ -55,14 +55,22 @@ class MavlinkStreamReceiver(
   private val rand = new Random(System.currentTimeMillis)
 
   //rxThread.setPriority(Thread.MAX_PRIORITY)
-  rxThread.start()
+
+  if (autoStart) {
+    log.info("Autostarting reads")
+    self ! MavlinkStreamReceiver.StartMsg
+  }
 
   // Mission control does this, seems to be necessary to keep device from hanging up on us
   //out.write("\r\n\r\n\r\n".map(_.toByte).toArray)
 
   private def shouldDrop = simulateUnreliable && rand.nextInt(10) < 2
 
-  def onReceive: InstrumentedActor.Receiver = Actor.emptyBehavior
+  def onReceive: InstrumentedActor.Receiver = {
+    case MavlinkStreamReceiver.StartMsg =>
+      log.info("Received start message")
+      rxThread.start()
+  }
 
   override def postStop() {
     log.debug("MavlinkStream postStop")
@@ -75,7 +83,7 @@ class MavlinkStreamReceiver(
   }
 
   private def rxWorker() {
-    log.debug("MavlinkStream thread running")
+    log.info("MavlinkStream thread running")
     try {
       using(instream) { stream =>
         isInstreamValid = true
@@ -192,5 +200,8 @@ class MavlinkStreamReceiver(
 }
 
 object MavlinkStreamReceiver {
+  /// Start reading from stream
+  case object StartMsg
+
   var isIgnoreReceive = false
 }
