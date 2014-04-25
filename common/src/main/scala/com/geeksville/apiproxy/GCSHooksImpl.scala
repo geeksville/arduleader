@@ -66,7 +66,7 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     }
   }
 
-  def send(e: Envelope) {
+  def send(e: Envelope) = synchronized {
     e.writeDelimitedTo(out)
     out.flush()
   }

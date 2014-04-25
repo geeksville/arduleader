@@ -15,7 +15,7 @@ import com.geeksville.util.ThreadTools._
  * A mixin that adds periodic sending of heartbeats
  *
  */
-trait HeartbeatSender extends VehicleSimulator {
+trait HeartbeatSender extends InstrumentedActor with VehicleSimulator {
   import context._
 
   // Send a heartbeat every few seconds 

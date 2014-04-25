@@ -15,7 +15,7 @@ import com.geeksville.mavlink.CanSendMavlink
  * Pretend to be a vehicle, generating mavlink messages for our system id.
  *
  */
-trait VehicleSimulator extends InstrumentedActor with CanSendMavlink {
+trait VehicleSimulator extends CanSendMavlink { // InstrumentedActor
 
   val componentId = 190 // FIXME, just copied what mission control was doing
 
@@ -266,6 +266,14 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.seq = seq
     msg.target_system = targetSystem
     msg.target_component = targetComponent
+    msg
+  }
+
+  def makeVFRHud(airspeed: Float, groundspeed: Float) = {
+    val msg = new msg_vfr_hud(systemId, componentId)
+
+    msg.airspeed = airspeed
+    msg.groundspeed = groundspeed
     msg
   }
 
