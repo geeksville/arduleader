@@ -33,7 +33,7 @@ class LogBinaryMavlink(protected var file: File, val deleteIfBoring: Boolean, va
    */
   val vehiclesSeen = HashSet[Int]()
 
-  val messageThrottle = new Throttled(60 * 1000)
+  val messageThrottle = new Throttled(-1) // disabled (60 * 1000)
   var oldNumPacket = 0L
   var numPacket = 0L
 
