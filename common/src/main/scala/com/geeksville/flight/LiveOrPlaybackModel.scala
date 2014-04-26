@@ -5,6 +5,7 @@ import org.mavlink.messages.MAV_AUTOPILOT
 import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.ardupilotmega.msg_vfr_hud
 import org.mavlink.messages.ardupilotmega.msg_statustext
+import com.geeksville.mavlink.TimestampedMessage
 
 object LiveOrPlaybackModel {
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
@@ -173,8 +174,24 @@ trait LiveOrPlaybackModel {
 
   val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
 
+  /**
+   * duration of flying portion in seconds
+   */
+  def flightDuration = (for {
+    s <- startOfFlightTime
+    e <- endOfFlightTime
+  } yield {
+    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
+    println(s"Calculated flight duration of $r")
+    r
+  }).orElse {
+    println("Can't find duration for flight")
+    None
+  }
+
   val updateModel: PartialFunction[Any, Unit] = {
     case msg: msg_vfr_hud =>
+      println(s"Considering vfrhud: $msg")
       maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
       maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
       if (msg.throttle > 0) {

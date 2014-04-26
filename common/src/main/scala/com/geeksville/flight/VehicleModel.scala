@@ -457,21 +457,6 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       vfrHud = Some(msg)
   }
 
-  /**
-   * duration of flying portion in seconds
-   */
-  def flightDuration = (for {
-    s <- startOfFlightTime
-    e <- endOfFlightTime
-  } yield {
-    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
-    println(s"Calculated flight duration of $r")
-    r
-  }).orElse {
-    println("Can't find duration for flight")
-    None
-  }
-
   override def onModeChanged(oldmode: Option[Int], newmode: Int) {
     super.onModeChanged(oldmode, newmode)
 
