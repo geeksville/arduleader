@@ -4,10 +4,13 @@ package com.geeksville.util
 /// minIntervalMsec. 
 ///
 /// To use: throttled = new Throttled(1000); throttled { some code }
+/// @param minIntervalMsec use -1 to disable
 class Throttled(minIntervalMsec: Int) {
   private var lasttimeMsec = 0L
 
   private var numVetoed = 0
+
+  def isEnabled = minIntervalMsec != -1
 
   /**
    * A new event has occured, should it pass the throttle?
@@ -26,7 +29,7 @@ class Throttled(minIntervalMsec: Int) {
   }
 
   def apply(fn: () => Unit) {
-    if (isAllowed)
+    if (isEnabled && isAllowed)
       fn()
   }
 
@@ -34,12 +37,14 @@ class Throttled(minIntervalMsec: Int) {
    * Use this variant to be informed of how many msecs have passed since the last call of callback
    */
   def apply(fn: Long => Unit) {
-    val now = System.currentTimeMillis
+    if (isEnabled) {
+      val now = System.currentTimeMillis
 
-    val span = now - lasttimeMsec
-    if (span >= minIntervalMsec || span < 0) {
-      fn(span)
-      lasttimeMsec = now
+      val span = now - lasttimeMsec
+      if (span >= minIntervalMsec || span < 0) {
+        fn(span)
+        lasttimeMsec = now
+      }
     }
   }
 
@@ -47,7 +52,7 @@ class Throttled(minIntervalMsec: Int) {
    * Call this version to find number of calls ignored since last time
    */
   def withIgnoreCount(fn: Int => Unit) {
-    if (isAllowed) {
+    if (isEnabled isAllowed) {
       fn(numVetoed)
       numVetoed = 0
     }
