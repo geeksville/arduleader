@@ -26,12 +26,15 @@ trait VehicleSimulator extends CanSendMavlink { // InstrumentedActor
    */
   private val startTime = (new GregorianCalendar(2012, 12, 30)).getTime.getTime
 
-  def vehicleTypeCode = MAV_TYPE.MAV_TYPE_GCS // MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
+  var vehicleTypeCode = MAV_TYPE.MAV_TYPE_GCS // MAV_TYPE.MAV_TYPE_FLAPPING_WING // Close enough... ;-)
+
+  // The custom mode we send in our outgoing heartbeat msgs
+  var gcsCustomMode = 0
 
   /**
-   * Our heartbeat message
+   * Created lazily so our customMode can be changed if we want
    */
-  val heartbeat = {
+  def heartbeat = {
     /*
      * type  uint8_t Type of the MAV (quadrotor, helicopter, etc., up to 15 types, defined in MAV_TYPE ENUM)
 autopilot uint8_t Autopilot type / class. defined in MAV_AUTOPILOT ENUM
@@ -45,7 +48,7 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg.`type` = vehicleTypeCode
     msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID
     msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_AUTO_ENABLED
-    msg.custom_mode = 0
+    msg.custom_mode = gcsCustomMode
     msg.system_status = MAV_STATE.MAV_STATE_ACTIVE
     msg.mavlink_version = 3 // Seems to be what ardupilot uses
     msg

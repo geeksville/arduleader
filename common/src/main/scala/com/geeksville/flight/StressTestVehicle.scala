@@ -13,7 +13,7 @@ import akka.actor.ActorRef
 /**
  * Source a bunch of fake traffic - direct to a port
  */
-class DirectSending(sysId: Int) extends VehicleSimulator with HeartbeatSender {
+class DirectSending(sysId: Int) extends InstrumentedActor with VehicleSimulator with HeartbeatSender {
 
   override def systemId = sysId
 

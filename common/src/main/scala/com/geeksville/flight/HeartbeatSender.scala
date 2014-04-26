@@ -10,12 +10,13 @@ import com.geeksville.mavlink.MavlinkEventBus
 import com.geeksville.akka.InstrumentedActor
 import com.geeksville.mavlink.SendYoungest
 import com.geeksville.util.ThreadTools._
+import akka.actor.Actor
 
 /**
  * A mixin that adds periodic sending of heartbeats
  *
  */
-trait HeartbeatSender extends InstrumentedActor with VehicleSimulator {
+trait HeartbeatSender extends Actor with VehicleSimulator {
   import context._
 
   // Send a heartbeat every few seconds 
