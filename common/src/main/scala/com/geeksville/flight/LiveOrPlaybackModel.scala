@@ -100,6 +100,14 @@ trait LiveOrPlaybackModel {
   var startOfFlightTime: Option[Long] = None
   var endOfFlightTime: Option[Long] = None
 
+  /// Start time for current mission in usecs
+  var startTime: Option[Long] = None
+
+  /// Stop time for current mission in usecs
+  var currentTime: Option[Long] = None
+
+  var vfrHud: Option[msg_vfr_hud] = None
+
   private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
   private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
   private val roverModeToCodeMap = roverCodeToModeMap.map { case (k, v) => (v, k) }
@@ -191,13 +199,15 @@ trait LiveOrPlaybackModel {
 
   val updateModel: PartialFunction[Any, Unit] = {
     case msg: msg_vfr_hud =>
-      println(s"Considering vfrhud: $msg")
+      //println(s"Considering vfrhud: $msg")
+      vfrHud = Some(msg)
       maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
       maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
       if (msg.throttle > 0) {
-        if (!startOfFlightTime.isDefined)
-          startOfFlightTime = Some(-1)
-        endOfFlightTime = Some(-1) // FIXME - find real start/end times
+        if (!startOfFlightTime.isDefined) {
+          startOfFlightTime = startTime
+        }
+        endOfFlightTime = currentTime
       }
     case msg: msg_statustext =>
       // Sniff messages looking for interesting vehicle strings
@@ -210,5 +220,13 @@ trait LiveOrPlaybackModel {
           buildGit = Some(bGit)
         case _ =>
       }
+
+    // Messages might arrive encapsulated in a timestamped message, if so then use that for our sense of time
+    case msg: TimestampedMessage =>
+      // Update start/stop times
+      if (!startTime.isDefined)
+        startTime = Some(msg.time)
+
+      currentTime = Some(msg.time)
   }
 }

@@ -126,7 +126,6 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
   var rcChannelsRaw: Option[msg_rc_channels_raw] = None
   var servoOutputRaw: Option[msg_servo_output_raw] = None
   var attitude: Option[msg_attitude] = None
-  var vfrHud: Option[msg_vfr_hud] = None
   var globalPos: Option[msg_global_position_int] = None
 
   // We always want to see radio packets (which are hardwired for this sys id)
@@ -452,9 +451,6 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       val loc = VehicleSimulator.decodePosition(msg)
       //log.debug("Received globalpos: " + loc)
       onLocationChanged(loc)
-
-    case msg: msg_vfr_hud =>
-      vfrHud = Some(msg)
   }
 
   override def onModeChanged(oldmode: Option[Int], newmode: Int) {
