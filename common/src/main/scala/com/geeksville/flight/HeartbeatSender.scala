@@ -25,7 +25,7 @@ trait HeartbeatSender extends InstrumentedActor with VehicleSimulator {
   }
 
   override def postStop() {
-    log.debug("cancelling heartbeat sender")
+    //log.debug("cancelling heartbeat sender")
     heartbeatSender.cancel()
     super.postStop()
   }
