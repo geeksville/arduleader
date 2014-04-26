@@ -146,7 +146,7 @@ trait JoystickHID extends JoystickController {
       import system._
 
       // Schedule us to be invoked again in a little while
-      throttleTimer = Some(system.scheduler.scheduleOnce(200 milliseconds)(applyThrottle _))
+      throttleTimer = Some(system.scheduler.scheduleOnce(200 milliseconds)(applyThrottle))
     } else
       throttleTimer = None
   }

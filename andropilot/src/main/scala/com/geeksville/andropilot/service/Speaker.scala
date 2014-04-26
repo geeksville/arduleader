@@ -43,7 +43,7 @@ class Speaker(val acontext: AndropilotService, val v: VehicleModel) extends Inst
   private lazy val throttleAlt = new ThrottleByBucket(speechAltBucket)
   private val throttleBattery = new ThrottleByBucket(10)
 
-  val warningChecker = context.system.scheduler.schedule(60 seconds, 60 seconds) { () =>
+  val warningChecker = context.system.scheduler.schedule(60 seconds, 60 seconds) { 
     val warning = if (acontext.isLowVolt)
       R.string.spk_warn_volt
     else if (acontext.isLowBatPercent)

@@ -30,6 +30,8 @@ trait VehicleSimulator extends CanSendMavlink { // InstrumentedActor
 
   // The custom mode we send in our outgoing heartbeat msgs
   var gcsCustomMode = 0
+  var gcsBaseMode = MAV_MODE_FLAG.MAV_MODE_FLAG_SAFETY_ARMED | MAV_MODE_FLAG.MAV_MODE_FLAG_AUTO_ENABLED
+  var autopilotCode = MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID
 
   /**
    * Created lazily so our customMode can be changed if we want
@@ -46,8 +48,8 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     val msg = new msg_heartbeat(systemId, componentId)
 
     msg.`type` = vehicleTypeCode
-    msg.autopilot = MAV_AUTOPILOT.MAV_AUTOPILOT_INVALID
-    msg.base_mode = MAV_MODE_FLAG.MAV_MODE_FLAG_AUTO_ENABLED
+    msg.autopilot = autopilotCode
+    msg.base_mode = gcsBaseMode
     msg.custom_mode = gcsCustomMode
     msg.system_status = MAV_STATE.MAV_STATE_ACTIVE
     msg.mavlink_version = 3 // Seems to be what ardupilot uses
