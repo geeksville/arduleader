@@ -52,7 +52,7 @@ class Throttled(minIntervalMsec: Int) {
    * Call this version to find number of calls ignored since last time
    */
   def withIgnoreCount(fn: Int => Unit) {
-    if (isEnabled isAllowed) {
+    if (isEnabled && isAllowed) {
       fn(numVetoed)
       numVetoed = 0
     }
