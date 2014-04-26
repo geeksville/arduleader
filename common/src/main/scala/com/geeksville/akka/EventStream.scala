@@ -7,13 +7,14 @@ import akka.actor.ActorRef
 /**
  * Similar to the classic akka EventBus but simplified
  */
-class EventStream extends Publisher[Any] {
+class EventStream(implicit sender: ActorRef = Actor.noSender) extends Publisher[Any] {
 
   private val publisher = new {}
 
   // Send to actor when our event comes in
   class Subscriber(val dest: ActorRef) extends Sub {
     override def notify(p: Pub, evt: Any) {
+      //println(s"Publishing from $sender to $dest with $evt")
       if (!dest.isTerminated)
         dest ! evt
       else
