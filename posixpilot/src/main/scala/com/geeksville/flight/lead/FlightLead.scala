@@ -26,6 +26,7 @@ import com.geeksville.flight.EventBusVehicleReceiver
 import com.geeksville.mavlink.MavlinkReceiver
 import com.geeksville.apiproxy.LiveUploader
 import com.geeksville.apiproxy.APIProxyActor
+import com.geeksville.apiproxy.APIConstants
 
 object Main extends Logging {
 
@@ -178,7 +179,7 @@ object Main extends Logging {
 
     if (liveUpload) {
       val host = "localhost"
-      //val host =  APIConstants.DEFAULT_SERVER
+      //val host = APIConstants.DEFAULT_SERVER
       LiveUploader.create(system, APIProxyActor.testAccount, host, true)
     }
 

@@ -84,11 +84,11 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
       block
     } catch {
       case ex: ConnectException => // can't reach server
-        log.error(s"Can't reach server.  Will try again in $callbackDelayMsec ms")
+        log.error(s"Can't reach $host. Will try again in $callbackDelayMsec ms")
         scheduleReconnect()
 
       case ex: SocketException =>
-        log.error(s"Lost connection to server.  Will try again in $callbackDelayMsec ms")
+        log.error(s"Lost connection to $host. Will try again in $callbackDelayMsec ms")
         scheduleReconnect()
     }
   }
