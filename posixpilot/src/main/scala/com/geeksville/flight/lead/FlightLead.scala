@@ -176,8 +176,11 @@ object Main extends Logging {
     if (startSITL)
       createSITLClient()
 
-    if (liveUpload)
-      LiveUploader.create(system, APIProxyActor.testAccount, true)
+    if (liveUpload) {
+      val host = "localhost"
+      //val host =  APIConstants.DEFAULT_SERVER
+      LiveUploader.create(system, APIProxyActor.testAccount, host, true)
+    }
 
     if (startFlightLead) {
       // Create flightlead actors

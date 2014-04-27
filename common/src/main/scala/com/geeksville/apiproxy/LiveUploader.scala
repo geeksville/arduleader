@@ -13,7 +13,7 @@ case object StopMissionAndExitMsg
 /**
  * Listens on the mavlink event bus for packets, and sends them to the server
  */
-class LiveUploader(override val isLive: Boolean, host: String = APIConstants.DEFAULT_SERVER, port: Int = APIConstants.DEFAULT_TCP_PORT) extends APIProxyActor(host, port) with MavlinkReceiver {
+class LiveUploader(override val isLive: Boolean, host: String, port: Int = APIConstants.DEFAULT_TCP_PORT) extends APIProxyActor(host, port) with MavlinkReceiver {
   import APIProxyActor._
 
   self ! StartMissionMsg(false) // If we fail to close don't keep the mission
@@ -32,8 +32,8 @@ class LiveUploader(override val isLive: Boolean, host: String = APIConstants.DEF
 }
 
 object LiveUploader {
-  def create(context: ActorRefFactory, login: APIProxyActor.LoginMsg, isLive: Boolean) = {
-    val r = context.actorOf(Props(new LiveUploader(isLive)))
+  def create(context: ActorRefFactory, login: APIProxyActor.LoginMsg, host: String, isLive: Boolean) = {
+    val r = context.actorOf(Props(new LiveUploader(isLive, host)))
 
     // Creates account as needed
 

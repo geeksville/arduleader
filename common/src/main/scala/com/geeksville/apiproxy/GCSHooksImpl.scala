@@ -43,11 +43,11 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
           o.isDefined
         }.foreach { mopt =>
           mopt.foreach { env =>
-            logger.debug(s"Got packet $env")
+            //logger.debug(s"Got packet $env")
 
             // FIXME - use the enum to more quickly find the payload we care about
             env.mavlink.foreach { m =>
-              logger.debug(s"Dispatching $m")
+              //logger.debug(s"Dispatching $m")
               m.packet.foreach { p =>
                 cb.sendMavlink(p.toByteArray)
               }
