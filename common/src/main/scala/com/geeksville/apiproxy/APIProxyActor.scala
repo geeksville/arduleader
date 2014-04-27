@@ -37,7 +37,7 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
   private val callbacks = new GCSCallback {
     def sendMavlink(b: Array[Byte]) {
       val msg = MavlinkUtils.bytesToPacket(b)
-      log.debug(s"Client received mavlink from server: $msg")
+      log.debug(s"Forwarding server mavlink to vehicle: $msg")
       handlePacket(msg)
     }
   }

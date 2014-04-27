@@ -13,6 +13,7 @@ import com.geeksville.util.MathTools._
 import com.geeksville.flight.HeartbeatSender
 import com.geeksville.flight.EventBusVehicleReceiver
 import com.geeksville.mavlink.MavlinkReceiver
+import com.geeksville.mavlink.SendsMavlinkToEventbus
 
 /**
  * A full description of how to get from p1 to p2
@@ -22,7 +23,7 @@ import com.geeksville.mavlink.MavlinkReceiver
  */
 case class Distance3D(x: Double, z: Double, bearing: Int)
 
-class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSender with MavlinkReceiver {
+class Wingman extends InstrumentedActor with VehicleSimulator with HeartbeatSender with SendsMavlinkToEventbus {
   override def systemId = Wingman.systemId
 
   /**

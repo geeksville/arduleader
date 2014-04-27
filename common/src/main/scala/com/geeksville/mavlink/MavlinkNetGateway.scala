@@ -22,6 +22,8 @@ import com.geeksville.akka.InstrumentedActor
 trait MavlinkNetGateway extends MavlinkSender with MavlinkReceiver {
   private val thread = ThreadTools.createDaemon("netgw")(worker _)
 
+  private var shuttingDown = false
+
   thread.start()
 
   protected def socket: Socket
@@ -34,18 +36,19 @@ trait MavlinkNetGateway extends MavlinkSender with MavlinkReceiver {
   }
 
   override def postStop() {
+    shuttingDown = true
     socket.close() // Force thread exit
     super.postStop()
   }
 
   private def worker() {
     try {
-      while (!self.isTerminated) {
-        receivePacket.foreach(handlePacket)
+      while (!shuttingDown) {
+        receivePacket.foreach(handleIncomingPacket)
       }
     } catch {
       case ex: SocketException =>
-        if (!self.isTerminated) // If we are shutting down, ignore socket exceptions
+        if (!shuttingDown) // If we are shutting down, ignore socket exceptions
           throw ex
 
       case ex: Exception =>

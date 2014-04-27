@@ -27,6 +27,7 @@ import com.geeksville.mavlink.MavlinkReceiver
 import com.geeksville.apiproxy.LiveUploader
 import com.geeksville.apiproxy.APIProxyActor
 import com.geeksville.apiproxy.APIConstants
+import com.geeksville.mavlink.SendsMavlinkToEventbus
 
 object Main extends Logging {
 
@@ -178,8 +179,8 @@ object Main extends Logging {
       createSITLClient()
 
     if (liveUpload) {
-      val host = "localhost"
-      //val host = APIConstants.DEFAULT_SERVER
+      //val host = "localhost"
+      val host = APIConstants.DEFAULT_SERVER
       LiveUploader.create(system, APIProxyActor.testAccount, host, true)
     }
 
@@ -226,7 +227,7 @@ object Main extends Logging {
       // Keep a complete model of the arduplane state
       var vModel: VehicleModel = null
       val vehicle = system.actorOf(Props {
-        vModel = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
+        vModel = new VehicleModel with EventBusVehicleReceiver with SendsMavlinkToEventbus
         vModel.listenOnly = startSimData // If using sim data, don't try talking with it
         vModel
       })

@@ -54,6 +54,8 @@ class MavlinkStreamReceiver(
 
   private val rand = new Random(System.currentTimeMillis)
 
+  private var shuttingDown = false
+
   //rxThread.setPriority(Thread.MAX_PRIORITY)
 
   if (autoStart) {
@@ -74,6 +76,8 @@ class MavlinkStreamReceiver(
 
   override def postStop() {
     log.debug("MavlinkStream postStop")
+
+    shuttingDown = true
 
     // This should cause the rx thread to bail
     if (isInstreamValid)
@@ -106,7 +110,7 @@ class MavlinkStreamReceiver(
         var startTick = System.currentTimeMillis
 
         try {
-          while (!self.isTerminated) {
+          while (!shuttingDown) {
             //log.debug("Reading next packet")
 
             // Sleep if needed to simulate the time delay
@@ -162,7 +166,7 @@ class MavlinkStreamReceiver(
               // Dups are normal, the 3dr radio will duplicate packets if it has nothing better to do
               if (s.sequence != prevSeq && !MavlinkStreamReceiver.isIgnoreReceive) //  for profiling
                 if (!shouldDrop)
-                  handlePacket(s)
+                  handleIncomingPacket(s)
 
               prevSeq = s.sequence
             }
@@ -177,7 +181,7 @@ class MavlinkStreamReceiver(
             self ! PoisonPill
 
           case ex: IOException =>
-            if (!self.isTerminated) {
+            if (!shuttingDown) {
               log.error("Killing mavlink stream due to: " + ex)
               self ! PoisonPill
             }

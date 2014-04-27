@@ -79,7 +79,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
   private def worker() {
     try {
       while (!shuttingDown) {
-        receivePacket.foreach(handlePacket)
+        receivePacket.foreach(handleIncomingPacket)
       }
     } catch {
       case ex: BindException =>
