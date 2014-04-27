@@ -14,14 +14,14 @@ trait MavlinkReceiver {
   /**
    * For now we pipe all our notifications through the system event stream - we might refine this later
    */
-  val destEventBus = MavlinkEventBus
+  // val destEventBus = MavlinkEventBus
 
   /**
    * Where msg is a SendYoungest or a MAVLinkMessage
    */
   protected def handleIncomingPacket(msg: Any) {
     assert(msg != null)
-    destEventBus.publish(msg)
+    MavlinkEventBus.publish(msg)
   }
 
 }

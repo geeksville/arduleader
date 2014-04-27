@@ -37,6 +37,8 @@ trait AndropilotPrefs extends UsesPreferences {
 
   def dshareUpload = boolPreference("dshare_upload", true)
   def dshareDeleteSent = boolPreference("dshare_deletesent", false)
+  def dshareUseNew = boolPreference("dshare_usenew", false)
+  def dshareServerControl = boolPreference("dshare_servercontrol", false)
   def dshareUsername = stringPreference("dshare_username", "").trim
   def dsharePassword = stringPreference("dshare_password", "").trim
 

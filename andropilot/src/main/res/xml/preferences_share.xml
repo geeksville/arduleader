@@ -29,4 +29,15 @@
         android:summary="We recommend leaving this off for now"
         android:title="After sharing logs, delete local copies" />
 
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="dshare_usenew"
+        android:summary="We recommend leaving this off for now"
+        android:title="Use the new droneshare" />
+        
+    <CheckBoxPreference
+        android:defaultValue="false"
+        android:key="dshare_servercontrol"
+        android:summary="We recommend leaving this off for now"
+        android:title="Allow droneshare to control this vehicle" />    
 </PreferenceScreen>

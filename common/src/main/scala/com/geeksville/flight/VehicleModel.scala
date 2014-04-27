@@ -379,6 +379,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
   private def mReceive: InstrumentedActor.Receiver = {
 
     case OnInterfaceChanged(c) =>
+      log.warning(s"I've been told interface good=$c")
       hasInterface = c
       if (c)
         fsm.OnHasInterface()

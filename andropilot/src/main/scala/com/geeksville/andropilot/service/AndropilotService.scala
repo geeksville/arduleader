@@ -55,6 +55,10 @@ import akka.actor.Props
 import akka.actor.PoisonPill
 import com.geeksville.flight.EventBusVehicleReceiver
 import com.geeksville.mavlink.MavlinkReceiver
+import com.geeksville.mavlink.SendsMavlinkToEventbus
+import com.geeksville.apiproxy.APIConstants
+import com.geeksville.apiproxy.LiveUploader
+import com.geeksville.apiproxy.APIProxyActor
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -94,6 +98,8 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
   private var errorMessage: Option[String] = None
 
   private var webServer: Option[ActorRef] = None
+
+  private var droneshare: Option[ActorRef] = None
 
   implicit val acontext = this
 
@@ -165,7 +171,11 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
   def isFollowMe = follower.isDefined
 
   // Are we talking to a device at all?
-  def isConnected = isSerialConnected || udp.isDefined || isBluetoothConnected
+  def isConnected = {
+    val r = isSerialConnected || udp.isDefined || isBluetoothConnected
+    warn(s"Service returning connected=$r")
+    r
+  }
 
   /**
    * The USB device ids of any connected serial adapter
@@ -206,11 +216,31 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     startService(AndroidDirUpload.createIntent(this))
   }
 
+  private def startNewDroneshare() {
+    if (dshareUseNew) {
+      if (dshareUsername.isEmpty)
+        errorMessage = Some("Invalid droneshare username")
+      else if (dsharePassword.size < 1)
+        errorMessage = Some("Droneshare password too short")
+      else {
+        //val host = "localhost"
+        warn("Creating droneshare link")
+        val host = APIConstants.DEFAULT_SERVER
+        droneshare = Some(LiveUploader.create(system,
+          APIProxyActor.LoginMsg(dshareUsername, dsharePassword, None), host, dshareServerControl))
+      }
+    } else {
+      warn("User doesn't want droneshare")
+    }
+  }
+
   /**
    * Init operations that can only proceed after the vehicle model is up
    */
   private def postVehicleInit() {
     speaker = Some(system.actorOf(Props(new Speaker(this, vehicle.get)), "speaker"))
+
+    startNewDroneshare()
 
     if (runWebserver) {
       warn("Starting web server")
@@ -253,6 +283,9 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
     info("Creating service")
 
+    // Force handler creation
+    val h = handler
+
     initSpeech()
 
     // Not really ideal - but good enough for now
@@ -284,7 +317,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     }
 
     val vactor = system.actorOf(Props {
-      val a = new VehicleModel with EventBusVehicleReceiver with MavlinkReceiver
+      val a = new VehicleModel with EventBusVehicleReceiver with SendsMavlinkToEventbus
       a.useRequestById = !useOldArducopter
       vehicle = Some(a)
 
@@ -568,6 +601,8 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     udp = None
     webServer.foreach(_ ! PoisonPill)
     webServer = None
+    droneshare.foreach(_ ! PoisonPill)
+    droneshare = None
     serialDetachAll()
     unregisterReceiver(disconnectReceiver)
     btDetached()

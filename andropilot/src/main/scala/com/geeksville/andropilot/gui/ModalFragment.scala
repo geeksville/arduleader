@@ -188,7 +188,7 @@ class ModalFragment extends LayoutFragment(R.layout.modal_bar) with AndroService
         debug(s"in setButtons heartbeat=${v.hasHeartbeat}")
 
         setWPUploadVisibility(v.isDirty)
-        warning.setVisibility(if (v.listenOnly) View.VISIBLE else View.GONE)
+        warning.setVisibility(if (v.hasHeartbeat && v.listenOnly) View.VISIBLE else View.GONE)
 
         // Show the vehicle mode buttons
         val modenames = if (s.isConnected && v.hasHeartbeat)
