@@ -20,6 +20,7 @@ trait MavlinkReceiver extends CanSendMavlink {
    * Where msg is a SendYoungest or a MAVLinkMessage
    */
   override protected def handlePacket(msg: Any) {
+    assert(msg != null)
     destEventBus.publish(msg)
   }
 

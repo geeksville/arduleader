@@ -36,6 +36,8 @@ class MavlinkUDP(destHostName: Option[String] = None,
    */
   var remote: Option[SocketAddress] = None
 
+  private var shuttingDown = false
+
   thread.start()
 
   protected def doSendMavlink(bytes: Array[Byte]) {
@@ -59,6 +61,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
   }
 
   override def postStop() {
+    shuttingDown = true
     socket.close() // Force thread exit
     super.postStop()
   }
@@ -75,7 +78,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
 
   private def worker() {
     try {
-      while (!self.isTerminated) {
+      while (!shuttingDown) {
         receivePacket.foreach(handlePacket)
       }
     } catch {
@@ -84,7 +87,7 @@ class MavlinkUDP(destHostName: Option[String] = None,
         self ! PoisonPill
 
       case ex: SocketException =>
-        if (!self.isTerminated) // If we are shutting down, ignore socket exceptions
+        if (!shuttingDown) // If we are shutting down, ignore socket exceptions
           throw ex
 
       case ex: Exception =>
