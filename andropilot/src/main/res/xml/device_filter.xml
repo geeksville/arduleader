@@ -6,6 +6,10 @@
     <!-- 0x0403 / 0x6015: FTDI FT232R UART -->
     <usb-device vendor-id="1027" product-id="24597" />
  
+    <!-- Jon Challenger reports that he received this device -->
+    <usb-device vendor-id="1027" product-id="1002" />
+    <usb-device vendor-id="1027" product-id="1003" />
+        
     <!--  Some mystery serial device -->
     <usb-device vendor-id="4292" product-id="24577" />
         
