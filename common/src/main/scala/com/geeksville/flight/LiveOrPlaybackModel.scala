@@ -212,7 +212,7 @@ trait LiveOrPlaybackModel {
     case msg: msg_statustext =>
       // Sniff messages looking for interesting vehicle strings
       val s = msg.getText()
-      println(s"Considering status: $s")
+      //println(s"Considering status: $s")
       s match {
         case VersionRegex(bName, bVer, bGit) =>
           buildName = Some(bName)
