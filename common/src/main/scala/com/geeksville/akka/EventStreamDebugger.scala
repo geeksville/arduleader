@@ -5,7 +5,7 @@ import akka.actor.ActorLogging
 import akka.actor.UnhandledMessage
 import org.mavlink.messages.MAVLinkMessage
 
-class EventStreamDebugger extends Actor with ActorLogging {
+class EventStreamDebugger extends Actor with ActorLogging with DebuggableActor {
   private val messagesToIgnore = List(classOf[MAVLinkMessage])
 
   context.system.eventStream.subscribe(self, classOf[DeadLetter])
@@ -14,10 +14,12 @@ class EventStreamDebugger extends Actor with ActorLogging {
   def receive = {
     case d: DeadLetter => log.error(s"DeadLetter: $d")
     case d: UnhandledMessage =>
-      val isIgnore = messagesToIgnore.find { c =>
-        c.isInstance(d.message)
-      }.isDefined
-      if (!isIgnore)
-        log.error(s"UnhandledMessage: $d")
+      // There are a few message types we expect to be ignored by most
+      d.message match {
+        case _: MAVLinkMessage =>
+        case GetDebugInfo =>
+        case _ =>
+          log.error(s"UnhandledMessage: $d")
+      }
   }
 }

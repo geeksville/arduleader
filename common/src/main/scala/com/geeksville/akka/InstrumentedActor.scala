@@ -16,7 +16,7 @@ object InstrumentedActor {
 /**
  * Try to make scala actors look as much like akka actors as possible
  */
-trait InstrumentedActor extends Actor with ActorLogging {
+trait InstrumentedActor extends DebuggableActor with ActorLogging {
   import InstrumentedActor._
 
   /**
@@ -26,7 +26,4 @@ trait InstrumentedActor extends Actor with ActorLogging {
 
   override def receive = onReceive
 
-  override def postStop() {
-    log.info("Actor terminated: " + this)
-  }
 }

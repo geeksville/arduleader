@@ -5,6 +5,7 @@ import akka.actor.Identify
 import akka.actor.ActorIdentity
 import akka.actor.ActorRef
 import scala.xml._
+import akka.actor.ActorSelection
 
 object AkkaReflector {
   case object PollMsg
@@ -14,17 +15,25 @@ object AkkaReflector {
 class AkkaReflector extends InstrumentedActor {
   import AkkaReflector._
 
-  private var allActors: List[ActorRef] = Nil
+  private var debugInfo: Map[ActorRef, Any] = Map.empty
+
+  private def sendPing(a: ActorSelection) {
+    a ! Identify(0)
+    a ! GetDebugInfo // Debuggable actors will understand this...
+  }
 
   override def onReceive = {
     case ActorIdentity(_, ref) =>
       ref.foreach { a =>
         //log.debug(s"Found actor $a")
-        allActors = a :: allActors
+        debugInfo += (a -> "Identified")
 
         // Recurse
-        context.system.actorSelection(a.path + "/*") ! Identify(0)
+        sendPing(context.system.actorSelection(a.path + "/*"))
       }
+
+    case DebugInfoResponse(info) =>
+      debugInfo += (sender -> info)
 
     case PollMsg =>
       startPoll()
@@ -34,8 +43,8 @@ class AkkaReflector extends InstrumentedActor {
   }
 
   def startPoll() {
-    allActors = Nil
-    context.system.actorSelection("*") ! Identify(0)
+    debugInfo = Map.empty
+    sendPing(context.system.actorSelection("*"))
   }
 
   /**
@@ -45,13 +54,14 @@ class AkkaReflector extends InstrumentedActor {
     <html>
       <body>
         <p>Actors:</p>
-        <ul>
+        <table>
           {
-            allActors.sorted.map { a =>
-              <li> { a } </li>
+            debugInfo.map {
+              case (k, v) =>
+                <tr><td>{ k }</td><td>{ v }</td></tr>
             }
           }
-        </ul>
+        </table>
       </body>
     </html>
   }
