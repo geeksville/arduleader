@@ -7,7 +7,7 @@ import scala.collection.mutable._
 /// Note: Not actually implemented as a ring buffer 
 /// but other than implicitly dropping the oldest items it is similar
 class RingBuffer[A](val maxCount: Int) extends BufferProxy[A] {
-  override def self = new ListBuffer[A]
+  override val self = new ListBuffer[A]
 
   override def +=(x: A) = { makeSpace(); super.+=(x) }
 

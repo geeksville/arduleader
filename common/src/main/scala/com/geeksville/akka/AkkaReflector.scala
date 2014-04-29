@@ -6,6 +6,7 @@ import akka.actor.ActorIdentity
 import akka.actor.ActorRef
 import scala.xml._
 import akka.actor.ActorSelection
+import scala.collection.immutable.SortedMap
 
 object AkkaReflector {
   case object PollMsg
@@ -15,7 +16,7 @@ object AkkaReflector {
 class AkkaReflector extends InstrumentedActor {
   import AkkaReflector._
 
-  private var debugInfo: Map[ActorRef, Any] = Map.empty
+  private var debugInfo: SortedMap[ActorRef, Any] = SortedMap.empty
 
   private def sendPing(a: ActorSelection) {
     a ! Identify(0)
@@ -43,7 +44,7 @@ class AkkaReflector extends InstrumentedActor {
   }
 
   def startPoll() {
-    debugInfo = Map.empty
+    debugInfo = SortedMap.empty
     sendPing(context.system.actorSelection("*"))
   }
 
@@ -53,7 +54,7 @@ class AkkaReflector extends InstrumentedActor {
   def asHtml: Elem = {
     <html>
       <body>
-        <p>Actors:</p>
+        <p>{ debugInfo.size } Actors:</p>
         <table>
           {
             debugInfo.map {
