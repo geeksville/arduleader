@@ -116,7 +116,7 @@ trait HeartbeatMonitor extends InstrumentedActor {
   }
 
   protected def onModeChanged(old: Option[Int], m: Int) {
-    log.error(s"Mode change, $old -> $m")
+    log.info(s"Mode change, $old -> $m")
   }
 
   protected def onSystemStatusChanged(m: Option[Int]) {

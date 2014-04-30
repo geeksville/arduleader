@@ -401,7 +401,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       val newMode = rcRequestedMode
       if (newMode.isDefined && oldMode != newMode) {
         val s = modeToString(newMode.get)
-        log.warning(s"RC mode change: $s")
+        log.info(s"RC mode change: $s")
         publishEvent(MsgRCModeChanged(s))
       }
 
