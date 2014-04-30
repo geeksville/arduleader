@@ -274,12 +274,22 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
-  def makeVFRHud(airspeed: Float, groundspeed: Float, throttlePct: Int) = {
+  def makeVFRHud(airspeed: Float, groundspeed: Float, throttlePct: Int, heading: Int) = {
     val msg = new msg_vfr_hud(systemId, componentId)
 
     msg.airspeed = airspeed
     msg.groundspeed = groundspeed
     msg.throttle = throttlePct
+    msg.heading = heading
+    msg
+  }
+
+  def makeAttitude(pitch: Float, yaw: Float, roll: Float) = {
+    val msg = new msg_attitude(systemId, componentId)
+
+    msg.pitch = pitch
+    msg.yaw = yaw
+    msg.roll = roll
     msg
   }
 
