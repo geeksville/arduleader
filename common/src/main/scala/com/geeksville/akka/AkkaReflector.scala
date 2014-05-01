@@ -52,18 +52,16 @@ class AkkaReflector extends InstrumentedActor {
    * Generate a hierchical list of all actors (for debugging)
    */
   def asHtml: Elem = {
-    <html>
-      <body>
-        <p>{ debugInfo.size } Actors:</p>
-        <table>
-          {
-            debugInfo.map {
-              case (k, v) =>
-                <tr><td>{ k }</td><td>{ v }</td></tr>
-            }
+    <div class="akka-debug-info">
+      <p>{ debugInfo.size } Actors:</p>
+      <table>
+        {
+          debugInfo.map {
+            case (k, v) =>
+              <tr><td>{ k }</td><td>{ v }</td></tr>
           }
-        </table>
-      </body>
-    </html>
+        }
+      </table>
+    </div>
   }
 }
