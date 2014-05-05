@@ -49,6 +49,9 @@ abstract class VehicleClient(val targetOverride: Option[Int] = None) extends Hea
 
   private def mReceive: InstrumentedActor.Receiver = {
 
+    case SendMessage(msg) =>
+      sendMavlink(msg)
+      
     case RetryExpired(ctx) =>
       ctx.doRetry()
   }
