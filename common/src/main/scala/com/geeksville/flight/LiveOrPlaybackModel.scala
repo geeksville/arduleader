@@ -197,7 +197,12 @@ trait LiveOrPlaybackModel {
     None
   }
 
-  val updateModel: PartialFunction[Any, Unit] = {
+  protected def perhapsUpdateModel(msg: Any) {
+    if (updateModel.isDefinedAt(msg))
+      updateModel.apply(msg)
+  }
+
+  protected val updateModel: PartialFunction[Any, Unit] = {
     case msg: msg_vfr_hud =>
       //println(s"Considering vfrhud: $msg")
       vfrHud = Some(msg)
@@ -205,8 +210,10 @@ trait LiveOrPlaybackModel {
       maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
       if (msg.throttle > 0) {
         if (!startOfFlightTime.isDefined) {
-          startOfFlightTime = startTime
+          //println(s"Setting start of flight to $currentTime")
+          startOfFlightTime = currentTime
         }
+        //println(s"Setting end of flight to $currentTime")
         endOfFlightTime = currentTime
       }
     case msg: msg_statustext =>
