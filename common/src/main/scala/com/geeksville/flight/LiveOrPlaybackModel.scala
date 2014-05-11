@@ -47,6 +47,14 @@ object LiveOrPlaybackModel {
     "GUIDED" -> (100, 100, 255),
     "ACRO" -> (255, 255, 0))
 
+  /**
+   * The color code as an HTML string
+   */
+  def htmlColorName(modeName: String) = modeToColorMap.get(modeName).map {
+    case (r, g, b) =>
+      "#%02x%02x%02x".format(r, g, b)
+  }
+
   private val roverCodeToModeMap = Map(
     0 -> "MANUAL", 2 -> "LEARNING", 3 -> "STEERING",
     4 -> "HOLD",
