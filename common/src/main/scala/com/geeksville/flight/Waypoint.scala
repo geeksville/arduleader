@@ -91,13 +91,13 @@ case class Waypoint(val msg: msg_mission_item) {
   /**
    * A short description of this waypoint
    */
-  def shortString = {
+  def shortString: String = {
     msg.command match {
       case MAV_CMD.MAV_CMD_DO_JUMP => "Jump to WP #%d".format(jumpSequence)
       case MAV_CMD.MAV_CMD_NAV_LOITER_UNLIM => "Loiter (forever)"
       case MAV_CMD.MAV_CMD_NAV_LOITER_TURNS => "Loiter (%.1f turns)".format(loiterTurns)
       case MAV_CMD.MAV_CMD_NAV_LOITER_TIME => "Loiter (%.1f seconds)".format(loiterTime)
-      case MAV_CMD.MAV_CMD_NAV_TAKEOFF => Some("Take-off (MinPitch %.1f)".format(msg.param1))
+      case MAV_CMD.MAV_CMD_NAV_TAKEOFF => "Take-off (MinPitch %.1f)".format(msg.param1)
 
       // FIXME - parse takeoff/land
       case _ =>
