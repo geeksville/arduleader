@@ -6,6 +6,8 @@ import org.mavlink.messages.MAVLinkMessage
 import org.mavlink.messages.ardupilotmega.msg_vfr_hud
 import org.mavlink.messages.ardupilotmega.msg_statustext
 import com.geeksville.mavlink.TimestampedMessage
+import org.mavlink.messages.ardupilotmega.msg_global_position_int
+import org.mavlink.messages.ardupilotmega.msg_gps_raw_int
 
 object LiveOrPlaybackModel {
   private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
@@ -114,6 +116,8 @@ trait LiveOrPlaybackModel {
   /// Stop time for current mission in usecs
   var currentTime: Option[Long] = None
 
+  var endPosition: Option[Location] = None
+
   var vfrHud: Option[msg_vfr_hud] = None
 
   private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
@@ -131,6 +135,9 @@ trait LiveOrPlaybackModel {
 
   // Modes to allow while downloading wpts or params
   protected val initializingModes = Map("Disarm" -> false)
+
+  // Currently I only use GPS pos, because we don't properly adjust alt offsets (it seems like m.alt is not corrected for MSL)
+  val useGlobalPosition = false
 
   /// Must match ArduCopter or ArduPlane etc... used to find appropriate parameter docs
   // FIXME handle other vehicle types
@@ -211,6 +218,16 @@ trait LiveOrPlaybackModel {
   }
 
   protected val updateModel: PartialFunction[Any, Unit] = {
+    case m: msg_global_position_int if useGlobalPosition =>
+      val l = VehicleSimulator.decodePosition(m)
+      endPosition = Some(l)
+
+    case m: msg_gps_raw_int =>
+      val l = VehicleSimulator.decodePosition(m)
+      l.foreach { l => // Might be missing from gps pos
+        endPosition = Some(l)
+      }
+
     case msg: msg_vfr_hud =>
       //println(s"Considering vfrhud: $msg")
       vfrHud = Some(msg)
