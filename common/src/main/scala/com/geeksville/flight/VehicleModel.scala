@@ -81,15 +81,17 @@ case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MED
  * cur lat, lng, alt, mode, status and next waypoint
  *
  * @param targetOverride if specified then we will only talk with the specified sysId
+ * @param maxUpdatePeriod used to limit updates to an even slower rate
  */
-abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
-
+abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePeriod: Int = 0) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
+  import math._
+  
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
-  private val locationThrottle = new Throttled(1000)
-  private val rcChannelsThrottle = new Throttled(500)
-  private val servoOutputThrottle = new Throttled(500)
-  private val sysStatusThrottle = new Throttled(5000)
-  private val attitudeThrottle = new Throttled(100)
+  private lazy val locationThrottle = new Throttled(max(1000, maxUpdatePeriod))
+  private lazy val rcChannelsThrottle = new Throttled(max(500, maxUpdatePeriod))
+  private lazy val servoOutputThrottle = new Throttled(max(500, maxUpdatePeriod))
+  private lazy val sysStatusThrottle = new Throttled(max(5000, maxUpdatePeriod))
+  private lazy val attitudeThrottle = new Throttled(max(100, maxUpdatePeriod))
 
   /// We keep the last 25ish status messages in the model
   val maxStatusHistory = 25
@@ -423,7 +425,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None) extends VehicleC
       setPositionFreq(f)
 
     case m: msg_statustext =>
-      log.info("Received status: " + m.getText)
+      //log.debug("Received status: " + m.getText)
 
       // APM uses some unfortunate word choice and has no notion of failure codes.  Change the terminology here
       var s = m.getText
