@@ -18,6 +18,9 @@ import org.mavlink.messages.MAV_TYPE
 import scala.collection.mutable.HashSet
 import scala.concurrent.blocking
 
+/// Send to LogBinaryMavlink if you would like him to flush his buffers immediately
+case object FlushNowMessage
+
 /**
  * Output a mission planner compatible tlog file
  *
@@ -136,6 +139,9 @@ class LogBinaryMavlink(protected var file: File, val deleteIfBoring: Boolean, va
   }
 
   def onReceive = {
+    case FlushNowMessage =>
+      out.flush()
+
     case msg: MAVLinkMessage =>
       handleMessage(msg, System.currentTimeMillis * 1000)
     case TimestampedMessage(time, payload) =>
