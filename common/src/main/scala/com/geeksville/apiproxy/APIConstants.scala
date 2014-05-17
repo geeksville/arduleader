@@ -4,7 +4,7 @@ object APIConstants {
   /**
    * The default world wide drone broker
    */
-  val DEFAULT_SERVER = "nestor.3dr.com" // or localhost 
+  val DEFAULT_SERVER = "api.3dr.com" 
 
   /**
    * If using a raw TCP link to the server, use this port number
