@@ -57,7 +57,6 @@ class NamedActorClient(val name: String) {
     // We do this strange test for termination, so we will work correctly in the test harness, which apparently
     // can kill actors without killing every object
     if (!supervisorRef.isDefined || supervisorRef.get.isTerminated) {
-      println(s"*** creating supervisor $name")
       supervisorRef = Some(context.actorOf(Props[NamedActorSupervisor], name))
     }
 
