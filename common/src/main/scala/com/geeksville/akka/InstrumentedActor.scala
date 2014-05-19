@@ -16,7 +16,7 @@ object InstrumentedActor {
 /**
  * Try to make scala actors look as much like akka actors as possible
  */
-trait InstrumentedActor extends DebuggableActor with ActorLogging {
+trait InstrumentedActor extends DebuggableActor with UncaughtExceptionActor with ActorLogging {
   import InstrumentedActor._
 
   /**
