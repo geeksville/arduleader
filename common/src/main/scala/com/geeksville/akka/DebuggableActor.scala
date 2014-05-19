@@ -1,6 +1,7 @@
 package com.geeksville.akka
 
 import akka.actor.Actor
+import akka.actor.ActorLogging
 
 case object GetDebugInfo
 
@@ -10,7 +11,7 @@ case object GetDebugInfo
  */
 case class DebugInfoResponse(info: Any)
 
-trait DebuggableActor extends Actor {
+trait DebuggableActor extends Actor with ActorLogging with UncaughtExceptionActor {
 
   protected def debuggingInfo: Any = toString
 
