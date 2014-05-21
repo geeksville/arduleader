@@ -54,7 +54,7 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
 
   def getMarker(m: Marker) = markerMap(m)
 
-  def addMarker(sm: SmartMarker) = {
+  def addMarker(sm: SmartMarker) = synchronized {
     val gm = map.addMarker(sm.markerOptions)
     sm.gmarker = Some(gm)
     sm.myScene = Some(this)
@@ -81,17 +81,17 @@ class Scene(val map: GoogleMap) extends AndroidLogger {
   /**
    * Redraw all drawables
    */
-  private def renderSegments() {
+  private def renderSegments() = synchronized {
     debug("Rendering " + drawables.size + " drawables")
     drawables.foreach(_.render(map))
   }
 
-  def clearSegments() {
+  def clearSegments() = synchronized {
     drawables.foreach(_.remove())
     drawables.clear()
   }
 
-  def clearMarkers() {
+  def clearMarkers() = synchronized {
     markers.foreach(_.remove())
     markers.clear()
   }
