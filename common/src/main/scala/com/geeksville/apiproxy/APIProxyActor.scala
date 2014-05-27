@@ -34,6 +34,8 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
   /// We might need to start missions later - after we have a connection
   private var desiredMission: Option[StartMissionMsg] = None
 
+  var errorMsg: Option[String] = None
+
   private val callbacks = new GCSCallback {
     def sendMavlink(b: Array[Byte]) {
       val msg = MavlinkUtils.bytesToPacket(b)
@@ -55,6 +57,7 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
       disconnect()
       loginInfo = Some(x)
       connect()
+    //sender ! errorMsg
 
     case msg: MAVLinkMessage =>
       // FIXME - use ByteStrings instead!
@@ -90,6 +93,10 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
       case ex: SocketException =>
         log.error(s"Lost connection to $host. Will try again in $callbackDelayMsec ms")
         scheduleReconnect()
+
+      case ex: Exception =>
+        setError("DroneAPI failure: " + ex.getMessage)
+      // We do not try again
     }
   }
 
@@ -143,9 +150,15 @@ abstract class APIProxyActor(host: String = APIConstants.DEFAULT_SERVER, port: I
     } catch {
       case ex: CallbackLaterException => // server wants us to callback
         callbackDelayMsec = ex.delayMsec
-        log.error(s"Server told us to get lost.  Will try again in $callbackDelayMsec ms")
+        setError(s"Server told us to call back later.  Will try again in $callbackDelayMsec ms")
+
         scheduleReconnect()
     }
+  }
+
+  private def setError(msg: String) {
+    log.error(msg)
+    errorMsg = Some(msg)
   }
 
   private def scheduleReconnect() {

@@ -1,6 +1,7 @@
 package com.geeksville.andropilot
 
 import com.ridemission.scandroid.UsesPreferences
+import java.util.UUID
 
 trait AndropilotPrefs extends UsesPreferences {
 
@@ -41,6 +42,21 @@ trait AndropilotPrefs extends UsesPreferences {
   def dshareServerControl = boolPreference("dshare_servercontrol", false)
   def dshareUsername = stringPreference("dshare_username", "").trim
   def dsharePassword = stringPreference("dshare_password", "").trim
+
+  // If we don't have a stable vehicle ID pick one the first time we are invoked
+  def vehicleId = {
+    var r = stringPreference("vehicle_id", "").trim
+
+    if (r.isEmpty) {
+      r = UUID.randomUUID.toString
+
+      val edit = preferences.edit
+      edit.putString("vehicle_id", r)
+      edit.commit
+    }
+
+    r
+  }
 
   def developerMode = boolPreference("developer_mode", false)
 

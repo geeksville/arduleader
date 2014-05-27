@@ -19,47 +19,37 @@ import org.apache.http.conn.scheme.PlainSocketFactory
 import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.params.HttpConnectionParams
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager
+import org.apache.http.entity.FileEntity
+import com.geeksville.apiproxy.APIConstants
+import org.json.JSONArray
+import com.geeksville.util.ThreadTools
+import org.apache.http.client.utils.URLEncodedUtils
+import java.util.LinkedList
+import org.apache.http.NameValuePair
+import org.apache.http.message.BasicNameValuePair
 
-class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
-  extends S3Upload("s3-droneshare", DroneShareUpload.createKey(), srcFile) {
+class DroneShareUpload(val srcFile: File, val userId: String, val userPass: String, val vehicleId: String) {
 
-  private val baseUrl = "http://upload.droneshare.com"
-  // private val baseUrl = "http://192.168.0.93:8080"
-  private val webAppUploadUrl = baseUrl + "/api/upload/froms3.json"
+  private val baseUrl = APIConstants.URL_BASE
+  private val apiKey = "1c5dda3a.cf407bcbd75bfb6d0f9103374f2b5bd4"
+  // For droidplanner use 1f56d502994ded5f537394bcac8affe4
 
-  var tlogId = "FIXME" // Need to use the server response
+  private val params = new LinkedList[NameValuePair]()
+  params.add(new BasicNameValuePair("api_key", apiKey))
+  params.add(new BasicNameValuePair("login", userId))
+  params.add(new BasicNameValuePair("password", userPass))
+  params.add(new BasicNameValuePair("autoCreate", "true"))
+  private val queryParams = URLEncodedUtils.format(params, "utf-8")
+  private val webAppUploadUrl = s"$baseUrl/api/v1/mission/upload/$vehicleId?$queryParams"
 
   /**
    * URL to see the webpage for this tlog
    */
-  def viewURL = baseUrl + "/view/" + tlogId
+  var viewURL = "FIXME"
 
-  def kmzURL = baseUrl + "/api/tlog/" + tlogId + ".kmz"
-
-  private def jsonToWebApp = """
-	|{
-    |  "key": "%s",
-    |  "userId": "%s",
-    |  "userPass": "%s"
-	|}
-  	""".stripMargin.format(keyName, userId, userPass)
-
-  /**
-   * Now tell our webapp
-   */
-  override protected def handleUploadCompleted() {
-    try {
-      tlogId = tellWebApp()
-      println("WebApp responds: " + tlogId)
-
-      handleWebAppCompleted()
-    } catch {
-      case ex: HttpResponseException if ex.getStatusCode == HttpStatus.SC_NOT_ACCEPTABLE =>
-        handleUploadNotAccepted()
-      case ex: Exception =>
-        handleUploadFailed(Some(ex))
-    }
-  }
+  // Do our upload in the background
+  val thread = ThreadTools.createDaemon("upload")(doUpload)
+  thread.start()
 
   /**
    * The webserver will send error code 406 if the file upload is considered unacceptably boring (flight too short)
@@ -68,37 +58,51 @@ class DroneShareUpload(srcFile: File, val userId: String, val userPass: String)
   protected def handleUploadNotAccepted() {}
 
   /**
+   * A transient failure occurred preventing the upload
+   */
+  protected def handleUploadFailed(ex: Option[Exception]) {}
+
+  /**
    * Show the user the view/download URL
    */
-  protected def handleWebAppCompleted() {}
+  protected def handleUploadCompleted() {}
 
-  def tellWebApp() = {
-    //instantiates httpclient to make request
+  private def doUpload() = {
+    try {
+      //instantiates httpclient to make request
 
-    //url with the post data
-    val httpost = new HttpPost(webAppUploadUrl)
+      //url with the post data
+      println(s"Starting upload to $webAppUploadUrl")
+      val httpost = new HttpPost(webAppUploadUrl)
 
-    println("Sending JSON: " + jsonToWebApp)
+      val se = new FileEntity(srcFile, APIConstants.tlogMimeType)
+      httpost.setEntity(se)
 
-    //passes the results to a string builder/entity
-    val se = new StringEntity(jsonToWebApp)
+      //sets a request header so the page receving the request
+      //will know what to do with it
+      httpost.setHeader("Accept", "application/json")
+      //httpost.setHeader("Content-type", APIConstants.tlogMimeType)
 
-    //sets the post request as the resulting string
-    httpost.setEntity(se)
-    //sets a request header so the page receving the request
-    //will know what to do with it
-    httpost.setHeader("Accept", "application/json")
-    httpost.setHeader("Content-type", "application/json")
+      //Handles what is returned from the page 
+      val responseHandler = new BasicResponseHandler()
+      val resp = DroneShareUpload.httpclient.execute(httpost, responseHandler)
 
-    //Handles what is returned from the page 
-    val responseHandler = new BasicResponseHandler()
-    val resp = DroneShareUpload.httpclient.execute(httpost, responseHandler)
+      println(s"Received JSON response: $resp")
+      val missions = new JSONArray(resp)
+      if (missions.length != 1)
+        throw new Exception("Non unity length array from server")
 
-    // Skanky way to decode a json string
-    if (resp.startsWith("\"") && resp.endsWith("\""))
-      resp.substring(1, resp.length - 1)
-    else
-      throw new Exception("Malformed response")
+      val mission = missions.getJSONObject(0)
+      viewURL = mission.getString("viewURL")
+
+      println(s"View URL is $viewURL")
+      handleUploadCompleted()
+    } catch {
+      case ex: HttpResponseException if ex.getStatusCode == HttpStatus.SC_NOT_ACCEPTABLE =>
+        handleUploadNotAccepted()
+      case ex: Exception =>
+        handleUploadFailed(Some(ex))
+    }
   }
 }
 

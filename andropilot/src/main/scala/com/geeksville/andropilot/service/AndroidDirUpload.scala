@@ -43,6 +43,12 @@ class AndroidDirUpload extends IntentService("Uploader")
     send()
   }
 
+  override def onDestroy() {
+    NetworkStateReceiver.unregister(this)
+
+    super.onDestroy()
+  }
+
   private def send() {
     val toSend = srcDirOpt.flatMap { dir =>
       val files = dir.listFiles(new FilenameFilter { def accept(dir: File, name: String) = name.endsWith(".tlog") })
@@ -105,7 +111,7 @@ class AndroidDirUpload extends IntentService("Uploader")
   /**
    * Add android specific upload behavior
    */
-  class AndroidUpload(srcFile: File) extends DroneShareUpload(srcFile, dshareUsername, dsharePassword) {
+  class AndroidUpload(srcFile: File) extends DroneShareUpload(srcFile, dshareUsername, dsharePassword, vehicleId) {
 
     private val fileSize = srcFile.length.toInt
 
@@ -137,12 +143,13 @@ class AndroidDirUpload extends IntentService("Uploader")
 
     private def removeProgress() { nBuilder.setProgress(0, 0, false) }
 
-    override protected def handleProgress(bytesTransferred: Int) {
+    // FIXME - add back to new droneshare implementation
+    protected def handleProgress(bytesTransferred: Int) {
       debug("Upload progress " + bytesTransferred)
       nBuilder.setProgress(fileSize, bytesTransferred, false)
       updateNotification(true)
 
-      super.handleProgress(bytesTransferred)
+      // FIXME // super.handleProgress(bytesTransferred)
     }
 
     /**
@@ -184,10 +191,6 @@ class AndroidDirUpload extends IntentService("Uploader")
       removeProgress()
       updateNotification(true)
 
-      super.handleUploadCompleted
-    }
-
-    override protected def handleWebAppCompleted() {
       debug("Webapp upload completed")
       nBuilder.setContentText(S(R.string.completed_select))
 
@@ -196,8 +199,8 @@ class AndroidDirUpload extends IntentService("Uploader")
       nBuilder.setContentIntent(pintent)
 
       // Attach the google earth link
-      val geintent = PendingIntent.getActivity(acontext, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(kmzURL)), 0)
-      nBuilder.addAction(android.R.drawable.ic_menu_mapmode, S(R.string.google_earth), geintent)
+      //val geintent = PendingIntent.getActivity(acontext, 0, new Intent(Intent.ACTION_VIEW, Uri.parse(kmzURL)), 0)
+      //nBuilder.addAction(android.R.drawable.ic_menu_mapmode, S(R.string.google_earth), geintent)
 
       // Attach a web link
       nBuilder.addAction(android.R.drawable.ic_menu_set_as, S(R.string.web), pintent)
@@ -218,7 +221,7 @@ class AndroidDirUpload extends IntentService("Uploader")
       // Send the next file
       handleSuccess()
 
-      super.handleWebAppCompleted()
+      super.handleUploadCompleted()
     }
   }
 
