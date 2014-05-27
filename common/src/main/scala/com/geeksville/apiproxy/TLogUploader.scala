@@ -15,11 +15,16 @@ import com.geeksville.mavlink.TimestampedMessage
 /**
  * This utility class will upload a tlog to the new DroneHub
  */
-class TLogUploader(srcFile: File, val loginName: String, val password: String, val vehicleId: UUID = UUID.randomUUID) extends Logging {
+class TLogUploader(val srcFile: File, val loginName: String, val password: String) extends Logging {
 
   val interfaceNum = 0
 
   private var startTime = 0L
+
+  /**
+   * Subclasses should override
+   */
+  def vehicleId: UUID = UUID.randomUUID
 
   ThreadTools.start("uploader")(worker)
 
