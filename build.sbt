@@ -8,9 +8,9 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
-libraryDependencies += "org.scala-lang" % "scala-compiler" % "2.10.0" withSources()
+libraryDependencies += "org.scala-lang" % "scala-compiler" % "2.10.4" withSources()
 
-libraryDependencies += "org.scala-lang" % "jline" % "2.10.0" withSources()
+libraryDependencies += "org.scala-lang" % "jline" % "2.10.4" withSources()
 
 scalacOptions in ThisBuild ++= Seq("-unchecked", "-deprecation", "-optimise") // , "-feature"
 

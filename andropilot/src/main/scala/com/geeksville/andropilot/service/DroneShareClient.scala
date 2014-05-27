@@ -1,10 +1,6 @@
 package com.geeksville.andropilot.service
 
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.s3.transfer.TransferManager
-import com.amazonaws.services.s3.model.ProgressListener
 import java.io.File
-import com.amazonaws.services.s3.model.ProgressEvent
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
@@ -83,7 +79,7 @@ class DroneShareUpload(val srcFile: File, val userId: String, val userPass: Stri
       httpost.setHeader("Accept", "application/json")
       //httpost.setHeader("Content-type", APIConstants.tlogMimeType)
 
-      //Handles what is returned from the page 
+      //Handles what is returned from the page
       val responseHandler = new BasicResponseHandler()
       val resp = DroneShareUpload.httpclient.execute(httpost, responseHandler)
 
@@ -120,17 +116,11 @@ object DroneShareUpload {
 
     // Set the timeout in milliseconds until a connection is established.
     //HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT);
-    // Set the default socket timeout (SO_TIMEOUT) 
+    // Set the default socket timeout (SO_TIMEOUT)
     // in milliseconds which is the timeout for waiting for data.
     //HttpConnectionParams.setSoTimeout(params, SOCKET_TIMEOUT);
 
     val cm = new ThreadSafeClientConnManager(params, schemeRegistry);
     new DefaultHttpClient(cm, params);
-  }
-
-  private val rand = new Random(System.currentTimeMillis)
-
-  def createKey() = {
-    "uploads/" + math.abs(rand.nextLong).toString + ".tlog"
   }
 }
