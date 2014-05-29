@@ -214,7 +214,7 @@ object APIProxyActor {
   /// Use only for testing
   def testAccount = {
     val username = "test-bob"
-    val email = "test-bob@3drobotics.com"
+    val email = "kevin+test@3drobotics.com"
     val psw = "sekrit"
     APIProxyActor.LoginMsg(username, psw, Some(email))
   }
