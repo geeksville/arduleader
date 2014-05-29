@@ -24,6 +24,7 @@ case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {
 
 object TimestampedMessage {
   def usecsToDate(t: Long) = new Date(t / 1000)
+  def usecsToMsecs(t: Long) = t / 1000
   def usecsToSeconds(t: Long) = t / 1e6
 }
 
