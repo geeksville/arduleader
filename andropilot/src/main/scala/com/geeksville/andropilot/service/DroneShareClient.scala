@@ -86,7 +86,7 @@ class DroneShareUpload(val srcFile: File, val userId: String, val userPass: Stri
       println(s"Received JSON response: $resp")
       val missions = new JSONArray(resp)
       if (missions.length != 1)
-        throw new Exception("Non unity length array from server")
+        throw new Exception("Server rejected this log file")
 
       val mission = missions.getJSONObject(0)
       viewURL = mission.getString("viewURL")
