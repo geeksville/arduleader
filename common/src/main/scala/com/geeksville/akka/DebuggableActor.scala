@@ -15,6 +15,17 @@ trait DebuggableActor extends Actor with ActorLogging with UncaughtExceptionActo
 
   protected def debuggingInfo: Any = toString
 
+  override def preRestart(reason: Throwable, message: Option[Any]) {
+    log.error(s"RESTARTING $this due to $reason, message=$message")
+    reason.printStackTrace()
+    super.preRestart(reason, message)
+  }
+
+  override def postStop() {
+    log.warning(s"postStop on $this")
+    super.postStop()
+  }
+
   override def unhandled(message: Any): Unit = {
     message match {
       case GetDebugInfo ⇒
