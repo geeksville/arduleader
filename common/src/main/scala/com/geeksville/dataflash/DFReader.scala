@@ -7,18 +7,58 @@ import com.geeksville.util.ThreadTools
 trait Element[T] {
   def value: T
 
-  def toString: String
+  override def toString = value.toString
 }
 
+/// Converts from strings or binary to the appriate native Element
 trait ElementConverter {
-
+  def toElement(s: String): Element[_]
 }
 
-case class IntConverter() extends ElementConverter
-case class FloatConverter(scale: Double = 1.0) extends ElementConverter
-case class StringConverter() extends ElementConverter
+case object IntConverter extends ElementConverter {
+  def toElement(s: String) = new Element[Int] {
+    def value = s.toInt
+  }
+}
 
-class DFReader {
+case class FloatConverter(scale: Double = 1.0) extends ElementConverter {
+  def toElement(s: String) = new Element[Float] {
+    def value = s.toFloat // Strings come in prescaled
+  }
+}
+
+case object StringConverter extends ElementConverter {
+  def toElement(s: String) = new Element[String] {
+    def value = s
+  }
+}
+
+/// Describes the formating for a particular message type
+case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: Seq[String]) {
+
+  val nameToIndex = Map(columns.zipWithIndex.map { case (name, i) => name -> i }: _*)
+
+  def isFMT = name == "FMT"
+
+  /// Decode string arguments and generate a message (if possible)
+  def createMessage(args: Seq[String]): Option[DFMessage] = {
+    val elements = args.zipWithIndex.map {
+      case (arg, index) =>
+        //println(s"Looking for $index in $this")
+        val typ = if (index < format.size)
+          format(index) // find the type code letter
+        else
+          'Z' // If we have too many args passed in, treat the remainder as strings
+
+        val converter = DFFormat.typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
+        //println(s"Using $converter for $index=$typ")
+        converter.toElement(arg)
+    }
+    Some(new DFMessage(this, elements))
+  }
+}
+
+object DFFormat {
 
   /*
 Format characters in the format string for binary log messages
@@ -40,29 +80,38 @@ Format characters in the format string for binary log messages
   M   : uint8_t flight mode
  */
 
-  private val typeCodes = Map(
-    "b" -> IntConverter,
-    "B" -> IntConverter,
-    "h" -> IntConverter,
-    "H" -> IntConverter,
-    "i" -> IntConverter,
-    "I" -> IntConverter,
-    "f" -> FloatConverter,
-    "n" -> StringConverter,
-    "N" -> StringConverter,
-    "Z" -> StringConverter,
-    "c" -> FloatConverter(0.01),
-    "C" -> FloatConverter(0.01),
-    "e" -> FloatConverter(0.01),
-    "E" -> FloatConverter(0.01),
-    "L" -> FloatConverter(1.0e-7),
-    "M" -> IntConverter,
-    "q" -> IntConverter,
-    "Q" -> IntConverter)
+  private val typeCodes = Map[Char, ElementConverter](
+    'b' -> IntConverter,
+    'B' -> IntConverter,
+    'h' -> IntConverter,
+    'H' -> IntConverter,
+    'i' -> IntConverter,
+    'I' -> IntConverter,
+    'f' -> FloatConverter(),
+    'n' -> StringConverter,
+    'N' -> StringConverter,
+    'Z' -> StringConverter,
+    'c' -> FloatConverter(0.01),
+    'C' -> FloatConverter(0.01),
+    'e' -> FloatConverter(0.01),
+    'E' -> FloatConverter(0.01),
+    'L' -> FloatConverter(1.0e-7),
+    'M' -> StringConverter,
+    'q' -> IntConverter,
+    'Q' -> IntConverter)
+}
 
-  case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: Seq[String]) {
-    def isFMT = name == "FMT"
-  }
+/// A dataflash message
+case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
+  def fieldNames = fmt.columns
+  def asPairs = fieldNames.zip(elements)
+
+  def apply(name: String) = elements(fmt.nameToIndex(name))
+
+  override def toString = s"${fmt.name}: " + asPairs.mkString(", ")
+}
+
+class DFReader {
 
   val textToFormat = HashMap[String, DFFormat]()
 
@@ -71,15 +120,12 @@ Format characters in the format string for binary log messages
     DFFormat(0x80, "FMT", 89, "BBnNZ", Seq("Type", "Length", "Name", "Format", "Columns"))
   }.foreach(addFormat)
 
-  // FIXME - perhaps better to pass in either a string or a raw binary record
-  case class DFMessage(fmt: DFFormat, elements: Array[String])
-
   def addFormat(f: DFFormat) {
     textToFormat(f.name) = f
   }
 
   def tryParseLine(s: String): Option[DFMessage] = {
-    println(s"Parsing $s")
+    // println(s"Parsing $s")
 
     val splits = s.split(',').map(_.trim)
     /* 
@@ -94,10 +140,9 @@ Format characters in the format string for binary log messages
           None
         case Some(fmt) =>
           val args = splits.tail
-          val r = DFMessage(fmt, args)
 
           // If it is a new format type, then add it
-          if (r.fmt.isFMT)
+          if (fmt.isFMT)
             ThreadTools.catchIgnore { // This line could be malformated in many different ways
               // Example: FMT, 129, 23, PARM, Nf, Name,Value
               val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
@@ -105,10 +150,10 @@ Format characters in the format string for binary log messages
               addFormat(newfmt)
             }
 
-          r
+          fmt.createMessage(args)
       }
-    }
-    None
+    } else
+      None
   }
 
   ///should just map from source to records - so callers can read lazily
