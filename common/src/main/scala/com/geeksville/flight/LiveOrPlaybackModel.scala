@@ -63,7 +63,7 @@ object LiveOrPlaybackModel {
     10 -> "AUTO",
     11 -> "RTL", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
-  private val typeNameMap = Map(
+  val typeNameMap = Map(
     MAV_TYPE.MAV_TYPE_QUADROTOR -> "quadcopter",
     MAV_TYPE.MAV_TYPE_TRICOPTER -> "tricopter",
     MAV_TYPE.MAV_TYPE_COAXIAL -> "coaxial",
@@ -81,7 +81,7 @@ object LiveOrPlaybackModel {
     MAV_TYPE.MAV_TYPE_ROCKET -> "rocket",
     MAV_TYPE.MAV_TYPE_HELICOPTER -> "helicopter")
 
-  private val autopiltNameMap = Map(
+  val autopiltNameMap = Map(
     MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA -> "apm",
     MAV_AUTOPILOT.MAV_AUTOPILOT_GENERIC -> "generic",
     MAV_AUTOPILOT.MAV_AUTOPILOT_PX4 -> "px4",
@@ -92,10 +92,47 @@ object LiveOrPlaybackModel {
     MAV_AUTOPILOT.MAV_AUTOPILOT_FP -> "fp")
 }
 
+trait HasVehicleType {
+  /// A MAV_TYPE vehicle code
+  def vehicleType: Option[Int]
+
+  /// A MAV_AUTOPILOT code
+  def autopilotType: Option[Int]
+
+  /**
+   * A human readable name for this type of vehicle (if known...)
+   */
+  def humanVehicleType = vehicleType.flatMap(LiveOrPlaybackModel.typeNameMap.get(_))
+  def humanAutopilotType = autopilotType.flatMap(LiveOrPlaybackModel.autopiltNameMap.get(_))
+
+  /// Must match ArduCopter or ArduPlane etc... used to find appropriate parameter docs
+  // FIXME handle other vehicle types
+  def vehicleTypeName = if (isCopter)
+    "ArduCopter"
+  else if (isRover)
+    "APMrover2"
+  else
+    "ArduPlane"
+
+  def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
+
+  /**
+   * Are we on a copter? or None if not sure
+   */
+  def isCopterOpt = vehicleType.map { t =>
+    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) ||
+      (t == MAV_TYPE.MAV_TYPE_TRICOPTER) || (t == MAV_TYPE.MAV_TYPE_COAXIAL) ||
+      (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
+  }
+
+  def isCopter = isCopterOpt.getOrElse(true)
+  def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
+}
+
 /**
  * Shared state that applies to either live (VehicleModel) or delayed (PlaybackModel) implementations
  */
-trait LiveOrPlaybackModel {
+trait LiveOrPlaybackModel extends HasVehicleType {
   import LiveOrPlaybackModel._
 
   // Summary stats
@@ -138,41 +175,6 @@ trait LiveOrPlaybackModel {
 
   // Currently I only use GPS pos, because we don't properly adjust alt offsets (it seems like m.alt is not corrected for MSL)
   val useGlobalPosition = false
-
-  /// Must match ArduCopter or ArduPlane etc... used to find appropriate parameter docs
-  // FIXME handle other vehicle types
-  def vehicleTypeName = if (isCopter)
-    "ArduCopter"
-  else if (isRover)
-    "APMrover2"
-  else
-    "ArduPlane"
-
-  /**
-   * A human readable name for this type of vehicle (if known...)
-   */
-  def humanVehicleType = vehicleType.flatMap(LiveOrPlaybackModel.typeNameMap.get(_))
-  def humanAutopilotType = autopilotType.flatMap(LiveOrPlaybackModel.autopiltNameMap.get(_))
-
-  def isPlane = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_FIXED_WING).getOrElse(false)
-
-  /**
-   * Are we on a copter? or None if not sure
-   */
-  def isCopterOpt = vehicleType.map { t =>
-    (t == MAV_TYPE.MAV_TYPE_QUADROTOR) || (t == MAV_TYPE.MAV_TYPE_HELICOPTER) ||
-      (t == MAV_TYPE.MAV_TYPE_TRICOPTER) || (t == MAV_TYPE.MAV_TYPE_COAXIAL) ||
-      (t == MAV_TYPE.MAV_TYPE_HEXAROTOR) || (t == MAV_TYPE.MAV_TYPE_OCTOROTOR)
-  }
-
-  def isCopter = isCopterOpt.getOrElse(true)
-  def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
-
-  /// A MAV_TYPE vehicle code
-  def vehicleType: Option[Int]
-
-  /// A MAV_AUTOPILOT code
-  def autopilotType: Option[Int]
 
   protected def codeToModeMap = if (isPlane)
     planeCodeToModeMap

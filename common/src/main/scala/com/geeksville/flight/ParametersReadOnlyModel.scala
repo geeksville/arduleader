@@ -11,7 +11,7 @@ import org.mavlink.messages.MAV_AUTOPILOT
 /**
  * Parameter access, but only read-only (so it can work at log playback time)
  */
-trait ParametersReadOnlyModel extends MavlinkConstants { self: LiveOrPlaybackModel =>
+trait ParametersReadOnlyModel extends MavlinkConstants { self: HasVehicleType =>
   // Load this at start
   val docFile = new ParameterDocFile
 
