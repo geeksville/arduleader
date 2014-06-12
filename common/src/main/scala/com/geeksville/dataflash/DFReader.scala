@@ -23,8 +23,8 @@ case object IntConverter extends ElementConverter {
 }
 
 case class FloatConverter(scale: Double = 1.0) extends ElementConverter {
-  def toElement(s: String) = new Element[Float] {
-    def value = s.toFloat // Strings come in prescaled
+  def toElement(s: String) = new Element[Double] {
+    def value = s.toDouble // Strings come in prescaled
   }
 }
 
@@ -107,9 +107,27 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def fieldNames = fmt.columns
   def asPairs = fieldNames.zip(elements)
 
-  def apply(name: String) = elements(fmt.nameToIndex(name))
+  def get[T](name: String) = elements(fmt.nameToIndex(name)).asInstanceOf[Element[T]].value
 
   override def toString = s"${fmt.name}: " + asPairs.mkString(", ")
+
+  // Syntatic sugar
+
+  // GPS
+  def lat = get[Double]("Lat")
+  def lng = get[Double]("Lng")
+  def alt = get[Double]("Alt")
+  def spd = get[Double]("Spd")
+
+  // CURR
+  def thrOut = get[Int]("ThrOut")
+
+  // MODE
+  def mode = get[String]("Mode")
+
+  // PARM
+  def name = get[String]("Name")
+  def value = get[Float]("Value")
 }
 
 class DFReader {
