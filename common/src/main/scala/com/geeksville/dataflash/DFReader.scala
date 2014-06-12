@@ -3,6 +3,7 @@ package com.geeksville.dataflash
 import scala.io.Source
 import scala.collection.mutable.HashMap
 import com.geeksville.util.ThreadTools
+import com.geeksville.util.AnalyticsService
 
 trait Element[T] {
   def value: T
@@ -126,34 +127,38 @@ class DFReader {
 
   def tryParseLine(s: String): Option[DFMessage] = {
     // println(s"Parsing $s")
-
-    val splits = s.split(',').map(_.trim)
-    /* 
+    try { // This line could be malformated in many different ways
+      val splits = s.split(',').map(_.trim)
+      /* 
         * FMT, 128, 89, FMT, BBnNZ, Type,Length,Name,Format
         * FMT, 129, 23, PARM, Nf, Name,Value
 */
-    if (splits.length >= 2) {
-      val typ = splits(0)
-      textToFormat.get(typ) match {
-        case None =>
-          println(s"Unrecognized format: $typ")
-          None
-        case Some(fmt) =>
-          val args = splits.tail
+      if (splits.length >= 2) {
+        val typ = splits(0)
+        textToFormat.get(typ) match {
+          case None =>
+            println(s"Unrecognized format: $typ")
+            None
+          case Some(fmt) =>
+            val args = splits.tail
 
-          // If it is a new format type, then add it
-          if (fmt.isFMT)
-            ThreadTools.catchIgnore { // This line could be malformated in many different ways
+            // If it is a new format type, then add it
+            if (fmt.isFMT) {
               // Example: FMT, 129, 23, PARM, Nf, Name,Value
               val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
               println(s"Adding new format: $newfmt")
               addFormat(newfmt)
             }
 
-          fmt.createMessage(args)
-      }
-    } else
-      None
+            fmt.createMessage(args)
+        }
+      } else
+        None
+    } catch {
+      case ex: Exception =>
+        AnalyticsService.reportException(s"Malformed log: $s", ex)
+        None
+    }
   }
 
   ///should just map from source to records - so callers can read lazily
