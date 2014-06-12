@@ -2,6 +2,7 @@ package com.geeksville.akka
 
 import akka.actor.Actor
 import akka.actor.ActorLogging
+import com.geeksville.util.AnalyticsService
 
 case object GetDebugInfo
 
@@ -17,7 +18,7 @@ trait DebuggableActor extends Actor with ActorLogging with UncaughtExceptionActo
 
   override def preRestart(reason: Throwable, message: Option[Any]) {
     log.error(s"RESTARTING $this due to $reason, message=$message")
-    reason.printStackTrace()
+    AnalyticsService.reportException(s"RESTARTING $this, message=$message", reason)
     super.preRestart(reason, message)
   }
 
