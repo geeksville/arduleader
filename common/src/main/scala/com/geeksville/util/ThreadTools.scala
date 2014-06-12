@@ -33,7 +33,8 @@ object ThreadTools {
       try {
         block
       } catch {
-        case ex: Exception => println("Ignoring " + ex)
+        case ex: Exception =>
+          AnalyticsService.reportException("Ignoring Exception", ex)
       }
     }
 
