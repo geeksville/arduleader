@@ -17,9 +17,21 @@ object APIConstants {
   val flogMimeType = "application/vnd.mavlink.flog"
   val blogMimeType = "application/vnd.mavlink.blog"
 
-  val flogExtension = ".lox"
+  val flogExtension = ".log"
+  val blogExtension = ".bin"
 
   def isValidMimeType(mimetype: String) = mimetype == tlogMimeType || mimetype == flogMimeType || mimetype == blogMimeType
+
+  def mimeTypeToExtension(mimetype: String) = {
+    if (mimetype == tlogMimeType)
+      "" // On the server we have a nasty DB mistake, so we don't use suffixes on tlogs
+    else if (mimetype == flogMimeType)
+      flogExtension
+    else if (mimetype == blogMimeType)
+      blogExtension
+    else
+      throw new Exception("unknown mime type")
+  }
 
   def extensionToMimeType(filename: String) = {
     if (filename.endsWith(".tlog"))
