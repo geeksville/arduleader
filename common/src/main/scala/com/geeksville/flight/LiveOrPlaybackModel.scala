@@ -92,6 +92,9 @@ object LiveOrPlaybackModel {
     MAV_AUTOPILOT.MAV_AUTOPILOT_FP -> "fp")
 }
 
+/**
+ * Basic information about vehicle type that all protocols should be able to support
+ */
 trait HasVehicleType {
   /// A MAV_TYPE vehicle code
   def vehicleType: Option[Int]
@@ -129,15 +132,11 @@ trait HasVehicleType {
   def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 }
 
-/**
- * Shared state that applies to either live (VehicleModel) or delayed (PlaybackModel) implementations
- */
-trait LiveOrPlaybackModel extends HasVehicleType {
-  import LiveOrPlaybackModel._
-
+trait HasSummaryStats {
   // Summary stats
   var maxAltitude: Double = 0.0
   var maxAirSpeed: Double = 0.0
+  var maxG = 0.0
   var maxGroundSpeed: Double = 0.0
   var buildName: Option[String] = None
   var buildVersion: Option[String] = None
@@ -154,6 +153,30 @@ trait LiveOrPlaybackModel extends HasVehicleType {
   var currentTime: Option[Long] = None
 
   var endPosition: Option[Location] = None
+
+  /**
+   * duration of flying portion in seconds
+   */
+  def flightDuration = (for {
+    s <- startOfFlightTime
+    e <- endOfFlightTime
+  } yield {
+    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
+    //println(s"Calculated flight duration of $r")
+    r
+  }).orElse {
+    println("Can't find duration for flight")
+    None
+  }
+}
+
+/**
+ * Shared state that applies to either live (VehicleModel) or delayed (PlaybackModel) implementations
+ *
+ * This implementation DOES assume it is tlog message based (not dataflash logs)
+ */
+trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
+  import LiveOrPlaybackModel._
 
   var vfrHud: Option[msg_vfr_hud] = None
 
@@ -198,21 +221,6 @@ trait LiveOrPlaybackModel extends HasVehicleType {
   def modeToString(modeCode: Int) = codeToModeMap.getOrElse(modeCode, "unknown")
 
   val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
-
-  /**
-   * duration of flying portion in seconds
-   */
-  def flightDuration = (for {
-    s <- startOfFlightTime
-    e <- endOfFlightTime
-  } yield {
-    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
-    //println(s"Calculated flight duration of $r")
-    r
-  }).orElse {
-    println("Can't find duration for flight")
-    None
-  }
 
   protected def perhapsUpdateModel(msg: Any) {
     if (updateModel.isDefinedAt(msg))
