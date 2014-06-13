@@ -17,10 +17,14 @@ object APIConstants {
   val flogMimeType = "application/vnd.mavlink.flog"
   val blogMimeType = "application/vnd.mavlink.blog"
 
+  val flogExtension = ".lox"
+
+  def isValidMimeType(mimetype: String) = mimetype == tlogMimeType || mimetype == flogMimeType || mimetype == blogMimeType
+
   def extensionToMimeType(filename: String) = {
     if (filename.endsWith(".tlog"))
       Some(tlogMimeType)
-    else if (filename.endsWith(".lox")) // temp hack to hide from users
+    else if (filename.endsWith(flogExtension)) // temp hack to hide from users
       Some(flogMimeType)
     else if (filename.endsWith(".bix")) // temp hack 
       Some(blogMimeType)
