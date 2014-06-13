@@ -113,9 +113,10 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def fieldNames = fmt.columns
   def asPairs = fieldNames.zip(elements)
 
-  def get[T](name: String) = elements(fmt.nameToIndex(name)).asInstanceOf[Element[T]].value
-  def getOpt[T](name: String) = fmt.nameToIndex.get(name).map(elements(_).asInstanceOf[Element[T]].value)
-  def getOptDouble(name: String) = fmt.nameToIndex.get(name).map(elements(_).asDouble)
+  private def getElement(name: String) = fmt.nameToIndex.get(name).map(elements(_))
+  def getOpt[T](name: String) = getElement(name).map(_.asInstanceOf[Element[T]].value)
+  def getOptDouble(name: String) = getElement(name).map(_.asDouble)
+  def get[T](name: String) = getOpt[T](name).get
 
   override def toString = s"$typ: " + asPairs.mkString(", ")
 
@@ -205,6 +206,9 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def name = get[String]("Name")
   def value = get[Double]("Value")
 
+  // NTUN
+  def arspdOpt = getOpt[Double]("Arspd")
+
   def timeMSopt = getOpt[Int]("TimeMS")
 }
 
@@ -215,6 +219,7 @@ object DFMessage {
   final val ATT = "ATT"
   final val IMU = "IMU"
   final val CMD = "CMD"
+  final val NTUN = "NTUN"
 }
 
 class DFReader {
@@ -246,16 +251,21 @@ class DFReader {
             None
           case Some(fmt) =>
             val args = splits.tail
+            if (args.size < fmt.columns.size) {
+              println("Not enough elements - line probably corrupted")
+              None
+            } else {
+              // If it is a new format type, then add it
+              if (fmt.isFMT) {
+                // Example: FMT, 129, 23, PARM, Nf, Name,Value
+                val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
+                //println(s"Adding new format: $newfmt")
+                addFormat(newfmt)
+              }
 
-            // If it is a new format type, then add it
-            if (fmt.isFMT) {
-              // Example: FMT, 129, 23, PARM, Nf, Name,Value
-              val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
-              //println(s"Adding new format: $newfmt")
-              addFormat(newfmt)
+              fmt.createMessage(args)
             }
 
-            fmt.createMessage(args)
         }
       } else
         None
