@@ -22,21 +22,21 @@ trait ElementConverter {
 
 case object IntConverter extends ElementConverter {
   def toElement(s: String) = new Element[Int] {
-    def value = s.toInt
+    val value = s.toInt
     override def asDouble = value
   }
 }
 
 case class FloatConverter(scale: Double = 1.0) extends ElementConverter {
   def toElement(s: String) = new Element[Double] {
-    def value = s.toDouble // Strings come in prescaled
+    val value = s.toDouble // Strings come in prescaled
     override def asDouble = value
   }
 }
 
 case object StringConverter extends ElementConverter {
   def toElement(s: String) = new Element[String] {
-    def value = s
+    val value = s
   }
 }
 
@@ -261,7 +261,7 @@ class DFReader {
         None
     } catch {
       case ex: Exception =>
-        AnalyticsService.reportException(s"Malformed log: $s", ex)
+        println(s"Malformed log: $s", ex)
         None
     }
   }
