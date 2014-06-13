@@ -235,7 +235,7 @@ class DFReader {
             if (fmt.isFMT) {
               // Example: FMT, 129, 23, PARM, Nf, Name,Value
               val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
-              println(s"Adding new format: $newfmt")
+              //println(s"Adding new format: $newfmt")
               addFormat(newfmt)
             }
 
