@@ -21,8 +21,8 @@ trait ParametersReadOnlyModel extends MavlinkConstants { self: HasVehicleType =>
   /**
    * Wrap the raw message with clean accessors, when a value is set, apply the change to the target
    */
-  class ROParamValue extends ASJSON {
-    var raw: Option[msg_param_value] = None
+  class ROParamValue(rawIn: msg_param_value = null) extends ASJSON {
+    var raw: Option[msg_param_value] = Option(rawIn)
 
     /// The docs for this parameter (if we can find them)
     def docs = for { id <- getId; d <- paramDocs.get(id) } yield { d }

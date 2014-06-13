@@ -14,4 +14,17 @@ object APIConstants {
   val URL_BASE = s"http://$DEFAULT_SERVER"
 
   val tlogMimeType = "application/vnd.mavlink.tlog"
+  val flogMimeType = "application/vnd.mavlink.flog"
+  val blogMimeType = "application/vnd.mavlink.blog"
+
+  def extensionToMimeType(filename: String) = {
+    if (filename.endsWith(".tlog"))
+      Some(tlogMimeType)
+    else if (filename.endsWith(".lox")) // temp hack to hide from users
+      Some(flogMimeType)
+    else if (filename.endsWith(".bix")) // temp hack 
+      Some(blogMimeType)
+    else
+      None
+  }
 }

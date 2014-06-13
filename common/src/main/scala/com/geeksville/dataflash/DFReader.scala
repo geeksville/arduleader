@@ -108,8 +108,12 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def asPairs = fieldNames.zip(elements)
 
   def get[T](name: String) = elements(fmt.nameToIndex(name)).asInstanceOf[Element[T]].value
+  def getOpt[T](name: String) = fmt.nameToIndex.get(name).map(elements(_).asInstanceOf[Element[T]].value)
 
-  override def toString = s"${fmt.name}: " + asPairs.mkString(", ")
+  override def toString = s"$typ: " + asPairs.mkString(", ")
+
+  /// The typename 
+  def typ = fmt.name
 
   // Syntatic sugar
 
@@ -128,6 +132,14 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   // PARM
   def name = get[String]("Name")
   def value = get[Float]("Value")
+
+  def timeMS = getOpt[Int]("TimeMS")
+}
+
+object DFMessage {
+  final val GPS = "GPS"
+  final val PARM = "PARM"
+  final val MODE = "MODE"
 }
 
 class DFReader {
