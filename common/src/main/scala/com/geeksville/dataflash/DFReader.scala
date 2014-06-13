@@ -9,6 +9,9 @@ import java.util.Date
 trait Element[T] {
   def value: T
 
+  // Try to get this as a double if we can
+  def asDouble: Double = throw new Exception("Magic double conversion not supported")
+
   override def toString = value.toString
 }
 
@@ -20,12 +23,14 @@ trait ElementConverter {
 case object IntConverter extends ElementConverter {
   def toElement(s: String) = new Element[Int] {
     def value = s.toInt
+    override def asDouble = value
   }
 }
 
 case class FloatConverter(scale: Double = 1.0) extends ElementConverter {
   def toElement(s: String) = new Element[Double] {
     def value = s.toDouble // Strings come in prescaled
+    override def asDouble = value
   }
 }
 
@@ -53,7 +58,7 @@ case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: S
           'Z' // If we have too many args passed in, treat the remainder as strings
 
         val converter = DFFormat.typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
-        //println(s"Using $converter for $index=$typ")
+        //println(s"Using $converter for ${if (index < format.size) columns(index) else "unknown"}/$index=$typ")
         converter.toElement(arg)
     }
     Some(new DFMessage(this, elements))
@@ -110,6 +115,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
 
   def get[T](name: String) = elements(fmt.nameToIndex(name)).asInstanceOf[Element[T]].value
   def getOpt[T](name: String) = fmt.nameToIndex.get(name).map(elements(_).asInstanceOf[Element[T]].value)
+  def getOptDouble(name: String) = fmt.nameToIndex.get(name).map(elements(_).asDouble)
 
   override def toString = s"$typ: " + asPairs.mkString(", ")
 
@@ -117,6 +123,15 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def typ = fmt.name
 
   // Syntatic sugar
+
+  // CMD
+  def ctotOpt = getOpt[Int]("CTot")
+  def cnumOpt = getOpt[Int]("CNum")
+  def cidOpt = getOpt[Int]("CId")
+  def prm1Opt = getOptDouble("Prm1")
+  def prm2Opt = getOptDouble("Prm2")
+  def prm3Opt = getOptDouble("Prm3")
+  def prm4Opt = getOptDouble("Prm4")
 
   // GPS
   def latOpt = getOpt[Double]("Lat")
@@ -199,6 +214,7 @@ object DFMessage {
   final val MODE = "MODE"
   final val ATT = "ATT"
   final val IMU = "IMU"
+  final val CMD = "CMD"
 }
 
 class DFReader {
