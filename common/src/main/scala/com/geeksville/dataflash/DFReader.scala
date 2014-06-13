@@ -4,6 +4,7 @@ import scala.io.Source
 import scala.collection.mutable.HashMap
 import com.geeksville.util.ThreadTools
 import com.geeksville.util.AnalyticsService
+import java.util.Date
 
 trait Element[T] {
   def value: T
@@ -122,14 +123,22 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def lngOpt = getOpt[Double]("Lng")
   def altOpt = getOpt[Double]("Alt")
   def spdOpt = getOpt[Double]("Spd")
+  def weekOpt = getOpt[Int]("Week")
 
-  def gpsTime = {
+  /// Return time in usecs since 1970
+  def gpsTimeUsec = {
 
+    // Returns seconds since 1970
     def gpsTimeToTime(week: Int, sec: Double) = {
       val epoch = 86400 * (10 * 365 + (1980 - 1969) / 4 + 1 + 6 - 2)
       epoch + 86400 * 7 * week + sec - 15
     }
 
+    val t = gpsTimeToTime(weekOpt.get, timeMSopt.get * 0.001)
+
+    //println(s"GPS date is " + new Date((t * 1e3).toLong))
+
+    (t * 1e6).toLong
     /*
     def find_time_base_new(self, gps):
         '''work out time basis for the log - new style'''
@@ -155,7 +164,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
             self._rewind()
             return
 */
-    /*
+    /* FIXME - support PX4 native
         def _find_time_base_px4(self, gps):
 	        '''work out time basis for the log - PX4 native'''
 	        t = gps.GPSTime * 1.0e-6
@@ -188,6 +197,8 @@ object DFMessage {
   final val GPS = "GPS"
   final val PARM = "PARM"
   final val MODE = "MODE"
+  final val ATT = "ATT"
+  final val IMU = "IMU"
 }
 
 class DFReader {
