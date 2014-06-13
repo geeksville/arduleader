@@ -118,10 +118,58 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   // Syntatic sugar
 
   // GPS
-  def lat = get[Double]("Lat")
-  def lng = get[Double]("Lng")
-  def alt = get[Double]("Alt")
-  def spd = get[Double]("Spd")
+  def latOpt = getOpt[Double]("Lat")
+  def lngOpt = getOpt[Double]("Lng")
+  def altOpt = getOpt[Double]("Alt")
+  def spdOpt = getOpt[Double]("Spd")
+
+  def gpsTime = {
+
+    def gpsTimeToTime(week: Int, sec: Double) = {
+      val epoch = 86400 * (10 * 365 + (1980 - 1969) / 4 + 1 + 6 - 2)
+      epoch + 86400 * 7 * week + sec - 15
+    }
+
+    /*
+    def find_time_base_new(self, gps):
+        '''work out time basis for the log - new style'''
+        t = self._gpsTimeToTime(gps.Week, gps.TimeMS*0.001)
+        self.timebase = t - gps.T*0.001
+        self.new_timestamps = True
+
+
+
+    def _find_time_base(self):
+        '''work out time basis for the log'''
+        self.timebase = 0
+        if self._zero_time_base:
+            return
+        gps1 = self.recv_match(type='GPS', condition='getattr(GPS,"Week",0)!=0 or getattr(GPS,"GPSTime",0)!=0')
+        if gps1 is None:
+            self._rewind()
+            return
+            
+                    if 'T' in gps1._fieldnames:
+            # it is a new style flash log with full timestamps
+            self._find_time_base_new(gps1)
+            self._rewind()
+            return
+*/
+    /*
+        def _find_time_base_px4(self, gps):
+	        '''work out time basis for the log - PX4 native'''
+	        t = gps.GPSTime * 1.0e-6
+	        self.timebase = t - self.px4_timebase
+	        self.px4_timestamps = True
+        
+        if 'GPSTime' in gps1._fieldnames:
+            self._find_time_base_px4(gps1)
+            self._rewind()
+            return
+            * 
+            */
+
+  }
 
   // CURR
   def thrOut = get[Int]("ThrOut")
@@ -131,9 +179,9 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
 
   // PARM
   def name = get[String]("Name")
-  def value = get[Float]("Value")
+  def value = get[Double]("Value")
 
-  def timeMS = getOpt[Int]("TimeMS")
+  def timeMSopt = getOpt[Int]("TimeMS")
 }
 
 object DFMessage {
