@@ -150,11 +150,17 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
       epoch + 86400 * 7 * week + sec - 15
     }
 
-    val t = gpsTimeToTime(weekOpt.get, timeMSopt.get * 0.001)
+    for {
+      week <- weekOpt
+      time <- timeMSopt
+    } yield {
+      val t = gpsTimeToTime(week, time * 0.001)
 
-    //println(s"GPS date is " + new Date((t * 1e3).toLong))
+      //println(s"GPS date is " + new Date((t * 1e3).toLong))
 
-    (t * 1e6).toLong
+      (t * 1e6).toLong
+    }
+
     /*
     def find_time_base_new(self, gps):
         '''work out time basis for the log - new style'''
@@ -220,6 +226,7 @@ object DFMessage {
   final val IMU = "IMU"
   final val CMD = "CMD"
   final val NTUN = "NTUN"
+  final val MSG = "MSG"
 }
 
 class DFReader {
