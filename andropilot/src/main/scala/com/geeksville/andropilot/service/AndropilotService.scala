@@ -490,7 +490,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
       else
         None
 
-      val mavSerial = system.actorOf(Props(MavlinkAndroid.create(sdev, baudRate, sysIdOverride)), "serrx")
+      val mavSerial = system.actorOf(Props(MavlinkAndroid.create(sdev, baudRate, sysIdOverride)), "serrx-" + i)
 
       // Anything coming from the controller app, forward it to the serial port
       MavlinkEventBus.subscribe(mavSerial, groundControlId)
