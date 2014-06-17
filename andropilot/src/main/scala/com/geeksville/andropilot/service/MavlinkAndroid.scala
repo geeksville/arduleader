@@ -15,7 +15,7 @@ object MavlinkAndroid extends AndroidLogger {
 
   def create(rawDevice: UsbDevice, baudRate: Int, sysIdOverride: Option[Int] = None)(implicit context: Context) = {
     // Is the device ftdi based?  If so, we have the option of using their native library
-    val isFtdiDevice = AndroidSerial.isTelemetry(rawDevice)
+    val isFtdiDevice = AndroidSerial.isFtdiDevice(rawDevice)
 
     val port = if (useNativeFtdi && isFtdiDevice)
       try {

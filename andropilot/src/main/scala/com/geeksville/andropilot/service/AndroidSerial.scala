@@ -192,9 +192,12 @@ class USBAndroidSerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Co
 
 object AndroidSerial extends AndroidLogger {
 
-  def isTelemetry(dvr: UsbDevice) = dvr.getVendorId == 0x0403 &&
+  def isFtdiDevice(dvr: UsbDevice) = dvr.getVendorId == 0x0403 &&
     (dvr.getProductId == 0x6001 || dvr.getProductId == 0x6015 ||
       dvr.getProductId == 0x03ea || dvr.getProductId == 0x03eb)
+
+  // cp2102 devices show up as ACM devices
+  def isTelemetry(dvr: UsbDevice) = isFtdiDevice(dvr) || dvr.getVendorId == 0x10C4
   def isAPM(dvr: UsbDevice) = dvr.getVendorId == 0x2341 && dvr.getProductId == 0x0010
   def isPX4(dvr: UsbDevice) = dvr.getVendorId == 0x26ac && dvr.getProductId == 0x0011
 
