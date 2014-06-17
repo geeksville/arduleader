@@ -36,7 +36,9 @@ class MavlinkStream(
    */
   private lazy val out = outgen
 
-  override def onReceive = super[MavlinkSender].onReceive
+  override def onReceive = {
+    super[MavlinkStreamReceiver].onReceive.orElse(super[MavlinkSender].onReceive)
+  }
 
   protected def doSendMavlink(bytes: Array[Byte]) {
     //log.debug("Sending ser (sysId=%d): %s".format(msg.sysId, msg))

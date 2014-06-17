@@ -68,7 +68,7 @@ class MavlinkStreamReceiver(
 
   private def shouldDrop = simulateUnreliable && rand.nextInt(10) < 2
 
-  def onReceive: InstrumentedActor.Receiver = {
+  override def onReceive = {
     case MavlinkStreamReceiver.StartMsg =>
       log.info("Received start message")
       rxThread.start()
@@ -87,7 +87,7 @@ class MavlinkStreamReceiver(
   }
 
   private def rxWorker() {
-    log.info("MavlinkStream thread running")
+    println("MavlinkStream thread running")
     try {
       using(instream) { stream =>
         isInstreamValid = true
@@ -128,7 +128,7 @@ class MavlinkStreamReceiver(
             }
 
             val msg = Option(reader.getNextMessage())
-            //log.debug(s"Read packet: $msg")
+            //println(s"Read packet: $msg")
             msg.foreach { s =>
               numPacket += 1
 
