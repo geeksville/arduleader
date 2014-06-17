@@ -18,7 +18,7 @@
     <EditTextPreference
         android:defaultValue=""
         android:dialogTitle="Droneshare password"
-        android:inputType="textVisiblePassword"
+        android:inputType="textPassword"
         android:key="dshare_password"
         android:summary="Just pick a password"
         android:title="Password" />
@@ -28,12 +28,11 @@
         android:key="dshare_deletesent"
         android:summary="We recommend leaving this off for now"
         android:title="After sharing logs, delete local copies" />
-
     <CheckBoxPreference
         android:defaultValue="false"
         android:key="dshare_usenew"
         android:summary="We recommend leaving this off for now"
-        android:title="Use the new droneshare" />
+        android:title="Live sharing of my flights" />
         
     <CheckBoxPreference
         android:defaultValue="false"
