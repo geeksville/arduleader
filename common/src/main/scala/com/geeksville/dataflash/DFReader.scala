@@ -5,12 +5,20 @@ import scala.collection.mutable.HashMap
 import com.geeksville.util.ThreadTools
 import com.geeksville.util.AnalyticsService
 import java.util.Date
+import java.io.InputStream
+import java.io.BufferedInputStream
+import java.io.FileInputStream
+import com.geeksville.util.Using
+import java.io.DataInputStream
+import java.io.EOFException
 
 trait Element[T] {
   def value: T
 
   // Try to get this as a double if we can
   def asDouble: Double = throw new Exception("Magic double conversion not supported")
+  def asInt: Int = throw new Exception("Magic int conversion not supported")
+  def asString: String = throw new Exception("Magic string conversion not supported")
 
   override def toString = value.toString
 }
@@ -18,34 +26,61 @@ trait Element[T] {
 /// Converts from strings or binary to the appriate native Element
 trait ElementConverter {
   def toElement(s: String): Element[_]
+
+  /// @return a tuple with an element and the # of bytes
+  def readBinary(in: DataInputStream): (Element[_], Int)
 }
 
-case object IntConverter extends ElementConverter {
-  def toElement(s: String) = new Element[Int] {
-    val value = s.toInt
-    override def asDouble = value
+class LongElement(val value: Long) extends Element[Long] {
+  override def asDouble = value
+  override def asInt = value.toInt
+}
+class DoubleElement(val value: Double) extends Element[Double] { override def asDouble = value }
+class StringElement(val value: String) extends Element[String] {
+  override def asString = value
+}
+
+case class IntConverter(reader: DataInputStream => Long, numBytes: Int) extends ElementConverter {
+  def toElement(s: String) = new LongElement(s.toLong)
+  def readBinary(in: DataInputStream) = (new LongElement(reader(in)), numBytes)
+}
+
+case class FloatConverter(reader: DataInputStream => Double, numBytes: Int, scale: Double = 1.0) extends ElementConverter {
+  def toElement(s: String) = new DoubleElement(s.toDouble)
+  def readBinary(in: DataInputStream) = (new DoubleElement(reader(in) * scale), numBytes)
+}
+
+case class StringConverter(numBytes: Int) extends ElementConverter {
+
+  private val buf = new Array[Byte](numBytes)
+
+  def toElement(s: String) = new StringElement(s)
+  def readBinary(in: DataInputStream) = {
+    in.read(buf)
+    val str = buf.takeWhile(_ != 0).map(_.toChar).mkString
+    (new StringElement(str), numBytes)
   }
 }
 
-case class FloatConverter(scale: Double = 1.0) extends ElementConverter {
-  def toElement(s: String) = new Element[Double] {
-    val value = s.toDouble // Strings come in prescaled
-    override def asDouble = value
-  }
-}
-
-case object StringConverter extends ElementConverter {
-  def toElement(s: String) = new Element[String] {
-    val value = s
+case class ModeConverter() extends ElementConverter {
+  def toElement(s: String) = new StringElement(s)
+  def readBinary(in: DataInputStream) = {
+    throw new Exception("MODE codes not implemented")
+    val mode = in.readByte()
+    val str = "FIXME"
+    (new StringElement(str), 1)
   }
 }
 
 /// Describes the formating for a particular message type
+/// @param len length of binary packet in bytes - including the three byte header
 case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: Seq[String]) {
 
   val nameToIndex = Map(columns.zipWithIndex.map { case (name, i) => name -> i }: _*)
 
   def isFMT = name == "FMT"
+
+  private def converter(typ: Char) = DFFormat.typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
 
   /// Decode string arguments and generate a message (if possible)
   def createMessage(args: Seq[String]): Option[DFMessage] = {
@@ -57,11 +92,37 @@ case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: S
         else
           'Z' // If we have too many args passed in, treat the remainder as strings
 
-        val converter = DFFormat.typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
         //println(s"Using $converter for ${if (index < format.size) columns(index) else "unknown"}/$index=$typ")
-        converter.toElement(arg)
+        converter(typ).toElement(arg)
     }
     Some(new DFMessage(this, elements))
+  }
+
+  /// Decode a binary blob, read ptr at entry is just after the header
+  def createBinary(in: DataInputStream): Option[DFMessage] = {
+    var totalBytes = 0
+    val elements = format.map { f =>
+      val conv = converter(f)
+      val (elem, numBytes) = conv.readBinary(in)
+      totalBytes += numBytes
+      elem
+    }
+
+    // Check that we got the right amount of payload
+    val expectedBytes = len - 3
+    if (totalBytes <= expectedBytes) {
+      if (totalBytes < expectedBytes) {
+        println(s"packet too short for $this")
+        in.skipBytes(expectedBytes - totalBytes)
+      }
+
+      val r = new DFMessage(this, elements)
+      println(s"Returning msg $r")
+      Some(r)
+    } else {
+      println(s"Error packet too long for $this")
+      None
+    }
   }
 }
 
@@ -88,24 +149,24 @@ Format characters in the format string for binary log messages
  */
 
   private val typeCodes = Map[Char, ElementConverter](
-    'b' -> IntConverter,
-    'B' -> IntConverter,
-    'h' -> IntConverter,
-    'H' -> IntConverter,
-    'i' -> IntConverter,
-    'I' -> IntConverter,
-    'f' -> FloatConverter(),
-    'n' -> StringConverter,
-    'N' -> StringConverter,
-    'Z' -> StringConverter,
-    'c' -> FloatConverter(0.01),
-    'C' -> FloatConverter(0.01),
-    'e' -> FloatConverter(0.01),
-    'E' -> FloatConverter(0.01),
-    'L' -> FloatConverter(1.0e-7),
-    'M' -> StringConverter,
-    'q' -> IntConverter,
-    'Q' -> IntConverter)
+    'b' -> IntConverter(_.readByte(), 1),
+    'B' -> IntConverter(_.readUnsignedByte(), 1),
+    'h' -> IntConverter(_.readShort(), 2),
+    'H' -> IntConverter(_.readUnsignedShort(), 2),
+    'i' -> IntConverter(_.readInt(), 4),
+    'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4),
+    'f' -> FloatConverter(_.readFloat(), 4),
+    'n' -> StringConverter(4),
+    'N' -> StringConverter(16),
+    'Z' -> StringConverter(64),
+    'c' -> FloatConverter(_.readShort(), 2, 0.01),
+    'C' -> FloatConverter(_.readUnsignedShort(), 2, 0.01),
+    'e' -> FloatConverter(_.readInt(), 4, 0.01),
+    'E' -> FloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
+    'L' -> FloatConverter(_.readInt(), 4, 1.0e-7),
+    'M' -> ModeConverter(),
+    'q' -> IntConverter(_.readLong(), 8),
+    'Q' -> IntConverter(_.readLong(), 8))
 }
 
 /// A dataflash message
@@ -232,6 +293,7 @@ object DFMessage {
 class DFReader {
 
   val textToFormat = HashMap[String, DFFormat]()
+  val typToFormat = HashMap[Int, DFFormat]()
 
   /// We initially only understand FMT message, we learn the rest
   Seq {
@@ -240,6 +302,7 @@ class DFReader {
 
   def addFormat(f: DFFormat) {
     textToFormat(f.name) = f
+    typToFormat(f.typ) = f
   }
 
   def tryParseLine(s: String): Option[DFMessage] = {
@@ -299,6 +362,81 @@ class DFReader {
         msgOpt
     }
   }
+
+  def warn(s: String) {
+    println(s)
+  }
+
+  def parseBinary(instream: InputStream) = new Iterator[DFMessage] {
+    // We use EOFException to terminate
+    private val in = new DataInputStream(instream)
+    private var closed = false
+
+    private var numRead = 0
+    private var hasSeenFMT = false
+
+    // Read next valid DFForamt
+    private def getHeader(): Option[DFFormat] = {
+      numRead += 1
+
+      if (in.readByte() != 0xa3.toByte) {
+        warn("Bad header1 byte")
+        None
+      } else if (in.readByte() != 0x95.toByte) {
+        warn("Bad header2 byte")
+        None
+      } else {
+        val code = in.readByte().toInt & 0xff
+        println(s"Looking for format $code")
+        typToFormat.get(code)
+      }
+    }
+
+    private def getMessage() = {
+      try {
+        val r = getHeader().flatMap(_.createBinary(in))
+
+        r.foreach { msg =>
+          hasSeenFMT |= msg.fmt.isFMT
+
+          // If it is a new format type, then add it
+          if (msg.fmt.isFMT) {
+            val elements = msg.elements
+            val colnames = elements(4).asString.split(',')
+
+            val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames)
+            println(s"Adding new format: $newfmt")
+            addFormat(newfmt)
+          }
+        }
+
+        if (numRead > 20 && !hasSeenFMT)
+          throw new Exception("This doesn't seem to be a dataflash log")
+
+        r
+      } catch {
+        case ex: EOFException =>
+          in.close()
+          closed = true
+          None
+      }
+    }
+
+    private var msgopt: Option[DFMessage] = None
+
+    def hasNext = {
+      while (!msgopt.isDefined && !closed)
+        msgopt = getMessage()
+
+      msgopt.isDefined
+    }
+
+    def next = {
+      val r = msgopt.orNull
+      msgopt = None
+      r
+    }
+  }
 }
 
 object DFReader {
@@ -306,8 +444,8 @@ object DFReader {
     val reader = new DFReader
 
     // FIXME - this leaks file descriptors
-    val filename = "/home/kevinh/tmp/test.log"
-    for (line <- reader.parseText(Source.fromFile(filename))) {
+    val filename = "/home/kevinh/tmp/test.bin"
+    for (line <- reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))) {
       println(line)
     }
   }
