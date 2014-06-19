@@ -11,6 +11,8 @@ import java.io.FileInputStream
 import com.geeksville.util.Using
 import java.io.DataInputStream
 import java.io.EOFException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 trait Element[T] {
   def value: T
@@ -29,6 +31,17 @@ trait ElementConverter {
 
   /// @return a tuple with an element and the # of bytes
   def readBinary(in: DataInputStream): (Element[_], Int)
+
+  protected def fromLittleEndian(i: Long, numBytes: Int) = numBytes match {
+    case 8 =>
+      throw new Exception("Not implemented for long-long")
+    case 4 =>
+      ((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)
+    case 2 =>
+      ((i & 0xff) << 8) + ((i & 0xff00) >> 8)
+    case 1 =>
+      i
+  }
 }
 
 class LongElement(val value: Long) extends Element[Long] {
@@ -42,12 +55,36 @@ class StringElement(val value: String) extends Element[String] {
 
 case class IntConverter(reader: DataInputStream => Long, numBytes: Int) extends ElementConverter {
   def toElement(s: String) = new LongElement(s.toLong)
-  def readBinary(in: DataInputStream) = (new LongElement(reader(in)), numBytes)
+
+  // to convert from little endian (intel is be, 
+  // return 
+
+  def readBinary(in: DataInputStream) = {
+    val i = reader(in)
+    val n = fromLittleEndian(i, numBytes)
+
+    (new LongElement(n), numBytes)
+  }
 }
 
-case class FloatConverter(reader: DataInputStream => Double, numBytes: Int, scale: Double = 1.0) extends ElementConverter {
+case class TrueFloatConverter() extends ElementConverter {
+  val bytes = new Array[Byte](4)
+
   def toElement(s: String) = new DoubleElement(s.toDouble)
-  def readBinary(in: DataInputStream) = (new DoubleElement(reader(in) * scale), numBytes)
+  def readBinary(in: DataInputStream) = {
+    in.read(bytes)
+    val n = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getFloat()
+    (new DoubleElement(n), 4)
+  }
+}
+
+case class IntFloatConverter(reader: DataInputStream => Long, numBytes: Int, scale: Double = 1.0) extends ElementConverter {
+  def toElement(s: String) = new DoubleElement(s.toDouble)
+  def readBinary(in: DataInputStream) = {
+    val i = reader(in)
+    val n = fromLittleEndian(i, numBytes)
+    (new DoubleElement(n * scale), numBytes)
+  }
 }
 
 case class StringConverter(numBytes: Int) extends ElementConverter {
@@ -65,9 +102,8 @@ case class StringConverter(numBytes: Int) extends ElementConverter {
 case class ModeConverter() extends ElementConverter {
   def toElement(s: String) = new StringElement(s)
   def readBinary(in: DataInputStream) = {
-    throw new Exception("MODE codes not implemented")
     val mode = in.readByte()
-    val str = "FIXME"
+    val str = s"mode$mode" // FIXME - properly decode modes
     (new StringElement(str), 1)
   }
 }
@@ -110,19 +146,17 @@ case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: S
 
     // Check that we got the right amount of payload
     val expectedBytes = len - 3
-    if (totalBytes <= expectedBytes) {
-      if (totalBytes < expectedBytes) {
-        println(s"packet too short for $this")
-        in.skipBytes(expectedBytes - totalBytes)
-      }
-
-      val r = new DFMessage(this, elements)
-      println(s"Returning msg $r")
-      Some(r)
-    } else {
-      println(s"Error packet too long for $this")
-      None
+    if (totalBytes < expectedBytes) {
+      // println(s"packet too short for $this")
+      // It seems that if the packet ends early, the next packet is immediately after - no need to skip
+      // in.skipBytes(expectedBytes - totalBytes)
     }
+
+    // if (totalBytes > expectedBytes) println(s"Error packet too long for $name")
+
+    val r = new DFMessage(this, elements)
+    //println(s"Returning msg $r")
+    Some(r)
   }
 }
 
@@ -155,15 +189,15 @@ Format characters in the format string for binary log messages
     'H' -> IntConverter(_.readUnsignedShort(), 2),
     'i' -> IntConverter(_.readInt(), 4),
     'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4),
-    'f' -> FloatConverter(_.readFloat(), 4),
+    'f' -> TrueFloatConverter(),
     'n' -> StringConverter(4),
     'N' -> StringConverter(16),
     'Z' -> StringConverter(64),
-    'c' -> FloatConverter(_.readShort(), 2, 0.01),
-    'C' -> FloatConverter(_.readUnsignedShort(), 2, 0.01),
-    'e' -> FloatConverter(_.readInt(), 4, 0.01),
-    'E' -> FloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
-    'L' -> FloatConverter(_.readInt(), 4, 1.0e-7),
+    'c' -> IntFloatConverter(_.readShort(), 2, 0.01),
+    'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01),
+    'e' -> IntFloatConverter(_.readInt(), 4, 0.01),
+    'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
+    'L' -> IntFloatConverter(_.readInt(), 4, 1.0e-7),
     'M' -> ModeConverter(),
     'q' -> IntConverter(_.readLong(), 8),
     'Q' -> IntConverter(_.readLong(), 8))
@@ -187,9 +221,9 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   // Syntatic sugar
 
   // CMD
-  def ctotOpt = getOpt[Int]("CTot")
-  def cnumOpt = getOpt[Int]("CNum")
-  def cidOpt = getOpt[Int]("CId")
+  def ctotOpt = getOpt[Long]("CTot")
+  def cnumOpt = getOpt[Long]("CNum")
+  def cidOpt = getOpt[Long]("CId")
   def prm1Opt = getOptDouble("Prm1")
   def prm2Opt = getOptDouble("Prm2")
   def prm3Opt = getOptDouble("Prm3")
@@ -200,13 +234,13 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def lngOpt = getOpt[Double]("Lng")
   def altOpt = getOpt[Double]("Alt")
   def spdOpt = getOpt[Double]("Spd")
-  def weekOpt = getOpt[Int]("Week")
+  def weekOpt = getOpt[Long]("Week")
 
   /// Return time in usecs since 1970
   def gpsTimeUsec = {
 
     // Returns seconds since 1970
-    def gpsTimeToTime(week: Int, sec: Double) = {
+    def gpsTimeToTime(week: Long, sec: Double) = {
       val epoch = 86400 * (10 * 365 + (1980 - 1969) / 4 + 1 + 6 - 2)
       epoch + 86400 * 7 * week + sec - 15
     }
@@ -264,7 +298,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   }
 
   // CURR
-  def thrOut = get[Int]("ThrOut")
+  def thrOut = get[Long]("ThrOut")
 
   // MODE
   def mode = get[String]("Mode")
@@ -276,7 +310,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   // NTUN
   def arspdOpt = getOpt[Double]("Arspd")
 
-  def timeMSopt = getOpt[Int]("TimeMS")
+  def timeMSopt = getOpt[Long]("TimeMS")
 }
 
 object DFMessage {
@@ -387,7 +421,7 @@ class DFReader {
         None
       } else {
         val code = in.readByte().toInt & 0xff
-        println(s"Looking for format $code")
+        //println(s"Looking for format $code")
         typToFormat.get(code)
       }
     }
@@ -418,6 +452,9 @@ class DFReader {
         case ex: EOFException =>
           in.close()
           closed = true
+          None
+        case ex: Exception =>
+          println(s"Malformed binary log? $ex")
           None
       }
     }

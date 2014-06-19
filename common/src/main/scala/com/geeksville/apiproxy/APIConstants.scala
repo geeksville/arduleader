@@ -33,12 +33,14 @@ object APIConstants {
       throw new Exception("unknown mime type")
   }
 
-  def extensionToMimeType(filename: String) = {
+  def extensionToMimeType(filenameIn: String) = {
+    val filename = filenameIn.toLowerCase
+
     if (filename.endsWith(".tlog"))
       Some(tlogMimeType)
-    else if (filename.endsWith(flogExtension)) // temp hack to hide from users
+    else if (filename.endsWith(flogExtension))
       Some(flogMimeType)
-    else if (filename.endsWith(".bix")) // temp hack 
+    else if (filename.endsWith(blogExtension))
       Some(blogMimeType)
     else
       None
