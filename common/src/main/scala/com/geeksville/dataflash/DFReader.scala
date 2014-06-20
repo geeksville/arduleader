@@ -32,15 +32,19 @@ trait ElementConverter {
   /// @return a tuple with an element and the # of bytes
   def readBinary(in: DataInputStream): (Element[_], Int)
 
-  protected def fromLittleEndian(i: Long, numBytes: Int) = numBytes match {
-    case 8 =>
-      throw new Exception("Not implemented for long-long")
-    case 4 =>
-      ((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)
-    case 2 =>
-      ((i & 0xff) << 8) + ((i & 0xff00) >> 8)
-    case 1 =>
-      i
+  protected def fromLittleEndian(iIn: Long, numBytes: Int) = {
+    val i = iIn.toInt
+
+    numBytes match {
+      case 8 =>
+        throw new Exception("Not implemented for long-long")
+      case 4 =>
+        ((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)
+      case 2 =>
+        ((i & 0xff) << 8) + ((i & 0xff00) >> 8)
+      case 1 =>
+        i
+    }
   }
 }
 
@@ -197,6 +201,8 @@ Format characters in the format string for binary log messages
     'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01),
     'e' -> IntFloatConverter(_.readInt(), 4, 0.01),
     'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
+
+    // FIXME - misconverts -73 as 355
     'L' -> IntFloatConverter(_.readInt(), 4, 1.0e-7),
     'M' -> ModeConverter(),
     'q' -> IntConverter(_.readLong(), 8),
