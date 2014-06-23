@@ -59,6 +59,7 @@ import com.geeksville.mavlink.SendsMavlinkToEventbus
 import com.geeksville.apiproxy.APIConstants
 import com.geeksville.apiproxy.LiveUploader
 import com.geeksville.apiproxy.APIProxyActor
+import com.geeksville.akka.Stopper
 
 trait ServiceAPI extends IBinder {
   def service: AndropilotService
@@ -333,7 +334,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
   def startUDP() {
     val wasOn = udp.map { u =>
       info("Shutting down old UDP daemon")
-      u ! PoisonPill
+      Stopper.stop(u)(system)
       true
     }.getOrElse(false)
 
@@ -563,7 +564,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
     serial.remove(id).foreach { a =>
       warn("dettaching one serial device")
 
-      a ! PoisonPill
+      Stopper.stop(a)(system)
     }
     stopHighValue()
   }
@@ -577,8 +578,7 @@ class AndropilotService extends Service with TTSClient with AndroidLogger
 
   private def btDetached() {
     btStream.foreach { a =>
-      a ! PoisonPill
-
+      Stopper.stop(a)(system)
       btStream = None
     }
     stopHighValue()
