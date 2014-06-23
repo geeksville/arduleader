@@ -190,7 +190,7 @@ class MavlinkStreamReceiver(
 
       // This catch clause covers connection time problems
     } catch {
-      case ex: ConnectException =>
+      case ex: IOException =>
         log.error("Failure to connect: " + ex.getMessage)
         self ! PoisonPill
 
