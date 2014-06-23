@@ -205,35 +205,41 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
     var index = msg.param_index
     if (index == 65535) { // Apparently means unknown index, so look up by id
       val idstr = msg.getParam_id
-      index = unsortedParameters.find { p =>
+
+      val index = unsortedParameters.find { p =>
         p.getId.getOrElse("") == idstr
-      }.get.raw.get.param_index
+      }.flatMap(_.raw).map(_.param_index).getOrElse(-1)
 
       // We now know where this param belongs
       msg.param_index = index
     }
 
-    if (unsortedParameters(index).raw == None) {
-      unsortedParameters(index).raw = Some(msg)
-      sendProgress(100 * index / (numParametersDesired - 1))
-    }
-
-    // Are we done with our initial download early?  If so, we can publish done right now
-    if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
-      log.info("Sending early finish")
-      finisher.foreach(_.cancel())
-      finisher = None
-      self ! FinishParameters
-    } else if (retryingParameters) {
-      // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
-      readNextParameter()
+    if (index == -1) {
+      // We failed to find this parameter by name - just ignore the message.
+      log.error(s"No param found by name for $msg")
     } else {
-      // After we have a sorted param list, we will start publishing updates for individual parameters
-      val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
+      if (unsortedParameters(index).raw == None) {
+        unsortedParameters(index).raw = Some(msg)
+        sendProgress(100 * index / (numParametersDesired - 1))
+      }
 
-      if (paramNum != -1) {
-        log.debug("publishing param " + paramNum)
-        publishEvent(MsgParameterReceived(paramNum))
+      // Are we done with our initial download early?  If so, we can publish done right now
+      if (finisher.isDefined && msg.param_index == msg.param_count - 1) {
+        log.info("Sending early finish")
+        finisher.foreach(_.cancel())
+        finisher = None
+        self ! FinishParameters
+      } else if (retryingParameters) {
+        // If during our initial download we can use the param index as the index, but later we are sorted and have to do something smarter
+        readNextParameter()
+      } else {
+        // After we have a sorted param list, we will start publishing updates for individual parameters
+        val paramNum = parameters.indexWhere(_.raw.map(_.param_index).getOrElse(-1) == index)
+
+        if (paramNum != -1) {
+          log.debug("publishing param " + paramNum)
+          publishEvent(MsgParameterReceived(paramNum))
+        }
       }
     }
   }
