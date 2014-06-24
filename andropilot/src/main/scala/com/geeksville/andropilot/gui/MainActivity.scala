@@ -361,7 +361,7 @@ class MainActivity extends FragmentActivity with TypedActivity with TTSClient
     } catch {
       case ex: NoSuchFieldError =>
         toast("Your tablet has a pirated/old version of google play - Andropilot can not start")
-        BugSenseHandler.sendExceptionMessage("play-failure", "exception", new Exception(ex))
+      // BugSenseHandler.sendExceptionMessage("play-failure", "exception", new Exception(ex))
     }
   }
 
