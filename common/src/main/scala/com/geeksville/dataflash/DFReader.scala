@@ -13,6 +13,8 @@ import java.io.DataInputStream
 import java.io.EOFException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import com.geeksville.flight.LiveOrPlaybackModel
+import java.io.PrintWriter
 
 trait Element[T] {
   def value: T
@@ -103,24 +105,17 @@ case class StringConverter(numBytes: Int) extends ElementConverter {
   }
 }
 
-case class ModeConverter() extends ElementConverter {
-  def toElement(s: String) = new StringElement(s)
-  def readBinary(in: DataInputStream) = {
-    val mode = in.readByte()
-    val str = s"mode$mode" // FIXME - properly decode modes
-    (new StringElement(str), 1)
-  }
-}
-
 /// Describes the formating for a particular message type
 /// @param len length of binary packet in bytes - including the three byte header
-case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: Seq[String]) {
+case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: Seq[String], typeCodes: Map[Char, ElementConverter]) {
 
   val nameToIndex = Map(columns.zipWithIndex.map { case (name, i) => name -> i }: _*)
 
   def isFMT = name == "FMT"
 
-  private def converter(typ: Char) = DFFormat.typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
+  private def converter(typ: Char) = typeCodes.getOrElse(typ, throw new Exception(s"Unknown type code '$typ'"))
+
+  override def toString = s"$name: $format " + columns.mkString(",")
 
   /// Decode string arguments and generate a message (if possible)
   def createMessage(args: Seq[String]): Option[DFMessage] = {
@@ -165,48 +160,6 @@ case class DFFormat(typ: Int, name: String, len: Int, format: String, columns: S
 }
 
 object DFFormat {
-
-  /*
-Format characters in the format string for binary log messages
-  b   : int8_t
-  B   : uint8_t
-  h   : int16_t
-  H   : uint16_t
-  i   : int32_t
-  I   : uint32_t
-  f   : float
-  n   : char[4]
-  N   : char[16]
-  Z   : char[64]
-  c   : int16_t * 100
-  C   : uint16_t * 100
-  e   : int32_t * 100
-  E   : uint32_t * 100
-  L   : int32_t latitude/longitude
-  M   : uint8_t flight mode
- */
-
-  private val typeCodes = Map[Char, ElementConverter](
-    'b' -> IntConverter(_.readByte(), 1),
-    'B' -> IntConverter(_.readUnsignedByte(), 1),
-    'h' -> IntConverter(_.readShort(), 2),
-    'H' -> IntConverter(_.readUnsignedShort(), 2),
-    'i' -> IntConverter(_.readInt(), 4),
-    'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4),
-    'f' -> TrueFloatConverter(),
-    'n' -> StringConverter(4),
-    'N' -> StringConverter(16),
-    'Z' -> StringConverter(64),
-    'c' -> IntFloatConverter(_.readShort(), 2, 0.01),
-    'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01),
-    'e' -> IntFloatConverter(_.readInt(), 4, 0.01),
-    'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
-
-    // FIXME - misconverts -73 as 355
-    'L' -> IntFloatConverter(_.readInt(), 4, 1.0e-7),
-    'M' -> ModeConverter(),
-    'q' -> IntConverter(_.readLong(), 8),
-    'Q' -> IntConverter(_.readLong(), 8))
 }
 
 /// A dataflash message
@@ -219,7 +172,10 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def getOptDouble(name: String) = getElement(name).map(_.asDouble)
   def get[T](name: String) = getOpt[T](name).get
 
-  override def toString = s"$typ: " + asPairs.mkString(", ")
+  /// Generate a string that would be a valid text log line (machine and human readable)
+  override def toString = {
+    s"$typ, " + elements.mkString(", ")
+  }
 
   /// The typename 
   def typ = fmt.name
@@ -313,6 +269,9 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def name = get[String]("Name")
   def value = get[Double]("Value")
 
+  // MSG
+  def message = get[String]("Message")
+
   // NTUN
   def arspdOpt = getOpt[Double]("Arspd")
 
@@ -331,13 +290,80 @@ object DFMessage {
 }
 
 class DFReader {
+  import DFMessage._
 
-  val textToFormat = HashMap[String, DFFormat]()
-  val typToFormat = HashMap[Int, DFFormat]()
+  private val textToFormat = HashMap[String, DFFormat]()
+  private val typToFormat = HashMap[Int, DFFormat]()
+
+  var messages: Iterator[DFMessage] = Iterator.empty
+
+  private case class ModeConverter() extends ElementConverter {
+    def toElement(s: String) = new StringElement(s)
+    def readBinary(in: DataInputStream) = {
+      import LiveOrPlaybackModel._
+
+      val mode = in.readByte()
+
+      val modeToCodeMap = buildName.getOrElse("") match {
+        case "ArduPlane" => planeCodeToModeMap
+        case "ArduCopter" => copterCodeToModeMap
+        case "ArduRover" => roverCodeToModeMap
+        case _ => Map[Int, String]()
+      }
+
+      val str = modeToCodeMap.getOrElse(mode, s"mode$mode")
+      (new StringElement(str), 1)
+    }
+  }
+
+  /*
+Format characters in the format string for binary log messages
+  b   : int8_t
+  B   : uint8_t
+  h   : int16_t
+  H   : uint16_t
+  i   : int32_t
+  I   : uint32_t
+  f   : float
+  n   : char[4]
+  N   : char[16]
+  Z   : char[64]
+  c   : int16_t * 100
+  C   : uint16_t * 100
+  e   : int32_t * 100
+  E   : uint32_t * 100
+  L   : int32_t latitude/longitude
+  M   : uint8_t flight mode
+ */
+
+  private val typeCodes = Map[Char, ElementConverter](
+    'b' -> IntConverter(_.readByte(), 1),
+    'B' -> IntConverter(_.readUnsignedByte(), 1),
+    'h' -> IntConverter(_.readShort(), 2),
+    'H' -> IntConverter(_.readUnsignedShort(), 2),
+    'i' -> IntConverter(_.readInt(), 4),
+    'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4),
+    'f' -> TrueFloatConverter(),
+    'n' -> StringConverter(4),
+    'N' -> StringConverter(16),
+    'Z' -> StringConverter(64),
+    'c' -> IntFloatConverter(_.readShort(), 2, 0.01),
+    'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01),
+    'e' -> IntFloatConverter(_.readInt(), 4, 0.01),
+    'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
+
+    // FIXME - misconverts -73 as 355
+    'L' -> IntFloatConverter(_.readInt(), 4, 1.0e-7),
+    'M' -> ModeConverter(),
+    'q' -> IntConverter(_.readLong(), 8),
+    'Q' -> IntConverter(_.readLong(), 8))
+
+  /// ArduCopter etc...
+  private var buildName: Option[String] = None
 
   /// We initially only understand FMT message, we learn the rest
   Seq {
-    DFFormat(0x80, "FMT", 89, "BBnNZ", Seq("Type", "Length", "Name", "Format", "Columns"))
+    DFFormat(0x80, "FMT", 89, "BBnNZ", Seq("Type", "Length", "Name", "Format", "Columns"), typeCodes)
   }.foreach(addFormat)
 
   def addFormat(f: DFFormat) {
@@ -368,7 +394,7 @@ class DFReader {
               // If it is a new format type, then add it
               if (fmt.isFMT) {
                 // Example: FMT, 129, 23, PARM, Nf, Name,Value
-                val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4))
+                val newfmt = DFFormat(args(0).toInt, args(2), args(1).toInt, args(3), args.drop(4), typeCodes)
                 //println(s"Adding new format: $newfmt")
                 addFormat(newfmt)
               }
@@ -386,98 +412,132 @@ class DFReader {
     }
   }
 
-  ///should just map from source to records - so callers can read lazily
-  def parseText(in: Source): Iterator[DFMessage] = {
-    var hasSeenFMT = false
-
-    in.getLines.zipWithIndex.flatMap {
-      case (l, i) =>
-        if (i > 100 && !hasSeenFMT)
-          throw new Exception("This doesn't seem to be a dataflash log")
-
-        val msgOpt = tryParseLine(l)
-        msgOpt.foreach { msg =>
-          hasSeenFMT |= msg.fmt.isFMT
+  /// When scanning the file we look for certain message types and treat them specially
+  def filterMessage(msg: DFMessage) {
+    msg.typ match {
+      case MSG =>
+        LiveOrPlaybackModel.decodeVersionMessage(msg.message).foreach { m =>
+          buildName = Some(m._1)
         }
-        msgOpt
+
+      case _ =>
     }
   }
 
-  def warn(s: String) {
+  ///should just map from source to records - so callers can read lazily
+  def parseText(in: Source) {
+    messages = {
+      var hasSeenFMT = false
+
+      in.getLines.zipWithIndex.flatMap {
+        case (l, i) =>
+          if (i > 100 && !hasSeenFMT)
+            throw new Exception("This doesn't seem to be a dataflash log")
+
+          val msgOpt = tryParseLine(l)
+          msgOpt.foreach { msg =>
+            hasSeenFMT |= msg.fmt.isFMT
+
+            filterMessage(msg)
+          }
+          msgOpt
+      }
+    }
+  }
+
+  private def warn(s: String) {
     println(s)
   }
 
-  def parseBinary(instream: InputStream) = new Iterator[DFMessage] {
-    // We use EOFException to terminate
-    private val in = new DataInputStream(instream)
-    private var closed = false
+  /// Emit my messages as a text format log file
+  def toText(out: PrintWriter) {
+    // FIXME - generate a real header
+    val header = Seq("37", "", "ArduCopter V3.1.5 (ee63c88b)", "Free RAM: 65535", "PX4")
+    header.foreach(out.println(_))
 
-    private var numRead = 0
-    private var hasSeenFMT = false
-
-    // Read next valid DFForamt
-    private def getHeader(): Option[DFFormat] = {
-      numRead += 1
-
-      if (in.readByte() != 0xa3.toByte) {
-        warn("Bad header1 byte")
-        None
-      } else if (in.readByte() != 0x95.toByte) {
-        warn("Bad header2 byte")
-        None
-      } else {
-        val code = in.readByte().toInt & 0xff
-        //println(s"Looking for format $code")
-        typToFormat.get(code)
-      }
+    messages.foreach { m =>
+      //println(m)
+      out.println(m)
     }
+    warn("Completed converting bin to log")
+  }
 
-    private def getMessage() = {
-      try {
-        val r = getHeader().flatMap(_.createBinary(in))
+  def parseBinary(instream: InputStream) {
+    messages = new Iterator[DFMessage] {
 
-        r.foreach { msg =>
-          hasSeenFMT |= msg.fmt.isFMT
+      // We use EOFException to terminate
+      private val in = new DataInputStream(instream)
+      private var closed = false
 
-          // If it is a new format type, then add it
-          if (msg.fmt.isFMT) {
-            val elements = msg.elements
-            val colnames = elements(4).asString.split(',')
+      private var numRead = 0
+      private var hasSeenFMT = false
 
-            val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames)
-            println(s"Adding new format: $newfmt")
-            addFormat(newfmt)
-          }
+      // Read next valid DFForamt
+      private def getHeader(): Option[DFFormat] = {
+        numRead += 1
+
+        if (in.readByte() != 0xa3.toByte) {
+          warn("Bad header1 byte")
+          None
+        } else if (in.readByte() != 0x95.toByte) {
+          warn("Bad header2 byte")
+          None
+        } else {
+          val code = in.readByte().toInt & 0xff
+          //println(s"Looking for format $code")
+          typToFormat.get(code)
         }
-
-        if (numRead > 20 && !hasSeenFMT)
-          throw new Exception("This doesn't seem to be a dataflash log")
-
-        r
-      } catch {
-        case ex: EOFException =>
-          in.close()
-          closed = true
-          None
-        case ex: Exception =>
-          println(s"Malformed binary log? $ex")
-          None
       }
-    }
 
-    private var msgopt: Option[DFMessage] = None
+      private def getMessage() = {
+        try {
+          val r = getHeader().flatMap(_.createBinary(in))
 
-    def hasNext = {
-      while (!msgopt.isDefined && !closed)
-        msgopt = getMessage()
+          r.foreach { msg =>
+            hasSeenFMT |= msg.fmt.isFMT
 
-      msgopt.isDefined
-    }
+            // If it is a new format type, then add it
+            if (msg.fmt.isFMT) {
+              val elements = msg.elements
+              val colnames = elements(4).asString.split(',')
 
-    def next = {
-      val r = msgopt.orNull
-      msgopt = None
-      r
+              val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames, typeCodes)
+              println(s"Adding new format: $newfmt")
+              addFormat(newfmt)
+            }
+
+            filterMessage(msg)
+          }
+
+          if (numRead > 20 && !hasSeenFMT)
+            throw new Exception("This doesn't seem to be a dataflash log")
+
+          r
+        } catch {
+          case ex: EOFException =>
+            in.close()
+            closed = true
+            None
+          case ex: Exception =>
+            println(s"Malformed binary log? $ex")
+            None
+        }
+      }
+
+      private var msgopt: Option[DFMessage] = None
+
+      def hasNext = {
+        while (!msgopt.isDefined && !closed)
+          msgopt = getMessage()
+
+        msgopt.isDefined
+      }
+
+      def next = {
+        val r = msgopt.orNull
+        msgopt = None
+        r
+      }
     }
   }
 }
@@ -488,7 +548,8 @@ object DFReader {
 
     // FIXME - this leaks file descriptors
     val filename = "/home/kevinh/tmp/test.bin"
-    for (line <- reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))) {
+    reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))
+    for (line <- reader.messages) {
       println(line)
     }
   }

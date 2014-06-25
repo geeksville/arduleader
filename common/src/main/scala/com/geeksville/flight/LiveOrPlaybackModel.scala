@@ -10,12 +10,12 @@ import org.mavlink.messages.ardupilotmega.msg_global_position_int
 import org.mavlink.messages.ardupilotmega.msg_gps_raw_int
 
 object LiveOrPlaybackModel {
-  private val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
+  val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     3 -> "TRAINING",
     5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
     11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
-  private val copterCodeToModeMap = Map(
+  val copterCodeToModeMap = Map(
     0 -> "STABILIZE",
     1 -> "ACRO",
     2 -> "ALT_HOLD",
@@ -57,7 +57,7 @@ object LiveOrPlaybackModel {
       "#%02x%02x%02x".format(r, g, b)
   }
 
-  private val roverCodeToModeMap = Map(
+  val roverCodeToModeMap = Map(
     0 -> "MANUAL", 2 -> "LEARNING", 3 -> "STEERING",
     4 -> "HOLD",
     10 -> "AUTO",
@@ -90,6 +90,19 @@ object LiveOrPlaybackModel {
     MAV_AUTOPILOT.MAV_AUTOPILOT_PPZ -> "ppz",
     MAV_AUTOPILOT.MAV_AUTOPILOT_UDB -> "udb",
     MAV_AUTOPILOT.MAV_AUTOPILOT_FP -> "fp")
+
+  private val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
+
+  // Deocde ArduCopter V3.1.4 (abcde12)
+  def decodeVersionMessage(s: String) = {
+    s match {
+      case VersionRegex(bName, bVer, bGit) =>
+        Some(bName, bVer, bGit)
+      case _ =>
+        None
+    }
+  }
+
 }
 
 /**
@@ -168,6 +181,15 @@ trait HasSummaryStats {
     println("Can't find duration for flight")
     None
   }
+
+  /// Update model state based on a message string
+  def filterMessage(s: String) {
+    LiveOrPlaybackModel.decodeVersionMessage(s).foreach { m =>
+      buildName = Some(m._1)
+      buildVersion = Some(m._2)
+      buildGit = Some(m._3)
+    }
+  }
 }
 
 /**
@@ -220,8 +242,6 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
   /// Convert a custom mode int into a human readable string
   def modeToString(modeCode: Int) = codeToModeMap.getOrElse(modeCode, "unknown")
 
-  val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
-
   protected def perhapsUpdateModel(msg: Any) {
     if (updateModel.isDefinedAt(msg))
       updateModel.apply(msg)
@@ -255,13 +275,7 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
       // Sniff messages looking for interesting vehicle strings
       val s = msg.getText()
       //println(s"Considering status: $s")
-      s match {
-        case VersionRegex(bName, bVer, bGit) =>
-          buildName = Some(bName)
-          buildVersion = Some(bVer)
-          buildGit = Some(bGit)
-        case _ =>
-      }
+      filterMessage(s)
 
     // Messages might arrive encapsulated in a timestamped message, if so then use that for our sense of time
     case msg: TimestampedMessage =>
@@ -272,3 +286,4 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
       currentTime = Some(msg.time)
   }
 }
+

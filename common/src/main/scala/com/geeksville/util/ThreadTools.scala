@@ -15,6 +15,7 @@ object ThreadTools {
   def createDaemon(name: String)(block: () => Unit): Thread = {
     val t = new Thread(block, name)
 
+    reportUncaughtExceptions(t)
     t.setDaemon(true)
     t
   }
@@ -23,8 +24,16 @@ object ThreadTools {
   def start(name: String)(block: () => Unit): Thread = {
     val t = new Thread(block, name)
 
+    reportUncaughtExceptions(t)
     t.start
     t
+  }
+
+  def reportUncaughtExceptions(t: Thread) {
+    setUncaughtExceptionHandler {
+      case (t, ex) =>
+        AnalyticsService.reportException(s"Uncaught in $t", ex)
+    }
   }
 
   /// Ignore exceptions (with a warning).  Usage: catchIgnore { some code }
