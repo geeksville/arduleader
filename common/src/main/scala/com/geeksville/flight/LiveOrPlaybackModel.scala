@@ -165,6 +165,8 @@ trait HasSummaryStats {
   var buildVersion: Option[String] = None
   var buildGit: Option[String] = None
 
+  var hardwareString: Option[String] = None
+
   // In usecs
   var startOfFlightTime: Option[Long] = None
   var endOfFlightTime: Option[Long] = None
@@ -200,6 +202,10 @@ trait HasSummaryStats {
       buildName = Some(build)
       buildVersion = Some(m._2)
       buildGit = Some(m._3)
+    }
+
+    LiveOrPlaybackModel.decodeHardwareMessage(s).foreach { m =>
+      hardwareString = Some(m)
     }
   }
 }
