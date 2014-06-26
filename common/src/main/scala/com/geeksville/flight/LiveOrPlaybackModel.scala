@@ -91,9 +91,10 @@ object LiveOrPlaybackModel {
     MAV_AUTOPILOT.MAV_AUTOPILOT_UDB -> "udb",
     MAV_AUTOPILOT.MAV_AUTOPILOT_FP -> "fp")
 
-  private val VersionRegex = "(\\S*) (V\\S*).*(\\S*)".r
+  private val VersionRegex = "(\\S*) (V\\S*)\\s+\\((\\S*)\\)".r
+  private val HWRegex = "(\\S+) (\\d+) (\\d+) (\\d+)".r
 
-  // Deocde ArduCopter V3.1.4 (abcde12)
+  // Decode ArduCopter V3.1.4 (abcde12)
   def decodeVersionMessage(s: String) = {
     s match {
       case VersionRegex(bName, bVer, bGit) =>
@@ -103,6 +104,15 @@ object LiveOrPlaybackModel {
     }
   }
 
+  // Decode PX4v2 00320033 35324719 36343032
+  def decodeHardwareMessage(s: String) = {
+    s match {
+      case HWRegex(bName, _, _, _) =>
+        Some(bName)
+      case _ =>
+        None
+    }
+  }
 }
 
 /**
@@ -183,9 +193,11 @@ trait HasSummaryStats {
   }
 
   /// Update model state based on a message string
-  def filterMessage(s: String) {
+  protected def filterMessage(s: String) {
     LiveOrPlaybackModel.decodeVersionMessage(s).foreach { m =>
-      buildName = Some(m._1)
+      val build = m._1 // Ardu something
+
+      buildName = Some(build)
       buildVersion = Some(m._2)
       buildGit = Some(m._3)
     }
