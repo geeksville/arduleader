@@ -16,6 +16,8 @@ import java.nio.ByteOrder
 import com.geeksville.flight.LiveOrPlaybackModel
 import java.io.PrintWriter
 
+class InvalidLogException(reason: String) extends Exception(reason)
+
 trait Element[T] {
   def value: T
 
@@ -432,7 +434,7 @@ Format characters in the format string for binary log messages
       in.getLines.zipWithIndex.flatMap {
         case (l, i) =>
           if (i > 100 && !hasSeenFMT)
-            throw new Exception("This doesn't seem to be a dataflash log")
+            throw new InvalidLogException("This doesn't seem to be a dataflash log")
 
           val msgOpt = tryParseLine(l)
           msgOpt.foreach { msg =>
@@ -510,7 +512,7 @@ Format characters in the format string for binary log messages
           }
 
           if (numRead > 20 && !hasSeenFMT)
-            throw new Exception("This doesn't seem to be a dataflash log")
+            throw new InvalidLogException("This doesn't seem to be a dataflash log")
 
           r
         } catch {
