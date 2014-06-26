@@ -144,7 +144,7 @@ class USBAndroidSerial(rawDevice: UsbDevice, baudRate: Int)(implicit context: Co
 
   private def open(rawDevice: UsbDevice) {
 
-    info("Acquiring")
+    info(s"Acquiring $rawDevice")
     val d = UsbSerialProber.acquire(manager, rawDevice)
 
     if (d == null)
