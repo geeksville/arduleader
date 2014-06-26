@@ -199,6 +199,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   def altOpt = getOpt[Double]("Alt")
   def spdOpt = getOpt[Double]("Spd")
   def weekOpt = getOpt[Long]("Week")
+  def tOpt = getOpt[Long]("T")
 
   /// Return time in usecs since 1970
   def gpsTimeUsec = {
@@ -209,15 +210,18 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
       epoch + 86400 * 7 * week + sec - 15
     }
 
-    for {
-      week <- weekOpt
-      time <- timeMSopt
-    } yield {
-      val t = gpsTimeToTime(week, time * 0.001)
+    weekOpt.flatMap { week =>
+      timeMSopt.flatMap { time =>
+        if (week == 0)
+          None // No lock yet
+        else {
+          val t = gpsTimeToTime(week, time * 0.001)
 
-      //println(s"GPS date is " + new Date((t * 1e3).toLong))
+          //println(s"GPS date is " + new Date((t * 1e3).toLong))
 
-      (t * 1e6).toLong
+          Some((t * 1e6).toLong)
+        }
+      }
     }
 
     /*

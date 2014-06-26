@@ -187,7 +187,7 @@ trait HasSummaryStats {
     e <- endOfFlightTime
   } yield {
     val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
-    //println(s"Calculated flight duration of $r")
+    println(s"Calculated flight duration of $r (from $s and $e)")
     r
   }).orElse {
     println("Can't find duration for flight")
