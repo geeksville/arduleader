@@ -12,7 +12,7 @@ import org.mavlink.messages.ardupilotmega.msg_gps_raw_int
 object LiveOrPlaybackModel {
   val planeCodeToModeMap = Map(0 -> "MANUAL", 1 -> "CIRCLE", 2 -> "STABILIZE",
     3 -> "TRAINING",
-    5 -> "FBW_A", 6 -> "FBW_B", 10 -> "AUTO",
+    5 -> "FBW_A", 6 -> "FBW_B", 7 -> "CRUISE", 8 -> "AUTOTUNE", 10 -> "AUTO",
     11 -> "RTL", 12 -> "LOITER", 15 -> "GUIDED", 16 -> "INITIALIZING")
 
   val copterCodeToModeMap = Map(
@@ -29,7 +29,8 @@ object LiveOrPlaybackModel {
     11 -> "DRIFT",
     13 -> "SPORT",
     14 -> "FLIP",
-    15 -> "AUTOTUNE")
+    15 -> "AUTOTUNE",
+    16 -> "HYBRID")
 
   /**
    * A mapping to RGB tuples (chosen to match the colors used by Tridge's python tool)
