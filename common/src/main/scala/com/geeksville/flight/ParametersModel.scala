@@ -206,7 +206,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
     if (index == 65535) { // Apparently means unknown index, so look up by id
       val idstr = msg.getParam_id
 
-      val index = unsortedParameters.find { p =>
+      index = unsortedParameters.find { p =>
         p.getId.getOrElse("") == idstr
       }.flatMap(_.raw).map(_.param_index).getOrElse(-1)
 
