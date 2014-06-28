@@ -29,8 +29,22 @@ object FileTools {
   }
 
   /// Extract all bytes from an inputstream
-  /// FIXME - definitely not super efficient
-  def toByteArray(src: InputStream) = Stream.continually(src.read).takeWhile(-1 !=).map(_.toByte).toArray
+  def toByteArray(src: InputStream) = {
+    /// FIXME - definitely not super efficient
+    // The following idomatic scala is replaced with the optimized java loop below...
+    //Stream.continually(src.read).takeWhile(-1 !=).map(_.toByte).toArray
+
+    val buffer = new ByteArrayOutputStream()
+
+    var nRead = 0
+    val data = new Array[Byte](16384)
+
+    while ((nRead = src.read(data, 0, data.length)) != -1)
+      buffer.write(data, 0, nRead)
+
+    buffer.flush()
+    buffer.toByteArray
+  }
 
   /// Copy from an inputStream to an OutputStream
   /// it is the caller's responsiblity to close streams
