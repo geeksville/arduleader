@@ -2,9 +2,9 @@ import sbtandroid.AndroidKeys._
 
 name := "andropilot"
 
-version := "2.1.05"
+version := "2.1.06"
 
-versionCode := 20105
+versionCode := 20106
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 

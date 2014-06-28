@@ -85,7 +85,7 @@ case class StatusText(str: String, severity: Int = MsgStatusChanged.SEVERITY_MED
  */
 abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePeriod: Int = 0) extends VehicleClient(targetOverride) with WaypointModel with FenceModel {
   import math._
-  
+
   // We can receive _many_ position updates.  Limit to one update per second (to keep from flooding the gui thread)
   private lazy val locationThrottle = new Throttled(max(1000, maxUpdatePeriod))
   private lazy val rcChannelsThrottle = new Throttled(max(500, maxUpdatePeriod))
@@ -372,7 +372,12 @@ abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePer
     }
   }
 
-  private def onSysStatusChanged() { sysStatusThrottle { () => publishEvent(MsgSysStatusChanged) } }
+  private def onSysStatusChanged() {
+    sysStatusThrottle { () =>
+      //log.info("publishing sys status")
+      publishEvent(MsgSysStatusChanged)
+    }
+  }
 
   override def onReceive = PartialFunctionTools.callBoth(mReceive, updateModel).orElse(super.onReceive)
 
@@ -432,6 +437,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePer
       onStatusChanged(s, m.severity)
 
     case msg: msg_sys_status =>
+      //log.info(s"SYS_STAT from vehicle $msg")
       sysStatus = Some(msg)
       batteryVoltage = Some(msg.voltage_battery / 1000.0f)
       batteryPercent = if (msg.battery_remaining == -1) None else Some(msg.battery_remaining / 100.0f)

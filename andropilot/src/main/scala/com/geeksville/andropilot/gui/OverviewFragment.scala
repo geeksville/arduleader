@@ -43,6 +43,7 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
       }
 
     case MsgSysStatusChanged =>
+      //info("Handling status changed")
       handler.post { () =>
         if (getView != null) {
           myVehicle.foreach { v =>
@@ -73,6 +74,7 @@ class VehicleInfoFragment(layoutId: Int) extends LayoutFragment(layoutId) with A
   protected def onStatusUpdate(v: VehicleModel) {
     showRssi(v)
 
+    //info("showing battery voltage: " + v.batteryVoltage)
     v.batteryVoltage.foreach { n =>
       val socStr = v.batteryPercent.map { pct => " %d%%".format((pct * 100).toInt) }.getOrElse("")
       batteryView.setText("%.1f".format(n) + "V " + socStr)
