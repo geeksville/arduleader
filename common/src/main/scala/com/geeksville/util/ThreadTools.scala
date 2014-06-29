@@ -47,6 +47,18 @@ object ThreadTools {
       }
     }
 
+  /// Ignore exceptions (with a warning).  Usage: catchIgnore { some code }
+  def catchOrElse[ResType](elseValue: => ResType = Unit)(block: => ResType) =
+    {
+      try {
+        block
+      } catch {
+        case ex: Exception =>
+          AnalyticsService.reportException("Returning else value", ex)
+          elseValue
+      }
+    }
+
   /// Ignore exceptions silently.  Usage: catchSilently { some code }
   def catchSilently[ResType](block: => ResType) =
     {
