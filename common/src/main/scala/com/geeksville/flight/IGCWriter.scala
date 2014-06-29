@@ -9,8 +9,10 @@ import java.util.Calendar
 
 /**
  * Write ICS format files
+ *
+ * @param altOffset is added to every altitude - to avoid accidentally drawing low level alts below terrain height
  */
-class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: String, val pilotId: String) {
+class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: String, val pilotId: String, altOffset: Double = 10) {
   import IGCWriter._
 
   private val out = new PrintWriter(outs)
@@ -53,12 +55,13 @@ class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: Strin
 
     // GSP / groundspeed.  Convert from m/s to km/hr
     val vel = (l.velocity.getOrElse(0.0) * 3.6).toInt
+    val alt = (l.alt.getOrElse(0.0) + altOffset).toInt
 
     val line = "B%02d%02d%02d%s%s%c%05d%05d%03d".formatLocal(Locale.US, hours, cal
       .get(Calendar.MINUTE), cal.get(Calendar.SECOND),
       degreeStr(latitude, true), degreeStr(longitude, false),
-      if (is3D) 'A' else 'V', l.alt.getOrElse(0.0).toInt,
-      l.alt.getOrElse(0.0).toInt,
+      if (is3D) 'A' else 'V', alt,
+      alt,
       vel)
     out.println(line);
 
