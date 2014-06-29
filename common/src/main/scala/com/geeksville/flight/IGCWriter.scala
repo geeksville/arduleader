@@ -50,7 +50,7 @@ class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: Strin
     val hours = cal.get(Calendar.HOUR_OF_DAY);
     val latitude = l.lat
     val longitude = l.lon
-    val line = "B%02d%02d%02d%s%s%c%05d%05d%03d".format(Locale.US, hours, cal
+    val line = "B%02d%02d%02d%s%s%c%05d%05d%03d".formatLocal(Locale.US, hours, cal
       .get(Calendar.MINUTE), cal.get(Calendar.SECOND),
       degreeStr(latitude, true), degreeStr(longitude, false),
       if (is3D) 'A' else 'V', l.alt.getOrElse(0.0).toInt, // FIXME convert altitudes correctly
@@ -84,7 +84,7 @@ class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: Strin
     // mfgr=FLY, serial num=06122
 
     // sect 3.3.1, H=file header
-    val dstr = "HFDTE%02d%02d%02d".format(Locale.US,
+    val dstr = "HFDTE%02d%02d%02d".formatLocal(Locale.US,
       cal.get(Calendar.DAY_OF_MONTH), cal.get(Calendar.MONTH) + 1,
       (cal.get(Calendar.YEAR) - 1900) % 100); // date
 
@@ -127,6 +127,6 @@ object IGCWriter {
     // DDMMmmmN(or S) latitude
     // DDDMMmmmE(or W) longitude
     ((if (isLatitude) "%02d" else "%03d")
-      + "%02d%03d%c").format(Locale.US, deg.toInt, minwhole, minfract, dirLetter);
+      + "%02d%03d%c").formatLocal(Locale.US, deg.toInt, minwhole, minfract, dirLetter);
   }
 }
