@@ -50,12 +50,16 @@ class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: Strin
     val hours = cal.get(Calendar.HOUR_OF_DAY);
     val latitude = l.lat
     val longitude = l.lon
+
+    // GSP / groundspeed.  Convert from m/s to km/hr
+    val vel = (l.velocity.getOrElse(0.0) * 3.6).toInt
+
     val line = "B%02d%02d%02d%s%s%c%05d%05d%03d".formatLocal(Locale.US, hours, cal
       .get(Calendar.MINUTE), cal.get(Calendar.SECOND),
       degreeStr(latitude, true), degreeStr(longitude, false),
-      if (is3D) 'A' else 'V', l.alt.getOrElse(0.0).toInt, // FIXME convert altitudes correctly
-      l.alt.getOrElse(0.0).toInt, // FIXME convert alts
-      l.vx.getOrElse(0.0).toInt); // FIXME - convert speed correctly
+      if (is3D) 'A' else 'V', l.alt.getOrElse(0.0).toInt,
+      l.alt.getOrElse(0.0).toInt,
+      vel)
     out.println(line);
 
     // Don't store vertical speed info until I can find an example data
