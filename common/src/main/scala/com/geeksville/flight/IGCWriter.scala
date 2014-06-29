@@ -12,7 +12,7 @@ import java.util.Calendar
  *
  * @param altOffset is added to every altitude - to avoid accidentally drawing low level alts below terrain height
  */
-class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: String, val pilotId: String, altOffset: Double = 10) {
+class IGCWriter(outs: OutputStream, val pilotName: String, val gliderType: String, val pilotId: String, altOffset: Double = 30) {
   import IGCWriter._
 
   private val out = new PrintWriter(outs)
