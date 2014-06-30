@@ -39,8 +39,11 @@ object FileTools {
     var nRead = 0
     val data = new Array[Byte](16384)
 
-    while ((nRead = src.read(data, 0, data.length)) != -1)
-      buffer.write(data, 0, nRead)
+    while (nRead != -1) {
+      nRead = src.read(data, 0, data.length)
+      if (nRead > 0)
+        buffer.write(data, 0, nRead)
+    }
 
     buffer.flush()
     buffer.toByteArray
