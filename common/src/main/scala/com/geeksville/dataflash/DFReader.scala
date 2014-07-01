@@ -36,14 +36,16 @@ trait ElementConverter {
   /// @return a tuple with an element and the # of bytes
   def readBinary(in: DataInputStream): (Element[_], Int)
 
-  protected def fromLittleEndian(iIn: Long, numBytes: Int) = {
+  protected def fromLittleEndian(iIn: Long, numBytes: Int): Long = {
     val i = iIn.toInt
+    val wordmask = 0xffffffffL
 
     numBytes match {
       case 8 =>
-        throw new Exception("Not implemented for long-long")
+        val r = fromLittleEndian((iIn >> 32) & wordmask, 4) | (fromLittleEndian(iIn & wordmask, 4) << 32)
+        r
       case 4 =>
-        ((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)
+        (((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)) & wordmask
       case 2 =>
         ((i & 0xff) << 8) + ((i & 0xff00) >> 8)
       case 1 =>
@@ -195,26 +197,28 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
 
   // GPS
   def latOpt = getOpt[Double]("Lat")
-  def lngOpt = getOpt[Double]("Lng")
+  def lngOpt = getOpt[Double]("Lng").orElse(getOpt[Double]("Lon"))
   def altOpt = getOpt[Double]("Alt")
   def spdOpt = getOpt[Double]("Spd")
   def weekOpt = getOpt[Long]("Week")
   def tOpt = getOpt[Long]("T")
+  def gpsTimeOpt = getOpt[Long]("GPSTime") // PX4 format
 
   /// Return time in usecs since 1970
   def gpsTimeUsec = {
 
-    // Returns seconds since 1970
-    def gpsTimeToTime(week: Long, sec: Double) = {
-      val epoch = 86400 * (10 * 365 + (1980 - 1969) / 4 + 1 + 6 - 2)
-      epoch + 86400 * 7 * week + sec - 15
-    }
-
-    weekOpt.flatMap { week =>
+    // An APM format time message
+    var r = weekOpt.flatMap { week =>
       timeMSopt.flatMap { time =>
         if (week == 0)
           None // No lock yet
         else {
+          // Returns seconds since 1970
+          def gpsTimeToTime(week: Long, sec: Double) = {
+            val epoch = 86400 * (10 * 365 + (1980 - 1969) / 4 + 1 + 6 - 2)
+            epoch + 86400 * 7 * week + sec - 15
+          }
+
           val t = gpsTimeToTime(week, time * 0.001)
 
           //println(s"GPS date is " + new Date((t * 1e3).toLong))
@@ -224,45 +228,14 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
       }
     }
 
-    /*
-    def find_time_base_new(self, gps):
-        '''work out time basis for the log - new style'''
-        t = self._gpsTimeToTime(gps.Week, gps.TimeMS*0.001)
-        self.timebase = t - gps.T*0.001
-        self.new_timestamps = True
+    // A PX4 style time message?
+    if (!r.isDefined) {
+      r = gpsTimeOpt.flatMap { gtime =>
+        Some(gtime)
+      }
+    }
 
-
-
-    def _find_time_base(self):
-        '''work out time basis for the log'''
-        self.timebase = 0
-        if self._zero_time_base:
-            return
-        gps1 = self.recv_match(type='GPS', condition='getattr(GPS,"Week",0)!=0 or getattr(GPS,"GPSTime",0)!=0')
-        if gps1 is None:
-            self._rewind()
-            return
-            
-                    if 'T' in gps1._fieldnames:
-            # it is a new style flash log with full timestamps
-            self._find_time_base_new(gps1)
-            self._rewind()
-            return
-*/
-    /* FIXME - support PX4 native
-        def _find_time_base_px4(self, gps):
-	        '''work out time basis for the log - PX4 native'''
-	        t = gps.GPSTime * 1.0e-6
-	        self.timebase = t - self.px4_timebase
-	        self.px4_timestamps = True
-        
-        if 'GPSTime' in gps1._fieldnames:
-            self._find_time_base_px4(gps1)
-            self._rewind()
-            return
-            * 
-            */
-
+    r
   }
 
   // CURR
@@ -281,6 +254,13 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
   // NTUN
   def arspdOpt = getOpt[Double]("Arspd")
 
+  // TIME
+  def startTimeOpt = getOpt[Long]("StartTime")
+
+  // VER
+  def archOpt = getOpt[String]("Arch")
+  def fwGitOpt = getOpt[String]("FwGit")
+
   def timeMSopt = getOpt[Long]("TimeMS")
 }
 
@@ -293,6 +273,8 @@ object DFMessage {
   final val CMD = "CMD"
   final val NTUN = "NTUN"
   final val MSG = "MSG"
+  final val VER = "VER"
+  final val TIME = "TIME"
 }
 
 class DFReader {
@@ -553,10 +535,12 @@ object DFReader {
     val reader = new DFReader
 
     // FIXME - this leaks file descriptors
-    val filename = "/home/kevinh/tmp/test.bin"
+    val filename = "/home/kevinh/tmp/px4.bin"
     reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))
     for (line <- reader.messages) {
       println(line)
+      if (line.typ == "GPS")
+        println(line.gpsTimeUsec)
     }
   }
 }
