@@ -11,7 +11,7 @@ object APIConstants {
    */
   val DEFAULT_TCP_PORT = 5555
 
-  val URL_BASE = s"http://$DEFAULT_SERVER"
+  val URL_BASE = s"https://$DEFAULT_SERVER"
 
   val tlogMimeType = "application/vnd.mavlink.tlog"
   val flogMimeType = "application/vnd.mavlink.flog"
