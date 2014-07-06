@@ -16,6 +16,7 @@ import scala.util.Random
 import java.net.SocketTimeoutException
 import akka.actor.PoisonPill
 import akka.actor.Actor
+import java.nio.BufferUnderflowException
 
 // with SerialPortEventListener
 
@@ -111,64 +112,70 @@ class MavlinkStreamReceiver(
 
         try {
           while (!shuttingDown) {
-            //log.debug("Reading next packet")
+            try {
+              //log.debug("Reading next packet")
 
-            // Sleep if needed to simulate the time delay
-            tlogSpeedup.foreach { speedup =>
-              val nowStamp = (dataStream.readLong / speedup).toLong
-              if (startTimestamp == 0L) {
-                startTimestamp = nowStamp
-              }
-              val desired = (nowStamp - startTimestamp) + startTick
-              val delay = desired - System.currentTimeMillis
-              if (delay > 0) {
-                //log.debug(s"Sleeping for $delay")
-                Thread.sleep(delay)
-              }
-            }
-
-            val msg = Option(reader.getNextMessage())
-            //println(s"Read packet: $msg")
-            msg.foreach { s =>
-              numPacket += 1
-
-              // Reassign sysId if requested
-              if (overrideId != -1 && s.sysId == expectedSysId)
-                s.sysId = overrideId
-
-              //log.debug("RxSer: " + s)
-              if (reader.getLostBytes > lostBytes) {
-                // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
-                // ignore silently because it seems okay (I bet the bytes are ftdi header bytes)
-                // if (reader.getLostBytes != lostBytes + 2)
-                //log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
-                lostBytes = reader.getLostBytes
+              // Sleep if needed to simulate the time delay
+              tlogSpeedup.foreach { speedup =>
+                val nowStamp = (dataStream.readLong / speedup).toLong
+                if (startTimestamp == 0L) {
+                  startTimestamp = nowStamp
+                }
+                val desired = (nowStamp - startTimestamp) + startTick
+                val delay = desired - System.currentTimeMillis
+                if (delay > 0) {
+                  //log.debug(s"Sleeping for $delay")
+                  Thread.sleep(delay)
+                }
               }
 
-              if (reader.getBadSequence > badSeq) {
-                badSeq = reader.getBadSequence
-                //log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
+              val msg = Option(reader.getNextMessage())
+              //println(s"Read packet: $msg")
+              msg.foreach { s =>
+                numPacket += 1
+
+                // Reassign sysId if requested
+                if (overrideId != -1 && s.sysId == expectedSysId)
+                  s.sysId = overrideId
+
+                //log.debug("RxSer: " + s)
+                if (reader.getLostBytes > lostBytes) {
+                  // The android version of the library lets an extra two bytes sneak in.  FIXME.  For now
+                  // ignore silently because it seems okay (I bet the bytes are ftdi header bytes)
+                  // if (reader.getLostBytes != lostBytes + 2)
+                  //log.warn("Serial RX has dropped %d bytes in total...".format(reader.getLostBytes))
+                  lostBytes = reader.getLostBytes
+                }
+
+                if (reader.getBadSequence > badSeq) {
+                  badSeq = reader.getBadSequence
+                  //log.warn("Serial RX has %d bad sequences in total...".format(badSeq))
+                }
+
+                messageThrottle { dt: Long =>
+                  val numSec = dt / 1000.0
+
+                  val newLost = reader.getLostBytes
+                  val dropPerSec = (newLost - oldLost) / numSec
+                  oldLost = newLost
+
+                  val mPerSec = (numPacket - oldNumPacket) / numSec
+                  oldNumPacket = numPacket
+
+                  log.info("msgs per sec %s, bytes dropped per sec=%s".format(mPerSec, dropPerSec))
+                }
+
+                // Dups are normal, the 3dr radio will duplicate packets if it has nothing better to do
+                if (s.sequence != prevSeq && !MavlinkStreamReceiver.isIgnoreReceive) //  for profiling
+                  if (!shouldDrop)
+                    handleIncomingPacket(s)
+
+                prevSeq = s.sequence
               }
 
-              messageThrottle { dt: Long =>
-                val numSec = dt / 1000.0
-
-                val newLost = reader.getLostBytes
-                val dropPerSec = (newLost - oldLost) / numSec
-                oldLost = newLost
-
-                val mPerSec = (numPacket - oldNumPacket) / numSec
-                oldNumPacket = numPacket
-
-                log.info("msgs per sec %s, bytes dropped per sec=%s".format(mPerSec, dropPerSec))
-              }
-
-              // Dups are normal, the 3dr radio will duplicate packets if it has nothing better to do
-              if (s.sequence != prevSeq && !MavlinkStreamReceiver.isIgnoreReceive) //  for profiling
-                if (!shouldDrop)
-                  handleIncomingPacket(s)
-
-              prevSeq = s.sequence
+            } catch {
+              case ex: BufferUnderflowException =>
+                log.error("Ignoring underflow in message parse") // The mavlink code doesn't properly handle this
             }
           }
 
