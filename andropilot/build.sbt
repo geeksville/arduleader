@@ -2,9 +2,9 @@ import sbtandroid.AndroidKeys._
 
 name := "andropilot"
 
-version := "2.1.06"
+version := "2.1.07"
 
-versionCode := 20106
+versionCode := 20107
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
 
@@ -25,9 +25,9 @@ dxMemory in Android := "-JXmx1024m"
 keyalias in Android := "geeksville-android-key"
 
 keystorePath in Android := file("andropilot/geeksville-release-key.keystore")
-      
+
 //signRelease in Android <<= signReleaseTask
-      
+
 //signRelease in Android <<= (signRelease in Android) dependsOn (packageRelease in Android)
 
 //githubRepo in Android := "geeksville/arduleader"
