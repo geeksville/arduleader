@@ -36,13 +36,16 @@ trait ElementConverter {
   /// @return a tuple with an element and the # of bytes
   def readBinary(in: DataInputStream): (Element[_], Int)
 
-  protected def fromLittleEndian(iIn: Long, numBytes: Int): Long = {
+  protected def fromLittleEndian(iIn: Long, numBytes: Int, isUnsigned: Boolean): Long = {
     val i = iIn.toInt
-    val wordmask = 0xffffffffL
+    val wordmask = if (isUnsigned)
+      0xffffffffL
+    else
+      0xffffffffffffffffL
 
     numBytes match {
       case 8 =>
-        val r = fromLittleEndian((iIn >> 32) & wordmask, 4) | (fromLittleEndian(iIn & wordmask, 4) << 32)
+        val r = fromLittleEndian((iIn >> 32) & wordmask, 4, true) | (fromLittleEndian(iIn & wordmask, 4, isUnsigned) << 32)
         r
       case 4 =>
         (((i & 0xff) << 24) + ((i & 0xff00) << 8) + ((i & 0xff0000) >> 8) + ((i >> 24) & 0xff)) & wordmask
@@ -63,7 +66,7 @@ class StringElement(val value: String) extends Element[String] {
   override def asString = value
 }
 
-case class IntConverter(reader: DataInputStream => Long, numBytes: Int) extends ElementConverter {
+case class IntConverter(reader: DataInputStream => Long, numBytes: Int, isUnsigned: Boolean = false) extends ElementConverter {
   def toElement(s: String) = new LongElement(s.toLong)
 
   // to convert from little endian (intel is be, 
@@ -71,7 +74,7 @@ case class IntConverter(reader: DataInputStream => Long, numBytes: Int) extends 
 
   def readBinary(in: DataInputStream) = {
     val i = reader(in)
-    val n = fromLittleEndian(i, numBytes)
+    val n = fromLittleEndian(i, numBytes, isUnsigned)
 
     (new LongElement(n), numBytes)
   }
@@ -88,12 +91,14 @@ case class TrueFloatConverter() extends ElementConverter {
   }
 }
 
-case class IntFloatConverter(reader: DataInputStream => Long, numBytes: Int, scale: Double = 1.0) extends ElementConverter {
+case class IntFloatConverter(reader: DataInputStream => Long, numBytes: Int, scale: Double = 1.0, isUnsigned: Boolean = false) extends ElementConverter {
   def toElement(s: String) = new DoubleElement(s.toDouble)
   def readBinary(in: DataInputStream) = {
     val i = reader(in)
-    val n = fromLittleEndian(i, numBytes)
-    (new DoubleElement(n * scale), numBytes)
+    val n = fromLittleEndian(i, numBytes, isUnsigned)
+    val d = n * scale
+    //println(s"fromle src=$i, le=$n, as double $d")
+    (new DoubleElement(d), numBytes)
   }
 }
 
@@ -235,6 +240,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
       }
     }
 
+    //println(s"Return date $r")
     r
   }
 
@@ -326,25 +332,25 @@ Format characters in the format string for binary log messages
 
   private val typeCodes = Map[Char, ElementConverter](
     'b' -> IntConverter(_.readByte(), 1),
-    'B' -> IntConverter(_.readUnsignedByte(), 1),
+    'B' -> IntConverter(_.readUnsignedByte(), 1, isUnsigned = true),
     'h' -> IntConverter(_.readShort(), 2),
-    'H' -> IntConverter(_.readUnsignedShort(), 2),
+    'H' -> IntConverter(_.readUnsignedShort(), 2, isUnsigned = true),
     'i' -> IntConverter(_.readInt(), 4),
-    'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4),
+    'I' -> IntConverter(_.readInt().toLong & 0xffffffff, 4, isUnsigned = true),
     'f' -> TrueFloatConverter(),
     'n' -> StringConverter(4),
     'N' -> StringConverter(16),
     'Z' -> StringConverter(64),
     'c' -> IntFloatConverter(_.readShort(), 2, 0.01),
-    'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01),
+    'C' -> IntFloatConverter(_.readUnsignedShort(), 2, 0.01, isUnsigned = true),
     'e' -> IntFloatConverter(_.readInt(), 4, 0.01),
-    'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01),
+    'E' -> IntFloatConverter(_.readInt().toLong & 0xffffffff, 4, 0.01, isUnsigned = true),
 
     // FIXME - misconverts -73 as 355
     'L' -> IntFloatConverter(_.readInt(), 4, 1.0e-7),
     'M' -> ModeConverter(),
     'q' -> IntConverter(_.readLong(), 8),
-    'Q' -> IntConverter(_.readLong(), 8))
+    'Q' -> IntConverter(_.readLong(), 8, isUnsigned = true))
 
   /// ArduCopter etc...
   private var buildName: Option[String] = None
