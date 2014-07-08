@@ -1,7 +1,7 @@
 package com.geeksville.dataflash
 
-import org.scalatra.test.Client
 import org.scalatest.GivenWhenThen
+import org.scalatest.FunSuite
 
 /**
  * These tests can be disabled by adding an argument to the constructor.
