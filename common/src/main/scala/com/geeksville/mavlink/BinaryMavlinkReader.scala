@@ -14,6 +14,24 @@ import java.io.IOException
 import java.io.EOFException
 
 /**
+ * A common self describing baseclass for TLOG or Log messages
+ */
+trait AbstractMessage {
+  def fields: Seq[(String, Any)]
+
+  def messageType: String
+}
+
+/**
+ * Eventually this will be used for both tlog and log messages - currently only logs
+ */
+case class TimestampedAbstractMessage(val time: Long, val msg: AbstractMessage) {
+  def timeMsec = time / 1000
+  def timeSeconds = time / (1e6)
+  def timeAsDate = TimestampedMessage.usecsToDate(time)
+}
+
+/**
  * @param time is in usecs since 1970
  */
 case class TimestampedMessage(time: Long, msg: MAVLinkMessage) {

@@ -15,6 +15,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import com.geeksville.flight.LiveOrPlaybackModel
 import java.io.PrintWriter
+import com.geeksville.mavlink.AbstractMessage
 
 class InvalidLogException(reason: String) extends Exception(reason)
 
@@ -172,7 +173,7 @@ object DFFormat {
 }
 
 /// A dataflash message
-case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
+case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractMessage {
   def fieldNames = fmt.columns
   def asPairs = fieldNames.zip(elements)
 
@@ -183,11 +184,13 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) {
 
   /// Generate a string that would be a valid text log line (machine and human readable)
   override def toString = {
-    s"$typ, " + elements.mkString(", ")
+    s"$messageType, " + elements.mkString(", ")
   }
 
+  override def fields: Seq[(String, Any)] = fmt.columns.zip(elements.map(_.value))
+
   /// The typename 
-  def typ = fmt.name
+  override def messageType: String = fmt.name
 
   // Syntatic sugar
 
@@ -408,7 +411,7 @@ Format characters in the format string for binary log messages
 
   /// When scanning the file we look for certain message types and treat them specially
   def filterMessage(msg: DFMessage) {
-    msg.typ match {
+    msg.messageType match {
       case MSG =>
         LiveOrPlaybackModel.decodeVersionMessage(msg.message).foreach { m =>
           buildName = Some(m._1)
@@ -545,7 +548,7 @@ object DFReader {
     reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))
     for (line <- reader.messages) {
       println(line)
-      if (line.typ == "GPS")
+      if (line.messageType == "GPS")
         println(line.gpsTimeUsec)
     }
   }
