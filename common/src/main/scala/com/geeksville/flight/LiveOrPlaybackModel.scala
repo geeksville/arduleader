@@ -168,6 +168,15 @@ trait HasSummaryStats {
 
   var hardwareString: Option[String] = None
 
+  /// Even if the heartbeat says something else, the strings in the logs convey the users _perception_ of the autopilot model
+  def hardwareToAutopilotType: Option[Int] = hardwareString.flatMap { s =>
+    if (s.startsWith("APM"))
+      Some(MAV_AUTOPILOT.MAV_AUTOPILOT_ARDUPILOTMEGA)
+    else if (s.startsWith("PX4"))
+      Some(MAV_AUTOPILOT.MAV_AUTOPILOT_PIXHAWK)
+    else None
+  }
+
   // In usecs
   var startOfFlightTime: Option[Long] = None
   var endOfFlightTime: Option[Long] = None
@@ -206,6 +215,7 @@ trait HasSummaryStats {
     }
 
     LiveOrPlaybackModel.decodeHardwareMessage(s).foreach { m =>
+      println(s"Setting hw to $m")
       hardwareString = Some(m)
     }
   }
@@ -293,7 +303,7 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
     case msg: msg_statustext =>
       // Sniff messages looking for interesting vehicle strings
       val s = msg.getText()
-      //println(s"Considering status: $s")
+      println(s"Considering status: $s")
       filterMessage(s)
 
     // Messages might arrive encapsulated in a timestamped message, if so then use that for our sense of time
