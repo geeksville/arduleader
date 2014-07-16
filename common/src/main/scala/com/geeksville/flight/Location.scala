@@ -16,6 +16,12 @@ case class Location(lat: Double = 0.0, lon: Double = 0.0, alt: Option[Double] = 
   def velocity = for { x <- vx; y <- vy } yield { math.sqrt(x * x + y * y) }
 
   def distance(l: Location) = MathTools.distance(lat, lon, l.lat, l.lon)
+
+  /// Does lat/lon look reasonable?
+  def isValid = {
+    val s = 0.1 // Don't just ignore zeros - ignore any location that is around zero
+    ((math.abs(lat) > s || math.abs(lon) > s) && lat <= 90.0 && lat >= -90.0 && lon <= 180.0 && lon >= -180.0)
+  }
 }
 
 object Location extends Logging {
