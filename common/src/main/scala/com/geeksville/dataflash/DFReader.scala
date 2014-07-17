@@ -16,6 +16,8 @@ import java.nio.ByteOrder
 import com.geeksville.flight.LiveOrPlaybackModel
 import java.io.PrintWriter
 import com.geeksville.mavlink.AbstractMessage
+import java.io.ByteArrayInputStream
+import com.geeksville.util.FileTools
 
 class InvalidLogException(reason: String) extends Exception(reason)
 
@@ -292,7 +294,7 @@ class DFReader {
   private val textToFormat = HashMap[String, DFFormat]()
   private val typToFormat = HashMap[Int, DFFormat]()
 
-  var messages: Iterator[DFMessage] = Iterator.empty
+  var messages: Iterable[DFMessage] = Iterable.empty
 
   private case class ModeConverter() extends ElementConverter {
     def toElement(s: String) = new StringElement(s)
@@ -421,23 +423,26 @@ Format characters in the format string for binary log messages
     }
   }
 
-  ///should just map from source to records - so callers can read lazily
-  def parseText(in: Source) {
-    messages = {
-      var hasSeenFMT = false
+  ///we just map from source to records - so callers can read lazily
+  def parseText(inSrc: Source) {
+    messages = new Iterable[DFMessage] {
+      override def iterator = {
+        var hasSeenFMT = false
+        val in = inSrc.reset() // Rewind to the beginning for each new read
 
-      in.getLines.zipWithIndex.flatMap {
-        case (l, i) =>
-          if (i > 100 && !hasSeenFMT)
-            throw new InvalidLogException("This doesn't seem to be a dataflash log")
+        in.getLines.zipWithIndex.flatMap {
+          case (l, i) =>
+            if (i > 100 && !hasSeenFMT)
+              throw new InvalidLogException("This doesn't seem to be a dataflash log")
 
-          val msgOpt = tryParseLine(l)
-          msgOpt.foreach { msg =>
-            hasSeenFMT |= msg.fmt.isFMT
+            val msgOpt = tryParseLine(l)
+            msgOpt.foreach { msg =>
+              hasSeenFMT |= msg.fmt.isFMT
 
-            filterMessage(msg)
-          }
-          msgOpt
+              filterMessage(msg)
+            }
+            msgOpt
+        }
       }
     }
   }
@@ -459,81 +464,84 @@ Format characters in the format string for binary log messages
     warn("Completed converting bin to log")
   }
 
-  def parseBinary(instream: InputStream) {
-    messages = new Iterator[DFMessage] {
+  def parseBinary(bytes: Array[Byte]) {
+    messages = new Iterable[DFMessage] {
 
-      // We use EOFException to terminate
-      private val in = new DataInputStream(instream)
-      private var closed = false
+      // We open a new stream for each iterator
+      override def iterator = new Iterator[DFMessage] {
+        // We use EOFException to terminate
+        private val in = new DataInputStream(new ByteArrayInputStream(bytes))
+        private var closed = false
 
-      private var numRead = 0
-      private var hasSeenFMT = false
+        private var numRead = 0
+        private var hasSeenFMT = false
 
-      // Read next valid DFForamt
-      private def getHeader(): Option[DFFormat] = {
-        numRead += 1
+        // Read next valid DFForamt
+        private def getHeader(): Option[DFFormat] = {
+          numRead += 1
 
-        if (in.readByte() != 0xa3.toByte) {
-          warn("Bad header1 byte")
-          None
-        } else if (in.readByte() != 0x95.toByte) {
-          warn("Bad header2 byte")
-          None
-        } else {
-          val code = in.readByte().toInt & 0xff
-          //println(s"Looking for format $code")
-          typToFormat.get(code)
+          if (in.readByte() != 0xa3.toByte) {
+            warn("Bad header1 byte")
+            None
+          } else if (in.readByte() != 0x95.toByte) {
+            warn("Bad header2 byte")
+            None
+          } else {
+            val code = in.readByte().toInt & 0xff
+            //println(s"Looking for format $code")
+            typToFormat.get(code)
+          }
         }
-      }
 
-      private def getMessage() = {
-        try {
-          val r = getHeader().flatMap(_.createBinary(in))
+        private def getMessage() = {
+          try {
+            val r = getHeader().flatMap(_.createBinary(in))
 
-          r.foreach { msg =>
-            hasSeenFMT |= msg.fmt.isFMT
+            r.foreach { msg =>
+              hasSeenFMT |= msg.fmt.isFMT
 
-            // If it is a new format type, then add it
-            if (msg.fmt.isFMT) {
-              val elements = msg.elements
-              val colnames = elements(4).asString.split(',')
+              // If it is a new format type, then add it
+              if (msg.fmt.isFMT) {
+                val elements = msg.elements
+                val colnames = elements(4).asString.split(',')
 
-              val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames, typeCodes)
-              //println(s"Adding new format: $newfmt")
-              addFormat(newfmt)
+                val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames, typeCodes)
+                println(s"Adding new format: $newfmt")
+                addFormat(newfmt)
+              }
+
+              filterMessage(msg)
             }
 
-            filterMessage(msg)
+            if (numRead > 20 && !hasSeenFMT)
+              throw new InvalidLogException("This doesn't seem to be a dataflash log")
+
+            r
+          } catch {
+            case ex: EOFException =>
+              in.close()
+              closed = true
+              None
+            case ex: Exception =>
+              println(s"Malformed binary log? $ex")
+              None
           }
-
-          if (numRead > 20 && !hasSeenFMT)
-            throw new InvalidLogException("This doesn't seem to be a dataflash log")
-
-          r
-        } catch {
-          case ex: EOFException =>
-            in.close()
-            closed = true
-            None
-          case ex: Exception =>
-            println(s"Malformed binary log? $ex")
-            None
         }
-      }
 
-      private var msgopt: Option[DFMessage] = None
+        private var msgopt: Option[DFMessage] = None
 
-      def hasNext = {
-        while (!msgopt.isDefined && !closed)
-          msgopt = getMessage()
+        def hasNext = {
+          while (!msgopt.isDefined && !closed)
+            msgopt = getMessage()
 
-        msgopt.isDefined
-      }
+          msgopt.isDefined
+        }
 
-      def next = {
-        val r = msgopt.orNull
-        msgopt = None
-        r
+        def next = {
+          val r = msgopt.orNull
+          msgopt = None
+          r
+        }
       }
     }
   }
@@ -545,7 +553,7 @@ object DFReader {
 
     // FIXME - this leaks file descriptors
     val filename = "/home/kevinh/tmp/px4.bin"
-    reader.parseBinary(new BufferedInputStream(new FileInputStream(filename)))
+    reader.parseBinary(FileTools.toByteArray(new BufferedInputStream(new FileInputStream(filename))))
     for (line <- reader.messages) {
       println(line)
       if (line.messageType == "GPS")
