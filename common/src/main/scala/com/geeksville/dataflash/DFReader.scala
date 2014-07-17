@@ -506,7 +506,7 @@ Format characters in the format string for binary log messages
                 val colnames = elements(4).asString.split(',')
 
                 val newfmt = DFFormat(elements(0).asInt, elements(2).asString, elements(0).asInt, elements(3).asString, colnames, typeCodes)
-                println(s"Adding new format: $newfmt")
+                // println(s"Adding new format: $newfmt")
                 addFormat(newfmt)
               }
 

@@ -30,7 +30,6 @@ object FileTools {
 
   /// Extract all bytes from an inputstream
   def toByteArray(src: InputStream) = {
-    /// FIXME - definitely not super efficient
     // The following idomatic scala is replaced with the optimized java loop below...
     //Stream.continually(src.read).takeWhile(-1 !=).map(_.toByte).toArray
 
