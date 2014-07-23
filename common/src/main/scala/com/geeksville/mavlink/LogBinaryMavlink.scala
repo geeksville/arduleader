@@ -17,6 +17,9 @@ import com.geeksville.util.Throttled
 import org.mavlink.messages.MAV_TYPE
 import scala.collection.mutable.HashSet
 import scala.concurrent.blocking
+import java.io.IOException
+import com.geeksville.util.AnalyticsService
+import akka.actor.PoisonPill
 
 /// Send to LogBinaryMavlink if you would like him to flush his buffers immediately
 case object FlushNowMessage
@@ -99,42 +102,48 @@ class LogBinaryMavlink(protected var file: File, val deleteIfBoring: Boolean, va
   }
 
   private def handleMessage(msg: MAVLinkMessage, timeUsec: Long = System.currentTimeMillis * 1000) {
+    try {
+      // Special case handling of certain messages
+      msg match {
+        case vfr: msg_vfr_hud =>
+          // Crude check for motion
+          if (vfr.groundspeed > 3)
+            numMovingPoints += 1
 
-    // Special case handling of certain messages
-    msg match {
-      case vfr: msg_vfr_hud =>
-        // Crude check for motion
-        if (vfr.groundspeed > 3)
-          numMovingPoints += 1
+        case msg: msg_heartbeat =>
+          val typ = msg.`type`
+          if (typ != MAV_TYPE.MAV_TYPE_GCS)
+            vehiclesSeen += msg.sysId
 
-      case msg: msg_heartbeat =>
-        val typ = msg.`type`
-        if (typ != MAV_TYPE.MAV_TYPE_GCS)
-          vehiclesSeen += msg.sysId
+        case _ =>
+      }
 
-      case _ =>
-    }
+      // def str = "Rcv" + msg.sysId + ": " + msg
+      //log.debug("Binary write: " + msg)
+      numPacket += 1
 
-    // def str = "Rcv" + msg.sysId + ": " + msg
-    //log.debug("Binary write: " + msg)
-    numPacket += 1
+      messageThrottle { dt: Long =>
+        val numSec = dt / 1000.0
 
-    messageThrottle { dt: Long =>
-      val numSec = dt / 1000.0
+        val mPerSec = (numPacket - oldNumPacket) / numSec
+        oldNumPacket = numPacket
 
-      val mPerSec = (numPacket - oldNumPacket) / numSec
-      oldNumPacket = numPacket
+        log.info("msg write per sec %s".format(mPerSec))
+      }
 
-      log.info("msg write per sec %s".format(mPerSec))
-    }
+      blocking {
+        buf.clear()
+        buf.putLong(timeUsec)
+        out.write(buf.array)
 
-    blocking {
-      buf.clear()
-      buf.putLong(timeUsec)
-      out.write(buf.array)
-
-      // Payload
-      out.write(msg.encode)
+        // Payload
+        out.write(msg.encode)
+      }
+    } catch {
+      case ex: IOException =>
+        // Out of space on device?
+        AnalyticsService.reportException("Mavlink logging aborted due to IO error", ex)
+        self ! PoisonPill
     }
   }
 
