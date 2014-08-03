@@ -146,8 +146,8 @@ class GCSHooksImpl(host: String = APIConstants.DEFAULT_SERVER, port: Int = APICo
     send(Envelope(stopMission = Some(StopMissionMsg(keep = keep))))
   }
 
-  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean) {
-    send(Envelope(setSender = Some(SenderIdMsg(fromInterface, mavlinkSysId, vehicleId, allowControl))))
+  def setVehicleId(vehicleId: String, fromInterface: Int, mavlinkSysId: Int, allowControl: Boolean, wantPipe: Option[Boolean] = None) {
+    send(Envelope(setSender = Some(SenderIdMsg(fromInterface, mavlinkSysId, vehicleId, allowControl, wantPipe = wantPipe))))
   }
 
   /**
