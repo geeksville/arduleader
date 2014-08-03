@@ -6,6 +6,11 @@ import org.mavlink.messages.MAVLinkMessage
 
 object MavlinkUtils {
 
+  /// A more verbose tostring for mavlink msgs
+  def toString(m: MAVLinkMessage) = {
+    s"$m sysId=${m.sysId} compId=${m.componentId}"
+  }
+
   def bytesToPacket(msg: Array[Byte]): Option[MAVLinkMessage] = {
 
     //log.info("Processing packet from " + remote.get)
