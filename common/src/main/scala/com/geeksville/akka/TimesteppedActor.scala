@@ -17,6 +17,9 @@ trait TimesteppedActor extends Actor {
 
   protected var numRemaining = numPoints
 
+  /// What step are we currently on?
+  def currentStep = numPoints - numRemaining
+
   private def scheduleNext() = context.system.scheduler.scheduleOnce(interval seconds, self, SimNext)
 
   // Start our sim

@@ -17,7 +17,7 @@ import com.geeksville.mavlink.CanSendMavlink
  */
 trait VehicleSimulator extends CanSendMavlink { // InstrumentedActor
 
-  val componentId = 190 // FIXME, just copied what mission control was doing
+  def componentId = 190 // FIXME, just copied what mission control was doing
 
   var groundAltitude = 0.0
 
