@@ -51,7 +51,7 @@ abstract class VehicleClient(val targetOverride: Option[Int] = None) extends Hea
 
     case SendMessage(msg) =>
       sendMavlink(msg)
-      
+
     case RetryExpired(ctx) =>
       ctx.doRetry()
   }
@@ -157,6 +157,14 @@ abstract class VehicleClient(val targetOverride: Option[Int] = None) extends Hea
     setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION, fIn, true)
   }
 
+  private val interestingStreams = Map(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultStreamFreq,
+    MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultStreamFreq,
+    MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
+    MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> positionStreamFreq,
+    MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> ahrsStreamFreq, // faster AHRS display use a bigger #
+    MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultStreamFreq,
+    MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultStreamFreq)
+
   /**
    * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
    */
@@ -164,18 +172,15 @@ abstract class VehicleClient(val targetOverride: Option[Int] = None) extends Hea
 
     log.info("Setting stream enable: " + enabled)
 
-    val interestingStreams = Seq(MAV_DATA_STREAM.MAV_DATA_STREAM_RAW_SENSORS -> defaultStreamFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTENDED_STATUS -> defaultStreamFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_RC_CHANNELS -> 2,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_POSITION -> positionStreamFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA1 -> ahrsStreamFreq, // faster AHRS display use a bigger #
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA2 -> defaultStreamFreq,
-      MAV_DATA_STREAM.MAV_DATA_STREAM_EXTRA3 -> defaultStreamFreq)
+    val maxStreamId = 12
 
-    interestingStreams.foreach {
-      case (id, freqHz) =>
-        setFreq(id, freqHz, enabled)
-    }
+    if (!enabled) // Turn off all streams
+      setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_ALL, 1, false)
+    else
+      interestingStreams.foreach {
+        case (id, freqHz) =>
+          setFreq(id, freqHz, enabled)
+      }
   }
 }
 
