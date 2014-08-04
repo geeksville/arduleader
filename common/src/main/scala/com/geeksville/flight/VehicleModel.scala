@@ -122,8 +122,8 @@ abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePer
   var hasInterface = false
 
   /// Do we want the vehicle to stream data up to us on its own?
-  var wantVehicleStreams: Option[Boolean] = Some(true)
-  
+  var maxStreamRate: Option[Int] = Some(100)
+
   /**
    * Horizontal position precision in meters
    */
@@ -498,7 +498,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePer
   /// Start a new download of params/wpts/etc... essentially everything necessary to handle reaquisition of heartbeat
   private def refetchVehicleState() {
     if (!listenOnly)
-      wantVehicleStreams.foreach(setStreamEnable _)
+      maxStreamRate.foreach(setStreamEnable _)
     // MavlinkStream.isIgnoreReceive = true // FIXME - for profiling
 
     fsm.OnHasHeartbeat()

@@ -144,7 +144,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
   }
 
   protected def onParametersDownloaded() {
-    setStreamEnable(true) // Turn streaming back on
+    setStreamEnable(100) // Turn streaming back on
 
     log.info("Downloaded " + unsortedParameters.size + " parameters!")
     parameters = unsortedParameters.sortWith { case (a, b) => a.getId.getOrElse("ZZZ") < b.getId.getOrElse("ZZZ") }
@@ -251,7 +251,7 @@ trait ParametersModel extends VehicleClient with LiveOrPlaybackModel with Parame
       retryingParameters = false
 
       // Turn off streaming because those crummy XBee adapters seem to drop critical parameter responses
-      setStreamEnable(false)
+      setStreamEnable(0)
 
       restartParameterDownload()
     }

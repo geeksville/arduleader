@@ -168,18 +168,19 @@ abstract class VehicleClient(val targetOverride: Option[Int] = None) extends Hea
   /**
    * Turn streaming on or off (and if USB is crummy on this machine, turn it on real slow)
    */
-  protected[flight] def setStreamEnable(enabled: Boolean) {
+  protected[flight] def setStreamEnable(maxRate: Int) {
 
-    log.info("Setting stream enable: " + enabled)
+    log.info("Setting stream enable: " + maxRate)
 
     val maxStreamId = 12
+    val enabled = maxRate > 0
 
     if (!enabled) // Turn off all streams
       setFreq(MAV_DATA_STREAM.MAV_DATA_STREAM_ALL, 1, false)
     else
       interestingStreams.foreach {
         case (id, freqHz) =>
-          setFreq(id, freqHz, enabled)
+          setFreq(id, math.max(freqHz, maxRate), enabled)
       }
   }
 }
