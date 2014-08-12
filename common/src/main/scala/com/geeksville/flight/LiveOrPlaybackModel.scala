@@ -53,7 +53,7 @@ object LiveOrPlaybackModel {
   /**
    * The color code as an HTML string
    */
-  def htmlColorName(modeName: String) = modeToColorMap.get(modeName).map {
+  def htmlColorName(modeName: String) = modeToColorMap.get(modeName.toUpperCase).map {
     case (r, g, b) =>
       "#%02x%02x%02x".format(r, g, b)
   }
