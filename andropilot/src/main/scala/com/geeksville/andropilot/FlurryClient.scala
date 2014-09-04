@@ -64,7 +64,12 @@ trait FlurryContext extends Context with FlurryClient {
   protected def endFlurry() {
     count -= 1
     if (useFlurry && count == 0)
-      FlurryAgent.onEndSession(this)
+      try {
+        FlurryAgent.onEndSession(this)
+      } catch {
+        case ex: NullPointerException =>
+        // Ignore rare NPE in flurry shutdown
+      }
   }
 }
 
