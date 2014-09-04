@@ -15,6 +15,7 @@ import com.geeksville.andropilot.AndropilotPrefs
 import com.geeksville.flight.MsgModeChanged
 import com.geeksville.mavlink.MsgHeartbeatLost
 import akka.actor.PoisonPill
+import com.geeksville.flight.DoSetMode
 
 /**
  * Try to drive vehicle to stay near us
@@ -97,6 +98,8 @@ class FollowMe(val acontext: Context, val v: VehicleModel) extends InstrumentedA
     }
   }
 
+  v.self ! DoSetMode("GUIDED")
+
   override def postStop() {
     locListener.close()
     compassListener.close()
@@ -111,7 +114,7 @@ class FollowMe(val acontext: Context, val v: VehicleModel) extends InstrumentedA
 
     case MsgModeChanged(m) =>
       // Ignore stale changes when we are starting up
-      if ((System.currentTimeMillis - startTime) >= 2000) {
+      if ((System.currentTimeMillis - startTime) >= 3000) {
         if (m != "GUIDED") {
           error("Someone else changed modes - exit follow me")
           self ! PoisonPill
