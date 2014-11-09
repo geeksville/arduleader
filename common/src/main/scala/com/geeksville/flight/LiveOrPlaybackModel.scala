@@ -303,7 +303,7 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
     case msg: msg_statustext =>
       // Sniff messages looking for interesting vehicle strings
       val s = msg.getText()
-      println(s"Considering status: $s")
+      //println(s"Considering status: $s")
       filterMessage(s)
 
     // Messages might arrive encapsulated in a timestamped message, if so then use that for our sense of time
