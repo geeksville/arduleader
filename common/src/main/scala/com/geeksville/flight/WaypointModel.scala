@@ -164,6 +164,8 @@ trait WaypointModel extends VehicleClient with WaypointsForMap {
           waypoints = IndexedSeq()
           requestNextWaypoint()
         }
+      } else {
+        log.warning(s"Ignoring mission_count destined to another system ${msg.target_system}")
       }
 
     case msg: msg_mission_item =>

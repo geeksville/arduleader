@@ -274,6 +274,12 @@ mavlink_version uint8_t_mavlink_version MAVLink version, not writable by user, g
     msg
   }
 
+  def missionCurrent(seq: Int) = {
+    val msg = new msg_mission_current(systemId, componentId)
+    msg.seq = seq
+    msg
+  }
+
   def makeVFRHud(airspeed: Float, groundspeed: Float, throttlePct: Int, heading: Int) = {
     val msg = new msg_vfr_hud(systemId, componentId)
 
