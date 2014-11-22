@@ -72,8 +72,8 @@ class StringElement(val value: String) extends Element[String] {
 case class IntConverter(reader: DataInputStream => Long, numBytes: Int, isUnsigned: Boolean = false) extends ElementConverter {
   def toElement(s: String) = new LongElement(s.toLong)
 
-  // to convert from little endian (intel is be, 
-  // return 
+  // to convert from little endian (intel is be,
+  // return
 
   def readBinary(in: DataInputStream) = {
     val i = reader(in)
@@ -191,7 +191,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractM
 
   override def fields: Seq[(String, Any)] = fmt.columns.zip(elements.map(_.value))
 
-  /// The typename 
+  /// The typename
   override def messageType: String = fmt.name
 
   // Syntatic sugar
@@ -220,7 +220,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractM
     // An APM format time message
     var r = weekOpt.flatMap { week =>
       timeMSopt.flatMap { time =>
-        if (week == 0)
+        if (week == 0 || week > 3000) // Reject lines where the time is clearly invalid gtr than year 2024ish
           None // No lock yet
         else {
           // Returns seconds since 1970
@@ -231,7 +231,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractM
 
           val t = gpsTimeToTime(week, time * 0.001)
 
-          //println(s"GPS date is " + new Date((t * 1e3).toLong))
+          // println(s"GPS week=$week, time=$time, date=" + new Date((t * 1e3).toLong))
 
           Some((t * 1e6).toLong)
         }
@@ -374,7 +374,7 @@ Format characters in the format string for binary log messages
     // println(s"Parsing $s")
     try { // This line could be malformated in many different ways
       val splits = s.split(',').map(_.trim)
-      /* 
+      /*
         * FMT, 128, 89, FMT, BBnNZ, Type,Length,Name,Format
         * FMT, 129, 23, PARM, Nf, Name,Value
 */
