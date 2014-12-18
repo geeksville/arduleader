@@ -1,6 +1,7 @@
 package com.geeksville.mavlink
 
 import java.io.InputStream
+import com.geeksville.flight.VehicleSimulator
 import org.mavlink.MAVLinkReader
 import org.mavlink.IMAVLinkMessage
 import java.io.DataInputStream
@@ -20,6 +21,31 @@ trait AbstractMessage {
   def fields: Seq[(String, Any)]
 
   def messageType: String
+}
+
+case class SimpleMessage(val messageType: String, val fields: (String, Any)*) extends AbstractMessage
+
+/**
+ * An abstract message backed by a mavlink tlog style msg.
+ *
+ * FIXME: Currently we just do this via a ptr to the src msg, really we should refactor the MAVLinkMessage
+ * class so that it is more self describing and can natively implement this interface and support all message
+ * types.
+ *
+ * @param msg
+ */
+object MavlinkBasedMessage {
+  def tryCreate(mIn: MAVLinkMessage): Option[AbstractMessage] = {
+    val r = mIn match {
+      case m: msg_global_position_int =>
+        val l = VehicleSimulator.decodePosition(m)
+        Some(SimpleMessage("MAVLINK_MSG_ID_GLOBAL_POSITION_INT", "lat" -> l.lat, "lon" -> l.lon, "alt" -> l.alt))
+      case _ =>
+        None
+    }
+
+    r
+  }
 }
 
 /**

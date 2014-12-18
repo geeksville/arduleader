@@ -1,7 +1,7 @@
 package com.geeksville.util
 
 /// A helper class that calls a callback _at most_ every
-/// minIntervalMsec. 
+/// minIntervalMsec.
 ///
 /// To use: throttled = new Throttled(1000); throttled { some code }
 /// @param minIntervalMsec use -1 to disable
