@@ -1,6 +1,7 @@
 package com.geeksville.mavlink
 
 import java.io.InputStream
+import com.geeksville.dataflash.DFMessage
 import com.geeksville.flight.VehicleSimulator
 import org.mavlink.MAVLinkReader
 import org.mavlink.IMAVLinkMessage
@@ -23,6 +24,61 @@ trait AbstractMessage {
   def messageType: String
 }
 
+/// Dataflash ERR records
+case class ErrorCode(val subsysCode: Int, val errorCode: Int) {
+
+  def subsystem = ErrorCode.subsystems.getOrElse(subsysCode, s"Subsys$subsysCode")
+  def code = ErrorCode.codes.getOrElse(errorCode, s"Error$errorCode")
+
+  /// A critical fault?
+  def isFailsafe = subsystem.contains("FAILSAFE")
+  def isPending = code != "RESOLVED"
+}
+
+object ErrorCode {
+  /// Construct from DFMessages
+  def apply(msg: DFMessage): ErrorCode = ErrorCode(msg.subsys, msg.eCode)
+
+  val subsystems = Map(
+    1 -> "MAIN", 2 -> "RADIO", 3 -> "COMPASS", 4 -> "OPTFLOW", 5 -> "FAILSAFE_RADIO", 6 -> "FAILSAFE_BATT",
+    7 -> "FAILSAFE_GPS", 8 -> "FAILSAFE_GCS", 9 -> "FAILSAFE_FENCE",
+    10 -> "FLIGHT_MODE", 11 -> "GPS", 12 -> "CRASH_CHECK", 13 -> "FLIP", 14 -> "AUTOTUNE", 15 -> "PARACHUTE",
+    16 -> "EKFINAV_CHECK", 17 -> "FAILSAFE_EKFINAV", 18 -> "BARO", 19 -> "CPU"
+  )
+
+  val codes = Map(0 -> "RESOLVED", 1 -> "OCCURRED", 2 -> "GLITCH")
+
+  /* FIXME - use more correct error codes
+  // general error codes
+  #define ERROR_CODE_ERROR_RESOLVED           0
+  #define ERROR_CODE_FAILED_TO_INITIALISE     1
+  // subsystem specific error codes -- radio
+  #define ERROR_CODE_RADIO_LATE_FRAME         2
+  // subsystem specific error codes -- failsafe_thr, batt, gps
+  #define ERROR_CODE_FAILSAFE_RESOLVED        0
+  #define ERROR_CODE_FAILSAFE_OCCURRED        1
+  // subsystem specific error codes -- compass
+  #define ERROR_CODE_COMPASS_FAILED_TO_READ   2
+  // subsystem specific error codes -- gps
+  #define ERROR_CODE_GPS_GLITCH               2
+  // subsystem specific error codes -- main
+  #define ERROR_CODE_MAIN_INS_DELAY           1
+  // subsystem specific error codes -- crash checker
+  #define ERROR_CODE_CRASH_CHECK_CRASH        1
+  #define ERROR_CODE_CRASH_CHECK_LOSS_OF_CONTROL 2
+  // subsystem specific error codes -- flip
+  #define ERROR_CODE_FLIP_ABANDONED           2
+  // subsystem specific error codes -- autotune
+  #define ERROR_CODE_AUTOTUNE_BAD_GAINS       2
+  // parachute failed to deploy because of low altitude
+  #define ERROR_CODE_PARACHUTE_TOO_LOW        2
+  // EKF check definitions
+  #define ERROR_CODE_EKFINAV_CHECK_BAD_VARIANCE       2
+  #define ERROR_CODE_EKFINAV_CHECK_VARIANCE_CLEARED   0
+  // Baro specific error codes
+  #define ERROR_CODE_BARO_GLITCH              2
+  */
+}
 case class SimpleMessage(val messageType: String, val fields: (String, Any)*) extends AbstractMessage
 
 /**

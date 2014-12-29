@@ -273,6 +273,10 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractM
   def fwGitOpt = getOpt[String]("FwGit")
 
   def timeMSopt = getOpt[Long]("TimeMS")
+
+  // ERR
+  def eCode = get[Byte]("ECode")
+  def subsys = get[Byte]("Subsys")
 }
 
 object DFMessage {
@@ -286,6 +290,7 @@ object DFMessage {
   final val MSG = "MSG"
   final val VER = "VER"
   final val TIME = "TIME"
+  final val ERR = "ERR"
 }
 
 class DFReader {
