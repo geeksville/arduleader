@@ -19,7 +19,7 @@ import java.io.EOFException
  * A common self describing baseclass for TLOG or Log messages
  */
 trait AbstractMessage {
-  def fields: Seq[(String, Any)]
+  def fields: Map[String, Any]
 
   def messageType: String
 }
@@ -79,7 +79,7 @@ object ErrorCode {
   #define ERROR_CODE_BARO_GLITCH              2
   */
 }
-case class SimpleMessage(val messageType: String, val fields: (String, Any)*) extends AbstractMessage
+case class SimpleMessage(val messageType: String, val fields: Map[String, Any]) extends AbstractMessage
 
 /**
  * An abstract message backed by a mavlink tlog style msg.
@@ -95,7 +95,7 @@ object MavlinkBasedMessage {
     val r = mIn match {
       case m: msg_global_position_int =>
         val l = VehicleSimulator.decodePosition(m)
-        Some(SimpleMessage("MAVLINK_MSG_ID_GLOBAL_POSITION_INT", "lat" -> l.lat, "lon" -> l.lon, "alt" -> l.alt))
+        Some(SimpleMessage("MAVLINK_MSG_ID_GLOBAL_POSITION_INT", Map("lat" -> l.lat, "lon" -> l.lon, "alt" -> l.alt)))
       case _ =>
         None
     }

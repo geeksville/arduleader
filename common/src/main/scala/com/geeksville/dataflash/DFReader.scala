@@ -189,7 +189,7 @@ case class DFMessage(fmt: DFFormat, elements: Seq[Element[_]]) extends AbstractM
     s"$messageType, " + elements.mkString(", ")
   }
 
-  override def fields: Seq[(String, Any)] = fmt.columns.zip(elements.map(_.value))
+  override def fields: Map[String, Any] = Map(fmt.columns.zip(elements.map(_.value)): _*)
 
   /// The typename
   override def messageType: String = fmt.name
