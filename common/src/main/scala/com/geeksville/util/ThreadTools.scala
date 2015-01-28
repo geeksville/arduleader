@@ -36,6 +36,23 @@ object ThreadTools {
     }
   }
 
+  /// Try to run some closure, but if an expected exception type occurs then retry up to a small number of times
+  def retryOnException[ExceptionType <: Exception, ResType](numRetries: => Int)(block: => ResType): ResType =
+  {
+    var lastEx: ExceptionType = null
+
+    for(i <- 0 until numRetries)
+      try {
+        return block
+      } catch {
+        case ex: ExceptionType =>
+          lastEx = ex
+          AnalyticsService.reportException("Retrying ", ex)
+      }
+
+    throw lastEx
+  }
+
   /// Ignore exceptions (with a warning).  Usage: catchIgnore { some code }
   def catchIgnore[ResType](block: => ResType) =
     {
