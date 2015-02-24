@@ -9,6 +9,32 @@ object MathTools extends Logging {
   def min(s: Iterable[Double]) = s.reduce { (p, a) => math.min(p, a) }
 
   /**
+   * like math.max, but ignores 'insane' values for MKS units (arbitrarily anything >100000)
+   * This is useful to prevent being fooled by obviously crap flight data.
+   * @param curVal
+   * @param newVal
+   */
+  def saneMax(curVal: Double, newVal: Double) = {
+    if(newVal < 100000.0)
+      math.max(curVal, newVal)
+    else
+      curVal
+  }
+
+  /**
+   * like math.max, but ignores 'insane' values for MKS units (arbitrarily anything <-100000)
+   * This is useful to prevent being fooled by obviously crap flight data.
+   * @param curVal
+   * @param newVal
+   */
+  def saneMin(curVal: Double, newVal: Double) = {
+    if(newVal > -100000.0)
+      math.min(curVal, newVal)
+    else
+      curVal
+  }
+
+  /**
    * degrees to radians
    */
   def toRad(d: Double) = d * (math.Pi / 180)
@@ -46,8 +72,8 @@ object MathTools extends Logging {
     var x = math.cos(lat1r) * math.sin(lat2r) - math.sin(lat1r) * math.cos(lat2r) * math.cos(dLon)
     val r = math.atan2(y, x)
 
-    /* Since atan2 returns values in the range -π ... +π (that is, -180° ... +180°), to normalise the 
-     * result to a compass bearing (in the range 0° ... 360°, with −ve values transformed into the 
+    /* Since atan2 returns values in the range -π ... +π (that is, -180° ... +180°), to normalise the
+     * result to a compass bearing (in the range 0° ... 360°, with −ve values transformed into the
      * range 180° ... 360°), convert to degrees and then use (θ+360) % 360, where % is modulo.
      */
     var brng = toDeg(r).toInt

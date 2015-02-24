@@ -7,7 +7,7 @@ import com.geeksville.akka.MockAkka
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.collection.mutable.ArrayBuffer
-import com.geeksville.util.Throttled
+import com.geeksville.util.{MathTools, Throttled, PartialFunctionTools}
 import com.geeksville.akka.EventStream
 import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAV_DATA_STREAM
@@ -28,7 +28,6 @@ import org.mavlink.messages.MAV_SYS_STATUS_SENSOR
 import scala.util.Random
 import org.mavlink.messages.MAV_AUTOPILOT
 import com.geeksville.mavlink.TimestampedMessage
-import com.geeksville.util.PartialFunctionTools
 
 //
 // Messages we publish on our event bus when something happens
@@ -215,7 +214,7 @@ abstract class VehicleModel(targetOverride: Option[Int] = None, val maxUpdatePer
     // Don't publish bogus locations
     if (l.lat != 0 && l.lon != 0) {
       location = Some(l)
-      l.alt.foreach { a => maxAltitude = math.max(maxAltitude, a) }
+      l.alt.foreach { a => maxAltitude = MathTools.saneMax(maxAltitude, a) }
 
       locationThrottle { () =>
         //log.debug("publishing loc")

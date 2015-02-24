@@ -1,5 +1,6 @@
 package com.geeksville.flight
 
+import com.geeksville.util.MathTools
 import org.mavlink.messages.MAV_TYPE
 import org.mavlink.messages.MAV_AUTOPILOT
 import org.mavlink.messages.MAVLinkMessage
@@ -36,19 +37,19 @@ object LiveOrPlaybackModel {
    * A mapping to RGB tuples (chosen to match the colors used by Tridge's python tool)
    */
   val modeToColorMap = Map(
-    "MANUAL" -> (255, 0, 0),
-    "AUTO" -> (0, 255, 0),
-    "LOITER" -> (0, 0, 255),
-    "FBWA" -> (255, 100, 0),
-    "RTL" -> (255, 0, 100),
-    "STABILIZE" -> (100, 255, 0),
-    "LAND" -> (0, 255, 100),
-    "STEERING" -> (100, 0, 255),
-    "HOLD" -> (0, 100, 255),
-    "ALT_HOLD" -> (255, 100, 100),
-    "CIRCLE" -> (100, 255, 100),
-    "GUIDED" -> (100, 100, 255),
-    "ACRO" -> (255, 255, 0))
+    "MANUAL" ->(255, 0, 0),
+    "AUTO" ->(0, 255, 0),
+    "LOITER" ->(0, 0, 255),
+    "FBWA" ->(255, 100, 0),
+    "RTL" ->(255, 0, 100),
+    "STABILIZE" ->(100, 255, 0),
+    "LAND" ->(0, 255, 100),
+    "STEERING" ->(100, 0, 255),
+    "HOLD" ->(0, 100, 255),
+    "ALT_HOLD" ->(255, 100, 100),
+    "CIRCLE" ->(100, 255, 100),
+    "GUIDED" ->(100, 100, 255),
+    "ACRO" ->(255, 255, 0))
 
   /**
    * The color code as an HTML string
@@ -130,6 +131,7 @@ trait HasVehicleType {
    * A human readable name for this type of vehicle (if known...)
    */
   def humanVehicleType = vehicleType.flatMap(LiveOrPlaybackModel.typeNameMap.get(_))
+
   def humanAutopilotType = autopilotType.flatMap(LiveOrPlaybackModel.autopiltNameMap.get(_))
 
   /// Must match ArduCopter or ArduPlane etc... used to find appropriate parameter docs
@@ -153,6 +155,7 @@ trait HasVehicleType {
   }
 
   def isCopter = isCopterOpt.getOrElse(true)
+
   def isRover = vehicleType.map(_ == MAV_TYPE.MAV_TYPE_GROUND_ROVER).getOrElse(false)
 }
 
@@ -192,16 +195,30 @@ trait HasSummaryStats {
   /**
    * duration of flying portion in seconds
    */
-  def flightDuration = (for {
-    s <- startOfFlightTime
-    e <- endOfFlightTime
-  } yield {
-    val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
-    println(s"Calculated flight duration of $r (from $s and $e)")
-    r
-  }).orElse {
-    println("Can't find duration for flight")
-    None
+  def flightDuration = {
+
+    // Assume any flight longer than 12 hrs is bogus
+    val maxFlightTime = 60.0 * 60 * 12
+
+    val d = for {
+      s <- startOfFlightTime
+      e <- endOfFlightTime
+    } yield {
+      val r = TimestampedMessage.usecsToSeconds(e) - TimestampedMessage.usecsToSeconds(s)
+      println(s"Calculated flight duration of $r (from $s and $e)")
+      r
+    }
+
+    if (!d.isDefined) {
+      println("Can't find duration for flight")
+      None
+    }
+    else if (d.get > maxFlightTime) {
+      println("Ignoring insane flight duration")
+      None
+    }
+    else
+      d
   }
 
   /// Update model state based on a message string
@@ -227,13 +244,14 @@ trait HasSummaryStats {
  * This implementation DOES assume it is tlog message based (not dataflash logs)
  */
 trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
+
   import LiveOrPlaybackModel._
 
   var vfrHud: Option[msg_vfr_hud] = None
 
-  private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k) }
-  private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k) }
-  private val roverModeToCodeMap = roverCodeToModeMap.map { case (k, v) => (v, k) }
+  private val planeModeToCodeMap = planeCodeToModeMap.map { case (k, v) => (v, k)}
+  private val copterModeToCodeMap = copterCodeToModeMap.map { case (k, v) => (v, k)}
+  private val roverModeToCodeMap = roverCodeToModeMap.map { case (k, v) => (v, k)}
 
   /**
    * A set of modes that are selectable when the vehicle is flying in simple mode
@@ -290,8 +308,8 @@ trait LiveOrPlaybackModel extends HasVehicleType with HasSummaryStats {
     case msg: msg_vfr_hud =>
       //println(s"Considering vfrhud: $msg")
       vfrHud = Some(msg)
-      maxAirSpeed = math.max(msg.airspeed, maxAirSpeed)
-      maxGroundSpeed = math.max(msg.groundspeed, maxGroundSpeed)
+      maxAirSpeed = MathTools.saneMax(msg.airspeed, maxAirSpeed)
+      maxGroundSpeed = MathTools.saneMax(msg.groundspeed, maxGroundSpeed)
       if (msg.throttle > 0) {
         if (!startOfFlightTime.isDefined) {
           //println(s"Setting start of flight to $currentTime")
